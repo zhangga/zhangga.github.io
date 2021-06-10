@@ -1,7 +1,7 @@
 os: linux
 language: node_js
 node_js: 
-  - stable
+  - 10
 
 # assign build branches
 branches:
@@ -20,11 +20,12 @@ before_install:
   - npm cache clean --force # 清空缓存
   #- npm install -g cnpm --registry=https://registry.npm.taobao.org
   - npm install -g hexo-cli # 安装 hexo
-  - npm install hexo-renderer-scss hexo-renderer-swig --save
+  #- npm install hexo-renderer-scss --save
+  - npm install hexo-renderer-swig --save
   #- git clone https://github.com/ahonn/hexo-theme-even themes/even
   #- cp themes/even/_config.yml.example themes/even/_config.yml
   - git clone https://github.com/iissnan/hexo-theme-next themes/next
-  - cp -r ./next_config.yml themes/next/_config.yml
+  #- cp -r ./next_config.yml themes/next/_config.yml
 
 install:
   - npm install # 安装 package.json 中的插件

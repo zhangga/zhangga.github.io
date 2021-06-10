@@ -1,5 +1,5 @@
 
 node_modules/
-themes/
+#themes/
 public/
 .deploy_git/
