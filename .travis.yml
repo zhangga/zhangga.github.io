@@ -26,7 +26,7 @@ before_install:
   - git clone https://github.com/iissnan/hexo-theme-next themes/next
 
 install:
-  - cnpm install # 安装 package.json 中的插件
+  - npm install # 安装 package.json 中的插件
 
 script:
   - hexo generate
