@@ -13,11 +13,6 @@ cache:
 
 # S: Build Lifecycle
 before_install:
-  - openssl ed25519 -in ./.travis/id_ed25519.enc -out ~/.ssh/id_ed25519 -d
-  - chmod 600 ~/.ssh/id_ed25519
-  - eval $(ssh-agent)
-  - ssh-add ~/.ssh/id_ed25519
-  - cp .travis/ssh_config ~/.ssh/config
   - npm install -g hexo-cli # 安装 hexo
   - npm install hexo-renderer-scss hexo-renderer-swig --save
   - git clone https://github.com/ahonn/hexo-theme-even themes/even
@@ -29,9 +24,13 @@ install:
 script:
   - hexo generate
 
-after_success:
-  - git config --global user.name "zhangga"
-  - git config --global user.email "383523842@qq.com"
-  - sed -i'' "/^ *repo/s~github\.com~${githubToken}@github.com~" _config.yml
-  - hexo deploy
-# E: Build LifeCycle
+deploy:
+  provider: pages
+  skip_cleanup: true # 构建完成后不清除
+  token: $GITHUB_TOKEN # 你刚刚设置的 token
+  keep_history: true # 保存历史
+  fqdn: kwaibook.com # 自定义域名，使用 username.github.io 可删除
+  on:
+    branch: source # hexo 站点源文件所在的 branch
+  local_dir: public 
+  target_branch: master # 存放生成站点文件的 branch，使用 username.github.io 必须是 master
