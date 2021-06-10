@@ -24,6 +24,7 @@ before_install:
   #- git clone https://github.com/ahonn/hexo-theme-even themes/even
   #- cp themes/even/_config.yml.example themes/even/_config.yml
   - git clone https://github.com/iissnan/hexo-theme-next themes/next
+  - cp -r ./next_config.yml themes/next/_config.yml
 
 install:
   - npm install # 安装 package.json 中的插件
