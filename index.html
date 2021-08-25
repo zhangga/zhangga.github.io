@@ -231,125 +231,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/2021/08/25/vlog/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2021/08/25/vlog/" itemprop="url">vlog</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-25T04:35:27+00:00">
-                2021-08-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://kwaibook.com/2021/06/11/roadmap/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -550,8 +431,7 @@
       
         
           
-            <p>搬<a href="http://kwaibook.com/">新家</a>了！</p>
-<p>在用了三年多WordPress后还是决定尝试下使用一些轻量的框架来搭建站点，比如Hexo。<br>放弃WordPress主要出于以下几个方面的考虑吧：</p>
+            <h1 id="搬新家了！"><a href="#搬新家了！" class="headerlink" title="搬新家了！"></a>搬<a href="http://kwaibook.com/">新家</a>了！</h1><p>在用了三年多WordPress后还是决定尝试下使用一些轻量的框架来搭建站点，比如Hexo。<br>放弃WordPress主要出于以下几个方面的考虑吧：</p>
 <ol>
 <li>成本：需要单独的服务器部署。</li>
 <li>效率：功能大而全，便利性方面还是很好的，但是敏捷性方面就稍显欠缺了，而Hexo支持MD语法，大大激活创作效率。</li>
@@ -564,6 +444,151 @@
 <li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000021987832">Travis CI</a></li>
 <li><a target="_blank" rel="noopener" href="https://kchen.cc/2016/11/12/hexo-instructions/">Hexo部署</a></li>
 </ul>
+<h1 id="常用笔记"><a href="#常用笔记" class="headerlink" title="常用笔记"></a>常用笔记</h1><ol>
+<li>新建博文：hexo new post $title</li>
+<li>新建草稿：hexo new draft $title</li>
+<li>文章目录：source_posts</li>
+<li>图片目录：source\images</li>
+<li><a target="_blank" rel="noopener" href="https://typora.io/">https://typora.io/</a> markdown工具</li>
+<li><a target="_blank" rel="noopener" href="https://markdown.com.cn/basic-syntax/links.html">Markdown语法</a></li>
+</ol>
+<h1 id="hexo博客插入图片与视频方法"><a href="#hexo博客插入图片与视频方法" class="headerlink" title="hexo博客插入图片与视频方法"></a>hexo博客插入图片与视频方法</h1><h3 id="图片插入"><a href="#图片插入" class="headerlink" title="图片插入"></a>图片插入</h3><p>Hexo有多种图片插入方式，可以将图片存放在本地引用或者将图片放在CDN上引用。</p>
+<h3 id="本地引用–绝对路径"><a href="#本地引用–绝对路径" class="headerlink" title="本地引用–绝对路径"></a>本地引用–绝对路径</h3><p>当Hexo项目中只用到少量图片时，可以将图片统一放在source/images文件夹中，通过markdown语法访问它们。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">source/images/image.jpg</span><br><span class="line"></span><br><span class="line">![(可以写关于图片的描述)](/images/image.jpg)</span><br></pre></td></tr></table></figure>
+<p>图片既可以在首页内容中访问到，也可以在文章正文中访问到。</p>
+<h3 id="本地引用–相对路径"><a href="#本地引用–相对路径" class="headerlink" title="本地引用–相对路径"></a>本地引用–相对路径</h3><p>图片除了可以放在统一的images文件夹中，还可以放在文章自己的目录中。文章的目录可以通过配置_config.yml来生成。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_config.yml</span><br><span class="line"></span><br><span class="line">post_asset_folder: true</span><br></pre></td></tr></table></figure>
+<p>将_config.yml文件中的配置项post_asset_folder设为true后，执行命令$ hexo new post_name，在source/_posts中会生成<br>文章post_name.md和同名文件夹post_name。将图片资源放在post_name中，文章就可以使用相对路径引用图片资源了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_posts/post_name/image.jpg</span><br><span class="line"></span><br><span class="line">![](image.jpg)</span><br></pre></td></tr></table></figure>
+<p>上述是markdown的引用方式，图片只能在文章中显示，但无法在首页中正常显示。<br>如果希望图片在文章和首页中同时显示，可以使用标签插件语法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_posts/post_name/image.jpg</span><br><span class="line"></span><br><span class="line">&#123;% asset_img image.jpg This is an image %&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="CDN引用"><a href="#CDN引用" class="headerlink" title="CDN引用"></a>CDN引用</h3><p>除了在本地存储图片，还可以将图片上传到一些免费的CDN服务中。</p>
+<p>比如<a target="_blank" rel="noopener" href="https://cloudinary.com/">Cloudinary</a>（梯子访问）提供的图片CDN服务，在Cloudinary中上传图片后，会生成对应的url地址，将地址直接拿来引用即可。或者上传到<a target="_blank" rel="noopener" href="https://imgtu.com/">路过图床</a>（不用梯子）。</p>
+<h3 id="视频插入"><a href="#视频插入" class="headerlink" title="视频插入"></a>视频插入</h3><p>插入视频与图片不同，这里以b站的视频为例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;iframe src=&quot;（视频网址）&quot; scrolling=&quot;no&quot; border=&quot;0&quot; frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; width=&quot;100%&quot;  height=&quot;580&quot; quality=&quot;high&quot; &gt; &lt;/iframe&gt;</span><br></pre></td></tr></table></figure>
+<p>这样直接插入的代码手机端不能自适应，效果不完美。<br><strong>最好这样</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;div style=&quot;position: relative; width: 100%; height: 0; padding-bottom: 75%;&quot;&gt;&lt;iframe </span><br><span class="line">src=&quot;//player.bilibili.com/player.html?aid=39807850&amp;cid=69927212&amp;page=1&quot; scrolling=&quot;no&quot; border=&quot;0&quot; </span><br><span class="line">frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; style=&quot;position: absolute; width: 100%; </span><br><span class="line">height: 100%; left: 0; top: 0;&quot;&gt; &lt;/iframe&gt;&lt;/div&gt;</span><br></pre></td></tr></table></figure>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/2016/10/01/wordpress-build/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/10/01/wordpress-build/" itemprop="url">搭建WordPress个人站点</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-10-01T12:49:39+00:00">
+                2016-10-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <img src="/2016/10/01/wordpress-build/wordpress.png" class="" title="My Website">
+<h2 id="LAMPP-WordPress搭建"><a href="#LAMPP-WordPress搭建" class="headerlink" title="LAMPP+WordPress搭建"></a>LAMPP+WordPress搭建</h2><h3 id="官网：https-wordpress-org"><a href="#官网：https-wordpress-org" class="headerlink" title="官网：https://wordpress.org/"></a>官网：<a target="_blank" rel="noopener" href="https://wordpress.org/">https://wordpress.org/</a></h3><h3 id="中文网：https-cn-wordpress-org"><a href="#中文网：https-cn-wordpress-org" class="headerlink" title="中文网：https://cn.wordpress.org/"></a>中文网：<a target="_blank" rel="noopener" href="https://cn.wordpress.org/">https://cn.wordpress.org/</a></h3><p>下载tar包，解压到lampp/htdocs文件夹下文件夹，修改成自己喜欢的名。<br>访问站点。如：<a target="_blank" rel="noopener" href="http://47.95.10.167/%E7%AB%99%E7%82%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%90%8D">http://47.95.10.167/站点文件夹名</a><br>设置数据库（数据库需要先建库），设置admin等信息。（配置文件存储在站点文件夹/wp-config.php文件）<br>使用域名访问指定博客<br>重定向。在xampp目录下修改文件重定向，我的机器在/opt/lampp/htdocs/目录下。修改index.php如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	if (!empty($_SERVER[&#x27;HTTPS&#x27;]) &amp;&amp; (&#x27;on&#x27; == $_SERVER[&#x27;HTTPS&#x27;])) &#123;</span><br><span class="line">		$uri = &#x27;https://&#x27;;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		$uri = &#x27;http://&#x27;;</span><br><span class="line">	&#125;</span><br><span class="line">	$uri .= $_SERVER[&#x27;HTTP_HOST&#x27;];</span><br><span class="line">	header(&#x27;Location: &#x27;.$uri.&#x27;/blog/&#x27;);</span><br><span class="line">	exit;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
 
           
         
