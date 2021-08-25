@@ -8,7 +8,8 @@ categories:
 	- 笔记
 ---
 
-{% asset_img wordpress.png My Website %}
+[![hZViiq.md.png](https://z3.ax1x.com/2021/08/25/hZViiq.md.png)](https://imgtu.com/i/hZViiq)
+
 ## LAMPP+WordPress搭建
 ### 官网：https://wordpress.org/
 ### 中文网：https://cn.wordpress.org/

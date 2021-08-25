@@ -18,14 +18,15 @@ categories:
 4. 美观：简洁才是王道
 5. 杀鸡用牛刀：在个人站点方面，静态的Hexo完全够了。
 
+<!--more-->
+
 站点搭建完了，现在的方案是，本地编写MD文件，提交Github，Travis自动发布。
 皮肤：[next](http://theme-next.iissnan.com/getting-started.html)
 后续需要的插件陆续添加吧。
 主要参考的文章：
+
 * [Travis CI](https://segmentfault.com/a/1190000021987832)
 * [Hexo部署](https://kchen.cc/2016/11/12/hexo-instructions/)
-
-<!--more-->
 
 # 常用笔记
 1. 新建博文：hexo new post $title
