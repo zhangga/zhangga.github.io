@@ -9,3 +9,9 @@ zhangga.github.io code source
 5. cp themes/even/_config.yml.example themes/even/_config.yml
 6. 初始化环境：npm install
 7. 发布：hexo g -d
+
+## 常用命令
+1. 新建博文：hexo new post $title
+2. 新建草稿：hexo new draft $title
+3. 目录：source\_posts
+4. https://typora.io/ 工具

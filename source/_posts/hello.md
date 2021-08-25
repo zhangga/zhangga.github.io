@@ -5,7 +5,7 @@ tags:
 	- 笔记
 ---
 
-搬[新家](http://kwaibook.com)了！
+# 搬[新家](http://kwaibook.com)了！
 
 在用了三年多WordPress后还是决定尝试下使用一些轻量的框架来搭建站点，比如Hexo。
 放弃WordPress主要出于以下几个方面的考虑吧：
@@ -22,3 +22,60 @@ tags:
 * [Travis CI](https://segmentfault.com/a/1190000021987832)
 * [Hexo部署](https://kchen.cc/2016/11/12/hexo-instructions/)
 
+# 常用笔记
+1. 新建博文：hexo new post $title
+2. 新建草稿：hexo new draft $title
+3. 文章目录：source\_posts
+4. 图片目录：source\images
+5. https://typora.io/ markdown工具
+6. [Markdown语法](https://markdown.com.cn/basic-syntax/links.html)
+
+# hexo博客插入图片与视频方法
+### 图片插入
+Hexo有多种图片插入方式，可以将图片存放在本地引用或者将图片放在CDN上引用。
+### 本地引用–绝对路径
+当Hexo项目中只用到少量图片时，可以将图片统一放在source/images文件夹中，通过markdown语法访问它们。
+```
+source/images/image.jpg
+
+![(可以写关于图片的描述)](/images/image.jpg)
+```
+图片既可以在首页内容中访问到，也可以在文章正文中访问到。
+### 本地引用–相对路径
+图片除了可以放在统一的images文件夹中，还可以放在文章自己的目录中。文章的目录可以通过配置_config.yml来生成。
+```
+_config.yml
+
+post_asset_folder: true
+```
+将_config.yml文件中的配置项post_asset_folder设为true后，执行命令$ hexo new post_name，在source/_posts中会生成
+文章post_name.md和同名文件夹post_name。将图片资源放在post_name中，文章就可以使用相对路径引用图片资源了。
+```
+_posts/post_name/image.jpg
+
+![](image.jpg)
+```
+上述是markdown的引用方式，图片只能在文章中显示，但无法在首页中正常显示。  
+如果希望图片在文章和首页中同时显示，可以使用标签插件语法。
+```
+_posts/post_name/image.jpg
+
+{% asset_img image.jpg This is an image %}
+```
+### CDN引用
+除了在本地存储图片，还可以将图片上传到一些免费的CDN服务中。
+
+比如[Cloudinary](https://cloudinary.com/)（梯子访问）提供的图片CDN服务，在Cloudinary中上传图片后，会生成对应的url地址，将地址直接拿来引用即可。或者上传到[路过图床](https://imgtu.com/)（不用梯子）。
+### 视频插入
+插入视频与图片不同，这里以b站的视频为例
+```
+<iframe src="（视频网址）" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%"  height="580" quality="high" > </iframe>
+```
+这样直接插入的代码手机端不能自适应，效果不完美。
+**最好这样**
+```
+<div style="position: relative; width: 100%; height: 0; padding-bottom: 75%;"><iframe 
+src="//player.bilibili.com/player.html?aid=39807850&cid=69927212&page=1" scrolling="no" border="0" 
+frameborder="no" framespacing="0" allowfullscreen="true" style="position: absolute; width: 100%; 
+height: 100%; left: 0; top: 0;"> </iframe></div>
+```
