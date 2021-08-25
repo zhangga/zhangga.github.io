@@ -3,6 +3,9 @@ title: WordPress迁移Hexo
 date: 2021-06-10 23:50:05
 tags: 
 	- 笔记
+id: hello
+categories:
+	- 笔记
 ---
 
 # 搬[新家](http://kwaibook.com)了！
@@ -22,6 +25,8 @@ tags:
 * [Travis CI](https://segmentfault.com/a/1190000021987832)
 * [Hexo部署](https://kchen.cc/2016/11/12/hexo-instructions/)
 
+<!--more-->
+
 # 常用笔记
 1. 新建博文：hexo new post $title
 2. 新建草稿：hexo new draft $title
@@ -29,6 +34,8 @@ tags:
 4. 图片目录：source\images
 5. https://typora.io/ markdown工具
 6. [Markdown语法](https://markdown.com.cn/basic-syntax/links.html)
+7. [参考链接](http://blog.smallerpig.com/set-hexo-show-more-button-on-indexpage.html)
+9. [参考链接](https://tohugo.com/2021/01/26/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/Hexo%E6%B7%BB%E5%8A%A0%E5%88%86%E7%B1%BB%E5%8F%8A%E6%A0%87%E7%AD%BE%EF%BC%88%E5%9C%A8Next%E4%B8%BB%E9%A2%98%E4%B8%8B%EF%BC%89/)
 
 # hexo博客插入图片与视频方法
 ### 图片插入
@@ -64,8 +71,9 @@ _posts/post_name/image.jpg
 ```
 ### CDN引用
 除了在本地存储图片，还可以将图片上传到一些免费的CDN服务中。
-
 比如[Cloudinary](https://cloudinary.com/)（梯子访问）提供的图片CDN服务，在Cloudinary中上传图片后，会生成对应的url地址，将地址直接拿来引用即可。或者上传到[路过图床](https://imgtu.com/)（不用梯子）。
+下面是路过图床上传的图片，引用格式从路过图床复制过来即可。
+[![hVCDOI.png](https://z3.ax1x.com/2021/08/25/hVCDOI.png)](https://imgtu.com/i/hVCDOI)
 ### 视频插入
 插入视频与图片不同，这里以b站的视频为例
 ```

@@ -3,12 +3,17 @@ title: 搭建WordPress个人站点
 date: 2016-10-01 12:49:39
 tags: 
 	- 笔记
+id: wordpress-build
+categories:
+	- 笔记
 ---
 
 {% asset_img wordpress.png My Website %}
 ## LAMPP+WordPress搭建
 ### 官网：https://wordpress.org/
 ### 中文网：https://cn.wordpress.org/
+
+<!--more-->
 
 下载tar包，解压到lampp/htdocs文件夹下文件夹，修改成自己喜欢的名。  
 访问站点。如：http://47.95.10.167/站点文件夹名  
