@@ -82,15 +82,17 @@
 <meta name="description" content="搬新家了！在用了三年多WordPress后还是决定尝试下使用一些轻量的框架来搭建站点，比如Hexo。放弃WordPress主要出于以下几个方面的考虑吧：  成本：需要单独的服务器部署。 效率：功能大而全，便利性方面还是很好的，但是敏捷性方面就稍显欠缺了，而Hexo支持MD语法，大大激活创作效率。 性能：网页加载图片的速度较慢。 美观：简洁才是王道 杀鸡用牛刀：在个人站点方面，静态的Hexo完全够了">
 <meta property="og:type" content="article">
 <meta property="og:title" content="WordPress迁移Hexo">
-<meta property="og:url" content="http://kwaibook.com/2021/06/10/hello/index.html">
+<meta property="og:url" content="http://kwaibook.com/hello/index.html">
 <meta property="og:site_name" content="张嘎">
 <meta property="og:description" content="搬新家了！在用了三年多WordPress后还是决定尝试下使用一些轻量的框架来搭建站点，比如Hexo。放弃WordPress主要出于以下几个方面的考虑吧：  成本：需要单独的服务器部署。 效率：功能大而全，便利性方面还是很好的，但是敏捷性方面就稍显欠缺了，而Hexo支持MD语法，大大激活创作效率。 性能：网页加载图片的速度较慢。 美观：简洁才是王道 杀鸡用牛刀：在个人站点方面，静态的Hexo完全够了">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://z3.ax1x.com/2021/08/25/hVCDOI.png">
 <meta property="article:published_time" content="2021-06-10T23:50:05.000Z">
-<meta property="article:modified_time" content="2021-08-25T05:25:37.416Z">
+<meta property="article:modified_time" content="2021-08-25T09:07:12.476Z">
 <meta property="article:author" content="Zhang Ga">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z3.ax1x.com/2021/08/25/hVCDOI.png">
 
 
 
@@ -120,7 +122,7 @@
 
 
 
-  <link rel="canonical" href="http://kwaibook.com/2021/06/10/hello/"/>
+  <link rel="canonical" href="http://kwaibook.com/hello/"/>
 
 
 
@@ -191,6 +193,26 @@
         </li>
       
         
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
         <li class="menu-item menu-item-archives">
           <a href="/archives/%20" rel="section">
             
@@ -233,7 +255,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/2021/06/10/hello/">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/hello/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -273,6 +295,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -281,8 +325,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/06/10/hello/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count gitment-comments-count" data-xid="/2021/06/10/hello/" itemprop="commentsCount"></span>
+                <a href="/hello/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/hello/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -318,6 +362,8 @@
 <li>美观：简洁才是王道</li>
 <li>杀鸡用牛刀：在个人站点方面，静态的Hexo完全够了。</li>
 </ol>
+<span id="more"></span>
+
 <p>站点搭建完了，现在的方案是，本地编写MD文件，提交Github，Travis自动发布。<br>皮肤：<a target="_blank" rel="noopener" href="http://theme-next.iissnan.com/getting-started.html">next</a><br>后续需要的插件陆续添加吧。<br>主要参考的文章：</p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000021987832">Travis CI</a></li>
@@ -330,6 +376,8 @@
 <li>图片目录：source\images</li>
 <li><a target="_blank" rel="noopener" href="https://typora.io/">https://typora.io/</a> markdown工具</li>
 <li><a target="_blank" rel="noopener" href="https://markdown.com.cn/basic-syntax/links.html">Markdown语法</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.smallerpig.com/set-hexo-show-more-button-on-indexpage.html">参考链接</a></li>
+<li><a target="_blank" rel="noopener" href="https://tohugo.com/2021/01/26/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/Hexo%E6%B7%BB%E5%8A%A0%E5%88%86%E7%B1%BB%E5%8F%8A%E6%A0%87%E7%AD%BE%EF%BC%88%E5%9C%A8Next%E4%B8%BB%E9%A2%98%E4%B8%8B%EF%BC%89/">参考链接</a></li>
 </ol>
 <h1 id="hexo博客插入图片与视频方法"><a href="#hexo博客插入图片与视频方法" class="headerlink" title="hexo博客插入图片与视频方法"></a>hexo博客插入图片与视频方法</h1><h3 id="图片插入"><a href="#图片插入" class="headerlink" title="图片插入"></a>图片插入</h3><p>Hexo有多种图片插入方式，可以将图片存放在本地引用或者将图片放在CDN上引用。</p>
 <h3 id="本地引用–绝对路径"><a href="#本地引用–绝对路径" class="headerlink" title="本地引用–绝对路径"></a>本地引用–绝对路径</h3><p>当Hexo项目中只用到少量图片时，可以将图片统一放在source/images文件夹中，通过markdown语法访问它们。</p>
@@ -341,8 +389,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_posts/post_name/image.jpg</span><br><span class="line"></span><br><span class="line">![](image.jpg)</span><br></pre></td></tr></table></figure>
 <p>上述是markdown的引用方式，图片只能在文章中显示，但无法在首页中正常显示。<br>如果希望图片在文章和首页中同时显示，可以使用标签插件语法。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_posts/post_name/image.jpg</span><br><span class="line"></span><br><span class="line">&#123;% asset_img image.jpg This is an image %&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="CDN引用"><a href="#CDN引用" class="headerlink" title="CDN引用"></a>CDN引用</h3><p>除了在本地存储图片，还可以将图片上传到一些免费的CDN服务中。</p>
-<p>比如<a target="_blank" rel="noopener" href="https://cloudinary.com/">Cloudinary</a>（梯子访问）提供的图片CDN服务，在Cloudinary中上传图片后，会生成对应的url地址，将地址直接拿来引用即可。或者上传到<a target="_blank" rel="noopener" href="https://imgtu.com/">路过图床</a>（不用梯子）。</p>
+<h3 id="CDN引用"><a href="#CDN引用" class="headerlink" title="CDN引用"></a>CDN引用</h3><p>除了在本地存储图片，还可以将图片上传到一些免费的CDN服务中。<br>比如<a target="_blank" rel="noopener" href="https://cloudinary.com/">Cloudinary</a>（梯子访问）提供的图片CDN服务，在Cloudinary中上传图片后，会生成对应的url地址，将地址直接拿来引用即可。或者上传到<a target="_blank" rel="noopener" href="https://imgtu.com/">路过图床</a>（不用梯子）。<br>下面是路过图床上传的图片，引用格式从路过图床复制过来即可。<br><a target="_blank" rel="noopener" href="https://imgtu.com/i/hVCDOI"><img src="https://z3.ax1x.com/2021/08/25/hVCDOI.png" alt="hVCDOI.png"></a></p>
 <h3 id="视频插入"><a href="#视频插入" class="headerlink" title="视频插入"></a>视频插入</h3><p>插入视频与图片不同，这里以b站的视频为例</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;iframe src=&quot;（视频网址）&quot; scrolling=&quot;no&quot; border=&quot;0&quot; frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; width=&quot;100%&quot;  height=&quot;580&quot; quality=&quot;high&quot; &gt; &lt;/iframe&gt;</span><br></pre></td></tr></table></figure>
 <p>这样直接插入的代码手机端不能自适应，效果不完美。<br><strong>最好这样</strong></p>
@@ -376,7 +423,7 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/10/01/wordpress-build/" rel="next" title="搭建WordPress个人站点">
+              <a href="/wordpress-build/" rel="next" title="搭建WordPress个人站点">
                 <i class="fa fa-chevron-left"></i> 搭建WordPress个人站点
               </a>
             
@@ -386,7 +433,7 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/06/11/roadmap/" rel="prev" title="RoadMap">
+              <a href="/roadmap/" rel="prev" title="RoadMap">
                 RoadMap <i class="fa fa-chevron-right"></i>
               </a>
             
@@ -479,15 +526,24 @@
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
 
             
               
               
               <div class="site-state-item site-state-tags">
-                
+                <a href="/tags/index.html">
                   <span class="site-state-item-count">1</span>
                   <span class="site-state-item-name">tags</span>
-                
+                </a>
               </div>
             
 
