@@ -37,6 +37,7 @@ categories:
 6. [Markdown语法](https://markdown.com.cn/basic-syntax/links.html)
 7. [参考链接](http://blog.smallerpig.com/set-hexo-show-more-button-on-indexpage.html)
 9. [参考链接](https://tohugo.com/2021/01/26/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/Hexo%E6%B7%BB%E5%8A%A0%E5%88%86%E7%B1%BB%E5%8F%8A%E6%A0%87%E7%AD%BE%EF%BC%88%E5%9C%A8Next%E4%B8%BB%E9%A2%98%E4%B8%8B%EF%BC%89/)
+9. [met皮肤](https://huyongfei.com/posts/2324b80c.html)
 
 # hexo博客插入图片与视频方法
 ### 图片插入
