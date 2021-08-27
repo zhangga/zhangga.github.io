@@ -498,6 +498,98 @@
       </tags>
   </entry>
   <entry>
+    <title>阿里云转战腾讯云-全纪录</title>
+    <url>/ali2tx/</url>
+    <content><![CDATA[<h1 id="机器迁移全记录。"><a href="#机器迁移全记录。" class="headerlink" title="机器迁移全记录。"></a>机器迁移全记录。</h1><p><a href="https://imgtu.com/i/hMnUVP"><img src="https://z3.ax1x.com/2021/08/27/hMnUVP.md.png" alt="hMnUVP.md.png"></a></p>
+<span id="more"></span>
+
+<h3 id="1-JDK"><a href="#1-JDK" class="headerlink" title="1.JDK"></a>1.JDK</h3><p>/usr/local/java/下，放jdk11和jdk1.8。default软连接到jdk11。</p>
+<p>/etc/profile 文件加入环境变量指向default。执行source /etc/profile</p>
+<h3 id="2-maven"><a href="#2-maven" class="headerlink" title="2.maven"></a>2.maven</h3><p>/usr/local/mvn/下，放maven解压包，加入环境变量。</p>
+<h3 id="3-cmake"><a href="#3-cmake" class="headerlink" title="3.cmake"></a>3.cmake</h3><p>/opt下放cmake的解压包，加入环境变量。</p>
+<h3 id="4-xampp"><a href="#4-xampp" class="headerlink" title="4.xampp"></a>4.xampp</h3><p>/opt下放xampp的安装文件，xampp-xxx.run文件。</p>
+<p>chmod -R 755 xampp-linux-xxx-installer.run 添加执行权限。</p>
+<p>./xampp-linux-xxx-installer.run 执行安装。</p>
+<p>安装的过程就不多说了，也不用设置什么，无非就是问你时候确定一些选项，出现提问，直接按 回车 下去即可。xampp默认安装在/opt/lampp下</p>
+<p>安装完毕之后，并没有运行，我们需要手动启动xampp服务，也就是启动apache，ftp和mysql这些服务器。使用命令</p>
+<p>/opt/lampp/lampp start</p>
+<p>此时，lampp组件就成功启动了，但它并不是每次随系统启动<br>输入以下命令<br>ln -s /opt/lampp/lampp /etc/rc.d/rc3.d/S99lampp<br>ln -s /opt/lampp/lampp /etc/rc.d/rc4.d/S99lampp<br>ln -s /opt/lampp/lampp /etc/rc.d/rc5.d/S99lampp</p>
+<p>这样，就随系统启动了！</p>
+<p>环境安装完了，但是MySQL的密码是多少，ftp的账号密码也是多少？我们不知道，这个默认为空，还需要我们自己设置。【要先在文本上面写好先在复制安全点，不然密码设置成什么自己都不记得了】输入命令</p>
+<p>sudo /opt/lampp/lampp security</p>
+<p>如图所示:他会依次要求你</p>
+<p>1、先输入xampp控制面板的密码（用户名是xampp）；</p>
+<p>2、输入phpmyadmin的密码（用户名是pma）</p>
+<p>3、输入mysql的密码（用户名是root）</p>
+<p>4、输入ftp密码（用户名是daemon，默认端口21）</p>
+<p>9、在浏览器输入服务器的ip访问看一下成功了没有？</p>
+<p>由于服务器设置了xampp不允许远程访问，所以远程不能访问需要修改conf文件</p>
+<p>vi /opt/lampp/etc/extra/httpd-xampp.conf</p>
+<p>将  Require local 改成 Require all granted</p>
+<p>/opt/lampp/lampp restart 重启xampp</p>
+<p>到此xampp安装完成</p>
+<p>mysql指令无法执行，简单的方法是可以直接将/opt/lampp/bin/目录添加到环境变量中，这样就可以直接使用mysql和mysqldump命令了。</p>
+<p>打开 ~/.bashrc 文件<br>在最后一行加入<br># PATH<br>export PATH=/opt/lampp/bin:$PATH<br>保存退出执行该文件中的命令<br>source ~/.bashrc</p>
+<p>修改/opt/lampp/etc/my.cnf 配置文件，开放3306端口。可能需要重启服务器，注意查看下mysql是否启动在33066端口上。</p>
+<h3 id="4-迁移wordpress。"><a href="#4-迁移wordpress。" class="headerlink" title="4.迁移wordpress。"></a>4.迁移wordpress。</h3><h3 id="5-redis迁移。"><a href="#5-redis迁移。" class="headerlink" title="5.redis迁移。"></a>5.redis迁移。</h3><h3 id="6-server和htdocs迁移。"><a href="#6-server和htdocs迁移。" class="headerlink" title="6.server和htdocs迁移。"></a>6.server和htdocs迁移。</h3><h2 id="7-maven私有仓库和SVN。"><a href="#7-maven私有仓库和SVN。" class="headerlink" title="7.maven私有仓库和SVN。"></a>7.maven私有仓库和SVN。</h2><p>8.nginx安装<a href="https://www.cnblogs.com/wyd168/p/6636529.html">https://www.cnblogs.com/wyd168/p/6636529.html</a></p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>游戏笔记，杂项</title>
+    <url>/gamenote0/</url>
+    <content><![CDATA[<ul>
+<li><p>圆形内随机，随机半径，再随机角度，出现的结果达不到均匀散落的效果，因为圆内半径小，靠近圆心的面积小，远离圆心的面积大，造成虽然内外随机相同数量，但是视觉上感受外面数量很少。</p>
+</li>
+<li><p> 解决办法：</p>
+</li>
+</ul>
+<ol>
+<li>在圆的外切矩形内随机，如果随机到圆外，继续随机，直到随机到圆内。</li>
+<li> 使用开方函数，具体：先在[0,1]内随机，然后开方，然后乘以半径，再随机角度，这样角度和半径确定随机的点为位置。</li>
+<li> 使用正弦函数。同上：先在[0,PI/2]内随机，然后求正弦值，然后乘以半径，确定半径，再确定角度。 </li>
+</ol>
+<ul>
+<li>框架改进，周边工具的自动化和友好度提高，从继承层次改为模块化，模块化进一步懒加载，load和init完全分离，互不影响。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>地理位置信息GeoHash算法及Google S2算法</title>
+    <url>/geohash/</url>
+    <content><![CDATA[<p>最近在持续优化服务器3D场景建模的方案，受Redis的GEO启发，现在有一个空间和时间上都比较理想的方案，等实际测试和实现之后再整理完整文档。</p>
+<p><a href="https://imgtu.com/i/hMnZuR"><img src="https://z3.ax1x.com/2021/08/27/hMnZuR.md.png" alt="hMnZuR.md.png"></a></p>
+<p>先给出两篇不错的算法文章。</p>
+<p>非常详细的算法分析：</p>
+<p><a href="https://halfrost.com/go_spatial_search/">https://halfrost.com/go_spatial_search/</a></p>
+<p><a href="https://www.cnblogs.com/LBSer/p/3310455.html">https://www.cnblogs.com/LBSer/p/3310455.html</a></p>
+<p>Redis GEO使用：</p>
+<p><a href="https://www.jianshu.com/p/c9801c4f9f6a">https://www.jianshu.com/p/c9801c4f9f6a</a></p>
+<p>寻路算法：</p>
+<p><a href="http://gad.qq.com/article/detail/33637">http://gad.qq.com/article/detail/33637</a></p>
+<p><a href="https://zerowidth.com/2013/05/05/jump-point-search-explained.html">https://zerowidth.com/2013/05/05/jump-point-search-explained.html</a></p>
+<p><a href="http://qiao.github.io/PathFinding.js/visual/">http://qiao.github.io/PathFinding.js/visual/</a></p>
+<p><a href="http://blog.sina.com.cn/s/blog_4a5c75d40102wo5l.html">http://blog.sina.com.cn/s/blog_4a5c75d40102wo5l.html</a></p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>JAVA游戏服务器热更</title>
     <url>/java-hot/</url>
     <content><![CDATA[<p>具体工程详见github:</p>
@@ -521,6 +613,8 @@
     <content><![CDATA[<h1 id="一、使用jstatd"><a href="#一、使用jstatd" class="headerlink" title="一、使用jstatd"></a>一、使用jstatd</h1><p>linux下使用 hostname -i  查看hostname对应的IP</p>
 <p>确保远程连接使用的ip在列表里，不在的话jvisualvm无法使用ip远程连接。</p>
 <p>不在的话vi /etc/hosts  在里面加入。</p>
+<span id="more"></span>
+
 <p>进入jdk的bin目录下：/usr/java/jdk1.8/bin/</p>
 <p>新建文件jstatd.all.policy</p>
 <p>写入内容：</p>
@@ -808,6 +902,8 @@
 <p>添加：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;localRepository&gt;D:\Maven\Repository&lt;/localRepository&gt;</span><br></pre></td></tr></table></figure>
 
+<span id="more"></span>
+
 <p>在mirrors下添加阿里云远程镜像，速度贼快：</p>
 <p>&lt;!– 阿里云仓库 –&gt;<br><mirror><br><id>alimaven</id><br><mirrorOf>central</mirrorOf><br><name>aliyun maven</name><br><url><a href="http://maven.aliyun.com/nexus/content/repositories/central/">http://maven.aliyun.com/nexus/content/repositories/central/</a></url><br></mirror></p>
 <mirror>
@@ -835,13 +931,12 @@
 <h2 id="idea建立maven"><a href="#idea建立maven" class="headerlink" title="idea建立maven"></a>idea建立maven</h2><p>在settings里面：</p>
 <p><img src="https://img-blog.csdn.net/20170818231853882?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHV5YW9xaWFveWFvZ2U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="IDEA+MAVEN+GIT项目管理 - 第1张  | 张嘎"></p>
 <h2 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h2><p>git下载地址 ：<a href="https://gitforwindows.org/">https://gitforwindows.org/</a><br>安装完成后，在开始菜单里找到“Git”-&gt;“Git Bash”，蹦出一个类似命令行窗口的东西，就说明Git安装成功！<br>安装完成后，还需要最后一步设置，在命令行输入：</p>
-<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#x65;&#x6d;&#x61;&#105;&#108;&#64;&#101;&#120;&#x61;&#x6d;&#112;&#x6c;&#101;&#46;&#99;&#x6f;&#x6d;">&#x65;&#x6d;&#x61;&#105;&#108;&#64;&#101;&#120;&#x61;&#x6d;&#112;&#x6c;&#101;&#46;&#99;&#x6f;&#x6d;</a>”</p>
+<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#101;&#109;&#x61;&#105;&#108;&#64;&#x65;&#x78;&#x61;&#109;&#x70;&#108;&#101;&#46;&#x63;&#111;&#x6d;">&#101;&#109;&#x61;&#105;&#108;&#64;&#x65;&#x78;&#x61;&#109;&#x70;&#108;&#101;&#46;&#x63;&#111;&#x6d;</a>”</p>
 <p>具体过程请参见：<br><a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/00137396287703354d8c6c01c904c7d9ff056ae23da865a000">廖雪峰Git安装</a></p>
-<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#121;&#x6f;&#x75;&#114;&#x2e;&#x65;&#109;&#x61;&#105;&#108;&#x40;&#101;&#x78;&#97;&#x6d;&#112;&#x6c;&#101;&#x2e;&#99;&#111;&#109;">&#121;&#x6f;&#x75;&#114;&#x2e;&#x65;&#109;&#x61;&#105;&#108;&#x40;&#101;&#x78;&#97;&#x6d;&#112;&#x6c;&#101;&#x2e;&#99;&#111;&#109;</a>” -b 4096</p>
+<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#121;&#x6f;&#117;&#114;&#x2e;&#101;&#x6d;&#97;&#105;&#108;&#x40;&#x65;&#x78;&#97;&#x6d;&#112;&#108;&#x65;&#x2e;&#x63;&#111;&#x6d;">&#121;&#x6f;&#117;&#114;&#x2e;&#101;&#x6d;&#97;&#105;&#108;&#x40;&#x65;&#x78;&#97;&#x6d;&#112;&#108;&#x65;&#x2e;&#x63;&#111;&#x6d;</a>” -b 4096</p>
 <p>会在本地用户目录下的.ssh文件夹下生成id_rsa和id_rsa.pub文件，</p>
 <p>将id_rsa.pub公钥文件加入到远程git/Setttings/SSH Keys里面。</p>
 <p>右键菜单“Git GUI”</p>
-<p><img src="https://i2.wp.com/47.95.10.167/zzq/wp-content/uploads/2018/11/111.png?w=640" alt="IDEA+MAVEN+GIT项目管理 - 第2张  | 张嘎"></p>
 <h2 id="码云"><a href="#码云" class="headerlink" title="码云"></a>码云</h2><p>码云是目前国内比较好的代码托管平台。<br>码云官方教程如下：<br><a href="http://git.mydoc.io/?t=153739">码云教程</a><br>安装好插件后可以将之前建立的项目托管到码云上。</p>
 ]]></content>
       <categories>

@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="笔记," />
 
 
 
@@ -79,16 +79,20 @@
 
 
 
-<meta name="description" content="游戏技术博客">
-<meta property="og:type" content="website">
-<meta property="og:title" content="张嘎">
-<meta property="og:url" content="http://kwaibook.com/tags/%E7%AC%94%E8%AE%B0/index.html">
+<meta name="description" content="最近在持续优化服务器3D场景建模的方案，受Redis的GEO启发，现在有一个空间和时间上都比较理想的方案，等实际测试和实现之后再整理完整文档。  先给出两篇不错的算法文章。 非常详细的算法分析： https:&#x2F;&#x2F;halfrost.com&#x2F;go_spatial_search&#x2F; https:&#x2F;&#x2F;www.cnblogs.com&#x2F;LBSer&#x2F;p&#x2F;3310455.html Redis GEO使用： http">
+<meta property="og:type" content="article">
+<meta property="og:title" content="地理位置信息GeoHash算法及Google S2算法">
+<meta property="og:url" content="http://kwaibook.com/geohash/index.html">
 <meta property="og:site_name" content="张嘎">
-<meta property="og:description" content="游戏技术博客">
+<meta property="og:description" content="最近在持续优化服务器3D场景建模的方案，受Redis的GEO启发，现在有一个空间和时间上都比较理想的方案，等实际测试和实现之后再整理完整文档。  先给出两篇不错的算法文章。 非常详细的算法分析： https:&#x2F;&#x2F;halfrost.com&#x2F;go_spatial_search&#x2F; https:&#x2F;&#x2F;www.cnblogs.com&#x2F;LBSer&#x2F;p&#x2F;3310455.html Redis GEO使用： http">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://z3.ax1x.com/2021/08/27/hMnZuR.md.png">
+<meta property="article:published_time" content="2018-08-17T03:59:48.000Z">
+<meta property="article:modified_time" content="2021-08-27T04:09:02.163Z">
 <meta property="article:author" content="Zhang Ga">
-<meta property="article:tag" content="游戏">
+<meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z3.ax1x.com/2021/08/27/hMnZuR.md.png">
 
 
 
@@ -118,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="http://kwaibook.com/tags/笔记/"/>
+  <link rel="canonical" href="http://kwaibook.com/geohash/"/>
 
 
 
 
 
-  <title>Tag: 笔记 | 张嘎</title>
+  <title>地理位置信息GeoHash算法及Google S2算法 | 张嘎</title>
   
 
 
@@ -143,7 +147,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -271,310 +275,195 @@
           <div id="content" class="content">
             
 
+  <div id="posts" class="posts-expand">
+    
+
+  
+
   
   
   
-  <div class="post-block tag">
-
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>笔记<small>Tag</small>
-        </h1>
-      </div>
-
-      
-        
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/geohash/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/roadmap/" itemprop="url">
-              
-                <span itemprop="name">RoadMap</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">地理位置信息GeoHash算法及Google S2算法</h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2021-06-11T00:15:42+08:00"
-              content="2021-06-11" >
-          06-11
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-17T03:59:48+00:00">
+                2018-08-17
+              </time>
+            
 
-    </header>
-  </article>
+            
 
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/geohash/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/geohash/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/hello/" itemprop="url">
-              
-                <span itemprop="name">WordPress迁移Hexo</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2021-06-10T23:50:05+08:00"
-              content="2021-06-10" >
-          06-10
-        </time>
-      </div>
-
-    </header>
-  </article>
-
+      
 
       
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/limiter/" itemprop="url">
-              
-                <span itemprop="name">服务流控方案总结</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2020-12-26T14:09:12+08:00"
-              content="2020-12-26" >
-          12-26
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/ali2tx/" itemprop="url">
-              
-                <span itemprop="name">阿里云转战腾讯云-全纪录</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-10-01T12:06:11+08:00"
-              content="2018-10-01" >
-          10-01
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/geohash/" itemprop="url">
-              
-                <span itemprop="name">地理位置信息GeoHash算法及Google S2算法</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-08-17T11:59:48+08:00"
-              content="2018-08-17" >
-          08-17
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/gamenote0/" itemprop="url">
-              
-                <span itemprop="name">游戏笔记，杂项</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-08-14T11:54:04+08:00"
-              content="2018-08-14" >
-          08-14
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/java-hot/" itemprop="url">
-              
-                <span itemprop="name">JAVA游戏服务器热更</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-08-07T10:56:02+08:00"
-              content="2018-08-07" >
-          08-07
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/mvn-git/" itemprop="url">
-              
-                <span itemprop="name">IDEA+MAVEN+GIT项目管理</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-08-04T10:53:23+08:00"
-              content="2018-08-04" >
-          08-04
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/jvm-remote/" itemprop="url">
-              
-                <span itemprop="name">JVisualVM远程调试</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-08-01T10:51:44+08:00"
-              content="2018-08-01" >
-          08-01
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/weex-dev1/" itemprop="url">
-              
-                <span itemprop="name">Weex开发</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-07-26T20:43:18+08:00"
-              content="2018-07-26" >
-          07-26
-        </time>
-      </div>
-
-    </header>
-  </article>
-
+        <p>最近在持续优化服务器3D场景建模的方案，受Redis的GEO启发，现在有一个空间和时间上都比较理想的方案，等实际测试和实现之后再整理完整文档。</p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hMnZuR"><img src="https://z3.ax1x.com/2021/08/27/hMnZuR.md.png" alt="hMnZuR.md.png"></a></p>
+<p>先给出两篇不错的算法文章。</p>
+<p>非常详细的算法分析：</p>
+<p><a target="_blank" rel="noopener" href="https://halfrost.com/go_spatial_search/">https://halfrost.com/go_spatial_search/</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/LBSer/p/3310455.html">https://www.cnblogs.com/LBSer/p/3310455.html</a></p>
+<p>Redis GEO使用：</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/c9801c4f9f6a">https://www.jianshu.com/p/c9801c4f9f6a</a></p>
+<p>寻路算法：</p>
+<p><a target="_blank" rel="noopener" href="http://gad.qq.com/article/detail/33637">http://gad.qq.com/article/detail/33637</a></p>
+<p><a target="_blank" rel="noopener" href="https://zerowidth.com/2013/05/05/jump-point-search-explained.html">https://zerowidth.com/2013/05/05/jump-point-search-explained.html</a></p>
+<p><a target="_blank" rel="noopener" href="http://qiao.github.io/PathFinding.js/visual/">http://qiao.github.io/PathFinding.js/visual/</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_4a5c75d40102wo5l.html">http://blog.sina.com.cn/s/blog_4a5c75d40102wo5l.html</a></p>
 
       
     </div>
+    
+    
+    
 
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/gamenote0/" rel="next" title="游戏笔记，杂项">
+                <i class="fa fa-chevron-left"></i> 游戏笔记，杂项
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/ali2tx/" rel="prev" title="阿里云转战腾讯云-全纪录">
+                阿里云转战腾讯云-全纪录 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/tags/%E7%AC%94%E8%AE%B0/page/2/">2</a><a class="extend next" rel="next" href="/tags/%E7%AC%94%E8%AE%B0/page/2/">&gt;</a>
-  </nav>
 
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -582,6 +471,17 @@
 
 
           
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
 
         </div>
         
@@ -800,6 +700,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
@@ -846,6 +750,30 @@
 
     
 
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname, 
+            owner: 'zhanga',
+            repo: 'gitment-comments',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: 'e66cfd435bb60cab32c9aa9901068a8f7712daf5',
+            
+                client_id: 'Iv1.08dfdfc601d9e481'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
     
 
 
