@@ -16,6 +16,8 @@ linux下使用 hostname -i  查看hostname对应的IP
 
 不在的话vi /etc/hosts  在里面加入。
 
+<!--more-->
+
 进入jdk的bin目录下：/usr/java/jdk1.8/bin/
 
 新建文件jstatd.all.policy

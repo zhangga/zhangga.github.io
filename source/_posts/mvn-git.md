@@ -24,6 +24,8 @@ categories:
 <localRepository>D:\Maven\Repository</localRepository>
 ```
 
+<!--more-->
+
 在mirrors下添加阿里云远程镜像，速度贼快：
 
 <!– 阿里云仓库 –>
@@ -89,8 +91,6 @@ $ git config –global user.email “email@example.com”
 将id_rsa.pub公钥文件加入到远程git/Setttings/SSH Keys里面。
 
 右键菜单“Git GUI”
-
-![IDEA+MAVEN+GIT项目管理 - 第2张  | 张嘎](https://i2.wp.com/47.95.10.167/zzq/wp-content/uploads/2018/11/111.png?w=640)
 
 ## 码云
 
