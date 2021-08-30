@@ -381,9 +381,9 @@
           
             <p>在一次聚餐之后，晚上睡觉前突然灵感爆棚想到的实现方案。</p>
 <p>下面是在项目内部分享的PPT，具体代码实现在github：<a target="_blank" rel="noopener" href="https://github.com/zhangga/JAVAZSet">https://github.com/zhangga/JAVAZSet</a></p>
-<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/21-1024x579.png?resize=640,362" alt="沙盒游戏3D场景建模 - 第1张  | 张嘎"></p>
-<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/22-1-1024x574.png?resize=640,359" alt="沙盒游戏3D场景建模 - 第2张  | 张嘎"></p>
-<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/23-1-1024x590.png?resize=640,369" alt="沙盒游戏3D场景建模 - 第3张  | 张嘎"></p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNUOo9"><img src="https://z3.ax1x.com/2021/08/30/hNUOo9.md.png" alt="hNUOo9.md.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNULdJ"><img src="https://z3.ax1x.com/2021/08/30/hNULdJ.md.png" alt="hNULdJ.md.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNUjiR"><img src="https://z3.ax1x.com/2021/08/30/hNUjiR.md.png" alt="hNUjiR.md.png"></a></p>
 <h2 id="实际碰到的一点问题："><a href="#实际碰到的一点问题：" class="headerlink" title="实际碰到的一点问题："></a>实际碰到的一点问题：</h2><p>1.把9张1024*1024的navmesh合一张的时候，原生的recast是用32位分配空间，其中14位分配给tile，所以tile有上限的考虑。</p>
 <p>现在把recast改为用64位表示，需要宏定义。在DetourNavMesh.h中定义 #define DT_POLYREF64 1</p>
 <p>这样tile就有28位了，不太存在超过上限的可能了。</p>
