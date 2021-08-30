@@ -643,6 +643,8 @@
 <h3 id="一-流控的场景"><a href="#一-流控的场景" class="headerlink" title="一 流控的场景"></a>一 流控的场景</h3><p>流控的意义其实无需多言了。最常用的场景下，流控是为了保护下游有限的资源不被流量冲垮，保证服务的可用性，一般允许流控的阈值有一定的弹性，偶尔的超量访问是可以接受的。</p>
 <p>有的时候，流控服务于收费模式，比如某些云厂商会对调用 API 的频次进行计费。既然涉及到钱，一般就不允许有超出阈值的调用量。</p>
 <p>这些不同的场景下，适用的流控算法不尽相同。大多数情况下，使用 Sentinel 中间件已经能很好地应对，但 Sentinel 也并不是万能的，需要思考其他的流控方案。</p>
+<span id="more"></span>
+
 <h3 id="二-接口定义"><a href="#二-接口定义" class="headerlink" title="二 接口定义"></a>二 接口定义</h3><p>为了方便，以下所有的示例代码实现都是基于 Throttler 接口。</p>
 <p>Throttler 接口定义了一个通用的方法用于申请单个配额。</p>
 <p>当然你也可以定义一个 tryAcquire(String key, int permits) 签名的方法用于一次申请多个配额，实现的思路是一样的。</p>
@@ -931,13 +933,59 @@
 <h2 id="idea建立maven"><a href="#idea建立maven" class="headerlink" title="idea建立maven"></a>idea建立maven</h2><p>在settings里面：</p>
 <p><img src="https://img-blog.csdn.net/20170818231853882?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHV5YW9xaWFveWFvZ2U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="IDEA+MAVEN+GIT项目管理 - 第1张  | 张嘎"></p>
 <h2 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h2><p>git下载地址 ：<a href="https://gitforwindows.org/">https://gitforwindows.org/</a><br>安装完成后，在开始菜单里找到“Git”-&gt;“Git Bash”，蹦出一个类似命令行窗口的东西，就说明Git安装成功！<br>安装完成后，还需要最后一步设置，在命令行输入：</p>
-<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#101;&#109;&#x61;&#105;&#108;&#64;&#x65;&#x78;&#x61;&#109;&#x70;&#108;&#101;&#46;&#x63;&#111;&#x6d;">&#101;&#109;&#x61;&#105;&#108;&#64;&#x65;&#x78;&#x61;&#109;&#x70;&#108;&#101;&#46;&#x63;&#111;&#x6d;</a>”</p>
+<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#x65;&#109;&#97;&#x69;&#108;&#64;&#x65;&#120;&#97;&#109;&#112;&#108;&#101;&#46;&#99;&#111;&#x6d;">&#x65;&#109;&#97;&#x69;&#108;&#64;&#x65;&#120;&#97;&#109;&#112;&#108;&#101;&#46;&#99;&#111;&#x6d;</a>”</p>
 <p>具体过程请参见：<br><a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/00137396287703354d8c6c01c904c7d9ff056ae23da865a000">廖雪峰Git安装</a></p>
-<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#121;&#x6f;&#117;&#114;&#x2e;&#101;&#x6d;&#97;&#105;&#108;&#x40;&#x65;&#x78;&#97;&#x6d;&#112;&#108;&#x65;&#x2e;&#x63;&#111;&#x6d;">&#121;&#x6f;&#117;&#114;&#x2e;&#101;&#x6d;&#97;&#105;&#108;&#x40;&#x65;&#x78;&#97;&#x6d;&#112;&#108;&#x65;&#x2e;&#x63;&#111;&#x6d;</a>” -b 4096</p>
+<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#x79;&#111;&#117;&#114;&#x2e;&#101;&#x6d;&#x61;&#105;&#108;&#64;&#x65;&#x78;&#97;&#x6d;&#112;&#x6c;&#x65;&#x2e;&#99;&#111;&#109;">&#x79;&#111;&#117;&#114;&#x2e;&#101;&#x6d;&#x61;&#105;&#108;&#64;&#x65;&#x78;&#97;&#x6d;&#112;&#x6c;&#x65;&#x2e;&#99;&#111;&#109;</a>” -b 4096</p>
 <p>会在本地用户目录下的.ssh文件夹下生成id_rsa和id_rsa.pub文件，</p>
 <p>将id_rsa.pub公钥文件加入到远程git/Setttings/SSH Keys里面。</p>
 <p>右键菜单“Git GUI”</p>
 <h2 id="码云"><a href="#码云" class="headerlink" title="码云"></a>码云</h2><p>码云是目前国内比较好的代码托管平台。<br>码云官方教程如下：<br><a href="http://git.mydoc.io/?t=153739">码云教程</a><br>安装好插件后可以将之前建立的项目托管到码云上。</p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>沙盒游戏3D场景建模</title>
+    <url>/sandbox-scene/</url>
+    <content><![CDATA[<p>在一次聚餐之后，晚上睡觉前突然灵感爆棚想到的实现方案。</p>
+<p>下面是在项目内部分享的PPT，具体代码实现在github：<a href="https://github.com/zhangga/JAVAZSet">https://github.com/zhangga/JAVAZSet</a></p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/21-1024x579.png?resize=640,362" alt="沙盒游戏3D场景建模 - 第1张  | 张嘎"></p>
+<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/22-1-1024x574.png?resize=640,359" alt="沙盒游戏3D场景建模 - 第2张  | 张嘎"></p>
+<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/23-1-1024x590.png?resize=640,369" alt="沙盒游戏3D场景建模 - 第3张  | 张嘎"></p>
+<h2 id="实际碰到的一点问题："><a href="#实际碰到的一点问题：" class="headerlink" title="实际碰到的一点问题："></a>实际碰到的一点问题：</h2><p>1.把9张1024*1024的navmesh合一张的时候，原生的recast是用32位分配空间，其中14位分配给tile，所以tile有上限的考虑。</p>
+<p>现在把recast改为用64位表示，需要宏定义。在DetourNavMesh.h中定义 #define DT_POLYREF64 1</p>
+<p>这样tile就有28位了，不太存在超过上限的可能了。</p>
+<p>发现问题。改完之后的dll在加载新地图的时候，内存直接飙升。</p>
+<p>打印输出，定位到问题发生在，dtLoadNavMesh时读取到的tile的内存size值不正常，导致内存申请异常。</p>
+<p>至此问题已经定位，navmesh文件格式和读取的格式不一致，数据错位，读取异常。</p>
+<p>进一步跟踪，发现是C++ struct内存对齐不同导致的。客户端生成默认是8，服务器读取是按4，结果服务器少读4字节。</p>
+<p>在DetourInit.h文件中有如下代码：#pragma pack(push,4) 控制，前后端修改一致即可。</p>
+<p>ppt在GitHub上。<a href="https://github.com/zhangga/JAVAZSet">JavaZSet</a></p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WordPress上传权限问题及主题</title>
+    <url>/wordpress/</url>
+    <content><![CDATA[<p><a href="https://imgtu.com/i/htjgKI"><img src="https://z3.ax1x.com/2021/08/30/htjgKI.md.png" alt="htjgKI.md.png"></a></p>
+<span id="more"></span>
+
+<p>打开所有写权限</p>
+<p>chmod 777 /usr/local/lampp/htdocs/zzq/</p>
+<p>修改文件夹所属用户组。查看用户组指令：cat /etc/group   别人都是www:www  我是daemon</p>
+<p>chown -R daemon:daemon zzq</p>
+<p>还原文件夹权限</p>
+<p>chmod 755 /usr/local/lampp/htdocs/zzq/</p>
+<h2 id="主题网站"><a href="#主题网站" class="headerlink" title="主题网站"></a>主题网站</h2><p><a href="http://ztmao.com/">http://ztmao.com/</a></p>
 ]]></content>
       <categories>
         <category>笔记</category>
