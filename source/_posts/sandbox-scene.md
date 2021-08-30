@@ -12,11 +12,11 @@ categories:
 
 下面是在项目内部分享的PPT，具体代码实现在github：https://github.com/zhangga/JAVAZSet
 
-![沙盒游戏3D场景建模 - 第1张  | 张嘎](https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/21-1024x579.png?resize=640%2C362)
+[![hNUOo9.md.png](https://z3.ax1x.com/2021/08/30/hNUOo9.md.png)](https://imgtu.com/i/hNUOo9)
 
-![沙盒游戏3D场景建模 - 第2张  | 张嘎](https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/22-1-1024x574.png?resize=640%2C359)
+[![hNULdJ.md.png](https://z3.ax1x.com/2021/08/30/hNULdJ.md.png)](https://imgtu.com/i/hNULdJ)
 
-![沙盒游戏3D场景建模 - 第3张  | 张嘎](https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/23-1-1024x590.png?resize=640%2C369)
+[![hNUjiR.md.png](https://z3.ax1x.com/2021/08/30/hNUjiR.md.png)](https://imgtu.com/i/hNUjiR)
 
 ## 实际碰到的一点问题：
 
