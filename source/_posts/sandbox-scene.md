@@ -1,6 +1,6 @@
 ---
 title: 沙盒游戏3D场景建模
-date: 2021-08-30 22:13:52
+date: 2018-10-19 22:13:52
 tags:
   - 笔记
 id: sandbox-scene
@@ -13,6 +13,8 @@ categories:
 下面是在项目内部分享的PPT，具体代码实现在github：https://github.com/zhangga/JAVAZSet
 
 [![hNUOo9.md.png](https://z3.ax1x.com/2021/08/30/hNUOo9.md.png)](https://imgtu.com/i/hNUOo9)
+
+<!--more-->
 
 [![hNULdJ.md.png](https://z3.ax1x.com/2021/08/30/hNULdJ.md.png)](https://imgtu.com/i/hNULdJ)
 
