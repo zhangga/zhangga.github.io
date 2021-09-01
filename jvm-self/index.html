@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="笔记," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="根据《自己动手写Java虚拟机》一书  实现的go代码在GitHub中：QJvm可视化查看class文件的工具：查看class工具，启动类：ClasspyApp。书籍自身代码：代码Class文件解析： 如上图所示： 常量池解析： 1.读取16位的常量池大小cp_count。 2.索引从1到cp_count-1，依次读取常量信息。 3.常量信息有tag(8bit)表示常量类型。不同的类型读取数据方式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自己动手写JVM">
+<meta property="og:url" content="http://kwaibook.com/jvm-self/index.html">
+<meta property="og:site_name" content="张嘎">
+<meta property="og:description" content="根据《自己动手写Java虚拟机》一书  实现的go代码在GitHub中：QJvm可视化查看class文件的工具：查看class工具，启动类：ClasspyApp。书籍自身代码：代码Class文件解析： 如上图所示： 常量池解析： 1.读取16位的常量池大小cp_count。 2.索引从1到cp_count-1，依次读取常量信息。 3.常量信息有tag(8bit)表示常量类型。不同的类型读取数据方式">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/cover-300x179.png?resize=300,179">
+<meta property="og:image" content="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/22.png?resize=640,484">
+<meta property="og:image" content="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/23.png?resize=640,490">
+<meta property="og:image" content="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/24.png?resize=640,239">
+<meta property="og:image" content="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/25.png?resize=640,223">
+<meta property="og:image" content="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/26.png?resize=640,89">
+<meta property="og:image" content="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/35.png?resize=640,125">
+<meta property="og:image" content="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/28.png?resize=640,132">
+<meta property="og:image" content="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/30.png?resize=640,76">
+<meta property="og:image" content="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/32.png?resize=640,130">
+<meta property="og:image" content="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/33.png?resize=640,545">
+<meta property="og:image" content="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/31-1.png?resize=640,227">
+<meta property="article:published_time" content="2019-02-27T11:40:56.000Z">
+<meta property="article:modified_time" content="2021-09-01T11:55:55.853Z">
+<meta property="article:author" content="Zhang Ga">
+<meta property="article:tag" content="笔记">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/cover-300x179.png?resize=300,179">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://kwaibook.com/jvm-self/"/>
+
+
+
+
+
+  <title>自己动手写JVM | 张嘎</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张嘎</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/jvm-self/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">自己动手写JVM</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-27T11:40:56+00:00">
+                2019-02-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/jvm-self/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/jvm-self/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>根据《自己动手写Java虚拟机》一书</p>
+<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/cover-300x179.png?resize=300,179" alt="自己动手写JVM - 第1张  | 张嘎"></p>
+<h2 id="实现的go代码在GitHub中：QJvm"><a href="#实现的go代码在GitHub中：QJvm" class="headerlink" title="实现的go代码在GitHub中：QJvm"></a>实现的go代码在GitHub中：<a target="_blank" rel="noopener" href="https://github.com/zhangga/QJvm">QJvm</a></h2><h2 id="可视化查看class文件的工具：查看class工具，启动类：ClasspyApp。书籍自身代码：代码"><a href="#可视化查看class文件的工具：查看class工具，启动类：ClasspyApp。书籍自身代码：代码" class="headerlink" title="可视化查看class文件的工具：查看class工具，启动类：ClasspyApp。书籍自身代码：代码"></a>可视化查看class文件的工具：<a target="_blank" rel="noopener" href="https://github.com/zxh0/classpy">查看class工具</a>，启动类：ClasspyApp。书籍自身代码：<a target="_blank" rel="noopener" href="https://github.com/zxh0/jvmgo-book">代码</a></h2><h1 id="Class文件解析："><a href="#Class文件解析：" class="headerlink" title="Class文件解析："></a>Class文件解析：</h1><p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/22.png?resize=640,484" alt="自己动手写JVM - 第2张  | 张嘎"></p>
+<p>如上图所示：</p>
+<p>常量池解析：</p>
+<p>1.读取16位的常量池大小cp_count。</p>
+<p>2.索引从1到cp_count-1，依次读取常量信息。</p>
+<p>3.常量信息有tag(8bit)表示常量类型。不同的类型读取数据方式不同。</p>
+<p>// 常量池类型</p>
+<p>const (</p>
+<p>  CONSTANT_Class = 7</p>
+<p>  CONSTANT_Fieldref = 9</p>
+<p>  CONSTANT_Methodref = 10</p>
+<p>  CONSTANT_InterfaceMethodref = 11</p>
+<p>  CONSTANT_String = 8</p>
+<p>  CONSTANT_Integer = 3</p>
+<p>  CONSTANT_Float = 4</p>
+<p>  CONSTANT_Long = 5</p>
+<p>  CONSTANT_Double = 6</p>
+<p>  CONSTANT_NameAndType = 12</p>
+<p>  CONSTANT_Utf8 = 1</p>
+<p>  CONSTANT_MethodHandle = 15</p>
+<p>  CONSTANT_MethodType = 16</p>
+<p>  CONSTANT_InvokeDynamic = 18</p>
+<p>)</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/23.png?resize=640,490" alt="自己动手写JVM - 第3张  | 张嘎"></p>
+<p>常量池类型可分为下面几大类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+<th>具体代表类型</th>
+<th>class存储格式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>numeric</td>
+<td>数值型</td>
+<td>int/float/double等</td>
+<td>tag(8bit)+数值(具体类型决定)</td>
+</tr>
+<tr>
+<td>string</td>
+<td>指向字符串</td>
+<td>string</td>
+<td>tag(8bit)+指向utf8字符串的索引(16bit)</td>
+</tr>
+<tr>
+<td>utf8</td>
+<td>字符串</td>
+<td>string</td>
+<td>tag(8bit)+length(16b)+bytes(length)</td>
+</tr>
+<tr>
+<td>class</td>
+<td>类信息</td>
+<td>class</td>
+<td>tag(8bit)+指向utf8字符串的索引(16bit)</td>
+</tr>
+<tr>
+<td>name&amp;type</td>
+<td>名字和描述(参数)</td>
+<td>字段、方法的名称和描述</td>
+<td>tag(8bit)+指向name字符串索引(16bit)+指向描述字符串的索引(16bit)</td>
+</tr>
+<tr>
+<td>member</td>
+<td>成员信息</td>
+<td>字段、方法、接口信息等</td>
+<td>tag(8bit)+指向class索引(16bit)+指向name&amp;type的索引(16bit)</td>
+</tr>
+<tr>
+<td>methodType</td>
+<td>方法描述</td>
+<td>方法</td>
+<td>tag(8bit)+指向描述字符串的索引(16bit)</td>
+</tr>
+<tr>
+<td>methodHandle</td>
+<td>方法句柄</td>
+<td>方法句柄</td>
+<td>tag(8bit)+refKind(8b)+指向引用ref的索引(16b)</td>
+</tr>
+<tr>
+<td>dynamic</td>
+<td>动态调用</td>
+<td>Lambda表达式</td>
+<td>tag(8bit)+指定启动方法的索引(16b指向属性表)+指向name&amp;type的索引(16b)</td>
+</tr>
+</tbody></table>
+<h1 id="动态调用：CONSTANT-InvokeDynamic-info"><a href="#动态调用：CONSTANT-InvokeDynamic-info" class="headerlink" title="动态调用：CONSTANT_InvokeDynamic_info"></a>动态调用：CONSTANT_InvokeDynamic_info</h1><p>为了更好的支持<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Dynamic_typing#DYNAMIC">动态类型语言</a>，<a target="_blank" rel="noopener" href="https://www.baidu.com/s?wd=Java7&tn=24004469_oem_dg&rsv_dl=gh_pl_sl_csd">Java7</a>通过<a target="_blank" rel="noopener" href="https://jcp.org/en/jsr/detail?id=292">JSR292</a>给JVM增加了一条新的字节码指令：invokedynamic。Java8的Lambda表达式。</p>
+<p>以下面代码为例：</p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/24.png?resize=640,239" alt="自己动手写JVM - 第4张  | 张嘎"></p>
+<p>使用javap -v -p指令反编译生成的class文件，找到main方法，可以看到生成了一条indy指令</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/25.png?resize=640,223" alt="自己动手写JVM - 第5张  | 张嘎"></p>
+<p>指向常量池索引为#2，查看常量池可知，确实是一个CONSTANT_InvokeDynamic_info</p>
+<p>CONSTANT_InvokeDynamic_info {</p>
+<p>  u1 tag;</p>
+<p>  u2 bootstrap_method_attr_index;</p>
+<p>  u2 name_and_type_index;</p>
+<p>}</p>
+<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/26.png?resize=640,89" alt="自己动手写JVM - 第6张  | 张嘎"></p>
+<p>可以看到有两个参数即我们上面表中总结的参数分别为：</p>
+<p>指定启动方法的索引(16b指向属性表)+指向name&amp;type的索引(16b)</p>
+<p>先看name&amp;type</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/35.png?resize=640,125" alt="自己动手写JVM - 第7张  | 张嘎"></p>
+<p>它描述的是这样的一个方法：</p>
+<p>Runnable run() {…}</p>
+<p>再看bootstrap_method_attr_index</p>
+<p><a target="_blank" rel="noopener" href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.21">JVM规范</a>规定，如果类的常量池中存在CONSTANT_InvokeDynamic_info的话，那么attributes表中就必定<strong>有且仅有一个</strong>BootstrapMethods属性。BootstrapMethods属性是个变长的表，结构如下所示：</p>
+<p>BootstrapMethods_attribute {<br>u2 attribute_name_index;<br>u4 attribute_length;<br>u2 num_bootstrap_methods;<br>{   u2 bootstrap_method_ref;<br>u2 num_bootstrap_arguments;<br>u2 bootstrap_arguments[num_bootstrap_arguments];<br>} bootstrap_methods[num_bootstrap_methods];<br>}<br>每一个BootstrapMethod都包含一个bootstrap_method_ref和n个bootstrap_arguments。bootstrap_method_ref是个常量池索引，指向一个CONSTANT_MethodHandle_info。而每一个bootstrap_argument也都是常量池索引，可以指向下面这些结构：</p>
+<ul>
+<li>CONSTANT_String_info</li>
+<li>CONSTANT_Class_info</li>
+<li>CONSTANT_Integer_info</li>
+<li>CONSTANT_Long_info</li>
+<li>CONSTANT_Float_info</li>
+<li>CONSTANT_Double_info</li>
+<li>CONSTANT_MethodHandle_info</li>
+<li>CONSTANT_MethodType_info</li>
+</ul>
+<p>本例中的启动方法反编译图：</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/28.png?resize=640,132" alt="自己动手写JVM - 第8张  | 张嘎"></p>
+<p>确实存在一个BootstrapMethods表，这个表中只有一个BootstrapMethod，它的bootstrap_method_ref是常量池#23，有三个bootstrap_arguments，分别指向常量池#24，#25，#24：</p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/30.png?resize=640,76" alt="自己动手写JVM - 第9张  | 张嘎"></p>
+<h2 id="CONSTANT-MethodHandle-info"><a href="#CONSTANT-MethodHandle-info" class="headerlink" title="CONSTANT_MethodHandle_info"></a>CONSTANT_MethodHandle_info</h2><p><a target="_blank" rel="noopener" href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4.8">CONSTANT_MethodHandle_info</a>结构包含两项信息，其结构参考上面表格。</p>
+<p>reference_kind是一个1到9之间的整数，具体含义可以参考<a target="_blank" rel="noopener" href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-5.html#jvms-5.4.3.5">JVM规范</a>。reference_index是常量池索引，但具体索引的是什么类型的常量，需要看reference_kind：</p>
+<table>
+<thead>
+<tr>
+<th>constant_pool entry</th>
+<th>reference_kind</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CONSTANT_Fieldref_info</td>
+<td>1 (REF_getField), 2 (REF_getStatic), 3 (REF_putField), or 4 (REF_putStatic)</td>
+</tr>
+<tr>
+<td>CONSTANT_Methodref_info</td>
+<td>5 (REF_invokeVirtual), 6 (REF_invokeStatic), 7 (REF_invokeSpecial), or 8 (REF_newInvokeSpecial)</td>
+</tr>
+<tr>
+<td>CONSTANT_InterfaceMethodref_info</td>
+<td>9 (REF_invokeInterface)</td>
+</tr>
+</tbody></table>
+<p>通过观察常量池#23（上图中可以看到）可以看到，它的reference_kind是6（REF_invokeStatic），reference_index是#29，正好是个CONSTANT_Methodref_info：</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/32.png?resize=640,130" alt="自己动手写JVM - 第10张  | 张嘎"></p>
+<p>引用的是java.lang.invoke.LambdaMetafactory类的静态方法metafactory()。</p>
+<p>引用关系图：</p>
+<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/33.png?resize=640,545" alt="自己动手写JVM - 第11张  | 张嘎"></p>
+<p>JVM如何执行indy指令<br>前面从class文件的角度，分析了indy指令。下面让我们看看JVM是如何执行indy指令的。</p>
+<ul>
+<li>每一个indy指令出现的地方，都叫做一个dynamic call site（动态调用点）</li>
+<li>根据indy指令的操作数，可以找到一个call site specifier（调用点说明符），根据前面的分析，这个说明符其实就常量池里的CONSTANT_InvokeDynamic_info</li>
+<li>JVM解析（resolve）调用点说明符，得到下面三种信息：</li>
+</ul>
+<p>1.一个MethodHandle，指向<strong>bootstrap method</strong>（启动方法）</p>
+<p>2.方法名和方法描述，表示动态调用的方法</p>
+<p>3.其他提供给启动方法的参数</p>
+<ul>
+<li>接着JVM调用启动方法，并把上一步提到的信息通过参数传给启动方法</li>
+<li>启动方法必须返回一个<strong>CallSite</strong>对象，并且，这个CallSite对象将永久和这个动态调用点关联</li>
+<li>调用跟CallSite关联的MethodHandle指向的方法</li>
+</ul>
+<p>下面是一张示意图，画出了关键点：</p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/31-1.png?resize=640,227" alt="自己动手写JVM - 第12张  | 张嘎"></p>
+<p>接着回到我们上面的常量池解析，注意ConstantLongInfo和ConstantDoubleInfo在常量池占两个位置。至此常量池解析完成。</p>
+<p>接着class文件中存放的是类访问标识。</p>
+<p>然后是类，超类，接口信息。都是常量池索引。</p>
+<p>然后字段表和方法表，这俩读取方式一样，以方法表为例：</p>
+<p>1.读取16位的方法个数，member_count</p>
+<p>2.依次读取member_count个方法信息：</p>
+<p>访问标识(16bit)、名称索引(16bit指向常量池)、描述符索引(16bit指向常量池)、读取方法关联的属性表。</p>
+<p>最后读取class文件的属性表Attributes。</p>
+<p>1.读取16位的属性个数，attributes_count</p>
+<p>2.依次读取attributes_count个属性信息：</p>
+<p>属性名索引(指向常量池的UTF8)、属性长度(32bit)，</p>
+<p>根据属性名和长度新建JVM实现的属性实例。</p>
+<p>Java虚拟机规范预定义了23种属性，可分为三组。</p>
+<p>一、Java虚拟机必须的，5种。</p>
+<p>二、Java类库必须的，12种。</p>
+<p>三、提供给工具使用的，6种。可选的。</p>
+<p>例：Code、ConstantValue、Exceptions、LineNumberTable、LocalVariableTable、SourceFile、Synthetic等</p>
+<p>至此class文件解析完成。</p>
+<h1 id="线程启动："><a href="#线程启动：" class="headerlink" title="线程启动："></a>线程启动：</h1><p>从启动类中查找main方法。方法名：main、方法描述符：([Ljava/lang/String;)V</p>
+<p>即：Void main(String[] xxx) {…}</p>
+<p>解释并执行main方法。</p>
+<p>线程Thread：</p>
+<p>// 线程</p>
+<p>type Thread struct {</p>
+<p>  pc int</p>
+<p>  stack *Stack  // 线程的帧栈</p>
+<p>}</p>
+<p>// jvm栈</p>
+<p>type Stack struct {</p>
+<p>  maxSize uint  // 最大大小</p>
+<p>  size uint      // 当前大小</p>
+<p>  _top *Frame  // 栈结构</p>
+<p>}</p>
+<p>// 帧</p>
+<p>type Frame struct {</p>
+<p>  lower *Frame  // 下一个帧，栈结构。</p>
+<p>  localVars LocalVars // 局部变量表</p>
+<p>  operandStack *OperandStack  // 操作数栈</p>
+<p>  thread *Thread // 所属线程</p>
+<p>  nextPC int // the next instruction after the call</p>
+<p>}</p>
+<p>根据main()方法的CodeAttribute(属性表，名称Code，存储方法执行的字节码信息)，获取其中的最大局部变量大小、最大操作数栈大小，新建Frame实例，将Frame实例压入当前线程的执行帧栈。</p>
+<p>JVM会循环不停的从线程的帧栈中弹出帧Frame，执行Frame：</p>
+<p>1.1获取frame要执行的指令编号NextPC</p>
+<p>1.2将NextPC设置到thread的pc</p>
+<p>2.1解码code，根据pc从CodeAttribute中的code(byte[]结构)解码</p>
+<p>2.2先获取8bit操作指令，根据指令新建指令实例。</p>
+<p>共分为11类：常量（constants）指令、加载（loads）指令、存储（stores）指令、<br>操作数栈（stack）指令、数学（math）指令、转换（conversions）指令、比<br>较（comparisons）指令、控制（control）指令、引用（references）指令、<br>扩展（extended）指令和保留（reserved）指令。</p>
+<p>如：iconst_0，istore_1，iload_1，iinc{}，if_icmple，_goto，swap，i2b等。</p>
+<p>2.3从属性表的code获取操作数，不同的指令具体实现。</p>
+<p>如if_icmpeq指令，如果比较值相等则跳转，其中的跳转地址需要在方法属性表code中获取，读取code(byte[]结构)的下16位为跳转的偏移地址。</p>
+<p>2.4设置frame的NextPC为code的pc，即记录code读取到哪个位置。</p>
+<p>2.5执行指令实例，不同的指令具体实现。</p>
+<p>如if_icmpeq指令，从帧的操作数栈中，弹出两个int值，比较两个值，如果相等，则设置帧frame的NextPC为 当前线程的pc + 偏移量（步骤2.3从code属性表中读取）。</p>
+<p>重复1.1执行</p>
+<p>上面是一个帧Frame完整的执行流程。</p>
+<h3 id="上面描述了一个简易的JVM执行流程，由线程驱动，不停的从线程的帧栈中弹出帧，执行帧：循环不停的从方法的属性表中获取code，解析成指令，执行指令，指令的执行需要操作帧frame的局部变量，操作数栈以及属性表。"><a href="#上面描述了一个简易的JVM执行流程，由线程驱动，不停的从线程的帧栈中弹出帧，执行帧：循环不停的从方法的属性表中获取code，解析成指令，执行指令，指令的执行需要操作帧frame的局部变量，操作数栈以及属性表。" class="headerlink" title="上面描述了一个简易的JVM执行流程，由线程驱动，不停的从线程的帧栈中弹出帧，执行帧：循环不停的从方法的属性表中获取code，解析成指令，执行指令，指令的执行需要操作帧frame的局部变量，操作数栈以及属性表。"></a><strong>上面描述了一个简易的JVM执行流程，由线程驱动，不停的从线程的帧栈中弹出帧，执行帧：循环不停的从方法的属性表中获取code，解析成指令，执行指令，指令的执行需要操作帧frame的局部变量，操作数栈以及属性表。</strong></h3><h2 id="完整流程："><a href="#完整流程：" class="headerlink" title="完整流程："></a>完整流程：</h2><p>1.解析环境变量<br>2.类加载器<br>3.解析主类名<br>4.加载主类<br>加载类流程：内存中是否已加载该类，没有的话加载类<br>一、解析：<br>读取class文件字节码，解析<br>生成虚拟机可用的类数据，放入方法区。类数据：类基本信息、常量池、字段、方法、父类、接口、静态变量等信息。<br>加载类的时候会递归加载类的父类和接口。<br>二、链接：<br>1验证<br>2准备<br>计算实例字段的个数<br>计算静态字段的个数<br>分配并初始化静态变量，设置常量的值（字段信息里有常量指向的常量池的索引）</p>
+<p>5.主类加载完成后，找到主入口方法main<br>6.解释执行main方法</p>
+<h2 id="方法的调用过程："><a href="#方法的调用过程：" class="headerlink" title="方法的调用过程："></a>方法的调用过程：</h2><h2 id="invokeinterface-invokespecial-invokestatic-invokevirtual-1-创建帧（帧的主要组成是Method），将帧推入栈顶，-2-将要传递的参数（实例方法会多传this），从调用者的操作数栈中弹出，放进被调用方法帧的局部变量表中。-3-主looper中，会不停的执行当前帧，这样调用的方法帧即会被执行。-4-return系列指令会把当前帧从栈中弹出，使得下一帧得以执行，从而实现方法的返回。"><a href="#invokeinterface-invokespecial-invokestatic-invokevirtual-1-创建帧（帧的主要组成是Method），将帧推入栈顶，-2-将要传递的参数（实例方法会多传this），从调用者的操作数栈中弹出，放进被调用方法帧的局部变量表中。-3-主looper中，会不停的执行当前帧，这样调用的方法帧即会被执行。-4-return系列指令会把当前帧从栈中弹出，使得下一帧得以执行，从而实现方法的返回。" class="headerlink" title="invokeinterface invokespecial invokestatic invokevirtual 1.创建帧（帧的主要组成是Method），将帧推入栈顶， 2.将要传递的参数（实例方法会多传this），从调用者的操作数栈中弹出，放进被调用方法帧的局部变量表中。 3.主looper中，会不停的执行当前帧，这样调用的方法帧即会被执行。 4.return系列指令会把当前帧从栈中弹出，使得下一帧得以执行，从而实现方法的返回。"></a>invokeinterface invokespecial invokestatic invokevirtual 1.创建帧（帧的主要组成是Method），将帧推入栈顶， 2.将要传递的参数（实例方法会多传this），从调用者的操作数栈中弹出，放进被调用方法帧的局部变量表中。 3.主looper中，会不停的执行当前帧，这样调用的方法帧即会被执行。 4.return系列指令会把当前帧从栈中弹出，使得下一帧得以执行，从而实现方法的返回。</h2><p> 类初始化</p>
+<h1 id="笔记："><a href="#笔记：" class="headerlink" title="笔记："></a>笔记：</h1><p>1.搜索class文件</p>
+<p>1.hello world为例，加载前需要加载超类<strong>java.lang.Object</strong>，在调用main()方法前，虚拟机需要准备好参数数组，加载<strong>java.lang.String</strong>和<strong>java.lang.String[]<strong>，打印需要加载</strong>java.lang.System</strong>类。</p>
+<p>2.类路径：启动类路径（bootstrap classpath）jre\lib、</p>
+<p>扩展类路径（extension classpath） jre\lib\ext、</p>
+<p>用户类路径（user classpath）-classpath或-cp指定，使用系统分隔符指定多个路径。</p>
+<p>2.解析class文件</p>
+<p>1.class文件的基本数据单位是字节，数据在class文件中以大端(big-endian)方式存储。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/https/" rel="next" title="JAVA HTTPS服务">
+                <i class="fa fa-chevron-left"></i> JAVA HTTPS服务
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/cloud-restart/" rel="prev" title="cloud-restart">
+                cloud-restart <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/vx.png"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%9A%84go%E4%BB%A3%E7%A0%81%E5%9C%A8GitHub%E4%B8%AD%EF%BC%9AQJvm"><span class="nav-number">1.</span> <span class="nav-text">实现的go代码在GitHub中：QJvm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%A7%86%E5%8C%96%E6%9F%A5%E7%9C%8Bclass%E6%96%87%E4%BB%B6%E7%9A%84%E5%B7%A5%E5%85%B7%EF%BC%9A%E6%9F%A5%E7%9C%8Bclass%E5%B7%A5%E5%85%B7%EF%BC%8C%E5%90%AF%E5%8A%A8%E7%B1%BB%EF%BC%9AClasspyApp%E3%80%82%E4%B9%A6%E7%B1%8D%E8%87%AA%E8%BA%AB%E4%BB%A3%E7%A0%81%EF%BC%9A%E4%BB%A3%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">可视化查看class文件的工具：查看class工具，启动类：ClasspyApp。书籍自身代码：代码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Class%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90%EF%BC%9A"><span class="nav-number"></span> <span class="nav-text">Class文件解析：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%B0%83%E7%94%A8%EF%BC%9ACONSTANT-InvokeDynamic-info"><span class="nav-number"></span> <span class="nav-text">动态调用：CONSTANT_InvokeDynamic_info</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CONSTANT-MethodHandle-info"><span class="nav-number">1.</span> <span class="nav-text">CONSTANT_MethodHandle_info</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%90%AF%E5%8A%A8%EF%BC%9A"><span class="nav-number"></span> <span class="nav-text">线程启动：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8A%E9%9D%A2%E6%8F%8F%E8%BF%B0%E4%BA%86%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%9A%84JVM%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%EF%BC%8C%E7%94%B1%E7%BA%BF%E7%A8%8B%E9%A9%B1%E5%8A%A8%EF%BC%8C%E4%B8%8D%E5%81%9C%E7%9A%84%E4%BB%8E%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%B8%A7%E6%A0%88%E4%B8%AD%E5%BC%B9%E5%87%BA%E5%B8%A7%EF%BC%8C%E6%89%A7%E8%A1%8C%E5%B8%A7%EF%BC%9A%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%81%9C%E7%9A%84%E4%BB%8E%E6%96%B9%E6%B3%95%E7%9A%84%E5%B1%9E%E6%80%A7%E8%A1%A8%E4%B8%AD%E8%8E%B7%E5%8F%96code%EF%BC%8C%E8%A7%A3%E6%9E%90%E6%88%90%E6%8C%87%E4%BB%A4%EF%BC%8C%E6%89%A7%E8%A1%8C%E6%8C%87%E4%BB%A4%EF%BC%8C%E6%8C%87%E4%BB%A4%E7%9A%84%E6%89%A7%E8%A1%8C%E9%9C%80%E8%A6%81%E6%93%8D%E4%BD%9C%E5%B8%A7frame%E7%9A%84%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%EF%BC%8C%E6%93%8D%E4%BD%9C%E6%95%B0%E6%A0%88%E4%BB%A5%E5%8F%8A%E5%B1%9E%E6%80%A7%E8%A1%A8%E3%80%82"><span class="nav-number">0.1.</span> <span class="nav-text">上面描述了一个简易的JVM执行流程，由线程驱动，不停的从线程的帧栈中弹出帧，执行帧：循环不停的从方法的属性表中获取code，解析成指令，执行指令，指令的执行需要操作帧frame的局部变量，操作数栈以及属性表。</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">完整流程：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8%E8%BF%87%E7%A8%8B%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">方法的调用过程：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#invokeinterface-invokespecial-invokestatic-invokevirtual-1-%E5%88%9B%E5%BB%BA%E5%B8%A7%EF%BC%88%E5%B8%A7%E7%9A%84%E4%B8%BB%E8%A6%81%E7%BB%84%E6%88%90%E6%98%AFMethod%EF%BC%89%EF%BC%8C%E5%B0%86%E5%B8%A7%E6%8E%A8%E5%85%A5%E6%A0%88%E9%A1%B6%EF%BC%8C-2-%E5%B0%86%E8%A6%81%E4%BC%A0%E9%80%92%E7%9A%84%E5%8F%82%E6%95%B0%EF%BC%88%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95%E4%BC%9A%E5%A4%9A%E4%BC%A0this%EF%BC%89%EF%BC%8C%E4%BB%8E%E8%B0%83%E7%94%A8%E8%80%85%E7%9A%84%E6%93%8D%E4%BD%9C%E6%95%B0%E6%A0%88%E4%B8%AD%E5%BC%B9%E5%87%BA%EF%BC%8C%E6%94%BE%E8%BF%9B%E8%A2%AB%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95%E5%B8%A7%E7%9A%84%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%E8%A1%A8%E4%B8%AD%E3%80%82-3-%E4%B8%BBlooper%E4%B8%AD%EF%BC%8C%E4%BC%9A%E4%B8%8D%E5%81%9C%E7%9A%84%E6%89%A7%E8%A1%8C%E5%BD%93%E5%89%8D%E5%B8%A7%EF%BC%8C%E8%BF%99%E6%A0%B7%E8%B0%83%E7%94%A8%E7%9A%84%E6%96%B9%E6%B3%95%E5%B8%A7%E5%8D%B3%E4%BC%9A%E8%A2%AB%E6%89%A7%E8%A1%8C%E3%80%82-4-return%E7%B3%BB%E5%88%97%E6%8C%87%E4%BB%A4%E4%BC%9A%E6%8A%8A%E5%BD%93%E5%89%8D%E5%B8%A7%E4%BB%8E%E6%A0%88%E4%B8%AD%E5%BC%B9%E5%87%BA%EF%BC%8C%E4%BD%BF%E5%BE%97%E4%B8%8B%E4%B8%80%E5%B8%A7%E5%BE%97%E4%BB%A5%E6%89%A7%E8%A1%8C%EF%BC%8C%E4%BB%8E%E8%80%8C%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95%E7%9A%84%E8%BF%94%E5%9B%9E%E3%80%82"><span class="nav-number">3.</span> <span class="nav-text">invokeinterface invokespecial invokestatic invokevirtual 1.创建帧（帧的主要组成是Method），将帧推入栈顶， 2.将要传递的参数（实例方法会多传this），从调用者的操作数栈中弹出，放进被调用方法帧的局部变量表中。 3.主looper中，会不停的执行当前帧，这样调用的方法帧即会被执行。 4.return系列指令会把当前帧从栈中弹出，使得下一帧得以执行，从而实现方法的返回。</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AC%94%E8%AE%B0%EF%BC%9A"><span class="nav-number"></span> <span class="nav-text">笔记：</span></a></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Ga</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname, 
+            owner: 'zhanga',
+            repo: 'gitment-comments',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: 'e66cfd435bb60cab32c9aa9901068a8f7712daf5',
+            
+                client_id: 'Iv1.08dfdfc601d9e481'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
