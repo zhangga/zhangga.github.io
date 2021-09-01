@@ -286,7 +286,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/sandbox-scene/">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/srv-optimize/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -305,7 +305,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/sandbox-scene/" itemprop="url">沙盒游戏3D场景建模</a></h1>
+                <a class="post-title-link" href="/srv-optimize/" itemprop="url">服务器性能优化</a></h1>
         
 
         <div class="post-meta">
@@ -317,8 +317,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-30T22:13:52+08:00">
-                2021-08-30
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-31T23:55:21+08:00">
+                2021-08-31
               </time>
             
 
@@ -379,20 +379,32 @@
       
         
           
-            <p>在一次聚餐之后，晚上睡觉前突然灵感爆棚想到的实现方案。</p>
-<p>下面是在项目内部分享的PPT，具体代码实现在github：<a target="_blank" rel="noopener" href="https://github.com/zhangga/JAVAZSet">https://github.com/zhangga/JAVAZSet</a></p>
-<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNUOo9"><img src="https://z3.ax1x.com/2021/08/30/hNUOo9.md.png" alt="hNUOo9.md.png"></a></p>
-<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNULdJ"><img src="https://z3.ax1x.com/2021/08/30/hNULdJ.md.png" alt="hNULdJ.md.png"></a></p>
-<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNUjiR"><img src="https://z3.ax1x.com/2021/08/30/hNUjiR.md.png" alt="hNUjiR.md.png"></a></p>
-<h2 id="实际碰到的一点问题："><a href="#实际碰到的一点问题：" class="headerlink" title="实际碰到的一点问题："></a>实际碰到的一点问题：</h2><p>1.把9张1024*1024的navmesh合一张的时候，原生的recast是用32位分配空间，其中14位分配给tile，所以tile有上限的考虑。</p>
-<p>现在把recast改为用64位表示，需要宏定义。在DetourNavMesh.h中定义 #define DT_POLYREF64 1</p>
-<p>这样tile就有28位了，不太存在超过上限的可能了。</p>
-<p>发现问题。改完之后的dll在加载新地图的时候，内存直接飙升。</p>
-<p>打印输出，定位到问题发生在，dtLoadNavMesh时读取到的tile的内存size值不正常，导致内存申请异常。</p>
-<p>至此问题已经定位，navmesh文件格式和读取的格式不一致，数据错位，读取异常。</p>
-<p>进一步跟踪，发现是C++ struct内存对齐不同导致的。客户端生成默认是8，服务器读取是按4，结果服务器少读4字节。</p>
-<p>在DetourInit.h文件中有如下代码：#pragma pack(push,4) 控制，前后端修改一致即可。</p>
-<p>ppt在GitHub上。<a target="_blank" rel="noopener" href="https://github.com/zhangga/JAVAZSet">JavaZSet</a></p>
+            <p><em>在一些高QPS的场景下，服务器可能面临的挑战和问题总结。</em></p>
+<ol>
+<li>服务器一定要有流控功能和降级预案，一些接口可以提供有损服务，最差情况只要保证核心业务不出问题。</li>
+<li>梳理出各个关键接口在不可用时的表现，和处理方案，已经可能面临的问题，落实到文档，一步步攻坚。</li>
+<li>核心业务和接口预估最高QPS，根据QPS指标做好全链路压测。</li>
+<li>做好性能监控和报警，实时查看大盘数据。</li>
+<li>最常出现性能瓶颈的地方：<ul>
+<li>登录，特别是注册新用户。流控限制服务的承载上限，一定不能超过当前服务的承载。流控触发后，前端进行友好的过渡，根据不同的游戏类型进行特定场景的处理，比如进行一局单机游戏。</li>
+<li>针对一些更极端的场景，可预见的某个时间段，会有大量的用户登录和创建，前端不验证流控前，直接预先将登录进行打散。针对大量创建用户引起的数据库性能瓶颈问题，可以预先生成一大批新用户数据，放入缓存。</li>
+<li>注意玩家退出或掉线的逻辑，是否有一些数据回写，判断是否会成为瓶颈。</li>
+</ul>
+</li>
+<li>数据库可能出现问题的地方：<ul>
+<li>Mongo 提前关闭autosplit，movechunk，retryWrites。</li>
+<li>数据库连接要预热。</li>
+</ul>
+</li>
+<li>前端要注意的一些点：<ul>
+<li>提供1到2个备用的资源CDN。</li>
+<li>服务器提供两个一级域名和几个二级域名让客户端随机选取使用。</li>
+<li>考虑前端SDK一些接口遇到性能瓶颈的情况，特别是登录验证，做好预案和降级处理。</li>
+</ul>
+</li>
+<li>日志在这种级别下也可能出现性能瓶颈，看下日志库还有没有可优化的地方，在最高峰可以允许短暂的将info级别日志关闭，流量下来之后尽快动态打开。</li>
+<li>提前做好上线前的各种预案和上线流程，以及异常情况下的降级处理流程，责任到人，文档化，有迹可循，不慌乱。</li>
+</ol>
 
           
         
@@ -844,6 +856,154 @@
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/limiter/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/sandbox-scene/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/sandbox-scene/" itemprop="url">沙盒游戏3D场景建模</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-19T22:13:52+08:00">
+                2018-10-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>在一次聚餐之后，晚上睡觉前突然灵感爆棚想到的实现方案。</p>
+<p>下面是在项目内部分享的PPT，具体代码实现在github：<a target="_blank" rel="noopener" href="https://github.com/zhangga/JAVAZSet">https://github.com/zhangga/JAVAZSet</a></p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNUOo9"><img src="https://z3.ax1x.com/2021/08/30/hNUOo9.md.png" alt="hNUOo9.md.png"></a></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/sandbox-scene/#more" rel="contents">
               Read more &raquo;
             </a>
           </div>
@@ -1630,162 +1790,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/mvn-git/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/mvn-git/" itemprop="url">IDEA+MAVEN+GIT项目管理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-04T10:53:23+08:00">
-                2018-08-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="安装maven"><a href="#安装maven" class="headerlink" title="安装maven"></a>安装maven</h2><p>下载地址：<a target="_blank" rel="noopener" href="http://maven.apache.org/download.cgi#">http://maven.apache.org/download.cgi#</a></p>
-<p>解压到D盘Maven文件夹下：</p>
-<p>在Maven文件夹下新建一个Repository文件夹，用作仓库。</p>
-<p>修改D:\Maven\apache-maven-3.6.0\conf下settings.xml文件：</p>
-<p>添加：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;localRepository&gt;D:\Maven\Repository&lt;/localRepository&gt;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/mvn-git/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
   </nav>
 
 
@@ -1835,7 +1844,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
