@@ -286,7 +286,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/flutter-dev/">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/notice/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -305,7 +305,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/flutter-dev/" itemprop="url">使用Flutter进行APP开发流程</a></h1>
+                <a class="post-title-link" href="/notice/" itemprop="url">notice</a></h1>
         
 
         <div class="post-meta">
@@ -317,8 +317,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-01T19:34:22+08:00">
-                2021-09-01
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2099-11-11T23:59:59+08:00">
+                2099-11-11
               </time>
             
 
@@ -340,8 +340,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
+                  <a href="/categories/%E5%85%AC%E5%91%8A/" itemprop="url" rel="index">
+                    <span itemprop="name">公告</span>
                   </a>
                 </span>
 
@@ -379,19 +379,7 @@
       
         
           
-            <p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hBsVC6"><img src="https://z3.ax1x.com/2021/09/01/hBsVC6.md.png" alt="hBsVC6.md.png"></a></p>
-<h1 id="资源加载："><a href="#资源加载：" class="headerlink" title="资源加载："></a>资源加载：</h1><h3 id="1-本地"><a href="#1-本地" class="headerlink" title="1.本地"></a>1.本地</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">static const String DEFAULT_USER_ICON = &#x27;static/images/logo.png&#x27;;</span><br><span class="line">Image.asset(AppICons.DEFAULT_USER_ICON, width: AppICons.USER_ICON_WIDTH, height: AppICons.USER_ICON_HEIGHT),</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-iconfont。-https-www-iconfont-cn"><a href="#2-iconfont。-https-www-iconfont-cn" class="headerlink" title="2.iconfont。 https://www.iconfont.cn/"></a>2.iconfont。 <a target="_blank" rel="noopener" href="https://www.iconfont.cn/">https://www.iconfont.cn/</a></h3><p>在iconfont网站上传资源。下载到本地，放入项目资源文件夹下。</p>
-<p>pubspec.yaml中配置。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">fonts:</span><br><span class="line">  - family: myIconFont</span><br><span class="line">    fonts:</span><br><span class="line">      - asset: static/font/iconfont.ttf</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-UI编辑器。-https-norbert515-github-io-widget-maker-website"><a href="#3-UI编辑器。-https-norbert515-github-io-widget-maker-website" class="headerlink" title="3.UI编辑器。 https://norbert515.github.io/widget_maker/website/"></a>3.UI编辑器。 <a target="_blank" rel="noopener" href="https://norbert515.github.io/widget_maker/website/">https://norbert515.github.io/widget_maker/website/</a></h3><p><a target="_blank" rel="noopener" href="https://github.com/Norbert515/flutter_ide">https://github.com/Norbert515/flutter_ide</a></p>
-<p>项目中使用：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">static const String FONT_FAMILY = &#x27;myIconFont&#x27;;</span><br><span class="line">static const IconData LOGIN_USER = const IconData(0xe652, fontFamily: AppICons.FONT_FAMILY);</span><br><span class="line">iconData: AppICons.LOGIN_USER,</span><br></pre></td></tr></table></figure>
-
-<h1 id="原型开发："><a href="#原型开发：" class="headerlink" title="原型开发："></a>原型开发：</h1><p><a target="_blank" rel="noopener" href="https://www.xiaopiu.com/">https://www.xiaopiu.com/</a></p>
-<p>在上面设计开发，然后导出到本地，可以查看里面的资源文件。</p>
+            <h2 id="文章还在迁移中，更多旧文章见主页"><a href="#文章还在迁移中，更多旧文章见主页" class="headerlink" title="文章还在迁移中，更多旧文章见主页"></a>文章还在迁移中，更多旧文章见<a target="_blank" rel="noopener" href="https://192.144.167.243/">主页</a></h2><p>主页已停止更新，新文章都在这里。</p>
 
           
         
@@ -705,6 +693,7 @@
 </li>
 <li>日志在这种级别下也可能出现性能瓶颈，看下日志库还有没有可优化的地方，在最高峰可以允许短暂的将info级别日志关闭，流量下来之后尽快动态打开。</li>
 <li>提前做好上线前的各种预案和上线流程，以及异常情况下的降级处理流程，责任到人，文档化，有迹可循，不慌乱。</li>
+<li>检查最后是否还有遗漏的地方，特别是准备老用户或者压测未覆盖的场景，以及全服广播之类的。</li>
 </ol>
 
           
@@ -855,7 +844,7 @@
 <li>总结Golang的一系列文章</li>
 <li>Golang stream作业</li>
 <li>C++学习</li>
-<li>TX</li>
+<li>工作总结</li>
 </ul>
 
           
@@ -1973,7 +1962,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-count">35</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1984,7 +1973,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
