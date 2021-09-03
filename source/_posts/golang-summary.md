@@ -16,6 +16,19 @@ categories:
 - 回收白色对象
 - 写屏障：记录第一次扫描时对象的状态，和第二次比对，引用状态变化的对象标记灰色，继续处理。
 
+### kitex
+
+- 公司开源的RPC框架，[github](https://github.com/cloudwego/kitex)
+- 底层网络基于Netpoll实现，kite基于golang的net实现，BIO，每个连接都需要一个goronntine，大量连接时，上下文切换开销。
+- Netpoll基于epoll实现，epoll是linux提供的多路复用网络IO模型，TCP读写都是通过缓冲区来实现的，操作系统为每个tcp连接维护读、写缓冲区。epoll基于监听读写缓冲区事件来实现对网络连接的读写和管理。epoll通过红黑树实现对fd(文件描述符)的高效查找，为每个监听的网络io向操作系统注册回调函数，有网络io发送的时候回调函数将对应的事件加入rdlist中，epoll只需要判断rdlist是不是空即可。
+  - 自建epoll管理连接状态
+  - 自建内存池，提高buffer性能
+  - 支持批量系统命令调用
+  - 协程池
+  - 多种交互模式（双向streaming，Oneway）
+  - 协议扩展
+- 通过netpoll模型，实现G1在M上进行IO操作时，将G1移到epoll监听中，M继续执行P上其他可执行的G2，刚才那个阻塞G1IO调用结束后，再加回到P的队列中或Global队列中。实现以同步的模式写异步逻辑。
+
 ### java gc
 
 - 将内存划分成region，每个region表示eden，survivor，old，huge。跟踪各个region垃圾回收价值，维护优先级列表，避免在整个堆中进行垃圾回收。
