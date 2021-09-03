@@ -967,10 +967,32 @@
       
         
           
-            <p>go gc</p>
-<p>go kitex hertz</p>
-<p>性能分析</p>
-<p>匹配 网关</p>
+            <h3 id="go-gc"><a href="#go-gc" class="headerlink" title="go gc"></a>go gc</h3><ul>
+<li>开始标记：STW，开启写屏障，统计root对象。</li>
+<li>三色标记：扫描root对象，包括全局指针和G栈上的，扫描G栈时G栈需要暂停。root标记灰色，没引用标记黑色，有引用标记黑色并把引用标记灰色，直到灰色队列为空。与用户程序并行。</li>
+<li>重新扫描：STW，因为上一步并行，可能重新分配对象和赋值，通过写屏障记录下来。</li>
+<li>回收白色对象</li>
+<li>写屏障：记录第一次扫描时对象的状态，和第二次比对，引用状态变化的对象标记灰色，继续处理。</li>
+</ul>
+<h3 id="java-gc"><a href="#java-gc" class="headerlink" title="java gc"></a>java gc</h3><ul>
+<li>将内存划分成region，每个region表示eden，survivor，old，huge。跟踪各个region垃圾回收价值，维护优先级列表，避免在整个堆中进行垃圾回收。</li>
+<li>region间是复制算法</li>
+<li>可预测停顿时间的模型</li>
+<li>Eden younggc stw, 45%, 并发标记，混合回收，fullgc。</li>
+</ul>
+<h3 id="调优"><a href="#调优" class="headerlink" title="调优"></a>调优</h3><ul>
+<li>减少string与byte[]转换。</li>
+<li>少量小本文+，大量小文本strings.Join()，大量大文本bytes.Buffer。</li>
+</ul>
+<h3 id="java性能"><a href="#java性能" class="headerlink" title="java性能"></a>java性能</h3><ul>
+<li>堆外内存</li>
+<li>kwaibook春节笔记</li>
+<li>sandbox笔记</li>
+</ul>
+<p>go kitex</p>
+<p>性能分析 golang课程</p>
+<p>匹配</p>
+<p>网关</p>
 <p>redis</p>
 
           
