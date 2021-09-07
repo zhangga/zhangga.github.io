@@ -1651,6 +1651,8 @@
     <url>/redis-pre/</url>
     <content><![CDATA[<p>和Redis结缘还是2011年刚开始实习，做的第一款游戏《部落战争》，<br>就是使用的Redis作为持久层和缓存。 当时对Redis的认识还比较浅，但是Redis的好多特性已经开始慢慢了解。</p>
 <p>这里推荐一下大神的Redis公众号。付磊。快手同事，《Redis开发与运维》一书的作者，强烈推荐这本书，偏向实战，另外一本很有名的书《Redis设计与实现》更注重原理。两本书都非常值得好好读下。</p>
+<span id="more"></span>
+
 <p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4-576x1024.jpg?resize=640,1138" alt="Redis常见面试题 - 第1张  | 张嘎"></p>
 <p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-576x1024.jpg?resize=576,1024" alt="Redis常见面试题 - 第2张  | 张嘎"></p>
 <h4 id="Memcached相比于Redis的主要特点有如下："><a href="#Memcached相比于Redis的主要特点有如下：" class="headerlink" title="Memcached相比于Redis的主要特点有如下："></a>Memcached相比于Redis的主要特点有如下：</h4><p>\1. 超高OPS：例如千万级别以上（线上千万OPS以上的Redis也存在）<br>\2. 多线程：抗热点能力强。<br>\3. 支持大value：例如Memcached 5支持100MB以上的value</p>
