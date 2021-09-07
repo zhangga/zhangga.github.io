@@ -13,6 +13,8 @@ categories:
 
 这里推荐一下大神的Redis公众号。付磊。快手同事，《Redis开发与运维》一书的作者，强烈推荐这本书，偏向实战，另外一本很有名的书《Redis设计与实现》更注重原理。两本书都非常值得好好读下。
 
+<!--more-->
+
 ![Redis常见面试题 - 第1张  | 张嘎](https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4-576x1024.jpg?resize=640%2C1138)
 
 ![Redis常见面试题 - 第2张  | 张嘎](https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-576x1024.jpg?resize=576%2C1024)
