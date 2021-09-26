@@ -50,6 +50,12 @@ categories:
 
 #### sandbox项目过一遍
 
+tcp：https://zhuanlan.zhihu.com/p/388704023
+
+kcp：https://192.144.167.243/blog/93/
+
+mongo 索引实现：https://mongoing.com/archives/2797
+
 - 服务器框架，有脚手架自动生成，只需要简单的描述文件：
   - 比如，使用的idl文件，数据库，配置数据源，网络模式，要接入的rpc服务等，自动生成服务器项目和机器人项目，直接能run起来的。支持是否开启网关模式，方便本地调试。（目前支持tcp和ws，udp在下个双月的okr里，有个枪战类型的游戏准备接入）
   - 策划配置数据这块支持的比较全面，前后端包括java/cs/lua/ts/cpp/uecpp

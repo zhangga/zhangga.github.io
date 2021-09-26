@@ -136,6 +136,13 @@ categories:
 - IO多路复用，监听端口6379，socket封装成事件，注册到事件循环器里，还有回调函数。client新连接建立时，回调函数accept，返回一个FD，也注册进事件循环器里。这样之后client发送请求时，FD可读，事件循环器捕获到事件并调用对应的函数。
 - 每个连接都是client对象，存储命令，输入/出缓冲区。
 - 事件循环器拿到就绪事件的文件描述符后，判断可读还是可写，调用对应的回调函数。
+- 数据结构
+  - stirng： int、embstr、raw。不能用c++string来代替，c++string不支持预分配
+  - List：ziplist、linkedlist
+  - hash：ziplist、hashtable
+  - set：intset、hashtable
+  - zset：ziplist、skiplist+table
+  - hash实现：sizemask=size-1，链地址头插法，rehash
 
 ## Limiter
 
@@ -148,7 +155,15 @@ categories:
 
 ~~网关~~
 
+tcp、kcp
+
+https://zhuanlan.zhihu.com/p/388704023
+
 ##### redis：
+
+https://segmentfault.com/a/1190000040206818
+
+https://zhuanlan.zhihu.com/p/148562122
 
 https://www.jianshu.com/p/125bba448cdd
 
@@ -160,3 +175,12 @@ java自带排序，blog
 
 mysql，blog
 
+https://mp.weixin.qq.com/s?__biz=MzUxNTQyOTIxNA==&mid=2247484041&idx=1&sn=76d3bf1772f9e3c796ad3d8a089220fa&chksm=f9b784b8cec00dae3d52318f6cb2bdee39ad975bf79469b72a499ceca1c5d57db5cbbef914ea&token=2025456560&lang=zh_CN#rd
+
+https://blog.csdn.net/ibigboy/article/details/104571930?depth_1-
+
+http://blog.codinglabs.org/articles/theory-of-mysql-index.html
+
+mongo
+
+https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges
