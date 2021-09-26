@@ -87,7 +87,7 @@
 <meta property="og:description" content="go gc 开始标记：STW，开启写屏障，统计root对象。 三色标记：扫描root对象，包括全局指针和G栈上的，扫描G栈时G栈需要暂停。root标记灰色，没引用标记黑色，有引用标记黑色并把引用标记灰色，直到灰色队列为空。与用户程序并行。 重新扫描：STW，因为上一步并行，可能重新分配对象和赋值，通过写屏障记录下来。 回收白色对象 写屏障：记录第一次扫描时对象的状态，和第二次比对，引用状态变化的对">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2015-09-01T15:49:37.000Z">
-<meta property="article:modified_time" content="2021-09-07T02:59:59.247Z">
+<meta property="article:modified_time" content="2021-09-26T16:58:04.977Z">
 <meta property="article:author" content="Zhang Ga">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
@@ -529,6 +529,15 @@
 <li>IO多路复用，监听端口6379，socket封装成事件，注册到事件循环器里，还有回调函数。client新连接建立时，回调函数accept，返回一个FD，也注册进事件循环器里。这样之后client发送请求时，FD可读，事件循环器捕获到事件并调用对应的函数。</li>
 <li>每个连接都是client对象，存储命令，输入/出缓冲区。</li>
 <li>事件循环器拿到就绪事件的文件描述符后，判断可读还是可写，调用对应的回调函数。</li>
+<li>数据结构<ul>
+<li>stirng： int、embstr、raw。不能用c++string来代替，c++string不支持预分配</li>
+<li>List：ziplist、linkedlist</li>
+<li>hash：ziplist、hashtable</li>
+<li>set：intset、hashtable</li>
+<li>zset：ziplist、skiplist+table</li>
+<li>hash实现：sizemask=size-1，链地址头插法，rehash</li>
+</ul>
+</li>
 </ul>
 <h2 id="Limiter"><a href="#Limiter" class="headerlink" title="Limiter"></a>Limiter</h2><ul>
 <li>滑动窗口：redis指令，ZREMRANGEBYSCORE上个窗口前的值，ZCARD查看当前值，判断和want是否限流，不限流的话，ZADD(timestamp, timestamp+i)，设置过期时间，返回当前ZCARD数。</li>
@@ -537,11 +546,20 @@
 <p><del>性能分析 golang课程</del></p>
 <p><del>匹配 p5 elo</del></p>
 <p><del>网关</del></p>
-<h5 id="redis："><a href="#redis：" class="headerlink" title="redis："></a>redis：</h5><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/125bba448cdd">https://www.jianshu.com/p/125bba448cdd</a></p>
+<p>tcp、kcp</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/388704023">https://zhuanlan.zhihu.com/p/388704023</a></p>
+<h5 id="redis："><a href="#redis：" class="headerlink" title="redis："></a>redis：</h5><p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000040206818">https://segmentfault.com/a/1190000040206818</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/148562122">https://zhuanlan.zhihu.com/p/148562122</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/125bba448cdd">https://www.jianshu.com/p/125bba448cdd</a></p>
 <p><a target="_blank" rel="noopener" href="https://cbsheng.github.io/posts/redis%E9%87%8C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E8%A2%AB%E5%A4%84%E7%90%86/">https://cbsheng.github.io/posts/redis%e9%87%8c%e4%b8%80%e4%b8%aa%e7%ae%80%e5%8d%95%e8%af%b7%e6%b1%82%e5%a6%82%e4%bd%95%e8%a2%ab%e5%a4%84%e7%90%86/</a></p>
 <p>java锁流程，读写锁，延迟队列。</p>
 <p>java自带排序，blog</p>
 <p>mysql，blog</p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzUxNTQyOTIxNA==&amp;mid=2247484041&amp;idx=1&amp;sn=76d3bf1772f9e3c796ad3d8a089220fa&amp;chksm=f9b784b8cec00dae3d52318f6cb2bdee39ad975bf79469b72a499ceca1c5d57db5cbbef914ea&amp;token=2025456560&amp;lang=zh_CN#rd">https://mp.weixin.qq.com/s?__biz=MzUxNTQyOTIxNA==&amp;mid=2247484041&amp;idx=1&amp;sn=76d3bf1772f9e3c796ad3d8a089220fa&amp;chksm=f9b784b8cec00dae3d52318f6cb2bdee39ad975bf79469b72a499ceca1c5d57db5cbbef914ea&amp;token=2025456560&amp;lang=zh_CN#rd</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ibigboy/article/details/104571930?depth_1-">https://blog.csdn.net/ibigboy/article/details/104571930?depth_1-</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html">http://blog.codinglabs.org/articles/theory-of-mysql-index.html</a></p>
+<p>mongo</p>
+<p><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges">https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges</a></p>
 
       
     </div>
@@ -668,7 +686,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

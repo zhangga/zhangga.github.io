@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="笔记," />
 
 
 
@@ -79,16 +79,21 @@
 
 
 
-<meta name="description" content="游戏技术博客">
-<meta property="og:type" content="website">
-<meta property="og:title" content="张嘎">
-<meta property="og:url" content="http://kwaibook.com/index.html">
+<meta name="description" content="索引基础知识什么是索引索引最常用的比喻就是书籍的目录，查询索引就像查询一本书的目录。本质上目录是将书中一小部分内容信息（比如题目）和内容的位置信息（页码）共同构成，而由于信息量小（只有题目），所以我们可以很快找到我们想要的信息片段，再根据页码找到相应的内容。同样索引也是只保留某个域的一部分信息（建立了索引的field的信息），以及对应的文档的位置信息。 假设我们有如下文档（每行的数据在MongoD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MongoDB索引详解">
+<meta property="og:url" content="http://kwaibook.com/mongodb-index/index.html">
 <meta property="og:site_name" content="张嘎">
-<meta property="og:description" content="游戏技术博客">
+<meta property="og:description" content="索引基础知识什么是索引索引最常用的比喻就是书籍的目录，查询索引就像查询一本书的目录。本质上目录是将书中一小部分内容信息（比如题目）和内容的位置信息（页码）共同构成，而由于信息量小（只有题目），所以我们可以很快找到我们想要的信息片段，再根据页码找到相应的内容。同样索引也是只保留某个域的一部分信息（建立了索引的field的信息），以及对应的文档的位置信息。 假设我们有如下文档（每行的数据在MongoD">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3959253-7e2a31d0b5301c9f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3959253-6b00f39c08c49406.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="article:published_time" content="2021-09-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-26T16:58:04.977Z">
 <meta property="article:author" content="Zhang Ga">
-<meta property="article:tag" content="游戏">
+<meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/3959253-7e2a31d0b5301c9f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
 
 
@@ -118,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://kwaibook.com/"/>
+  <link rel="canonical" href="http://kwaibook.com/mongodb-index/"/>
 
 
 
 
 
-  <title>张嘎</title>
+  <title>MongoDB索引详解 | 张嘎</title>
   
 
 
@@ -143,8 +148,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -271,151 +275,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/notice/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/notice/" itemprop="url">notice</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2022-07-25T20:36:23+08:00">
-                2022-07-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%85%AC%E5%91%8A/" itemprop="url" rel="index">
-                    <span itemprop="name">公告</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="文章还在迁移中，更多旧文章见主页"><a href="#文章还在迁移中，更多旧文章见主页" class="headerlink" title="文章还在迁移中，更多旧文章见主页"></a>文章还在迁移中，更多旧文章见<a target="_blank" rel="noopener" href="https://192.144.167.243/">主页</a></h2><p>主页已停止更新，新文章都在这里。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
 
   
 
@@ -445,9 +307,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/mongodb-index/" itemprop="url">MongoDB索引详解</a></h1>
+          <h1 class="post-title" itemprop="name headline">MongoDB索引详解</h1>
         
 
         <div class="post-meta">
@@ -459,7 +319,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-14T00:00:00+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-13T16:00:00+00:00">
                 2021-09-14
               </time>
             
@@ -495,6 +355,16 @@
 
           
             
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/mongodb-index/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/mongodb-index/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
           
 
           
@@ -519,9 +389,7 @@
       
 
       
-        
-          
-            <h1 id="索引基础知识"><a href="#索引基础知识" class="headerlink" title="索引基础知识"></a>索引基础知识</h1><h2 id="什么是索引"><a href="#什么是索引" class="headerlink" title="什么是索引"></a>什么是索引</h2><p>索引最常用的比喻就是书籍的目录，查询索引就像查询一本书的目录。本质上目录是将书中一小部分内容信息（比如题目）和内容的位置信息（页码）共同构成，而由于信息量小（只有题目），所以我们可以很快找到我们想要的信息片段，再根据页码找到相应的内容。同样索引也是只保留某个域的一部分信息（建立了索引的field的信息），以及对应的文档的位置信息。 假设我们有如下文档（每行的数据在MongoDB中是存在于一个Document当中）</p>
+        <h1 id="索引基础知识"><a href="#索引基础知识" class="headerlink" title="索引基础知识"></a>索引基础知识</h1><h2 id="什么是索引"><a href="#什么是索引" class="headerlink" title="什么是索引"></a>什么是索引</h2><p>索引最常用的比喻就是书籍的目录，查询索引就像查询一本书的目录。本质上目录是将书中一小部分内容信息（比如题目）和内容的位置信息（页码）共同构成，而由于信息量小（只有题目），所以我们可以很快找到我们想要的信息片段，再根据页码找到相应的内容。同样索引也是只保留某个域的一部分信息（建立了索引的field的信息），以及对应的文档的位置信息。 假设我们有如下文档（每行的数据在MongoDB中是存在于一个Document当中）</p>
 <table>
 <thead>
 <tr>
@@ -741,8 +609,6 @@
 <li><a target="_blank" rel="noopener" href="https://docs.mongodb.com/manual/tutorial/analyze-query-plan/">Analyze Query Performance</a></li>
 </ul>
 
-          
-        
       
     </div>
     
@@ -757,492 +623,40 @@
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/tcp/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/tcp/" itemprop="url">TCP/UDP</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-08T22:35:25+08:00">
-                2021-09-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
           
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
+      
 
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
+      
       
       
 
       
-        
-          <h2 id="TCP常见面试题"><a href="#TCP常见面试题" class="headerlink" title="TCP常见面试题"></a>TCP常见面试题</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/388704023">TCP</a></p>
-<h4 id="TCP协议问题"><a href="#TCP协议问题" class="headerlink" title="TCP协议问题"></a>TCP协议问题</h4><ul>
-<li>连接<ul>
-<li>三次握手<ul>
-<li>费时：4G网络(3*100ms)</li>
-<li>费力：3个数据包</li>
-<li>优化：<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh/TCP%E5%BF%AB%E9%80%9F%E6%89%93%E5%BC%80">TCP Fast Open</a></li>
-</ul>
-</li>
-<li>半连接(初始化连接SYN超时)<ul>
-<li>耗费网络资源：5次重发SYN-ACK包</li>
-<li>耗费服务器资源：63秒后断开连接(TIME_WAIT = 2*MSL)</li>
-<li>易被攻击：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/6eae45826754">SYN flood拒绝服务攻击</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/tcp/#more" rel="contents">
-              Read more &raquo;
-            </a>
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/tcp/" rel="next" title="TCP/UDP">
+                <i class="fa fa-chevron-left"></i> TCP/UDP
+              </a>
+            
           </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
 
-    
+          <span class="post-nav-divider"></span>
 
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/garbage-first/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/garbage-first/" itemprop="url">垃圾回收器G1详解</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
+          <div class="post-nav-prev post-nav-item">
             
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-01T13:50:42+08:00">
-                2021-09-01
-              </time>
+              <a href="/notice/" rel="prev" title="notice">
+                notice <i class="fa fa-chevron-right"></i>
+              </a>
             
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>转载自：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/yanl55555/p/13366387.html">JVM七大垃圾回收器下篇G1(Garbage First)</a></p>
-<h1 id="G1回收器-区域化分代式"><a href="#G1回收器-区域化分代式" class="headerlink" title="G1回收器:区域化分代式"></a>G1回收器:区域化分代式</h1><p><strong>既然我们已经有了前面几个强大的GC，为什么还要发布Garbage First （G1）GC？</strong><br>  原因就在于应用程序所应对的业务越来越庞大、复杂，用户越来越多，没有GC就不能保证应用程序正常进行，而经常造成STW的GC又跟不上实际的需求，所以才会不断地尝试对GC进行优化。G1 （Garbage一First） 垃圾回收器是在Java7 update4之后引入的一个新的垃圾回收器，是当今收集器技术发展的最前沿成果之一。<br>  与此同时，为了适应现在不断扩大的内存和不断增加的处理器数量，进一步降低暂停时间（pause time） ，同时兼顾良好的吞吐量。<br>  官方给G1设定的目标是在延迟可控（低暂停）的情况下获得尽可能高的吞吐量（高吞吐），所以才担当起“全功能收集器”的重任与期望。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/garbage-first/#more" rel="contents">
-              Read more &raquo;
-            </a>
           </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/srv-optimize/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/srv-optimize/" itemprop="url">服务器性能优化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-31T23:55:21+08:00">
-                2021-08-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <p><em>在一些高QPS的场景下，服务器可能面临的挑战和问题总结。</em></p>
-<ol>
-<li>服务器一定要有流控功能和降级预案，一些接口可以提供有损服务，最差情况只要保证核心业务不出问题。</li>
-<li>梳理出各个关键接口在不可用时的表现，和处理方案，已经可能面临的问题，落实到文档，一步步攻坚。</li>
-<li>核心业务和接口预估最高QPS，根据QPS指标做好全链路压测。</li>
-<li>做好性能监控和报警，实时查看大盘数据。</li>
-<li>最常出现性能瓶颈的地方：<ul>
-<li>登录，特别是注册新用户。流控限制服务的承载上限，一定不能超过当前服务的承载。流控触发后，前端进行友好的过渡，根据不同的游戏类型进行特定场景的处理，比如进行一局单机游戏。</li>
-<li>针对一些更极端的场景，可预见的某个时间段，会有大量的用户登录和创建，前端不验证流控前，直接预先将登录进行打散。针对大量创建用户引起的数据库性能瓶颈问题，可以预先生成一大批新用户数据，放入缓存。</li>
-<li>注意玩家退出或掉线的逻辑，是否有一些数据回写，判断是否会成为瓶颈。</li>
-</ul>
-</li>
-<li>数据库可能出现问题的地方：<ul>
-<li>Mongo 提前关闭autosplit，movechunk，retryWrites。</li>
-<li>数据库连接要预热。</li>
-</ul>
-</li>
-<li>前端要注意的一些点：<ul>
-<li>提供1到2个备用的资源CDN。</li>
-<li>服务器提供两个一级域名和几个二级域名让客户端随机选取使用。</li>
-<li>考虑前端SDK一些接口遇到性能瓶颈的情况，特别是登录验证，做好预案和降级处理。</li>
-</ul>
-</li>
-<li>日志在这种级别下也可能出现性能瓶颈，看下日志库还有没有可优化的地方，在最高峰可以允许短暂的将info级别日志关闭，流量下来之后尽快动态打开。</li>
-<li>提前做好上线前的各种预案和上线流程，以及异常情况下的降级处理流程，责任到人，文档化，有迹可循，不慌乱。</li>
-<li>检查最后是否还有遗漏的地方，特别是准备老用户或者压测未覆盖的场景，以及全服广播之类的。</li>
-</ol>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -1252,760 +666,11 @@
   </article>
 
 
-    
-      
 
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/roadmap/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/roadmap/" itemprop="url">RoadMap</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-06-11T00:15:42+08:00">
-                2021-06-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>RoadMap</p>
-<p>规划</p>
-<ul>
-<li>双周产出一篇文章</li>
-<li>迁移WordPress的文章</li>
-<li>总结Golang的一系列文章</li>
-<li>Golang stream作业</li>
-<li>C++学习</li>
-<li>工作总结</li>
-</ul>
-
-          
-        
+    <div class="post-spread">
       
     </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
   </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/hello/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/hello/" itemprop="url">WordPress迁移Hexo</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-06-10T23:50:05+08:00">
-                2021-06-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h1 id="搬新家了！"><a href="#搬新家了！" class="headerlink" title="搬新家了！"></a>搬<a href="http://kwaibook.com/">新家</a>了！</h1><p>在用了三年多WordPress后还是决定尝试下使用一些轻量的框架来搭建站点，比如Hexo。<br>放弃WordPress主要出于以下几个方面的考虑吧：</p>
-<ol>
-<li>成本：需要单独的服务器部署。</li>
-<li>效率：功能大而全，便利性方面还是很好的，但是敏捷性方面就稍显欠缺了，而Hexo支持MD语法，大大激活创作效率。</li>
-<li>性能：网页加载图片的速度较慢。</li>
-<li>美观：简洁才是王道</li>
-<li>杀鸡用牛刀：在个人站点方面，静态的Hexo完全够了。</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/hello/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/limiter/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/limiter/" itemprop="url">服务流控方案总结</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-12-26T14:09:12+08:00">
-                2020-12-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>转载自：<a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/765912">https://developer.aliyun.com/article/765912</a></p>
-<h3 id="一-流控的场景"><a href="#一-流控的场景" class="headerlink" title="一 流控的场景"></a>一 流控的场景</h3><p>流控的意义其实无需多言了。最常用的场景下，流控是为了保护下游有限的资源不被流量冲垮，保证服务的可用性，一般允许流控的阈值有一定的弹性，偶尔的超量访问是可以接受的。</p>
-<p>有的时候，流控服务于收费模式，比如某些云厂商会对调用 API 的频次进行计费。既然涉及到钱，一般就不允许有超出阈值的调用量。</p>
-<p>这些不同的场景下，适用的流控算法不尽相同。大多数情况下，使用 Sentinel 中间件已经能很好地应对，但 Sentinel 也并不是万能的，需要思考其他的流控方案。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/limiter/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/gc-charator/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/gc-charator/" itemprop="url">常见垃圾收集器的特点</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-03-31T19:54:08+08:00">
-                2019-03-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="CMS（Concurrent-Mark-Sweep）收集器"><a href="#CMS（Concurrent-Mark-Sweep）收集器" class="headerlink" title="CMS（Concurrent Mark Sweep）收集器"></a>CMS（Concurrent Mark Sweep）收集器</h4><p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/11.png?resize=640,175" alt="常见垃圾收集器的特点 - 第1张  | 张嘎"></p>
-<p><strong>缺点：</strong>1.CMS收集器对CPU资源非常敏感。并发执行的特性，会对用户线程产生影响。<br>2.CMS收集器无法处理浮动垃圾。并发清理阶段用户线程还在运行着，伴随程序运行自然还会有新的垃圾不断产生，CMS无法处理他们。<br>3.采用标记-清楚算法实现，产生内存碎片。</p>
-<h4 id="G1（Garbage-First）收集器"><a href="#G1（Garbage-First）收集器" class="headerlink" title="G1（Garbage-First）收集器"></a>G1（Garbage-First）收集器</h4><p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/12.png?resize=640,173" alt="常见垃圾收集器的特点 - 第2张  | 张嘎"></p>
-<p><strong>特点：</strong>1.并发与并行。<br>2.分代收集。<br>3.空间整合。标记-整理算法。<br>4.可预测的停顿。降低停顿时间是G1和CMS共同的关注点。<br>5.G1可以进行垃圾收集的范围包括新生代和老年代。将整个Java堆划分为多个大小相等的独立区域，虽然还保留新生代和老年代的概念，但新生代和老年代不再是物理隔离的了，它们都是一部分Region的集合。<strong>化整为零的思路，并维护优先队列，使得G1收集器实现可预测的停顿。</strong><br>6.可达性分析时跨Region对象引用的问题，虚拟机维护Remembered Set来避免全堆扫描。</p>
-<h4 id="ZGC（）收集器"><a href="#ZGC（）收集器" class="headerlink" title="ZGC（）收集器"></a>ZGC（）收集器</h4><h4 id="堆外内存导致溢出错误"><a href="#堆外内存导致溢出错误" class="headerlink" title="堆外内存导致溢出错误"></a>堆外内存导致溢出错误</h4><p>堆外内存不在垃圾回收的范围内，如果发生内存溢出的情况，也有可能是堆外内存引起的，常见的堆外内存包括：<br>1.Direct Memory。可通过-XX:MaxDirectMemorySize调整大小，内存不足时抛出OutOfMemoryError或者OutOfMemoryError: Direct buffer memory。<br>2.线程堆栈。可通过-Xss调整大小，内存不足时抛出StackOverflowError或者OutOfMemoryError: unable to create new native thread。<br>3.Socket缓存区。IOException: Too many open files。<br>4.JNI代码。调用本地库，本地库使用的内存也不在堆中。<br>5.虚拟机和GC。虚拟机和GC的代码执行也要消耗一定的内存。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/redis-pre/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/redis-pre/" itemprop="url">Redis常见面试题</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-03-27T19:52:43+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>和Redis结缘还是2011年刚开始实习，做的第一款游戏《部落战争》，<br>就是使用的Redis作为持久层和缓存。 当时对Redis的认识还比较浅，但是Redis的好多特性已经开始慢慢了解。</p>
-<p>这里推荐一下大神的Redis公众号。付磊。快手同事，《Redis开发与运维》一书的作者，强烈推荐这本书，偏向实战，另外一本很有名的书《Redis设计与实现》更注重原理。两本书都非常值得好好读下。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/redis-pre/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-  </section>
-
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
-  </nav>
-
 
 
           </div>
@@ -2013,6 +678,17 @@
 
 
           
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
 
         </div>
         
@@ -2033,8 +709,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -2098,6 +783,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">索引基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%B4%A2%E5%BC%95"><span class="nav-number">1.1.</span> <span class="nav-text">什么是索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MongoDB%E6%9C%89%E5%93%AA%E4%BA%9B%E7%B1%BB%E5%9E%8B%E7%9A%84%E7%B4%A2%E5%BC%95"><span class="nav-number">1.2.</span> <span class="nav-text">MongoDB有哪些类型的索引</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E5%AD%97%E6%AE%B5%E7%B4%A2%E5%BC%95-%EF%BC%88Single-Field-Index%EF%BC%89"><span class="nav-number">1.2.1.</span> <span class="nav-text">单字段索引 （Single Field Index）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E5%90%88%E7%B4%A2%E5%BC%95-Compound-Index"><span class="nav-number">1.2.2.</span> <span class="nav-text">复合索引 (Compound Index)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95field%E7%9A%84%E5%85%88%E5%90%8E%E9%A1%BA%E5%BA%8F%E5%BE%88%E5%85%B3%E9%94%AE%EF%BC%8C%E5%BD%B1%E5%93%8D%E6%9C%89%E4%B8%A4%E6%96%B9%E9%9D%A2%EF%BC%9A"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">索引field的先后顺序很关键，影响有两方面：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E6%8E%92%E5%BA%8F%E9%A1%BA%E5%BA%8F%E4%B8%8D%E5%90%8C"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">索引的排序顺序不同</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9Akey%E7%B4%A2%E5%BC%95-%EF%BC%88Multikey-Index%EF%BC%89"><span class="nav-number">1.2.3.</span> <span class="nav-text">多key索引 （Multikey Index）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E5%AE%83%E7%B1%BB%E5%9E%8B%E7%B4%A2%E5%BC%95"><span class="nav-number">1.2.4.</span> <span class="nav-text">其它类型索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E5%B1%9E%E6%80%A7"><span class="nav-number">1.2.5.</span> <span class="nav-text">索引属性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%80%9A%E8%BF%87explain%E7%BB%93%E6%9E%9C%E6%9D%A5%E5%88%86%E6%9E%90%E6%80%A7%E8%83%BD"><span class="nav-number">2.</span> <span class="nav-text">通过explain结果来分析性能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#References"><span class="nav-number">3.</span> <span class="nav-text">References</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -2231,6 +932,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
@@ -2277,6 +982,30 @@
 
     
 
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname, 
+            owner: 'zhanga',
+            repo: 'gitment-comments',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: 'e66cfd435bb60cab32c9aa9901068a8f7712daf5',
+            
+                client_id: 'Iv1.08dfdfc601d9e481'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
     
 
 
