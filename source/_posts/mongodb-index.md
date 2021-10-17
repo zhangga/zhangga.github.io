@@ -20,6 +20,8 @@ categories:
 | 李四 | 1    | xxx  | Shanghai  | 70    |
 | 王五 | 3    | xxx  | guangzhou | 60    |
 
+<!-- more -->
+
 假如我们想找id为2的document(即张三的记录)，如果没有索引，我们就需要扫描整个数据表，然后找出所有为2的document。当数据表中有大量documents的时候，这个时间就会非常长（从磁盘上查找数据还涉及大量的IO操作)。建立索引后会有什么变化呢？MongoDB会将id数据拿出来建立索引数据，如下
 
 | 索引值 | 位置 |

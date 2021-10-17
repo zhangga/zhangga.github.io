@@ -184,3 +184,9 @@ http://blog.codinglabs.org/articles/theory-of-mysql-index.html
 mongo
 
 https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges
+
+https://www.atzlinux.com/atzlinux/doc/os2atc2019/SPDK-bytedance-miaoyu.pdf
+
+
+
+http://point-blank-games.com/theses/Sara_Budde_Thesis.pdf
