@@ -428,6 +428,323 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/docker-net/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/docker-net/" itemprop="url">容器的网络模式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-10-17T18:07:44+08:00">
+                2021-10-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="Bridge"><a href="#Bridge" class="headerlink" title="Bridge"></a>Bridge</h3><p>独立netns隔离了网络，容器间网络不互相影响，容器内的IP地址是私有网段，仅本地可见，通过NAT与外部交互</p>
+<p>Bridge 模式可以看作服务被放在一个独立的网络空间里，它的 IP 是一个虚拟 IP，任何的端口都是可以使用的。但是对外提供服务的时候，需要通过 NAT 转发。</p>
+<p>需要进行的配置：</p>
+<ul>
+<li><p>配置服务信息中需要填写一个服务主端口</p>
+</li>
+<li><p>配置以后的实例列表：</p>
+<p>可以看到，Bridge 模式下的实例会有不同的 NodeIP 和内部 IP，内部 IP 是一个虚拟 IP，它通过 NAT 转发映射到 NodeIP。内部端口是配置的固定端口，访问端口是动态配置的转发端口。</p>
+</li>
+</ul>
+<h3 id="Host"><a href="#Host" class="headerlink" title="Host"></a>Host</h3><p>标准的Host网络</p>
+<p>Host 模式使用的是宿主机的端口，相比 Bridge 而言，少了一次内核栈的调用，也没有 NAT 转发的损耗。对于高吞吐，或有大文件传输的业务服务而言，Bridge 模式不符合性能要求，所以架构组又推出来了 Host 模式。</p>
+<p>在  Host 模式下，服务端口都是平台自动分配的，因此不同的实例端口可能不同。平台会根据每台机器的可用端口，按照服务的需要，分配给实例对应的端口并保存在环境变量中，从 PORT0 开始保存。</p>
+<p>例如，服务需要一个端口（配置的是 4608），平台会分配两个可用端口（9001、9002），写到环境变量 PORT0 和 PORT1 中，因此需要服务自己进行动态的配置和替换。</p>
+<p>在环境变量中，”$IS_HOST_NETWORK” == “1” 表示 Host 模式。</p>
+<h3 id="Auto-Host"><a href="#Auto-Host" class="headerlink" title="Auto Host"></a>Auto Host</h3><p>通过hookbind重映射bind的端口号，其他行为同Host</p>
+<p>在上面的 Host 模式中，平台把动态分配端口的使用权下放给了应用，需要应用自己进行复杂的配置，并在应用中动态修改配置，有比较高的维护成本。另外，如果选择 Host 模式，但是依旧按照 Bridge 的方式进行配置，则有产生端口冲突的风险。于是架构组又推出了 Auto Host 模式。</p>
+<p>Auto Host 模式的做法是在内核层对 syscall 的 listen api 进行截获，然后替换上动态分配的端口。</p>
+<p>Auto Host 模式需要进行的配置与 Bridge 模式有两点不同：</p>
+<ul>
+<li>选择不同的模式</li>
+<li>需要配置的端口数与 Host 模式相同，是 Bridge 模式的两倍，Bridge 模式只要配置 uwsgi 的端口，这边需要 uwsgi 和 nginx 的端口</li>
+</ul>
+<p>Auto Host 模式启动以后的实例列表，这边由于不需要进行 NAT 转发，因此 NodeIP 和 内部 IP是一样的，9003 和 9006 是平台动态分配的端口。</p>
+<p><strong>以下全文仅讨论Bridge网络模式，Host网络的隔离性以及功能扩展性远不如Bridge，且Bridge在BPF加速后，</strong>性能略高于Host网络。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/game-server-cloud/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/game-server-cloud/" itemprop="url">服务器云基础设施介绍</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-10-17T16:50:15+08:00">
+                2021-10-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>服务器云基础设施介绍</p>
+<ul>
+<li><h1 id="个人介绍"><a href="#个人介绍" class="headerlink" title="个人介绍"></a>个人介绍</h1></li>
+</ul>
+<p>大家好，我叫张泽强，很荣幸能来到这里和大家一起分享有关游戏服务器的一些生产环境下的应用和案例，希望大家对线上环境的技术方案和选型有一个初步的了解，这样平时在学校做一些课设或项目的时候，对于技术方案多一些选择，或者说可以更接近真实环境。</p>
+<p>先做个简单的自我介绍吧。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/game-server-cloud/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://kwaibook.com/svn-git-diff/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1728,315 +2045,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/roadmap/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/roadmap/" itemprop="url">RoadMap</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-06-11T00:15:42+08:00">
-                2021-06-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>RoadMap</p>
-<p>规划</p>
-<ul>
-<li>双周产出一篇文章</li>
-<li>迁移WordPress的文章</li>
-<li>总结Golang的一系列文章</li>
-<li>Golang stream作业</li>
-<li>C++学习</li>
-<li>工作总结</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/hello/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/hello/" itemprop="url">WordPress迁移Hexo</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-06-10T23:50:05+08:00">
-                2021-06-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h1 id="搬新家了！"><a href="#搬新家了！" class="headerlink" title="搬新家了！"></a>搬<a href="http://kwaibook.com/">新家</a>了！</h1><p>在用了三年多WordPress后还是决定尝试下使用一些轻量的框架来搭建站点，比如Hexo。<br>放弃WordPress主要出于以下几个方面的考虑吧：</p>
-<ol>
-<li>成本：需要单独的服务器部署。</li>
-<li>效率：功能大而全，便利性方面还是很好的，但是敏捷性方面就稍显欠缺了，而Hexo支持MD语法，大大激活创作效率。</li>
-<li>性能：网页加载图片的速度较慢。</li>
-<li>美观：简洁才是王道</li>
-<li>杀鸡用牛刀：在个人站点方面，静态的Hexo完全够了。</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/hello/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">&gt;</a>
   </nav>
 
 
@@ -2086,7 +2099,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">40</span>
+                  <span class="site-state-item-count">42</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

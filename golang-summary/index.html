@@ -87,7 +87,7 @@
 <meta property="og:description" content="go gc 开始标记：STW，开启写屏障，统计root对象。 三色标记：扫描root对象，包括全局指针和G栈上的，扫描G栈时G栈需要暂停。root标记灰色，没引用标记黑色，有引用标记黑色并把引用标记灰色，直到灰色队列为空。与用户程序并行。 重新扫描：STW，因为上一步并行，可能重新分配对象和赋值，通过写屏障记录下来。 回收白色对象 写屏障：记录第一次扫描时对象的状态，和第二次比对，引用状态变化的对">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2015-09-01T15:49:37.000Z">
-<meta property="article:modified_time" content="2021-10-17T03:22:19.801Z">
+<meta property="article:modified_time" content="2021-10-17T13:28:40.845Z">
 <meta property="article:author" content="Zhang Ga">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
@@ -553,6 +553,7 @@
 <p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/125bba448cdd">https://www.jianshu.com/p/125bba448cdd</a></p>
 <p><a target="_blank" rel="noopener" href="https://cbsheng.github.io/posts/redis%E9%87%8C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E8%A2%AB%E5%A4%84%E7%90%86/">https://cbsheng.github.io/posts/redis%e9%87%8c%e4%b8%80%e4%b8%aa%e7%ae%80%e5%8d%95%e8%af%b7%e6%b1%82%e5%a6%82%e4%bd%95%e8%a2%ab%e5%a4%84%e7%90%86/</a></p>
 <p>java锁流程，读写锁，延迟队列。</p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000022904663">https://segmentfault.com/a/1190000022904663</a></p>
 <p>java自带排序，blog</p>
 <p>mysql，blog</p>
 <p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzUxNTQyOTIxNA==&amp;mid=2247484041&amp;idx=1&amp;sn=76d3bf1772f9e3c796ad3d8a089220fa&amp;chksm=f9b784b8cec00dae3d52318f6cb2bdee39ad975bf79469b72a499ceca1c5d57db5cbbef914ea&amp;token=2025456560&amp;lang=zh_CN#rd">https://mp.weixin.qq.com/s?__biz=MzUxNTQyOTIxNA==&amp;mid=2247484041&amp;idx=1&amp;sn=76d3bf1772f9e3c796ad3d8a089220fa&amp;chksm=f9b784b8cec00dae3d52318f6cb2bdee39ad975bf79469b72a499ceca1c5d57db5cbbef914ea&amp;token=2025456560&amp;lang=zh_CN#rd</a></p>
@@ -562,6 +563,25 @@
 <p><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges">https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.atzlinux.com/atzlinux/doc/os2atc2019/SPDK-bytedance-miaoyu.pdf">https://www.atzlinux.com/atzlinux/doc/os2atc2019/SPDK-bytedance-miaoyu.pdf</a></p>
 <p><a target="_blank" rel="noopener" href="http://point-blank-games.com/theses/Sara_Budde_Thesis.pdf">http://point-blank-games.com/theses/Sara_Budde_Thesis.pdf</a></p>
+<p>byted open：</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d7284007f883">https://www.jianshu.com/p/d7284007f883</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dd5fb725331b">https://www.jianshu.com/p/dd5fb725331b</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.google.com/presentation/d/1k7ZlumJKxykn6CXWqdqsx1XcKMxt7HvWgYz1oxgN66E/edit#slide=id.g56a70cb717_0_263">https://docs.google.com/presentation/d/1k7ZlumJKxykn6CXWqdqsx1XcKMxt7HvWgYz1oxgN66E/edit#slide=id.g56a70cb717_0_263</a></p>
+<p><a target="_blank" rel="noopener" href="https://app.diandian.com/rank/ios/1-2-172-75-4?time=1620835200000&amp;device=1&amp;timetype=today">https://app.diandian.com/rank/ios/1-2-172-75-4?time=1620835200000&amp;device=1&amp;timetype=today</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.appannie.com/en/apps/ios/top/japan/overall/iphone/">https://www.appannie.com/en/apps/ios/top/japan/overall/iphone/</a></p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000022678327">https://segmentfault.com/a/1190000022678327</a></p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000022731367">https://segmentfault.com/a/1190000022731367</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/goyirzr19vqvtupois92">https://www.infoq.cn/article/goyirzr19vqvtupois92</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/_LovnIqJYAuDpTm2QmUgrA">https://mp.weixin.qq.com/s/_LovnIqJYAuDpTm2QmUgrA</a></p>
+<p><a target="_blank" rel="noopener" href="https://pandaychen.github.io/2020/03/03/BIGCACHE-ANALYSIS/">https://pandaychen.github.io/2020/03/03/BIGCACHE-ANALYSIS/</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/91136759">https://zhuanlan.zhihu.com/p/91136759</a></p>
+<p><a target="_blank" rel="noopener" href="https://lailin.xyz/post/go-training-03.html">https://lailin.xyz/post/go-training-03.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.wolfogre.com/posts/go-ppof-practice/">https://blog.wolfogre.com/posts/go-ppof-practice/</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903887757901831">https://juejin.cn/post/6844903887757901831</a></p>
+<p><a target="_blank" rel="noopener" href="https://coolshell.cn/articles/17416.html">https://coolshell.cn/articles/17416.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/abcjennifer/article/details/47110991">https://blog.csdn.net/abcjennifer/article/details/47110991</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/gogap/aop">https://github.com/gogap/aop</a></p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1165876">https://cloud.tencent.com/developer/article/1165876</a></p>
 
       
     </div>
@@ -688,7 +708,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">40</span>
+                  <span class="site-state-item-count">42</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
