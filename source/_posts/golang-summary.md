@@ -171,6 +171,8 @@ https://www.jianshu.com/p/125bba448cdd
 
 java锁流程，读写锁，延迟队列。
 
+https://segmentfault.com/a/1190000022904663
+
 java自带排序，blog
 
 mysql，blog
@@ -190,3 +192,43 @@ https://www.atzlinux.com/atzlinux/doc/os2atc2019/SPDK-bytedance-miaoyu.pdf
 
 
 http://point-blank-games.com/theses/Sara_Budde_Thesis.pdf
+
+
+
+byted open：
+
+https://www.jianshu.com/p/d7284007f883
+
+https://www.jianshu.com/p/dd5fb725331b
+
+https://docs.google.com/presentation/d/1k7ZlumJKxykn6CXWqdqsx1XcKMxt7HvWgYz1oxgN66E/edit#slide=id.g56a70cb717_0_263
+
+https://app.diandian.com/rank/ios/1-2-172-75-4?time=1620835200000&device=1&timetype=today
+
+https://www.appannie.com/en/apps/ios/top/japan/overall/iphone/
+
+https://segmentfault.com/a/1190000022678327
+
+https://segmentfault.com/a/1190000022731367
+
+https://www.infoq.cn/article/goyirzr19vqvtupois92
+
+https://mp.weixin.qq.com/s/_LovnIqJYAuDpTm2QmUgrA
+
+https://pandaychen.github.io/2020/03/03/BIGCACHE-ANALYSIS/
+
+https://zhuanlan.zhihu.com/p/91136759
+
+https://lailin.xyz/post/go-training-03.html
+
+https://blog.wolfogre.com/posts/go-ppof-practice/
+
+https://juejin.cn/post/6844903887757901831
+
+https://coolshell.cn/articles/17416.html
+
+https://blog.csdn.net/abcjennifer/article/details/47110991
+
+https://github.com/gogap/aop
+
+https://cloud.tencent.com/developer/article/1165876
