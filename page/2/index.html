@@ -286,6 +286,448 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/limiter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/limiter/" itemprop="url">服务流控方案总结</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-12-26T14:09:12+08:00">
+                2020-12-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>转载自：<a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/765912">https://developer.aliyun.com/article/765912</a></p>
+<h3 id="一-流控的场景"><a href="#一-流控的场景" class="headerlink" title="一 流控的场景"></a>一 流控的场景</h3><p>流控的意义其实无需多言了。最常用的场景下，流控是为了保护下游有限的资源不被流量冲垮，保证服务的可用性，一般允许流控的阈值有一定的弹性，偶尔的超量访问是可以接受的。</p>
+<p>有的时候，流控服务于收费模式，比如某些云厂商会对调用 API 的频次进行计费。既然涉及到钱，一般就不允许有超出阈值的调用量。</p>
+<p>这些不同的场景下，适用的流控算法不尽相同。大多数情况下，使用 Sentinel 中间件已经能很好地应对，但 Sentinel 也并不是万能的，需要思考其他的流控方案。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/limiter/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/gc-charator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/gc-charator/" itemprop="url">常见垃圾收集器的特点</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-03-31T19:54:08+08:00">
+                2019-03-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h4 id="CMS（Concurrent-Mark-Sweep）收集器"><a href="#CMS（Concurrent-Mark-Sweep）收集器" class="headerlink" title="CMS（Concurrent Mark Sweep）收集器"></a>CMS（Concurrent Mark Sweep）收集器</h4><p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/11.png?resize=640,175" alt="常见垃圾收集器的特点 - 第1张  | 张嘎"></p>
+<p><strong>缺点：</strong>1.CMS收集器对CPU资源非常敏感。并发执行的特性，会对用户线程产生影响。<br>2.CMS收集器无法处理浮动垃圾。并发清理阶段用户线程还在运行着，伴随程序运行自然还会有新的垃圾不断产生，CMS无法处理他们。<br>3.采用标记-清楚算法实现，产生内存碎片。</p>
+<h4 id="G1（Garbage-First）收集器"><a href="#G1（Garbage-First）收集器" class="headerlink" title="G1（Garbage-First）收集器"></a>G1（Garbage-First）收集器</h4><p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/12.png?resize=640,173" alt="常见垃圾收集器的特点 - 第2张  | 张嘎"></p>
+<p><strong>特点：</strong>1.并发与并行。<br>2.分代收集。<br>3.空间整合。标记-整理算法。<br>4.可预测的停顿。降低停顿时间是G1和CMS共同的关注点。<br>5.G1可以进行垃圾收集的范围包括新生代和老年代。将整个Java堆划分为多个大小相等的独立区域，虽然还保留新生代和老年代的概念，但新生代和老年代不再是物理隔离的了，它们都是一部分Region的集合。<strong>化整为零的思路，并维护优先队列，使得G1收集器实现可预测的停顿。</strong><br>6.可达性分析时跨Region对象引用的问题，虚拟机维护Remembered Set来避免全堆扫描。</p>
+<h4 id="ZGC（）收集器"><a href="#ZGC（）收集器" class="headerlink" title="ZGC（）收集器"></a>ZGC（）收集器</h4><h4 id="堆外内存导致溢出错误"><a href="#堆外内存导致溢出错误" class="headerlink" title="堆外内存导致溢出错误"></a>堆外内存导致溢出错误</h4><p>堆外内存不在垃圾回收的范围内，如果发生内存溢出的情况，也有可能是堆外内存引起的，常见的堆外内存包括：<br>1.Direct Memory。可通过-XX:MaxDirectMemorySize调整大小，内存不足时抛出OutOfMemoryError或者OutOfMemoryError: Direct buffer memory。<br>2.线程堆栈。可通过-Xss调整大小，内存不足时抛出StackOverflowError或者OutOfMemoryError: unable to create new native thread。<br>3.Socket缓存区。IOException: Too many open files。<br>4.JNI代码。调用本地库，本地库使用的内存也不在堆中。<br>5.虚拟机和GC。虚拟机和GC的代码执行也要消耗一定的内存。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/redis-pre/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/redis-pre/" itemprop="url">Redis常见面试题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-03-27T19:52:43+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>和Redis结缘还是2011年刚开始实习，做的第一款游戏《部落战争》，<br>就是使用的Redis作为持久层和缓存。 当时对Redis的认识还比较浅，但是Redis的好多特性已经开始慢慢了解。</p>
+<p>这里推荐一下大神的Redis公众号。付磊。快手同事，《Redis开发与运维》一书的作者，强烈推荐这本书，偏向实战，另外一本很有名的书《Redis设计与实现》更注重原理。两本书都非常值得好好读下。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/redis-pre/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://kwaibook.com/cloud-ver/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1656,577 +2098,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/nexus/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/nexus/" itemprop="url">Nexus搭建开发组的私有仓库</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-10T19:33:23+08:00">
-                2018-11-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><strong>目录</strong></p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label0">一、私有仓库的价值</a></li>
-<li>二、准备工作<ul>
-<li>2.1、安装Java编译环境<ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_0">2.1.1、安装</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_0">2.1.2、验证</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_0">2.1.3、设置环境变量</a></li>
-</ul>
-</li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_1">2.2、虚拟机访问互联网</a></li>
-</ul>
-</li>
-<li>三、安装Nexus<ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_0">3.1、下载nexus</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_1">3.2、部署</a></li>
-<li>3.3、系统服务<ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_2">3.3.1、编辑系统服务文件</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_2">3.3.2、设置为自启动服务</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>四、设置Nexus<ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_0">4.1、浏览器登录</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_1">4.2、进入管理界面</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_2">4.3、增加新的代理源</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_3">4.3、设置私用仓库可重复发布</a></li>
-</ul>
-</li>
-<li>五、安装maven并设置私用仓库<ul>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_0">5.1、下载安装</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_1">5.2、设置环境变量</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_2">5.3、测试</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_3">5.4、配置</a></li>
-</ul>
-</li>
-</ul>
-<p><strong>正文</strong><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
-<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-1024x495.png?resize=640,309" alt="Nexus搭建开发组的私有仓库 - 第1张  | 张嘎"></p>
-<h1 id="一、私有仓库的价值"><a href="#一、私有仓库的价值" class="headerlink" title="一、私有仓库的价值"></a>一、私有仓库的价值</h1><p>　　开发Java应用系统，用到Maven、sbt和 Gradle等构建工具，在构建过程中一般需要从互联网下载依赖库，构建私有仓库就是为了在开发组或者部门内共用，从而节省整体的下载成本和构建成本。下面先以Maven为例说明。</p>
-<p>　　Maven是一个强大的构建工具，一般用于Java项目。Maven项目基于对象模型(POM)，可以通过一小段描述信息来管理项目的构建，报告和文档的软件项目管理工具。Maven 除了以程序构建能力为特色之外，还提供高级项目管理工具。由于 Maven 的缺省构建规则有较高的可重用性，所以常常用两三行 Maven 构建脚本就可以构建简单的项目。</p>
-<p>Maven的Java项目一般需要下载第三方组件，下载后构成本地仓库，为了减少网络对构建项目的影响，一般会构建私服仓库，代理第三方库。Nexus就是构建私服仓库的优秀软件。</p>
-<p><img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220431849-1095286350.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第2张  | 张嘎"></p>
-<p>图 1 三层仓库架构<a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
-<h1 id="二、准备工作"><a href="#二、准备工作" class="headerlink" title="二、准备工作"></a>二、准备工作</h1><h2 id="2-1、安装Java编译环境"><a href="#2-1、安装Java编译环境" class="headerlink" title="2.1、安装Java编译环境"></a>2.1、安装Java编译环境</h2><p>Java编译环境包括核心的JDK和编译工具，因为Java的编译工具有很多种，而开源项目作者的随意性很高，常用的工具有maven，gradle,sbt，ant等等，本文关注Maven。</p>
-<p>因为Oracle不再维护Java1.7，所以采用Java 1.8作为编译核心.</p>
-<h3 id="2-1-1、安装"><a href="#2-1-1、安装" class="headerlink" title="2.1.1、安装"></a>2.1.1、安装</h3><p>操作系统采用Centos7.4</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install java-1.8.0-openjdk-devel java-1.8.0-openjdk java-1.8.0-openjdk-headless -y</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-1-2、验证"><a href="#2-1-2、验证" class="headerlink" title="2.1.2、验证"></a>2.1.2、验证</h3><p>查看jdk版本号</p>
-<p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第3张  | 张嘎"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">java -version</span><br><span class="line">Picked up _JAVA_OPTIONS: -Xmx2048m -XX:MaxMetaspaceSize=512m -Djava.awt.headless=true</span><br><span class="line">openjdk version &quot;1.8.0_131&quot;</span><br><span class="line">OpenJDK Runtime Environment (build 1.8.0_131-b12)</span><br><span class="line">OpenJDK 64-Bit Server VM (build 25.131-b12, mixed mode)</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第4张  | 张嘎"></p>
-<h3 id="2-1-3、设置环境变量"><a href="#2-1-3、设置环境变量" class="headerlink" title="2.1.3、设置环境变量"></a>2.1.3、设置环境变量</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.bashrc</span><br></pre></td></tr></table></figure>
-
-<p>增加</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/usr/lib/jvm/java</span><br><span class="line">export JRE_HOME=$&#123;JAVA_HOME&#125;/jre</span><br><span class="line">export CLASSPATH=.:$JRE_HOME/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line">export PATH=$JAVA_HOME/bin:$PATH</span><br></pre></td></tr></table></figure>
-
-<p>即刻生效</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-2、虚拟机访问互联网"><a href="#2-2、虚拟机访问互联网" class="headerlink" title="2.2、虚拟机访问互联网"></a>2.2、虚拟机访问互联网</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/ifcfg-ens32</span><br></pre></td></tr></table></figure>
-
-<p>注：环境不同网卡名会不同</p>
-<p>增加天津联通的DNS（注：作者在天津，请按个人本地的运行商做相应修改）</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DNS1=202.99.96.68</span><br><span class="line">DNS2=202.99.104.68</span><br></pre></td></tr></table></figure>
-
-<p>在实际测试中感觉天津电信的DNS更加靠谱，访问一些特殊网站返回的IP能够顺利访问，大家根据实践选择吧</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DNS1=219.150.32.132</span><br><span class="line">DNS2=219.146.0.130</span><br></pre></td></tr></table></figure>
-
-<p>重新启动网络</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
-
-<p>测试</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ping www.163.com</span><br><span class="line">PING 163.xdwscache.ourglb0.com (42.81.9.47) 56(84) bytes of data.</span><br><span class="line">64 bytes from 42.81.9.47 (42.81.9.47): icmp_seq=1 ttl=128 time=9.66 ms</span><br><span class="line">64 bytes from 42.81.9.47 (42.81.9.47): icmp_seq=2 ttl=128 time=10.4 ms…</span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
-<h1 id="三、安装Nexus"><a href="#三、安装Nexus" class="headerlink" title="三、安装Nexus"></a>三、安装Nexus</h1><h2 id="3-1、下载nexus"><a href="#3-1、下载nexus" class="headerlink" title="3.1、下载nexus"></a>3.1、下载nexus</h2><p>从官方网站现在最新3.X版</p>
-<p><a target="_blank" rel="noopener" href="https://www.sonatype.com/download-oss-sonatype">https://www.sonatype.com/download-oss-sonatype</a></p>
-<p>下载（2018年3月）最新版nexus-3.9.0-01-unix.tar.gz （）</p>
-<h2 id="3-2、部署"><a href="#3-2、部署" class="headerlink" title="3.2、部署"></a>3.2、部署</h2><p>先规划存储私有仓库的目录，作者本机的/opt目录空间较多，所以以/opt为例</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /opt/scm</span><br><span class="line">tar -xf ~/download/nexus-3.9.0-01-unix.tar.gz -C .</span><br></pre></td></tr></table></figure>
-
-<p>生成两个目录</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nexus-3.9.0-01</span><br><span class="line">sonatype-work</span><br></pre></td></tr></table></figure>
-
-<h2 id="3-3、系统服务"><a href="#3-3、系统服务" class="headerlink" title="3.3、系统服务"></a>3.3、系统服务</h2><h3 id="3-3-1、编辑系统服务文件"><a href="#3-3-1、编辑系统服务文件" class="headerlink" title="3.3.1、编辑系统服务文件"></a>3.3.1、编辑系统服务文件</h3><p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第5张  | 张嘎"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/systemd/system/nexus.service</span><br><span class="line"></span><br><span class="line">[Unit]</span><br><span class="line">Description=nexus service</span><br><span class="line">After=network.target</span><br><span class="line"></span><br><span class="line">[Service]Type=forking</span><br><span class="line">LimitNOFILE=65536</span><br><span class="line">ExecStart=/opt/scm/nexus-3.9.0-01/bin/nexus start</span><br><span class="line">ExecStop=/opt/scm/nexus-3.9.0-01/bin/nexus stop</span><br><span class="line">User=ansible</span><br><span class="line">Restart=on-abort</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第6张  | 张嘎"></p>
-<h3 id="3-3-2、设置为自启动服务"><a href="#3-3-2、设置为自启动服务" class="headerlink" title="3.3.2、设置为自启动服务"></a>3.3.2、设置为自启动服务</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl  daemon-reload</span><br><span class="line">sudo systemctl start nexus.service</span><br><span class="line">sudo systemctl status nexus.service</span><br><span class="line">sudo systemctl enable nexus.service</span><br></pre></td></tr></table></figure>
-
-<p>启动报错：1./etc/systemd/system/nexus.service文件的user不对<br>2.修改/opt/scm/nexus/bin/nexus 启动的JAVA_HOME 如：INSTALL4J_JAVA_HOME_OVERRIDE=/usr/local/java/jdk1.8/</p>
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
-<h1 id="四、设置Nexus"><a href="#四、设置Nexus" class="headerlink" title="四、设置Nexus"></a>四、设置Nexus</h1><h2 id="4-1、浏览器登录"><a href="#4-1、浏览器登录" class="headerlink" title="4.1、浏览器登录"></a>4.1、浏览器登录</h2><p><a target="_blank" rel="noopener" href="http://192.168.154.11:8081/">http://192.168.154.11:8081/</a></p>
-<p><img src="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220256240-534211558.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第7张  | 张嘎"></p>
-<p>用户名的密码为：admin admin123</p>
-<h2 id="4-2、进入管理界面"><a href="#4-2、进入管理界面" class="headerlink" title="4.2、进入管理界面"></a>4.2、进入管理界面</h2><p><img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220317318-1530787694.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第8张  | 张嘎"></p>
-<h2 id="4-3、增加新的代理源"><a href="#4-3、增加新的代理源" class="headerlink" title="4.3、增加新的代理源"></a>4.3、增加新的代理源</h2><p><img src="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220331802-1557956595.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第9张  | 张嘎"></p>
-<p>设置名称和URL</p>
-<p><img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220342224-1667350164.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第10张  | 张嘎"></p>
-<p>Cache统一设置为200天 288000</p>
-<p><img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220350271-1209294422.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第11张  | 张嘎"></p>
-<p> 逐个增加常用代理</p>
-<p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第12张  | 张嘎"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">1. aliyun</span><br><span class="line">http://maven.aliyun.com/nexus/content/groups/public</span><br><span class="line">2. apache_snapshot</span><br><span class="line">https://repository.apache.org/content/repositories/snapshots/</span><br><span class="line">3. apache_release</span><br><span class="line">https://repository.apache.org/content/repositories/releases/</span><br><span class="line">4. atlassian</span><br><span class="line">https://maven.atlassian.com/content/repositories/atlassian-public/</span><br><span class="line">5. central.maven.org</span><br><span class="line">http://central.maven.org/maven2/</span><br><span class="line">6. datanucleus</span><br><span class="line">http://www.datanucleus.org/downloads/maven2</span><br><span class="line">7. maven-central （安装后自带，仅需设置Cache有效期即可）</span><br><span class="line">https://repo1.maven.org/maven2/</span><br><span class="line">8. nexus.axiomalaska.com</span><br><span class="line">http://nexus.axiomalaska.com/nexus/content/repositories/public</span><br><span class="line">9. oss.sonatype.org</span><br><span class="line">https://oss.sonatype.org/content/repositories/snapshots</span><br><span class="line">10.pentaho</span><br><span class="line">https://public.nexus.pentaho.org/content/groups/omni/</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第13张  | 张嘎"></p>
-<p>再次强调，在</p>
-<p>How long (in minutes) to cache metadata before rechecking the remote repository.处</p>
-<p>统一设置为</p>
-<p>288000 即200天，当然可以设置为更长的时间</p>
-<p>设置maven-public</p>
-<p>将这些代理加入Group</p>
-<p><img src="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220400959-1653481781.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第14张  | 张嘎"></p>
-<h2 id="4-3、设置私用仓库可重复发布"><a href="#4-3、设置私用仓库可重复发布" class="headerlink" title="4.3、设置私用仓库可重复发布"></a>4.3、设置私用仓库可重复发布</h2><p>　　Nexus安装后自带maven-releases，maven-snapshots两个仓库，用于将生成的jar包发布在这两个仓库中，在实际开发中需要将maven-releases设置为可以重复发布。</p>
-<p>　　maven-releases</p>
-<p><img src="https://i0.wp.com/images2018.cnblogs.com/blog/1082089/201803/1082089-20180317135112096-935379506.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第15张  | 张嘎"></p>
-<p>　　注：maven-snapshots缺省是可以重新部署的。<a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
-<h1 id="五、安装maven并设置私用仓库"><a href="#五、安装maven并设置私用仓库" class="headerlink" title="五、安装maven并设置私用仓库"></a>五、安装maven并设置私用仓库</h1><h2 id="5-1、下载安装"><a href="#5-1、下载安装" class="headerlink" title="5.1、下载安装"></a>5.1、下载安装</h2><p>从maven官网下载3.5.0 <a target="_blank" rel="noopener" href="http://maven.apache.org/download.cgi">http://maven.apache.org/download.cgi</a></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd tools</span><br><span class="line">tar -xf ../download/apache-maven-3.5.0-bin.tar.gz –C .</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-2、设置环境变量"><a href="#5-2、设置环境变量" class="headerlink" title="5.2、设置环境变量"></a>5.2、设置环境变量</h2><p>vi ~/.bashrc</p>
-<p>增加</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=/home/ansible/tools/apache-maven-3.5.0/bin:$PATH</span><br></pre></td></tr></table></figure>
-
-<p>即刻生效</p>
-<p>source ~/.bashrc</p>
-<h2 id="5-3、测试"><a href="#5-3、测试" class="headerlink" title="5.3、测试"></a>5.3、测试</h2><p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第16张  | 张嘎"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mvn -v</span><br><span class="line"></span><br><span class="line">Picked up _JAVA_OPTIONS: -Xmx2048m -XX:MaxMetaspaceSize=512m -Djava.awt.headless=true</span><br><span class="line">Apache Maven 3.5.0 (ff8f5e7444045639af65f6095c62210b5713f426; 2017-04-04T03:39:06+08:00)</span><br><span class="line">Maven home: /home/ansible/tools/apache-maven-3.5.0</span><br><span class="line">Java version: 1.8.0_102, vendor: Oracle Corporation</span><br><span class="line">Java home: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.102-4.b14.el7.x86_64/jre</span><br><span class="line">Default locale: en_US, platform encoding: UTF-8</span><br><span class="line">OS name: &quot;linux&quot;, version: &quot;3.10.0-514.el7.x86_64&quot;, arch: &quot;amd64&quot;, family: &quot;unix&quot;</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-4、配置"><a href="#5-4、配置" class="headerlink" title="5.4、配置"></a>5.4、配置</h2><p>vi ~/tools/apache-maven-3.5.0/conf/settings.xml（本地服务器可以使用localhost，开发组其他服务器则修改为对应Nexus服务器的域名或者IP地址）</p>
-<p><img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第17张  | 张嘎"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">&lt;settings&gt;</span><br><span class="line">  &lt;pluginGroups&gt;  </span><br><span class="line">     &lt;pluginGroup&gt;org.sonatype.plugins&lt;/pluginGroup&gt;  </span><br><span class="line">  &lt;/pluginGroups&gt; </span><br><span class="line">  &lt;mirrors&gt;</span><br><span class="line">    &lt;mirror&gt;</span><br><span class="line">      &lt;id&gt;nexus&lt;/id&gt;</span><br><span class="line">      &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;</span><br><span class="line">      &lt;url&gt;http://localhost:8081/repository/maven-public/&lt;/url&gt;</span><br><span class="line">    &lt;/mirror&gt;</span><br><span class="line">  &lt;/mirrors&gt;</span><br><span class="line">  &lt;profiles&gt;</span><br><span class="line">    &lt;profile&gt;</span><br><span class="line">      &lt;id&gt;nexus&lt;/id&gt;</span><br><span class="line">      &lt;!--Enable snapshots for the built in central repo to direct --&gt;</span><br><span class="line">      &lt;!--all requests to nexus via the mirror --&gt;</span><br><span class="line">      &lt;repositories&gt;</span><br><span class="line">        &lt;repository&gt;</span><br><span class="line">          &lt;id&gt;central&lt;/id&gt;</span><br><span class="line">          &lt;url&gt;http://central&lt;/url&gt;</span><br><span class="line">          &lt;releases&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/releases&gt;</span><br><span class="line">          &lt;snapshots&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/snapshots&gt;</span><br><span class="line">        &lt;/repository&gt;</span><br><span class="line">      &lt;/repositories&gt;</span><br><span class="line">     &lt;pluginRepositories&gt;</span><br><span class="line">        &lt;pluginRepository&gt;</span><br><span class="line">          &lt;id&gt;central&lt;/id&gt;</span><br><span class="line">          &lt;url&gt;http://central&lt;/url&gt;</span><br><span class="line">          &lt;releases&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/releases&gt;</span><br><span class="line">          &lt;snapshots&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/snapshots&gt;</span><br><span class="line">        &lt;/pluginRepository&gt;</span><br><span class="line">      &lt;/pluginRepositories&gt;</span><br><span class="line">    &lt;/profile&gt;</span><br><span class="line">  &lt;/profiles&gt;</span><br><span class="line">  &lt;activeProfiles&gt;</span><br><span class="line">    &lt;!--make the profile active all the time --&gt;</span><br><span class="line">    &lt;activeProfile&gt;nexus&lt;/activeProfile&gt;</span><br><span class="line">  &lt;/activeProfiles&gt;</span><br><span class="line">  &lt;servers&gt;</span><br><span class="line">    &lt;server&gt;</span><br><span class="line">      &lt;id&gt;nexus&lt;/id&gt;</span><br><span class="line">      &lt;username&gt;admin&lt;/username&gt;</span><br><span class="line">      &lt;password&gt;admin123&lt;/password&gt;</span><br><span class="line">    &lt;/server&gt;</span><br><span class="line">  &lt;/servers&gt;</span><br><span class="line">&lt;/settings&gt;</span><br></pre></td></tr></table></figure>
-
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/hackathon/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/hackathon/" itemprop="url">首届hackathon的一些感想</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-01T19:30:40+08:00">
-                2018-11-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>很开心我们团队能获得《最佳用户体验奖》。从零开始，全新的团队，30个小时出demo。</p>
-<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hBrcBd"><img src="https://z3.ax1x.com/2021/09/01/hBrcBd.jpg" alt="hBrcBd.jpg"></a></p>
-<p>后续的一些想法，本身如果局限于旅行方面可能用户群里和内容生成有很大的局限性。</p>
-<p>但是一些高度定制的行业，如教育，包括一些特殊产业，还是很有市场的，晚上团队聚餐的时候一起讨论下。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/sandbox-scene/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/sandbox-scene/" itemprop="url">沙盒游戏3D场景建模</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-19T22:13:52+08:00">
-                2018-10-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在一次聚餐之后，晚上睡觉前突然灵感爆棚想到的实现方案。</p>
-<p>下面是在项目内部分享的PPT，具体代码实现在github：<a target="_blank" rel="noopener" href="https://github.com/zhangga/JAVAZSet">https://github.com/zhangga/JAVAZSet</a></p>
-<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hNUOo9"><img src="https://z3.ax1x.com/2021/08/30/hNUOo9.md.png" alt="hNUOo9.md.png"></a></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/sandbox-scene/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2281,7 +2152,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">40</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

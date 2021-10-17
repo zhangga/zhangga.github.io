@@ -79,18 +79,20 @@
 
 
 
-<meta name="description" content="文章还在迁移中，更多旧文章见主页主页已停止更新，新文章都在这里。">
+<meta name="description" content="研发流程分支策略比较   模式 并发收益 并发维护成本 验收集成效率 分支合入成本消耗    单常驻分支(e.g. master开发上线) 1 紧急发布要隐藏代码 通常验证1次 合并次数&#x3D;1，功能合入主干   双常驻分支(e.g. dev开发 master上线) 2 中等，hotfix不需要隐藏代码 验证2次 合并次数&#x3D;3，功能合入双主干+双主干间集成   三个以上常驻分支(e.g. 每种环境对应">
 <meta property="og:type" content="article">
-<meta property="og:title" content="notice">
-<meta property="og:url" content="http://kwaibook.com/notice/index.html">
+<meta property="og:title" content="工作流总结">
+<meta property="og:url" content="http://kwaibook.com/work-flow/index.html">
 <meta property="og:site_name" content="张嘎">
-<meta property="og:description" content="文章还在迁移中，更多旧文章见主页主页已停止更新，新文章都在这里。">
+<meta property="og:description" content="研发流程分支策略比较   模式 并发收益 并发维护成本 验收集成效率 分支合入成本消耗    单常驻分支(e.g. master开发上线) 1 紧急发布要隐藏代码 通常验证1次 合并次数&#x3D;1，功能合入主干   双常驻分支(e.g. dev开发 master上线) 2 中等，hotfix不需要隐藏代码 验证2次 合并次数&#x3D;3，功能合入双主干+双主干间集成   三个以上常驻分支(e.g. 每种环境对应">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-07-25T12:36:23.000Z">
+<meta property="og:image" content="https://z3.ax1x.com/2021/10/11/5ZrpdK.jpg">
+<meta property="article:published_time" content="2021-10-08T13:41:34.000Z">
 <meta property="article:modified_time" content="2021-10-17T03:22:19.805Z">
 <meta property="article:author" content="Zhang Ga">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z3.ax1x.com/2021/10/11/5ZrpdK.jpg">
 
 
 
@@ -120,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="http://kwaibook.com/notice/"/>
+  <link rel="canonical" href="http://kwaibook.com/work-flow/"/>
 
 
 
 
 
-  <title>notice | 张嘎</title>
+  <title>工作流总结 | 张嘎</title>
   
 
 
@@ -287,7 +289,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/notice/">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/work-flow/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -304,7 +306,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">notice</h1>
+          <h1 class="post-title" itemprop="name headline">工作流总结</h1>
         
 
         <div class="post-meta">
@@ -316,8 +318,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2022-07-25T12:36:23+00:00">
-                2022-07-25
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-10-08T13:41:34+00:00">
+                2021-10-08
               </time>
             
 
@@ -339,8 +341,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%85%AC%E5%91%8A/" itemprop="url" rel="index">
-                    <span itemprop="name">公告</span>
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
                   </a>
                 </span>
 
@@ -357,8 +359,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/notice/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count gitment-comments-count" data-xid="/notice/" itemprop="commentsCount"></span>
+                <a href="/work-flow/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/work-flow/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -386,7 +388,101 @@
       
 
       
-        <h2 id="文章还在迁移中，更多旧文章见主页"><a href="#文章还在迁移中，更多旧文章见主页" class="headerlink" title="文章还在迁移中，更多旧文章见主页"></a>文章还在迁移中，更多旧文章见<a target="_blank" rel="noopener" href="https://192.144.167.243/">主页</a></h2><p>主页已停止更新，新文章都在这里。</p>
+        <h2 id="研发流程"><a href="#研发流程" class="headerlink" title="研发流程"></a>研发流程</h2><h4 id="分支策略比较"><a href="#分支策略比较" class="headerlink" title="分支策略比较"></a>分支策略比较</h4><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>并发收益</th>
+<th>并发维护成本</th>
+<th>验收集成效率</th>
+<th>分支合入成本消耗</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单常驻分支<br />(e.g. master开发上线)</td>
+<td>1</td>
+<td>紧急发布要隐藏代码</td>
+<td>通常验证1次</td>
+<td>合并次数=1，功能合入主干</td>
+</tr>
+<tr>
+<td>双常驻分支<br />(e.g. dev开发 master上线)</td>
+<td>2</td>
+<td>中等，hotfix不需要隐藏代码</td>
+<td>验证2次</td>
+<td>合并次数=3，功能合入双主干+双主干间集成</td>
+</tr>
+<tr>
+<td>三个以上常驻分支<br />(e.g. 每种环境对应分支)</td>
+<td>3</td>
+<td>较少，多环境不需要隐藏代码</td>
+<td>需要验证多次</td>
+<td>合并次数=5，功能合入三主干+三主干间传递</td>
+</tr>
+<tr>
+<td>总结</td>
+<td>并发效率可以认为是线性增长的n</td>
+<td>主干越多对代码侵入越小</td>
+<td>当测试自动化测试和环境自动化测试够强后，该项成本平稳</td>
+<td>合并工作和出错出冲突修复的概率线性增长 2*n-1</td>
+</tr>
+</tbody></table>
+<h4 id="分支规范最佳实践"><a href="#分支规范最佳实践" class="headerlink" title="分支规范最佳实践"></a>分支规范最佳实践</h4><ul>
+<li><p>使用特性分支开发</p>
+<p>每个需求一个独立分支，使用需求的ID号作为分支名称，用于隔离并行开发造成的干扰。</p>
+<p>好处：是一种工程实践， 使用它的人直到他所开发的特性“完成”后才合并回主干。</p>
+</li>
+<li><p>持续集成主干</p>
+<p>所有需求在一个分支做每日集成，并辅助一些自动化测试手段，及时发现集成问题。</p>
+<p>好处：是一种工程实践，用于确保你的软件一直是可以工作的，并且在几分钟内你就能够得到关于 “你的修改是否破坏了系统”的反馈。</p>
+</li>
+<li><p>专门拉取发布分支进行发布工作</p>
+<p>在发布时，将集成好的主干拉出或同步到用于发布的分支上，屏蔽发布中的修改，支持做一些hotfix或临时patch合入。</p>
+</li>
+</ul>
+<h4 id="分支策略解析"><a href="#分支策略解析" class="headerlink" title="分支策略解析"></a>分支策略解析</h4><ul>
+<li><p>轻量模块采用“<strong>单常驻分支模式</strong>”</p>
+<p>可用于新项目早期或者1-3人协作的项目开发适用，以master作为主分支（常驻分支），基于master拉出feature分支，开发完成后合并回master，基于master发布。</p>
+<p>优劣：合入成本低，revert成本高，需要配合严格的准入流程。所有紧急正常的修改全在主干上，开发了一半的东西如果要上线的话，要巧妙的藏起来。对程序的结构提出了高要求，分分合合要方便，用好的话，需要功能开关配置。</p>
+</li>
+<li><p>重要模块采用<strong>“双常驻分支模式“</strong></p>
+<p><em><strong>master分支：</strong></em>作为发布分支，紧急hotfix除外，不允许开发直接合并到master分支，发布完成后打tag，特定的版本的hotfix必须以tag为基线拉分支修复，完成后合并到master，hotfix确认完成增加hotfix版本tag。打tag时记得写release note。</p>
+<p><em><strong>dev分支：</strong></em>日常开发基线分支，迭代中开发从dev分支拉出开发分支，<strong>完成并通过强制的code review后合并回dev分支</strong>，开发者有责任保持私有分支与dev分支同步并解决可能的合并冲突；特定版本的hotfix的开发者负责发布后将hotfix合并到dev分支，并解决合并的潜在冲突；dev分支到master分支的mr由团队内release engineer角色的人负责，合并时不需要进行code review直接合入，编译发布后打对应版本tag。</p>
+<p><strong>基于主干的开发 trunk based development</strong> <strong>（TBD）</strong></p>
+<p>主干用于CI持续集成，按照实际场景可以使用固定的master或dev分支，或者团队成员约定一个动态变化的dev_2019作为主干，所有人从主干拉出开发分支，从主干合入。</p>
+<p>发布分支可以有一个或多个，用于周期性发布，如固定的release分支或者动态分支如release1.0，非必要不允许hotfix直接合入。</p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/5ZrpdK"><img src="https://z3.ax1x.com/2021/10/11/5ZrpdK.jpg" alt="5ZrpdK.jpg"></a></p>
+</li>
+<li><p>多分支模式</p>
+<p>客户端可能常见</p>
+</li>
+</ul>
+<h3 id="日常开发流程"><a href="#日常开发流程" class="headerlink" title="日常开发流程"></a>日常开发流程</h3><ol>
+<li><p>创建任务工单</p>
+</li>
+<li><p>从dev分支拉一个feature分支出来</p>
+<p><code>git checkout -b WEBARCHBIZ-123456-DO-SOME-THING</code></p>
+</li>
+<li><p>写代码，写单测</p>
+</li>
+<li><p>确认代码格式规范，推荐使用ide的format调整功能</p>
+</li>
+<li><p>提交代码</p>
+<p><code>git push origin WEBARCHBIZ-123456-DO-SOME-THING</code></p>
+</li>
+<li><p>发起merge request，在description中写清楚本次提交的内容，尽量保证每个mr只做一件事情，提交后提醒peer及时review</p>
+</li>
+<li><p>code review通过后，合入dev分支，会自动发布到沙盒，可以在沙盒环境测试和验证你的修改。</p>
+</li>
+<li><p>如果有重要的功能变更，在沙盒集成测试中补充相应的testcase</p>
+</li>
+</ol>
+<h3 id="上线流程"><a href="#上线流程" class="headerlink" title="上线流程"></a>上线流程</h3><ol start="9">
+<li>发起从dev分支到master分支的merge request，approve后方可合入master（日常迭代上线时间是周二和周四）。</li>
+<li>合入master后，pipeline会自动发起，流程中会有一个人工checkbpoint的lark卡片通知，需要人工确认。</li>
+<li>上线完成后在线上进行验证测试，确认功能无异常。</li>
+<li>对用户有感的变更，在产品文档上填写release note。</li>
+</ol>
 
       
     </div>
@@ -417,8 +513,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/svn-git-diff/" rel="next" title="SVN/Git 差异比对插件">
-                <i class="fa fa-chevron-left"></i> SVN/Git 差异比对插件
+              <a href="/mac-manual/" rel="next" title="Mac使用手册">
+                <i class="fa fa-chevron-left"></i> Mac使用手册
               </a>
             
           </div>
@@ -426,6 +522,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/svn-git-diff/" rel="prev" title="SVN/Git 差异比对插件">
+                SVN/Git 差异比对插件 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -568,7 +668,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E7%AB%A0%E8%BF%98%E5%9C%A8%E8%BF%81%E7%A7%BB%E4%B8%AD%EF%BC%8C%E6%9B%B4%E5%A4%9A%E6%97%A7%E6%96%87%E7%AB%A0%E8%A7%81%E4%B8%BB%E9%A1%B5"><span class="nav-number">1.</span> <span class="nav-text">文章还在迁移中，更多旧文章见主页</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A0%94%E5%8F%91%E6%B5%81%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">研发流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%94%AF%E7%AD%96%E7%95%A5%E6%AF%94%E8%BE%83"><span class="nav-number">1.0.1.</span> <span class="nav-text">分支策略比较</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%94%AF%E8%A7%84%E8%8C%83%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-number">1.0.2.</span> <span class="nav-text">分支规范最佳实践</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%94%AF%E7%AD%96%E7%95%A5%E8%A7%A3%E6%9E%90"><span class="nav-number">1.0.3.</span> <span class="nav-text">分支策略解析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%B8%B8%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">日常开发流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B"><span class="nav-number">1.2.</span> <span class="nav-text">上线流程</span></a></li></ol></li></ol></div>
             
 
           </div>
