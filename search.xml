@@ -63,6 +63,7 @@
 <li>Golang stream作业</li>
 <li>C++学习</li>
 <li>工作总结</li>
+<li>面试总结</li>
 </ul>
 ]]></content>
       <categories>
@@ -2287,6 +2288,8 @@
     <url>/docker-net/</url>
     <content><![CDATA[<h3 id="Bridge"><a href="#Bridge" class="headerlink" title="Bridge"></a>Bridge</h3><p>独立netns隔离了网络，容器间网络不互相影响，容器内的IP地址是私有网段，仅本地可见，通过NAT与外部交互</p>
 <p>Bridge 模式可以看作服务被放在一个独立的网络空间里，它的 IP 是一个虚拟 IP，任何的端口都是可以使用的。但是对外提供服务的时候，需要通过 NAT 转发。</p>
+<span id="more"></span>
+
 <p>需要进行的配置：</p>
 <ul>
 <li><p>配置服务信息中需要填写一个服务主端口</p>
@@ -2442,135 +2445,102 @@
   <entry>
     <title>Mac使用手册</title>
     <url>/mac-manual/</url>
-    <content><![CDATA[<h3 id="Mac新手使用指南"><a href="#Mac新手使用指南" class="headerlink" title="Mac新手使用指南"></a><a href="https://post.smzdm.com/p/679153/">Mac新手使用指南</a></h3><h3 id="常用快捷键："><a href="#常用快捷键：" class="headerlink" title="常用快捷键："></a>常用快捷键：</h3><h2 id="使用Ctrl键"><a href="#使用Ctrl键" class="headerlink" title="使用Ctrl键"></a>使用Ctrl键</h2><h3 id="光标移动："><a href="#光标移动：" class="headerlink" title="光标移动："></a>光标移动：</h3><p>几个行级别操作：</p>
-<p>ctrl+ A:移动到行首 </p>
-<p>ctrl+ E:移动到行尾 </p>
-<p>ctrl+ K:删除到行尾 </p>
-<p>ctrl+ N:移动到下一行 </p>
-<p>ctrl+ P:移动到上一行</p>
-<p>几个字母级别操作：</p>
-<p>ctrl+ F:向右（Forward）移动一个字母，等价于方向键右 </p>
-<p>ctrl+ B:向左（Backward）移动一个字母，等价于方向键左</p>
-<p>ctrl+ D:向右删除一个字母，等价于 方向键右+Delete 这个快捷键 很常用</p>
-<p>ctrl+ H:向左删除一个字母，等价于Delete</p>
-<h2 id="使用Option键"><a href="#使用Option键" class="headerlink" title="使用Option键"></a>使用Option键</h2><p>如果觉得按字母操作太过于细粒度，按照行操作又太粗粒度，那么Option键绝对算得上神器，因为可以按单词操作 </p>
-<p>Option + 方向键左：光标向左移动一个单词</p>
-<p>Option + 方向键右：光标向右移动一个单词</p>
-<p>Option + Delete：删除一个单词</p>
-<h2 id="使用Shift键"><a href="#使用Shift键" class="headerlink" title="使用Shift键"></a>使用Shift键</h2><p>Shift键类似于可视模式，比如在某个位置点击光标并按住shift键不松开，再去点击另一个位置点击一次，就可以选中两次点击位置之间的文本内容。</p>
-<p>推荐使用iterm 替代系统自带的terminal 需要自己在preference 设置按照单词进行跳转的操作（send^b和send^f)</p>
-<h3 id="以下为新手使用指南转载："><a href="#以下为新手使用指南转载：" class="headerlink" title="以下为新手使用指南转载："></a>以下为新手使用指南转载：</h3><h1 id="Mac新手必看教程—轻松玩转Mac-OS"><a href="#Mac新手必看教程—轻松玩转Mac-OS" class="headerlink" title="Mac新手必看教程—轻松玩转Mac OS"></a>Mac新手必看教程—轻松玩转Mac OS</h1><h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>大部分用户接触的第一个操作系统大多是windows，楼主记得曾经小学的微机课也是以win98为基础学习了一众office软件。随着工作的多样化，单一的windows系统已经无法满足部分需求，而隔壁苹果的Mac OS得益于稳定的系统以及较为完善的软件应用也越来越受青睐。不少用户第一次接触Mac OS茫然不知所措，甚至有人不舍得学习成本，转而在苹果电脑上安装windows系统。这当然没啥问题，只是错过了Mac OS这样一个优秀的系统有些遗憾。</p>
-<p>楼主结合自身体验以及网络资料整理讲述Mac OS基础知识。文章为方便理解部分内容会以windows做参考，但绝不是比较孰好孰坏，请各位切勿对号入座在评论区引战。</p>
-<p>本文所有内容基于<strong>Mac OS High Sierra。</strong>使用大量动图配以文字说明，力求用最直接的方式让各位易于理解。下面是文章目录，各位可根据需求使用张大妈目录功能进行查阅</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_2/"><img src="https://qnam.smzdm.com/201804/17/5ad5a08603482415.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<h2 id="关于桌面"><a href="#关于桌面" class="headerlink" title="关于桌面"></a>关于桌面</h2><p><strong>程序坞（Dock栏）</strong></p>
-<p>桌面底部的一栏称之为程序坞，如果你是一台全新的MAC底部则会默认显示一些系统自带的应用，例如访达（finder）、浏览器、照片等常用软件；</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_3/"><img src="https://qnam.smzdm.com/201804/15/5ad358ccae62f6743.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>关闭/退出应用</strong></p>
-<p>在应用和窗口的左上角有红黄绿三个小点，大家可以理解为Windows上的最大化、最小化、关闭。但这其中又有一点点区别，点击最小化按钮会将应用窗口变为一个缩略图排布在Dock栏右侧；<strong>点击关闭按钮并不是完全退出应用，而是将应用的窗口关闭</strong>。你可以看到某些应用即使点了关闭按钮依旧会有一个小黑点标识，说明程序依旧在运行</p>
-<p>彻底关闭应用：<strong>右击Dock栏的正在运行的应用——退出；</strong>或者直接采用<strong>快捷键Command+Q</strong></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_4/"><img src="https://qnam.smzdm.com/201804/17/5ad568c8e9c0d9185.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_5/"><img src="https://qnam.smzdm.com/201804/15/5ad37040a9d168228.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>强制退出应用</strong></p>
-<p>MAC有时候会由于<a href="https://www.smzdm.com/fenlei/neicun/">内存</a>占用过大或者处理器性能不够而导致应用卡死，这个时候我们就可以通过<strong>Command+Option+ESC</strong>来呼出强制退出应用功能</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_6/"><img src="https://qnam.smzdm.com/201804/17/5ad576ae1ff546344.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>在Dock添加/移除应用</strong></p>
-<p>如果想将应用保留在Dock栏，可以直接将应用图标拖移至Dock，或者打开程序后<strong>右击选择程序——选项——在程序坞中保留；</strong>同理在选中Dock栏的程序后往屏幕外拖移即可移除应用（并非是是卸载）</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_7/"><img src="https://qnam.smzdm.com/201804/15/5ad371ce317e57624.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>访达（finder）</strong></p>
-<p>在程序坞最左边的第一个应用即是finder，f可以理解为Windows上的资源管理器且一直处于运行状态无法退出。在Mac中并不会区分C、D、E等盘，而是在左侧提供了几个默认分类，根据需求存放文件即可。</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_8/"><img src="https://qnam.smzdm.com/201804/15/5ad36a93b89628705.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_9/"><img src="https://am.zdmimg.com/201804/15/5ad368860447e7230.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p>finder中的文件可以使用图标、列表、分栏以及封面流四种形式来展示。其中封面流的方式能够快速展示图片内容，提高文件查阅效率</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_10/"><img src="https://qnam.smzdm.com/201804/15/5ad36cb62d1cd6902.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>菜单栏</strong></p>
-<p>在菜单栏的最左边有一个苹果LOGO，大家可以理解为Windows中的“开始”按键。但和开始按键不同，MAC不会将所有应用都至于其中，里面都是基础的系统偏好设置、App Store、关机等操作；左侧则是蓝牙、WIFI以及部分程序的状态显示</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_11/"><img src="https://am.zdmimg.com/201804/17/5ad57407699581652.jpg_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>系统偏好设置</strong></p>
-<p>系统偏好设置可以理解为Windows中的控制面板，Mac系统中的所有功能都可以在其中设置。当你不知道某一设置具体在哪的情况下可以通过右上角的搜索框来输入关键词查找</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_12/"><img src="https://qnam.smzdm.com/201804/15/5ad373bc7ab783.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_13/"><img src="https://qnam.smzdm.com/201804/15/5ad373bc951db8919.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="键盘与快捷键"><a href="#键盘与快捷键" class="headerlink" title="键盘与快捷键"></a>键盘与快捷键</h2><p><a href="https://post.smzdm.com/p/a8k7vk7/pic_14/"><img src="https://qnam.smzdm.com/201804/09/5acaf683460d49998.jpg_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>FN键</strong></p>
-<p>Windows可以使用Fn搭配F1—F12来调节笔记本的音量、屏幕亮度等属性；而MAC快捷键不需要搭配任何按键就可以来调节音量亮度，搭配使用了Fn才是正常的F1-F12数字按键，与大部分Windows笔记本的操作都相反。反正只要记住，<strong>当你需要使用F1-F12的按键时就需要搭配Fn才能实现</strong></p>
-<p>如果您希望无需按住 Fn 键而将顶行按键始终用作标准功能键，请完成以下操作：<strong>系统偏好设置——键盘——键盘标签——将 F1、F2 等键用作标准功能键。</strong>当对于带有TouchBar的用户来说这些就都不是问题了</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_15/"><img src="https://qnam.smzdm.com/201804/14/5ad1a58f60b252278.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>Command ⌘</strong></p>
-<p>Command键是MAC最常用到的按键之一，你可以简单的将其理解为WIN系统的Ctrl键（至于键盘上的那个Ctrl你可以忽略它）通过Command与其他一些按键的组合能够实现复制黏贴等比较常用的快捷操作</p>
-<p>Command+A 全选</p>
-<p>Command+C 复制</p>
-<p>Command+V 黏贴</p>
-<p>Command+X 剪切（只适用于文字剪切，不适用于文件）</p>
-<p>Command+Option+V 移动（相当于文件的剪切功能）</p>
-<p>关于Command按键的快捷组合还有很多并且和win基本类似，比如删除Command+Delete、撤销Command+Z等操作。这里只是举了几个比较常用的操作，想要了解更多可以从苹果官网来获取<a href="https://go.smzdm.com/3d17eb6dff8b6ebb/ca_bb_yc_163_679153_10354_1687_1641_0">Mac键盘快捷键支持</a></p>
-<p><strong>空格键</strong></p>
-<p>选中文件后单击空格键可以<strong>快速预览文件</strong>，这个预览功能非常强大凡是Mac系统支持的文件通通可以查看，包括文本、Word、Excel、PDF、图片、音频、视频甚至是raw格式的文件。</p>
-<p><strong>回车键</strong></p>
-<p>MAC上的回车键除了正常发送、确认，还有另外一个比较常用的功能就是文件重命名。<strong>选中文件——点击回车键——重命名</strong></p>
-<p>**<br>**</p>
-<h2 id="触摸板与手势操作"><a href="#触摸板与手势操作" class="headerlink" title="触摸板与手势操作"></a><a href="https://www.smzdm.com/fenlei/chukongban/">触摸板</a>与手势操作</h2><p>MAC的<a href="https://www.smzdm.com/fenlei/chukongban/">触控板</a>有多好用？自从用了这块触摸板，我基本完全可以抛弃鼠标这种多余的配件，全程使用触摸操作。其中包含系统，网页浏览，文字图片视频编辑等操作，甚至是PS软件中的钢笔工具都可以用的得心应手</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_16/"><img src="https://qnam.smzdm.com/201804/11/5acd7e5451f7e2680.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p>实际上这款触摸板的操作和iPhone的触屏操作类似，诸如轻点、双指轻点右击、双指缩放滚动等操作都是常用的功能。各位可以参考以下的动图就知道操作起来多方便了</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_17/"><img src="https://qnam.smzdm.com/201804/11/5acd8a763e529196.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_18/"><img src="https://am.zdmimg.com/201804/11/5acd8b4859ac18723.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_19/"><img src="https://am.zdmimg.com/201804/11/5acd8b497a2c14884.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p>除了以上操作还能通过三指、四指等手势来完成更多操作。这里要特别提一个<strong>三指拖移</strong></p>
-<p><strong>系统偏好设置——辅助功能——鼠标与触控板——触控板选项——启用拖移&gt;三指拖移，</strong>这个功能可以让你使用三个手指对文件或者窗口移动，而不是需要按压后再进行拖动。<strong>使用触摸板的同学一定要开启这个功能</strong></p>
-<p>**<br>**</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_20/"><img src="https://am.zdmimg.com/201804/11/5acd8c76e935b7584.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<h2 id="软件安装与卸载"><a href="#软件安装与卸载" class="headerlink" title="软件安装与卸载"></a>软件安装与卸载</h2><p>在Windows系统中不知道你们是否遇到过这种情况：安装的时候你下一个软件直接送你全家桶，卸载的时候百般阻挠不让你卸载。而在MAC系统中以上两种情况不复存在，安装软件一般有两种方式</p>
-<p><strong>通过App Store安装软件</strong></p>
-<p>与IOS相同，MAC OS中同样有App Store，用户可以通过自己的iCloud ID登录商店下载购买软件。App Store中的软件都是通过官方审核，可以帮助用户自动完成下载以及安装的过程，不会出现下载下来不能安装或者无法打开的问题。</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_21/"><img src="https://qnam.smzdm.com/201804/14/5ad164a91afe77084.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p>只要是账号下曾经购买下载过的应用，一旦软件出现更新升级，商店也会及时提醒用户可以选择自动更新或者手动更新。App Store包含了绝大部分主流软件，可以优先选择在这里下载安装</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_22/"><img src="https://am.zdmimg.com/201804/14/5ad1688808a338639.jpg_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>直接下载安装软件</strong></p>
-<p>部分软件App Store无法下载到，则可以在各种网站上搜索下载，下载下来会得到一个DMG压缩文件。打开后直接将软件拖入application<a href="https://www.smzdm.com/fenlei/wenjianjia/">文件夹</a>完成安装。至于Mac软件获取的途径，一般Windows有的软件都会有对应的Mac版本，只要在搜索引擎输入对应的软件名称再加上MAC版基本都可以搜到，比如 Microsoft Office for Mac，</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_23/"><img src="https://qnam.smzdm.com/201804/14/5ad197c8e74688599.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>卸载软件</strong></p>
-<p>卸载软件的方式也有两种：</p>
-<p><strong>1.访达——应用程序，选中想要卸载的应用程序，移到废纸篓或者command+delete删除</strong></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_24/"><img src="https://am.zdmimg.com/201804/14/5ad19f461fd5e5585.jpg_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>2.在launchpad页面，按下option键，软件会和IOS一样抖动并出现卸载按钮，点击卸载即可。</strong>需要注意的是这种卸载的方式只适用于从App Store安装的软件</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_25/"><img src="https://am.zdmimg.com/201804/14/5ad1ab53d002a8338.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<h2 id="MAC-OS实用功能"><a href="#MAC-OS实用功能" class="headerlink" title="MAC OS实用功能"></a>MAC OS实用功能</h2><p><strong>Mission Control</strong></p>
-<p>在苹果系统中可以存在多个桌面，每个桌面都可以单独打开一个应用无缝切换。通过快捷键F3或者触摸板四指向上滑动即可呼出功能。平时楼主一边写文，一边修图就会在两个桌面之间来回切换PS软件以及浏览器，对效率提高有很大帮助</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_26/"><img src="https://am.zdmimg.com/201804/17/5ad56680690513065.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>聚焦搜索(Spotlight)</strong></p>
-<p>聚焦搜索是MAC非常实用的功能之一，通过Command+空格可以直接呼出。通过聚焦搜索可以查询Mac 上的应用、文稿、照片和其他文件，进行一些计算换算和网页搜索建议以及航班查询。</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_27/"><img src="https://am.zdmimg.com/201804/11/5acd71a98e1ff9139.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_28/"><img src="https://qnam.smzdm.com/201804/14/5ad1a987477a16070.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>SIRI语音助手</strong></p>
-<p>在最新的MAC OS系统中还加入了和iPhone一样的Siri语音助理功能，用户可以通过语音直接搜索文件,查找网页信息，甚至是进行发邮件拨打FaceTime等操作</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_29/"><img src="https://qnam.smzdm.com/201804/11/5acd75e8dad876845.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>隔空投送（AirDrop）</strong></p>
-<p>AirDrop能够非常方便的在苹果设备之间传输图片视频等文件。楼主写这篇文章使用了大量的动图，需要在MAC端录制屏幕后将视频分享到手机转成GIF动图，然后后回传到MAC，最后进行上传。airdrop使得文件传输更加高效便捷，这也是苹果设备之间体现联动性的功能之一</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_30/"><img src="https://qnam.smzdm.com/201804/14/5ad1ada1410fe8242.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_31/"><img src="https://am.zdmimg.com/201804/15/5ad2f65ee4b8e3296.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>接力（handoff）</strong></p>
-<p>通过<strong>系统偏好设置——通用——允许这台设备与iCloud设备之间使用“接力”</strong>，两台苹果设备之间可以通过iCloud账户同步工作，支持备忘录、日历、浏览器、邮件、地图等应用，当手机端打开这些应用的时候,MAC的左下角会出现相对于的程序同步工作</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_32/"><img src="https://am.zdmimg.com/201804/15/5ad3036ebaccc3443.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p>除了同步应用苹果设备之间还可以共用剪贴板，通过在手机端复制的图片文字，可以在MAC端Command+C直接进行粘贴，大大提高图文编辑的效率</p>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_33/"><img src="https://am.zdmimg.com/201804/15/5ad304fa12d812112.gif_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<h2 id="MAC常见问题"><a href="#MAC常见问题" class="headerlink" title="MAC常见问题"></a>MAC常见问题</h2><p><strong>MAC需要关机吗？</strong></p>
-<p>关于mac要不要关机其实并没有个准确说法，据楼主所知大部分mac用户都没有关机的习惯，原因有如下几点</p>
-<ol>
-<li>mac开关机所需的时间较长，为了追求高效连续性的工作，MacBook可以使用开盖合盖来代替开关机</li>
-<li>MacBook合盖后进入睡眠模式，此时所有应用程序都会被冻结，电池只为内存供电，消耗极少</li>
-<li>mac系统更加稳定以及<a href="https://www.smzdm.com/fenlei/gutaiyingpan/">固态硬盘</a>更长的寿命，可以保证长时间睡眠模式后唤醒的时候也不至于出现睡死情况</li>
+    <content><![CDATA[<h3 id="Mac新手使用指南"><a href="#Mac新手使用指南" class="headerlink" title="Mac新手使用指南"></a><a href="https://post.smzdm.com/p/679153/">Mac新手使用指南</a></h3><h1 id="MAC环境安装"><a href="#MAC环境安装" class="headerlink" title="MAC环境安装"></a>MAC环境安装</h1><ol>
+<li><strong>iTerm2安装</strong></li>
 </ol>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_34/"><img src="https://am.zdmimg.com/201804/16/5ad49c8529f723397.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<p><strong>MAC需要安装杀毒软件吗？</strong></p>
-<p>如果病毒想要以最快速度传播效益最大化，势必会选择市场份额最大的Windows系统进行攻击，相较而言Mac OS基于unix开发系统更为封闭，所以可以免疫网络上绝大多数针对Windows的病毒。这一点并不是说MAC系统本身更安全，可以认为是由于占有率低的缘故让绝大多数病毒放弃了MAC</p>
-<p>其实Mac系统也经常会爆出出现安全漏洞，去年就出现过“不需要密码就登录访问电脑的严重问题”后来苹果通过紧急更新修复了。<strong>对于大部分用户来说MAC不需要安装杀毒软件</strong>。如果你非常重视自己的电脑安全，非要采取一些手段保护的话，可以参考以下建议</p>
-<ol>
-<li>不要去安装类似360安全卫士之类的国产杀毒软件</li>
-<li>Mac OS会频繁针对系统漏洞进行更新，请务必将自己的Mac OS保持最新版本</li>
-<li>尽量在App Store下载官方应用，如果非要安装第三方应用请选择值得信任的网站进行下载</li>
-<li>使用<a href="https://go.smzdm.com/6d749ab4fde376c5/ca_bb_yc_163_679153_10354_1687_1641_0">时间机器备份系统</a>，如果系统出现问题也可以恢复到之前的任意时间</li>
+<p><a href="https://iterm2.com/">https://iterm2.com/</a></p>
+<ol start="2">
+<li><strong>brew安装</strong></li>
 </ol>
-<p><a href="https://post.smzdm.com/p/a8k7vk7/pic_35/"><img src="https://am.zdmimg.com/201804/16/5ad4bbf9956f81537.png_e1080.jpg" alt="Mac新手必看教程—轻松玩转Mac OS"></a></p>
-<h2 id="尾巴"><a href="#尾巴" class="headerlink" title="尾巴"></a>尾巴</h2><p>以上这些就是Mac OS基础教程的全部内容，楼主精力有限在动图制作以及资料整理上花费了大量时间，所以还有很多不完善的内容还请各位谅解。如果您认为本文对您有帮助，还请收藏点赞支持一下</p>
+<p><code>/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;</code></p>
+<p>将以上命令粘贴至终端。参考：<a href="https://brew.sh/index_zh-cn">https://brew.sh/index_zh-cn</a></p>
+<ol start="3">
+<li><strong>golang环境安装</strong></li>
+</ol>
+<p>安装golang最新版。</p>
+<p><code>brew install go</code></p>
+<p>查看版本：</p>
+<p><code>go version</code></p>
+<p>配置golang环境变量：</p>
+<p>打开 ~/.bash_profile 文件，没有的话新建，在最后输入</p>
+<p><code>export GOPATH=Go 开发包的默认安装目录如：/usr/local/go</code></p>
+<p><code>export GOBIN=$GOPATH/bin</code></p>
+<p><code>export PATH=$PATH:$GOBIN</code></p>
+<p><code>source  ~/.bash_profile</code> 文件，使之生效</p>
+<p>zsh的配置文件为：~/.zshrc</p>
+<p>多版本共存和切换：</p>
+<p><a href="https://www.jianshu.com/p/363e4d39e694">https://www.jianshu.com/p/363e4d39e694</a></p>
+<ol start="4">
+<li><strong>goland安装</strong></li>
+</ol>
+<p>官网下载最新版：<a href="https://www.jetbrains.com/go/">https://www.jetbrains.com/go/</a></p>
+<p>按照下面文档中<strong>在线安装方式</strong>，安装goland无限试用插件：</p>
+<p><a href="https://cloud.tencent.com/developer/article/1822218">https://cloud.tencent.com/developer/article/1822218</a></p>
+<ol start="5">
+<li><strong>GitLab sshkey</strong></li>
+</ol>
+<p>安装git：</p>
+<p><code>brew install git</code></p>
+<p>安装步骤生成ssh key：</p>
+<p><a href="https://www.jianshu.com/p/253ca7c2e80c">https://www.jianshu.com/p/253ca7c2e80c</a></p>
+<p>将ssh key添加到gitlab中：</p>
+<p>如下图所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/23040547/1635316093307-f25b8425-ab02-4ec9-b6ed-ef09e568fb2f.png" alt="img"></p>
+<ol start="6">
+<li><strong>Docker安装</strong></li>
+</ol>
+<p><code>brew install --cask --appdir=/Applications docker</code></p>
+<ol start="7">
+<li><strong>svn安装</strong></li>
+</ol>
+<p>svn client命令行安装：</p>
+<p><code>brew install svn</code></p>
+<p>mac也可选择Cornerstone。</p>
+<ol start="8">
+<li><strong>MongoDB安装</strong></li>
+</ol>
+<p><code>brew tap mongodb/brew</code></p>
+<p><code>brew install mongodb-community@4.4</code></p>
+<p>配置mongo bin的PATH</p>
+<p>在~/.bash_profile中追加PATH</p>
+<p><code>export MONGO_BIN=/usr/local/opt/mongodb-community@4.4/bin</code></p>
+<p><code>export PATH=$PATH:$MONGO_BIN:.</code></p>
+<ol start="9">
+<li><strong>golua环境</strong></li>
+</ol>
+<ul>
+<li><strong>首先安装lua环境：</strong></li>
+</ul>
+<p><a href="http://www.lua.org/download.html">官网</a>下载最新版 lua-5.4.3.tar.gz</p>
+<p>解压下载的压缩包，运行终端，进入解压后的文件夹</p>
+<p>执行命令 <code>make macosx</code></p>
+<p>执行命令 <code>make test</code></p>
+<p>结果显示如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/23040547/1635391960697-8ff980d8-906f-4e15-a0bf-f0a1a444e1e2.png" alt="img"></p>
+<p>执行命令 <code>sudo make install</code>，并输入密码，开始执行安装</p>
+<p>安装完成后使用<code>lua -v</code> 查看版本</p>
+<ul>
+<li><strong>golua环境</strong></li>
+</ul>
+<ol>
+<li><strong>添加文件/usr/local/lib/pkgconfig/lua5.4.pc</strong></li>
+</ol>
+<p>内容如下：</p>
+<p>prefix=/usr/local<br>exec_prefix=${prefix}<br>libdir=${exec_prefix}/lib<br>includedir=${prefix}/include</p>
+<p>Name: liblua<br>Description: Lua5.4.3<br>Version: 5.4.3<br>Requires:<br>Libs: -L${libdir} -llua<br>Cflags: -I${includedir} -I${includedir}/lua</p>
+<ol>
+<li><p><strong>终端执行：</strong><code>brew install pkg-config</code></p>
+</li>
+<li><p><strong>终端执行：</strong><code>go get github.com/zhao02game/golua/lua</code></p>
+</li>
+<li><p><strong>其他安装</strong></p>
+</li>
+</ol>
+<p><code>brew install coreutils ag etcd redis zsh</code></p>
+<ol start="11">
+<li><strong>终端定制</strong></li>
+</ol>
+<p><a href="https://segmentfault.com/a/1190000014992947">https://segmentfault.com/a/1190000014992947</a></p>
 ]]></content>
       <categories>
         <category>笔记</category>
@@ -3103,7 +3073,9 @@
 <td>合并工作和出错出冲突修复的概率线性增长 2*n-1</td>
 </tr>
 </tbody></table>
-<h4 id="分支规范最佳实践"><a href="#分支规范最佳实践" class="headerlink" title="分支规范最佳实践"></a>分支规范最佳实践</h4><ul>
+<h4 id="分支规范最佳实践"><a href="#分支规范最佳实践" class="headerlink" title="分支规范最佳实践"></a>分支规范最佳实践</h4><span id="more"></span>
+
+<ul>
 <li><p>使用特性分支开发</p>
 <p>每个需求一个独立分支，使用需求的ID号作为分支名称，用于隔离并行开发造成的干扰。</p>
 <p>好处：是一种工程实践， 使用它的人直到他所开发的特性“完成”后才合并回主干。</p>

@@ -79,15 +79,15 @@
 
 
 
-<meta name="description" content="Bridge独立netns隔离了网络，容器间网络不互相影响，容器内的IP地址是私有网段，仅本地可见，通过NAT与外部交互 Bridge 模式可以看作服务被放在一个独立的网络空间里，它的 IP 是一个虚拟 IP，任何的端口都是可以使用的。但是对外提供服务的时候，需要通过 NAT 转发。 需要进行的配置：  配置服务信息中需要填写一个服务主端口  配置以后的实例列表： 可以看到，Bridge 模式下的">
+<meta name="description" content="Bridge独立netns隔离了网络，容器间网络不互相影响，容器内的IP地址是私有网段，仅本地可见，通过NAT与外部交互 Bridge 模式可以看作服务被放在一个独立的网络空间里，它的 IP 是一个虚拟 IP，任何的端口都是可以使用的。但是对外提供服务的时候，需要通过 NAT 转发。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="容器的网络模式">
 <meta property="og:url" content="http://kwaibook.com/docker-net/index.html">
 <meta property="og:site_name" content="张嘎">
-<meta property="og:description" content="Bridge独立netns隔离了网络，容器间网络不互相影响，容器内的IP地址是私有网段，仅本地可见，通过NAT与外部交互 Bridge 模式可以看作服务被放在一个独立的网络空间里，它的 IP 是一个虚拟 IP，任何的端口都是可以使用的。但是对外提供服务的时候，需要通过 NAT 转发。 需要进行的配置：  配置服务信息中需要填写一个服务主端口  配置以后的实例列表： 可以看到，Bridge 模式下的">
+<meta property="og:description" content="Bridge独立netns隔离了网络，容器间网络不互相影响，容器内的IP地址是私有网段，仅本地可见，通过NAT与外部交互 Bridge 模式可以看作服务被放在一个独立的网络空间里，它的 IP 是一个虚拟 IP，任何的端口都是可以使用的。但是对外提供服务的时候，需要通过 NAT 转发。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-10-17T10:07:44.000Z">
-<meta property="article:modified_time" content="2021-10-22T02:41:03.096Z">
+<meta property="article:modified_time" content="2021-10-29T10:36:01.401Z">
 <meta property="article:author" content="Zhang Ga">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
@@ -388,6 +388,8 @@
       
         <h3 id="Bridge"><a href="#Bridge" class="headerlink" title="Bridge"></a>Bridge</h3><p>独立netns隔离了网络，容器间网络不互相影响，容器内的IP地址是私有网段，仅本地可见，通过NAT与外部交互</p>
 <p>Bridge 模式可以看作服务被放在一个独立的网络空间里，它的 IP 是一个虚拟 IP，任何的端口都是可以使用的。但是对外提供服务的时候，需要通过 NAT 转发。</p>
+<span id="more"></span>
+
 <p>需要进行的配置：</p>
 <ul>
 <li><p>配置服务信息中需要填写一个服务主端口</p>
@@ -451,8 +453,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/notice/" rel="prev" title="notice">
-                notice <i class="fa fa-chevron-right"></i>
+              <a href="/roadmap/" rel="prev" title="RoadMap">
+                RoadMap <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>

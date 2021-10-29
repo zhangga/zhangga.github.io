@@ -87,7 +87,7 @@
 <meta property="og:description" content="go gc 开始标记：STW，开启写屏障，统计root对象。 三色标记：扫描root对象，包括全局指针和G栈上的，扫描G栈时G栈需要暂停。root标记灰色，没引用标记黑色，有引用标记黑色并把引用标记灰色，直到灰色队列为空。与用户程序并行。 重新扫描：STW，因为上一步并行，可能重新分配对象和赋值，通过写屏障记录下来。 回收白色对象 写屏障：记录第一次扫描时对象的状态，和第二次比对，引用状态变化的对">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2015-09-01T15:49:37.000Z">
-<meta property="article:modified_time" content="2021-10-22T02:41:03.100Z">
+<meta property="article:modified_time" content="2021-10-29T10:36:01.401Z">
 <meta property="article:author" content="Zhang Ga">
 <meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
