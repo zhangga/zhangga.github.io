@@ -2454,6 +2454,8 @@
 </ol>
 <p><code>/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;</code></p>
 <p>将以上命令粘贴至终端。参考：<a href="https://brew.sh/index_zh-cn">https://brew.sh/index_zh-cn</a></p>
+<span id="more"></span>
+
 <ol start="3">
 <li><strong>golang环境安装</strong></li>
 </ol>
@@ -2485,7 +2487,7 @@
 <p><a href="https://www.jianshu.com/p/253ca7c2e80c">https://www.jianshu.com/p/253ca7c2e80c</a></p>
 <p>将ssh key添加到gitlab中：</p>
 <p>如下图所示：</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2021/png/23040547/1635316093307-f25b8425-ab02-4ec9-b6ed-ef09e568fb2f.png" alt="img"></p>
+<p><img src="https://i.loli.net/2021/11/02/gJaKmOF4U6WVLhA.png" alt="gJaKmOF4U6WVLhA"></p>
 <ol start="6">
 <li><strong>Docker安装</strong></li>
 </ol>
@@ -2516,7 +2518,7 @@
 <p>执行命令 <code>make macosx</code></p>
 <p>执行命令 <code>make test</code></p>
 <p>结果显示如下：</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2021/png/23040547/1635391960697-8ff980d8-906f-4e15-a0bf-f0a1a444e1e2.png" alt="img"></p>
+<p>![image(1)-QKzyA4](<a href="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-11/image">https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-11/image</a> (1)-QKzyA4.png)</p>
 <p>执行命令 <code>sudo make install</code>，并输入密码，开始执行安装</p>
 <p>安装完成后使用<code>lua -v</code> 查看版本</p>
 <ul>
@@ -2541,6 +2543,21 @@
 <li><strong>终端定制</strong></li>
 </ol>
 <p><a href="https://segmentfault.com/a/1190000014992947">https://segmentfault.com/a/1190000014992947</a></p>
+<ol start="12">
+<li><p>翻译软件</p>
+<p>欧陆词典</p>
+</li>
+<li><p>图床软件</p>
+<p><a href="https://github.com/gee1k/uPic">https://github.com/gee1k/uPic</a></p>
+<p>使用GitHub做为图床，设置</p>
+<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-11/20211102183650-TrCWY6.jpg" alt="20211102183650-TrCWY6"></p>
+</li>
+<li><p>使用vscode查看csv的差异，vscode安装Edit csv 和 SVN插件。</p>
+<p>Edit csv设置：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-11/20211102184046-NvJ5ti.jpg" alt="20211102184046-NvJ5ti"></p>
+</li>
+<li></li>
+</ol>
 ]]></content>
       <categories>
         <category>笔记</category>

@@ -1306,8 +1306,7 @@
 
       
         
-          
-            <h3 id="Mac新手使用指南"><a href="#Mac新手使用指南" class="headerlink" title="Mac新手使用指南"></a><a target="_blank" rel="noopener" href="https://post.smzdm.com/p/679153/">Mac新手使用指南</a></h3><h1 id="MAC环境安装"><a href="#MAC环境安装" class="headerlink" title="MAC环境安装"></a>MAC环境安装</h1><ol>
+          <h3 id="Mac新手使用指南"><a href="#Mac新手使用指南" class="headerlink" title="Mac新手使用指南"></a><a target="_blank" rel="noopener" href="https://post.smzdm.com/p/679153/">Mac新手使用指南</a></h3><h1 id="MAC环境安装"><a href="#MAC环境安装" class="headerlink" title="MAC环境安装"></a>MAC环境安装</h1><ol>
 <li><strong>iTerm2安装</strong></li>
 </ol>
 <p><a target="_blank" rel="noopener" href="https://iterm2.com/">https://iterm2.com/</a></p>
@@ -1316,95 +1315,13 @@
 </ol>
 <p><code>/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;</code></p>
 <p>将以上命令粘贴至终端。参考：<a target="_blank" rel="noopener" href="https://brew.sh/index_zh-cn">https://brew.sh/index_zh-cn</a></p>
-<ol start="3">
-<li><strong>golang环境安装</strong></li>
-</ol>
-<p>安装golang最新版。</p>
-<p><code>brew install go</code></p>
-<p>查看版本：</p>
-<p><code>go version</code></p>
-<p>配置golang环境变量：</p>
-<p>打开 ~/.bash_profile 文件，没有的话新建，在最后输入</p>
-<p><code>export GOPATH=Go 开发包的默认安装目录如：/usr/local/go</code></p>
-<p><code>export GOBIN=$GOPATH/bin</code></p>
-<p><code>export PATH=$PATH:$GOBIN</code></p>
-<p><code>source  ~/.bash_profile</code> 文件，使之生效</p>
-<p>zsh的配置文件为：~/.zshrc</p>
-<p>多版本共存和切换：</p>
-<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/363e4d39e694">https://www.jianshu.com/p/363e4d39e694</a></p>
-<ol start="4">
-<li><strong>goland安装</strong></li>
-</ol>
-<p>官网下载最新版：<a target="_blank" rel="noopener" href="https://www.jetbrains.com/go/">https://www.jetbrains.com/go/</a></p>
-<p>按照下面文档中<strong>在线安装方式</strong>，安装goland无限试用插件：</p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1822218">https://cloud.tencent.com/developer/article/1822218</a></p>
-<ol start="5">
-<li><strong>GitLab sshkey</strong></li>
-</ol>
-<p>安装git：</p>
-<p><code>brew install git</code></p>
-<p>安装步骤生成ssh key：</p>
-<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/253ca7c2e80c">https://www.jianshu.com/p/253ca7c2e80c</a></p>
-<p>将ssh key添加到gitlab中：</p>
-<p>如下图所示：</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2021/png/23040547/1635316093307-f25b8425-ab02-4ec9-b6ed-ef09e568fb2f.png" alt="img"></p>
-<ol start="6">
-<li><strong>Docker安装</strong></li>
-</ol>
-<p><code>brew install --cask --appdir=/Applications docker</code></p>
-<ol start="7">
-<li><strong>svn安装</strong></li>
-</ol>
-<p>svn client命令行安装：</p>
-<p><code>brew install svn</code></p>
-<p>mac也可选择Cornerstone。</p>
-<ol start="8">
-<li><strong>MongoDB安装</strong></li>
-</ol>
-<p><code>brew tap mongodb/brew</code></p>
-<p><code>brew install mongodb-community@4.4</code></p>
-<p>配置mongo bin的PATH</p>
-<p>在~/.bash_profile中追加PATH</p>
-<p><code>export MONGO_BIN=/usr/local/opt/mongodb-community@4.4/bin</code></p>
-<p><code>export PATH=$PATH:$MONGO_BIN:.</code></p>
-<ol start="9">
-<li><strong>golua环境</strong></li>
-</ol>
-<ul>
-<li><strong>首先安装lua环境：</strong></li>
-</ul>
-<p><a target="_blank" rel="noopener" href="http://www.lua.org/download.html">官网</a>下载最新版 lua-5.4.3.tar.gz</p>
-<p>解压下载的压缩包，运行终端，进入解压后的文件夹</p>
-<p>执行命令 <code>make macosx</code></p>
-<p>执行命令 <code>make test</code></p>
-<p>结果显示如下：</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2021/png/23040547/1635391960697-8ff980d8-906f-4e15-a0bf-f0a1a444e1e2.png" alt="img"></p>
-<p>执行命令 <code>sudo make install</code>，并输入密码，开始执行安装</p>
-<p>安装完成后使用<code>lua -v</code> 查看版本</p>
-<ul>
-<li><strong>golua环境</strong></li>
-</ul>
-<ol>
-<li><strong>添加文件/usr/local/lib/pkgconfig/lua5.4.pc</strong></li>
-</ol>
-<p>内容如下：</p>
-<p>prefix=/usr/local<br>exec_prefix=${prefix}<br>libdir=${exec_prefix}/lib<br>includedir=${prefix}/include</p>
-<p>Name: liblua<br>Description: Lua5.4.3<br>Version: 5.4.3<br>Requires:<br>Libs: -L${libdir} -llua<br>Cflags: -I${includedir} -I${includedir}/lua</p>
-<ol>
-<li><p><strong>终端执行：</strong><code>brew install pkg-config</code></p>
-</li>
-<li><p><strong>终端执行：</strong><code>go get github.com/zhao02game/golua/lua</code></p>
-</li>
-<li><p><strong>其他安装</strong></p>
-</li>
-</ol>
-<p><code>brew install coreutils ag etcd redis zsh</code></p>
-<ol start="11">
-<li><strong>终端定制</strong></li>
-</ol>
-<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000014992947">https://segmentfault.com/a/1190000014992947</a></p>
-
-          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/mac-manual/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
