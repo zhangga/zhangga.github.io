@@ -24,6 +24,8 @@ https://iterm2.com/
 
 将以上命令粘贴至终端。参考：https://brew.sh/index_zh-cn
 
+<!-- more -->
+
 3. **golang环境安装**
 
 安装golang最新版。
@@ -74,7 +76,7 @@ https://www.jianshu.com/p/253ca7c2e80c
 
 如下图所示：
 
-![img](https://cdn.nlark.com/yuque/0/2021/png/23040547/1635316093307-f25b8425-ab02-4ec9-b6ed-ef09e568fb2f.png)
+![gJaKmOF4U6WVLhA](https://i.loli.net/2021/11/02/gJaKmOF4U6WVLhA.png)
 
 6. **Docker安装**
 
@@ -116,7 +118,7 @@ mac也可选择Cornerstone。
 
 结果显示如下：
 
-![img](https://cdn.nlark.com/yuque/0/2021/png/23040547/1635391960697-8ff980d8-906f-4e15-a0bf-f0a1a444e1e2.png)
+![image(1)-QKzyA4](https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-11/image (1)-QKzyA4.png)
 
 执行命令 `sudo make install`，并输入密码，开始执行安装
 
@@ -150,4 +152,24 @@ Cflags: -I${includedir} -I${includedir}/lua
 11. **终端定制**
 
 https://segmentfault.com/a/1190000014992947
+
+12. 翻译软件
+
+    欧陆词典
+
+13. 图床软件
+
+    https://github.com/gee1k/uPic
+
+    使用GitHub做为图床，设置
+
+    ![20211102183650-TrCWY6](https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-11/20211102183650-TrCWY6.jpg)
+
+14. 使用vscode查看csv的差异，vscode安装Edit csv 和 SVN插件。
+
+    Edit csv设置：
+
+    ![20211102184046-NvJ5ti](https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-11/20211102184046-NvJ5ti.jpg)
+
+15. 
 
