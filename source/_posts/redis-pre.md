@@ -2,7 +2,8 @@
 title: Redis常见面试题
 date: 2019-03-27 19:52:43
 tags:
-  - 笔记
+  - 数据库
+  - 面试
 id: redis-pre
 categories:
   - 笔记

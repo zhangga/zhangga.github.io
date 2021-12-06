@@ -2,7 +2,7 @@
 title: JAVA版ZSet性能测试
 date: 2018-12-28 19:37:35
 tags:
-  - 笔记
+  - JAVA
 id: zset
 categories:
   - 笔记

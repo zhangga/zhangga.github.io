@@ -2,7 +2,7 @@
 title: JVisualVM远程调试
 date: 2018-08-01 10:51:44
 tags:
-  - 笔记
+  - JAVA
 id: jvm-remote
 categories:
   - 笔记

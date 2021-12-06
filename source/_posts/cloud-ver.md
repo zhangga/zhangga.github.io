@@ -2,7 +2,7 @@
 title: 云服务器被挖矿病毒感染！
 date: 2019-03-26 19:51:40
 tags:
-  - 笔记
+  - 网站
 id: cloud-ver
 categories:
   - 笔记

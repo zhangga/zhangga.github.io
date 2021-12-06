@@ -2,7 +2,7 @@
 title: 读书笔记
 date: 2017-05-01 20:02:17
 tags:
-  - 笔记
+  - 读书笔记
 id: booknote
 categories:
   - 笔记

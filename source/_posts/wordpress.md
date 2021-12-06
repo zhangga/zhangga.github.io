@@ -2,7 +2,7 @@
 title: WordPress上传权限问题及主题
 date: 2018-10-11 20:19:37
 tags:
-  - 笔记
+  - 网站
 id: wordpress
 categories:
   - 笔记

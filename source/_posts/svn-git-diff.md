@@ -2,7 +2,7 @@
 title: SVN/Git 差异比对插件
 date: 2021-10-17 11:06:49
 tags:
-  - 笔记
+  - 服务器
 id: svn-git-diff
 categories:
   - 笔记

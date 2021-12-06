@@ -2,7 +2,7 @@
 title: 阿里云转战腾讯云-全纪录
 date: 2018-10-01 12:06:11
 tags:
-  - 笔记
+  - 网站
 id: ali2tx
 categories:
   - 笔记

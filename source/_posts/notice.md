@@ -1,8 +1,8 @@
 ---
 title: notice
-date: 2022-07-25 20:36:23
+date: 2022-12-25 20:36:23
 tags:
-  - 笔记
+  - 公告
 id: notice
 categories:
   - 公告

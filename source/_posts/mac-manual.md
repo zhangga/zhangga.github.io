@@ -2,7 +2,7 @@
 title: Mac使用手册
 date: 2021-10-08 21:32:29
 tags:
-	- 笔记
+	- MAC笔记
 id: mac-manual
 categories:
 	- 笔记

@@ -2,7 +2,7 @@
 title: 搭建WordPress个人站点
 date: 2016-10-01 12:49:39
 tags: 
-	- 笔记
+	- 网站
 id: wordpress-build
 categories:
 	- 笔记

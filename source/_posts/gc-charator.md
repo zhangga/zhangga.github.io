@@ -2,7 +2,8 @@
 title: 常见垃圾收集器的特点
 date: 2019-03-31 19:54:08
 tags:
-  - 笔记
+  - JAVA
+  - 面试
 id: gc-charator
 categories:
   - 笔记

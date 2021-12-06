@@ -2,7 +2,8 @@
 title: 服务器性能优化
 date: 2021-08-31 23:55:21
 tags:
-  - 笔记
+  - 服务器
+  - 面试
 id: srv-optimize
 categories:
   - 笔记

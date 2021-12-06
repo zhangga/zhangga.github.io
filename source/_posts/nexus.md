@@ -2,7 +2,7 @@
 title: Nexus搭建开发组的私有仓库
 date: 2018-11-10 19:33:23
 tags:
-  - 笔记
+  - 杂乱
 id: nexus
 categories:
   - 笔记
@@ -35,6 +35,8 @@ categories:
   - [5.4、配置](https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_3)
 
 **正文**[回到顶部](https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop)
+
+<!-- more -->
 
 ![Nexus搭建开发组的私有仓库 - 第1张  | 张嘎](https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-1024x495.png?resize=640%2C309)
 

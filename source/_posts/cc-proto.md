@@ -2,7 +2,7 @@
 title: cocos creator使用protobuf ts版
 date: 2018-05-03 20:15:07
 tags:
-  - 笔记
+  - 前端
 id: cc-proto
 categories:
   - 笔记

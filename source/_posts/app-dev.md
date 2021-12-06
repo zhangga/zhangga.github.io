@@ -2,7 +2,7 @@
 title: APP开发选型
 date: 2018-07-25 20:22:47
 tags:
-  - 笔记
+  - 前端
 id: app-dev
 categories:
   - 笔记

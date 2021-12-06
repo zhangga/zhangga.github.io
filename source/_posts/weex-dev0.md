@@ -2,7 +2,7 @@
 title: Weex环境搭建
 date: 2018-07-25 20:36:23
 tags:
-  - 笔记
+  - 前端
 id: weex-dev0
 categories:
   - 笔记

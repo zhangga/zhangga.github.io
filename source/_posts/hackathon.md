@@ -2,7 +2,7 @@
 title: 首届hackathon的一些感想
 date: 2018-11-01 19:30:40
 tags:
-  - 笔记
+  - 杂乱
 id: hackathon
 categories:
   - 笔记

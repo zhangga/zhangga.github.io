@@ -2,7 +2,7 @@
 title: 游戏笔记，杂项
 date: 2018-08-14 11:54:04
 tags:
-  - 笔记
+  - 服务器
 id: gamenote0
 categories:
   - 笔记

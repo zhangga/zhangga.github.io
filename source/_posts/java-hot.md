@@ -2,7 +2,7 @@
 title: JAVA游戏服务器热更
 date: 2018-08-07 10:56:02
 tags:
-  - 笔记
+  - JAVA
 id: java-hot
 categories:
   - 笔记

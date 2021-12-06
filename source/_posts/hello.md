@@ -2,7 +2,7 @@
 title: WordPress迁移Hexo
 date: 2021-06-10 23:50:05
 tags: 
-	- 笔记
+	- 网站
 id: hello
 categories:
 	- 笔记

@@ -1,8 +1,8 @@
 ---
 title: golang笔记
-date: 2015-09-01 23:49:37
+date: 2021-09-01 23:49:37
 tags:
-  - 笔记
+  - 面试
 id: golang-summary
 categories:
   - 笔记

@@ -2,7 +2,7 @@
 title: 地理位置信息GeoHash算法及Google S2算法
 date: 2018-08-17 11:59:48
 tags:
-  - 笔记
+  - 服务器
 id: geohash
 categories:
   - 笔记

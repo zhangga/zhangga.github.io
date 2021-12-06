@@ -2,7 +2,7 @@
 title: JAVA HTTPS服务
 date: 2019-01-12 19:39:20
 tags:
-  - 笔记
+  - JAVA
 id: https
 categories:
   - 笔记
@@ -31,6 +31,8 @@ keytool为JDK提供的生成证书工具
 ```
 项目示例：github下HttpServerInitializer
 ```
+
+<!-- more -->
 
 # 在程序初始化的时候生成SSLContext
 

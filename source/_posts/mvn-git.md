@@ -2,7 +2,7 @@
 title: IDEA+MAVEN+GIT项目管理
 date: 2018-08-04 10:53:23
 tags:
-  - 笔记
+  - 杂乱
 id: mvn-git
 categories:
   - 笔记

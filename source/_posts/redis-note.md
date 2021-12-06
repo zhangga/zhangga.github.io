@@ -2,7 +2,7 @@
 title: Redis笔记
 date: 2018-05-13 20:18:05
 tags:
-  - 笔记
+  - 数据库
 id: redis-mode
 categories:
   - 笔记

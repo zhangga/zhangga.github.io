@@ -2,7 +2,7 @@
 title: 设计模式笔记
 date: 2017-04-01 18:40:51
 tags:
-  - 笔记
+  - 读书笔记
 id: design-mode
 categories:
   - 笔记

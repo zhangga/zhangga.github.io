@@ -2,10 +2,11 @@
 title: 容器的网络模式
 date: 2021-10-17 18:07:44
 tags:
-  - 笔记
+  - 网络
+  - 面试
 id: docker-net
 categories:
-  - 笔记
+  - 服务器技术
 ---
 
 ### Bridge

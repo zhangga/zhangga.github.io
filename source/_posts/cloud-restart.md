@@ -1,8 +1,8 @@
 ---
-title: cloud-restart
+title: 云服务器重启事项
 date: 2019-03-13 19:50:13
 tags:
-  - 笔记
+  - 网站
 id: cloud-restart
 categories:
   - 笔记

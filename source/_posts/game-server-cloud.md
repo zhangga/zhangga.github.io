@@ -2,7 +2,7 @@
 title: 服务器云基础设施介绍
 date: 2021-10-17 16:50:15
 tags:
-  - 笔记
+  - 杂乱
 id: game-server-cloud
 categories:
   - 笔记

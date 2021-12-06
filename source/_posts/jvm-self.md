@@ -2,7 +2,7 @@
 title: 自己动手写JVM
 date: 2019-02-27 19:40:56
 tags:
-  - 笔记
+  - JAVA
 id: jvm-self
 categories:
   - 笔记
@@ -16,7 +16,7 @@ categories:
 
 ## 可视化查看class文件的工具：[查看class工具](https://github.com/zxh0/classpy)，启动类：ClasspyApp。书籍自身代码：[代码](https://github.com/zxh0/jvmgo-book)
 
- 
+ <!-- more -->
 
 # Class文件解析：
 

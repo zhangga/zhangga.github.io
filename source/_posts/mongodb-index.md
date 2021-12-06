@@ -2,7 +2,8 @@
 title: MongoDB索引详解
 date: 2021-09-14 00:00:00
 tags:
-  - 笔记
+  - 数据库
+  - 面试
 id: mongodb-index
 categories:
   - 笔记

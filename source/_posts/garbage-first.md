@@ -2,7 +2,8 @@
 title: 垃圾回收器G1详解
 date: 2021-09-01 13:50:42
 tags:
-  - 笔记
+  - JAVA
+  - 面试
 id: garbage-first
 categories:
   - 笔记
