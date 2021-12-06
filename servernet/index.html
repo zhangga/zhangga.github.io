@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="网络," />
 
 
 
@@ -79,15 +79,17 @@
 
 
 
-<meta name="description" content="游戏技术博客">
-<meta property="og:type" content="website">
-<meta property="og:title" content="张嘎">
-<meta property="og:url" content="http://kwaibook.com/tags/%E7%AC%94%E8%AE%B0/page/5/index.html">
+<meta name="description" content="最近在开发golang的游戏服网络库，基础开发已经完成，准备做性能测试，在思考测试用例的时候，参考了下主要网络库的测试场景，在这里做一下汇总。 游戏网络库背景通过封装TCP&#x2F;UDP网络连接，向上层业务提供 可靠、易用 的网络库。 获取网络层的控制权，先于业务做一些探索并最终赋能业务。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="游戏服务器网络库">
+<meta property="og:url" content="http://kwaibook.com/servernet/index.html">
 <meta property="og:site_name" content="张嘎">
-<meta property="og:description" content="游戏技术博客">
+<meta property="og:description" content="最近在开发golang的游戏服网络库，基础开发已经完成，准备做性能测试，在思考测试用例的时候，参考了下主要网络库的测试场景，在这里做一下汇总。 游戏网络库背景通过封装TCP&#x2F;UDP网络连接，向上层业务提供 可靠、易用 的网络库。 获取网络层的控制权，先于业务做一些探索并最终赋能业务。">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-12-06T11:37:35.000Z">
+<meta property="article:modified_time" content="2021-12-06T10:35:48.828Z">
 <meta property="article:author" content="Zhang Ga">
-<meta property="article:tag" content="游戏">
+<meta property="article:tag" content="网络">
 <meta name="twitter:card" content="summary">
 
 
@@ -118,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://kwaibook.com/tags/笔记/page/5/"/>
+  <link rel="canonical" href="http://kwaibook.com/servernet/"/>
 
 
 
 
 
-  <title>Tag: 笔记 | 张嘎</title>
+  <title>游戏服务器网络库 | 张嘎</title>
   
 
 
@@ -143,7 +145,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -180,7 +182,7 @@
       
         
         <li class="menu-item menu-item-home">
-          <a href="/%20" rel="section">
+          <a href="/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
@@ -190,7 +192,7 @@
       
         
         <li class="menu-item menu-item-tags">
-          <a href="/tags/%20" rel="section">
+          <a href="/tags" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
             
@@ -200,7 +202,7 @@
       
         
         <li class="menu-item menu-item-categories">
-          <a href="/categories/%20" rel="section">
+          <a href="/categories" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
@@ -210,7 +212,7 @@
       
         
         <li class="menu-item menu-item-archives">
-          <a href="/archives/%20" rel="section">
+          <a href="/archives" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
@@ -271,114 +273,217 @@
           <div id="content" class="content">
             
 
+  <div id="posts" class="posts-expand">
+    
+
+  
+
   
   
   
-  <div class="post-block tag">
-
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>笔记<small>Tag</small>
-        </h1>
-      </div>
-
-      
-        
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/servernet/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/design-mode/" itemprop="url">
-              
-                <span itemprop="name">设计模式笔记</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">游戏服务器网络库</h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2017-04-01T18:40:51+08:00"
-              content="2017-04-01" >
-          04-01
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-12-06T11:37:35+00:00">
+                2021-12-06
+              </time>
+            
 
-    </header>
-  </article>
+            
 
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器技术</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/servernet/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/servernet/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/wordpress-build/" itemprop="url">
-              
-                <span itemprop="name">搭建WordPress个人站点</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2016-10-01T12:49:39+08:00"
-              content="2016-10-01" >
-          10-01
-        </time>
-      </div>
-
-    </header>
-  </article>
-
+      
 
       
-        
+        <p>最近在开发golang的游戏服网络库，基础开发已经完成，准备做性能测试，在思考测试用例的时候，参考了下主要网络库的测试场景，在这里做一下汇总。</p>
+<h2 id="游戏网络库"><a href="#游戏网络库" class="headerlink" title="游戏网络库"></a>游戏网络库</h2><h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>通过封装TCP/UDP网络连接，向上层业务提供 <strong>可靠、易用</strong> 的网络库。</p>
+<p>获取网络层的控制权，先于业务做一些探索并最终赋能业务。</p>
+<span id="more"></span>
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/golang-summary/" itemprop="url">
-              
-                <span itemprop="name">golang笔记</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2015-09-01T23:49:37+08:00"
-              content="2015-09-01" >
-          09-01
-        </time>
-      </div>
-
-    </header>
-  </article>
-
+<h4 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h4><ol>
+<li>易用性</li>
+</ol>
+<ul>
+<li>遵循golang net的接口规范，保证通用性。</li>
+<li>弱网环境下保证消息顺序、可靠，不需要业务层做额外工作。</li>
+<li>可以发送可靠消息，TCP消息，UDP消息。</li>
+<li>方便开启/关闭TCP/UDP以及双通道通信。</li>
+</ul>
+<ol start="2">
+<li>可靠性</li>
+</ol>
+<ul>
+<li>对网络连接进一步封装成逻辑连接(session)，将短时间内的断线重连作为同一个连接，对业务层透明。</li>
+<li>保证任何情况下消息的可靠，在TCP/UDP上封装KCP，保证UDP的可靠，以及断线重连下同一个逻辑连接(不同的TCP连接)消息的可靠性。</li>
+<li>支持上行/下行分别走不同的通道。</li>
+<li>针对游戏大包下发的场景(如登录游戏，进入场景/副本等)，优先使用TCP发包。</li>
+<li>根据网络时延自动选择TCP或UDP。</li>
+<li>网络连接自动选择就近IP，登录到就近部署区域。</li>
+</ul>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>针对游戏服务器特性在设计网络库的时候需要特别关注的一些地方：</p>
+<ol>
+<li>游戏业务重。在handler中处理一条消息业务的时候一般都涉及到I/O操作，如果同步执行的话，CPU主要消耗会在等待I/O操作上。此时handler必须要异步处理，这就涉及到上下文切换、I/O协作等需要考虑的代价。</li>
+<li>过多长链接的问题。在使用golang net网路库设计框架时，一般都是新启一个协程goroutine去处理一个连接的read事件，在大量连接的情况下需要考虑协程的上下文切换开销，以及空闲连接占用的问题。</li>
+<li>网络库在处理消息合包/拆包的情况下，对消息buffer的拷贝次数。常用的方案是RingBuffer和<a target="_blank" rel="noopener" href="https://www.infoq.cn/article/fea7chf9moohbxbtyres">Nocopy Buffer</a>，参考netty和netpoll。</li>
+<li>必须收到完整的数据包才可以继续处理，不能收到一半就开始处理。</li>
+<li>水平触发、边缘触发，对编程模型的影响。</li>
+</ol>
+<h2 id="netpoll"><a href="#netpoll" class="headerlink" title="netpoll"></a>netpoll</h2><p><a target="_blank" rel="noopener" href="https://github.com/cloudwego/netpoll">netpoll</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/cloudwego/netpoll-benchmark">netpoll-benchmark</a></p>
 
       
     </div>
+    
+    
+    
 
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/interview/" rel="next" title="面试笔记">
+                <i class="fa fa-chevron-left"></i> 面试笔记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/roadmap/" rel="prev" title="RoadMap">
+                RoadMap <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
-  <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/tags/%E7%AC%94%E8%AE%B0/page/4/">&lt;</a><a class="page-number" href="/tags/%E7%AC%94%E8%AE%B0/">1</a><span class="space">&hellip;</span><a class="page-number" href="/tags/%E7%AC%94%E8%AE%B0/page/4/">4</a><span class="page-number current">5</span>
-  </nav>
 
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -386,6 +491,17 @@
 
 
           
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
 
         </div>
         
@@ -406,8 +522,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -424,7 +549,7 @@
             
               <div class="site-state-item site-state-posts">
               
-                <a href="/archives/%20%7C%7C%20archive">
+                <a href="/archives%7C%7Carchive">
               
                   <span class="site-state-item-count">43</span>
                   <span class="site-state-item-name">posts</span>
@@ -437,7 +562,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
@@ -448,7 +573,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -471,6 +596,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%B8%E6%88%8F%E7%BD%91%E7%BB%9C%E5%BA%93"><span class="nav-number">1.</span> <span class="nav-text">游戏网络库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.0.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%89%B9%E6%80%A7"><span class="nav-number">1.0.2.</span> <span class="nav-text">特性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.0.3.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#netpoll"><span class="nav-number">2.</span> <span class="nav-text">netpoll</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -604,6 +745,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
@@ -650,6 +795,30 @@
 
     
 
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname, 
+            owner: 'zhanga',
+            repo: 'gitment-comments',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: 'e66cfd435bb60cab32c9aa9901068a8f7712daf5',
+            
+                client_id: 'Iv1.08dfdfc601d9e481'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
     
 
 
