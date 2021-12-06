@@ -105,6 +105,12 @@ search:
   format: html
   limit: 10000
 
+menu:
+  home: /
+  categories: /categories
+  archives: /archives
+  tags: /tags
+
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
