@@ -286,6 +286,159 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/zset/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/zset/" itemprop="url">JAVA版ZSet性能测试</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-12-28T19:37:35+08:00">
+                2018-12-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>自己实现的JAVA版ZSet的主要功能，源码在github：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/JAVAZSet">https://github.com/zhangga/JAVAZSet</a></p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hBs35t"><img src="https://z3.ax1x.com/2021/09/01/hBs35t.md.png" alt="hBs35t.md.png"></a></p>
+<p>性能测试：</p>
+<p>下面数据都是在本地windows下执行10次的评价值：JVM10G + i7-8700开着各种应用。Eclipse Run 预热几次稳定后。</p>
+<h3 id="ZSet使用TreeMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。"><a href="#ZSet使用TreeMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。" class="headerlink" title="ZSet使用TreeMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。"></a>ZSet使用TreeMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。</h3><p>获取1000-3000分值的数据，执行1W次，</p>
+<p>取样10次用时ms：6604+6490+6648+6602+7718+7626+6682+7498+6588+7358=69814/10=6981</p>
+<h3 id="ZSet使用ConcurrentSkipListMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。"><a href="#ZSet使用ConcurrentSkipListMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。" class="headerlink" title="ZSet使用ConcurrentSkipListMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。"></a>ZSet使用ConcurrentSkipListMap、list的组合存放分值信息。100W条总数据，分值为1W（0-9999）个，这样平均相同分值会有100条数据在list中。</h3><p>获取1000-3000分值的数据，执行1W次，</p>
+<p>取样10次用时ms：7594+8279+8622+8476+7810+7397+7241+8579+8019+8554=80571/10=8057</p>
+<h3 id="ZSet不需要线程安全的情形下使用TreeMap的效率会更高点。"><a href="#ZSet不需要线程安全的情形下使用TreeMap的效率会更高点。" class="headerlink" title="ZSet不需要线程安全的情形下使用TreeMap的效率会更高点。"></a>ZSet不需要线程安全的情形下使用TreeMap的效率会更高点。</h3><h2 id="获取高度方法性能测试："><a href="#获取高度方法性能测试：" class="headerlink" title="获取高度方法性能测试："></a>获取高度方法性能测试：</h2><p>1.使用ZSet获取附近的障碍物，判断是否在障碍物内，获取障碍物高度。</p>
+<p>测试用例，在一处放置11个圆形障碍物，搜索2米范围内的障碍物，获取高度。100W次测试，用时在450ms-500ms之间。</p>
+<p>2.使用一个正常地图（37号场景）的navmesh数据，recast的获取高度。100W次测试，用时在1000ms-1100ms之间。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://kwaibook.com/kcp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1837,154 +1990,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/java-hot/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/java-hot/" itemprop="url">JAVA游戏服务器热更</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-07T10:56:02+08:00">
-                2018-08-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>具体工程详见github:</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/HotswapJAVA.git">https://github.com/zhangga/HotswapJAVA.git</a></p>
-<p>agentmain和premain方法都只能修改方法体。</p>
-<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hKvk5V"><img src="https://z3.ax1x.com/2021/08/27/hKvk5V.md.png" alt="hKvk5V.md.png"></a></p>
-<p>jrebel可以热更类，新增、删除、修改等。</p>
-<p>jrebel有eclipse和idea的插件，方便平时开发时，不用重启服务器。</p>
-<p>破解版的插件在我的百度云盘里。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2039,7 +2044,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-count">43</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
