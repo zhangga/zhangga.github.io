@@ -3213,4 +3213,33 @@
         <tag>面试</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Linux常用命令</title>
+    <url>/linux-note/</url>
+    <content><![CDATA[<h4 id="Linux查看物理CPU个数、核数、逻辑CPU个数"><a href="#Linux查看物理CPU个数、核数、逻辑CPU个数" class="headerlink" title="Linux查看物理CPU个数、核数、逻辑CPU个数"></a>Linux查看物理CPU个数、核数、逻辑CPU个数</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 总核数 = 物理CPU个数 X 每颗物理CPU的核数 </span><br><span class="line"># 总逻辑CPU数 = 物理CPU个数 X 每颗物理CPU的核数 X 超线程数</span><br><span class="line"></span><br><span class="line"># 查看物理CPU个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l</span><br><span class="line"></span><br><span class="line"># 查看每个物理CPU中core的个数(即核数)</span><br><span class="line">cat /proc/cpuinfo| grep &quot;cpu cores&quot;| uniq</span><br><span class="line"></span><br><span class="line"># 查看逻辑CPU的个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看CPU信息（型号）"><a href="#查看CPU信息（型号）" class="headerlink" title="查看CPU信息（型号）"></a>查看CPU信息（型号）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看内存信息"><a href="#查看内存信息" class="headerlink" title="查看内存信息"></a>查看内存信息</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># cat /proc/meminfo</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看Linux-内核"><a href="#如何查看Linux-内核" class="headerlink" title="如何查看Linux 内核"></a>如何查看Linux 内核</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">uname -a</span><br><span class="line">cat /proc/version</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看机器型号（机器硬件型号）"><a href="#查看机器型号（机器硬件型号）" class="headerlink" title="查看机器型号（机器硬件型号）"></a>查看机器型号（机器硬件型号）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dmidecode | grep &quot;Product Name&quot;</span><br><span class="line">dmidecode</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux-系统版本"><a href="#如何查看linux-系统版本" class="headerlink" title="如何查看linux 系统版本"></a>如何查看linux 系统版本</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/redhat-release</span><br><span class="line">lsb_release -a</span><br><span class="line">cat /etc/issue</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux系统和CPU型号，类型和大小"><a href="#如何查看linux系统和CPU型号，类型和大小" class="headerlink" title="如何查看linux系统和CPU型号，类型和大小"></a>如何查看linux系统和CPU型号，类型和大小</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/cpuinfo</span><br><span class="line"></span><br><span class="line">关于CPU的核心参数说明：</span><br><span class="line">· processor：指明第几个CPU处理器</span><br><span class="line">· cpu cores：指明每个处理器的核心数</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"><a href="#如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息" class="headerlink" title="如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"></a>如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/meminfo</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用taskset命令让进程运行在指定CPU上"><a href="#使用taskset命令让进程运行在指定CPU上" class="headerlink" title="使用taskset命令让进程运行在指定CPU上"></a>使用taskset命令让进程运行在指定CPU上</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">执行以下命令，指定进程运行在第一个CPU（CPU0）上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -c 0 ./test.sh&amp;</span><br><span class="line"></span><br><span class="line">执行以下命令，获取进程状态（以下操作以进程test.sh为例，对应的pid为19155）</span><br><span class="line">[root@VM_32_4_centos ~]# ps aux|grep test.sh</span><br><span class="line">root     19155  0.0  0.0 113120  1204 pts/3    S+   15:26   0:00 /bin/bash ./test.sh</span><br><span class="line"></span><br><span class="line">执行以下命令，查看进程当前运行在哪个CPU上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -p 19155</span><br><span class="line">pid 19155&#x27;s current affinity mask: 1</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
 </search>

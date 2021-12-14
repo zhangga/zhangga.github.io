@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="网站," />
+  <meta name="keywords" content="笔记," />
 
 
 
@@ -79,20 +79,18 @@
 
 
 
-<meta name="description" content="LAMPP+WordPress搭建官网：https:&#x2F;&#x2F;wordpress.org&#x2F;中文网：https:&#x2F;&#x2F;cn.wordpress.org&#x2F;">
+<meta name="description" content="Linux查看物理CPU个数、核数、逻辑CPU个数1234567891011# 总核数 &#x3D; 物理CPU个数 X 每颗物理CPU的核数 # 总逻辑CPU数 &#x3D; 物理CPU个数 X 每颗物理CPU的核数 X 超线程数# 查看物理CPU个数cat &#x2F;proc&#x2F;cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l# 查看每个物理CPU中core的">
 <meta property="og:type" content="article">
-<meta property="og:title" content="搭建WordPress个人站点">
-<meta property="og:url" content="http://kwaibook.com/wordpress-build/index.html">
+<meta property="og:title" content="Linux常用命令">
+<meta property="og:url" content="http://kwaibook.com/linux-note/index.html">
 <meta property="og:site_name" content="张嘎">
-<meta property="og:description" content="LAMPP+WordPress搭建官网：https:&#x2F;&#x2F;wordpress.org&#x2F;中文网：https:&#x2F;&#x2F;cn.wordpress.org&#x2F;">
+<meta property="og:description" content="Linux查看物理CPU个数、核数、逻辑CPU个数1234567891011# 总核数 &#x3D; 物理CPU个数 X 每颗物理CPU的核数 # 总逻辑CPU数 &#x3D; 物理CPU个数 X 每颗物理CPU的核数 X 超线程数# 查看物理CPU个数cat &#x2F;proc&#x2F;cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l# 查看每个物理CPU中core的">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://z3.ax1x.com/2021/08/25/hZViiq.md.png">
-<meta property="article:published_time" content="2016-10-01T04:49:39.000Z">
-<meta property="article:modified_time" content="2021-12-06T10:12:28.917Z">
+<meta property="article:published_time" content="2021-12-14T06:47:24.000Z">
+<meta property="article:modified_time" content="2021-12-14T10:42:57.355Z">
 <meta property="article:author" content="Zhang Ga">
-<meta property="article:tag" content="网站">
+<meta property="article:tag" content="笔记">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://z3.ax1x.com/2021/08/25/hZViiq.md.png">
 
 
 
@@ -122,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://kwaibook.com/wordpress-build/"/>
+  <link rel="canonical" href="http://kwaibook.com/linux-note/"/>
 
 
 
 
 
-  <title>搭建WordPress个人站点 | 张嘎</title>
+  <title>Linux常用命令 | 张嘎</title>
   
 
 
@@ -289,7 +287,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/wordpress-build/">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/linux-note/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -306,7 +304,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">搭建WordPress个人站点</h1>
+          <h1 class="post-title" itemprop="name headline">Linux常用命令</h1>
         
 
         <div class="post-meta">
@@ -318,8 +316,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-10-01T04:49:39+00:00">
-                2016-10-01
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-12-14T06:47:24+00:00">
+                2021-12-14
               </time>
             
 
@@ -359,8 +357,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/wordpress-build/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count gitment-comments-count" data-xid="/wordpress-build/" itemprop="commentsCount"></span>
+                <a href="/linux-note/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count gitment-comments-count" data-xid="/linux-note/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -388,11 +386,24 @@
       
 
       
-        <p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hZViiq"><img src="https://z3.ax1x.com/2021/08/25/hZViiq.md.png" alt="hZViiq.md.png"></a></p>
-<h2 id="LAMPP-WordPress搭建"><a href="#LAMPP-WordPress搭建" class="headerlink" title="LAMPP+WordPress搭建"></a>LAMPP+WordPress搭建</h2><h3 id="官网：https-wordpress-org"><a href="#官网：https-wordpress-org" class="headerlink" title="官网：https://wordpress.org/"></a>官网：<a target="_blank" rel="noopener" href="https://wordpress.org/">https://wordpress.org/</a></h3><h3 id="中文网：https-cn-wordpress-org"><a href="#中文网：https-cn-wordpress-org" class="headerlink" title="中文网：https://cn.wordpress.org/"></a>中文网：<a target="_blank" rel="noopener" href="https://cn.wordpress.org/">https://cn.wordpress.org/</a></h3><span id="more"></span>
+        <h4 id="Linux查看物理CPU个数、核数、逻辑CPU个数"><a href="#Linux查看物理CPU个数、核数、逻辑CPU个数" class="headerlink" title="Linux查看物理CPU个数、核数、逻辑CPU个数"></a>Linux查看物理CPU个数、核数、逻辑CPU个数</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 总核数 = 物理CPU个数 X 每颗物理CPU的核数 </span><br><span class="line"># 总逻辑CPU数 = 物理CPU个数 X 每颗物理CPU的核数 X 超线程数</span><br><span class="line"></span><br><span class="line"># 查看物理CPU个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l</span><br><span class="line"></span><br><span class="line"># 查看每个物理CPU中core的个数(即核数)</span><br><span class="line">cat /proc/cpuinfo| grep &quot;cpu cores&quot;| uniq</span><br><span class="line"></span><br><span class="line"># 查看逻辑CPU的个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l</span><br></pre></td></tr></table></figure>
 
-<p>下载tar包，解压到lampp/htdocs文件夹下文件夹，修改成自己喜欢的名。<br>访问站点。如：<a target="_blank" rel="noopener" href="http://47.95.10.167/%E7%AB%99%E7%82%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%90%8D">http://47.95.10.167/站点文件夹名</a><br>设置数据库（数据库需要先建库），设置admin等信息。（配置文件存储在站点文件夹/wp-config.php文件）<br>使用域名访问指定博客<br>重定向。在xampp目录下修改文件重定向，我的机器在/opt/lampp/htdocs/目录下。修改index.php如下：  </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	if (!empty($_SERVER[&#x27;HTTPS&#x27;]) &amp;&amp; (&#x27;on&#x27; == $_SERVER[&#x27;HTTPS&#x27;])) &#123;</span><br><span class="line">		$uri = &#x27;https://&#x27;;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		$uri = &#x27;http://&#x27;;</span><br><span class="line">	&#125;</span><br><span class="line">	$uri .= $_SERVER[&#x27;HTTP_HOST&#x27;];</span><br><span class="line">	header(&#x27;Location: &#x27;.$uri.&#x27;/blog/&#x27;);</span><br><span class="line">	exit;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="查看CPU信息（型号）"><a href="#查看CPU信息（型号）" class="headerlink" title="查看CPU信息（型号）"></a>查看CPU信息（型号）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看内存信息"><a href="#查看内存信息" class="headerlink" title="查看内存信息"></a>查看内存信息</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># cat /proc/meminfo</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看Linux-内核"><a href="#如何查看Linux-内核" class="headerlink" title="如何查看Linux 内核"></a>如何查看Linux 内核</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">uname -a</span><br><span class="line">cat /proc/version</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看机器型号（机器硬件型号）"><a href="#查看机器型号（机器硬件型号）" class="headerlink" title="查看机器型号（机器硬件型号）"></a>查看机器型号（机器硬件型号）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dmidecode | grep &quot;Product Name&quot;</span><br><span class="line">dmidecode</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux-系统版本"><a href="#如何查看linux-系统版本" class="headerlink" title="如何查看linux 系统版本"></a>如何查看linux 系统版本</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/redhat-release</span><br><span class="line">lsb_release -a</span><br><span class="line">cat /etc/issue</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux系统和CPU型号，类型和大小"><a href="#如何查看linux系统和CPU型号，类型和大小" class="headerlink" title="如何查看linux系统和CPU型号，类型和大小"></a>如何查看linux系统和CPU型号，类型和大小</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo</span><br><span class="line"></span><br><span class="line">关于CPU的核心参数说明：</span><br><span class="line">· processor：指明第几个CPU处理器</span><br><span class="line">· cpu cores：指明每个处理器的核心数</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"><a href="#如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息" class="headerlink" title="如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"></a>如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/meminfo</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用taskset命令让进程运行在指定CPU上"><a href="#使用taskset命令让进程运行在指定CPU上" class="headerlink" title="使用taskset命令让进程运行在指定CPU上"></a>使用taskset命令让进程运行在指定CPU上</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">执行以下命令，指定进程运行在第一个CPU（CPU0）上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -c 0 ./test.sh&amp;</span><br><span class="line"></span><br><span class="line">执行以下命令，获取进程状态（以下操作以进程test.sh为例，对应的pid为19155）</span><br><span class="line">[root@VM_32_4_centos ~]# ps aux|grep test.sh</span><br><span class="line">root     19155  0.0  0.0 113120  1204 pts/3    S+   15:26   0:00 /bin/bash ./test.sh</span><br><span class="line"></span><br><span class="line">执行以下命令，查看进程当前运行在哪个CPU上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -p 19155</span><br><span class="line">pid 19155&#x27;s current affinity mask: 1</span><br></pre></td></tr></table></figure>
+
 
       
     </div>
@@ -410,7 +421,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/%E7%BD%91%E7%AB%99/" rel="tag"># 网站</a>
+            <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
           
         </div>
       
@@ -423,14 +434,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/roadmap/" rel="next" title="RoadMap">
+                <i class="fa fa-chevron-left"></i> RoadMap
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/design-mode/" rel="prev" title="设计模式笔记">
-                设计模式笔记 <i class="fa fa-chevron-right"></i>
+              <a href="/notice/" rel="prev" title="notice">
+                notice <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -574,7 +589,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#LAMPP-WordPress%E6%90%AD%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">LAMPP+WordPress搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%98%E7%BD%91%EF%BC%9Ahttps-wordpress-org"><span class="nav-number">1.1.</span> <span class="nav-text">官网：https:&#x2F;&#x2F;wordpress.org&#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AD%E6%96%87%E7%BD%91%EF%BC%9Ahttps-cn-wordpress-org"><span class="nav-number">1.2.</span> <span class="nav-text">中文网：https:&#x2F;&#x2F;cn.wordpress.org&#x2F;</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux%E6%9F%A5%E7%9C%8B%E7%89%A9%E7%90%86CPU%E4%B8%AA%E6%95%B0%E3%80%81%E6%A0%B8%E6%95%B0%E3%80%81%E9%80%BB%E8%BE%91CPU%E4%B8%AA%E6%95%B0"><span class="nav-number">1.</span> <span class="nav-text">Linux查看物理CPU个数、核数、逻辑CPU个数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8BCPU%E4%BF%A1%E6%81%AF%EF%BC%88%E5%9E%8B%E5%8F%B7%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">查看CPU信息（型号）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98%E4%BF%A1%E6%81%AF"><span class="nav-number">3.</span> <span class="nav-text">查看内存信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%9F%A5%E7%9C%8BLinux-%E5%86%85%E6%A0%B8"><span class="nav-number">4.</span> <span class="nav-text">如何查看Linux 内核</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%9C%BA%E5%99%A8%E5%9E%8B%E5%8F%B7%EF%BC%88%E6%9C%BA%E5%99%A8%E7%A1%AC%E4%BB%B6%E5%9E%8B%E5%8F%B7%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">查看机器型号（机器硬件型号）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%9F%A5%E7%9C%8Blinux-%E7%B3%BB%E7%BB%9F%E7%89%88%E6%9C%AC"><span class="nav-number">6.</span> <span class="nav-text">如何查看linux 系统版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%9F%A5%E7%9C%8Blinux%E7%B3%BB%E7%BB%9F%E5%92%8CCPU%E5%9E%8B%E5%8F%B7%EF%BC%8C%E7%B1%BB%E5%9E%8B%E5%92%8C%E5%A4%A7%E5%B0%8F"><span class="nav-number">7.</span> <span class="nav-text">如何查看linux系统和CPU型号，类型和大小</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%9F%A5%E7%9C%8Blinux-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E5%A4%A7%E5%B0%8F%E7%9A%84%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%8F%AF%E4%BB%A5%E6%9F%A5%E7%9C%8B%E6%80%BB%E5%86%85%E5%AD%98%EF%BC%8C%E5%89%A9%E4%BD%99%E5%86%85%E5%AD%98%EF%BC%8C%E5%8F%AF%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98%E7%AD%89%E4%BF%A1%E6%81%AF"><span class="nav-number">8.</span> <span class="nav-text">如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8taskset%E5%91%BD%E4%BB%A4%E8%AE%A9%E8%BF%9B%E7%A8%8B%E8%BF%90%E8%A1%8C%E5%9C%A8%E6%8C%87%E5%AE%9ACPU%E4%B8%8A"><span class="nav-number">9.</span> <span class="nav-text">使用taskset命令让进程运行在指定CPU上</span></a></li></ol></div>
             
 
           </div>

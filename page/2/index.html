@@ -286,6 +286,184 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/mongodb-index/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/vx.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张嘎">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/mongodb-index/" itemprop="url">MongoDB索引详解</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-09-14T00:00:00+08:00">
+                2021-09-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
+                    <span itemprop="name">笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h1 id="索引基础知识"><a href="#索引基础知识" class="headerlink" title="索引基础知识"></a>索引基础知识</h1><h2 id="什么是索引"><a href="#什么是索引" class="headerlink" title="什么是索引"></a>什么是索引</h2><p>索引最常用的比喻就是书籍的目录，查询索引就像查询一本书的目录。本质上目录是将书中一小部分内容信息（比如题目）和内容的位置信息（页码）共同构成，而由于信息量小（只有题目），所以我们可以很快找到我们想要的信息片段，再根据页码找到相应的内容。同样索引也是只保留某个域的一部分信息（建立了索引的field的信息），以及对应的文档的位置信息。 假设我们有如下文档（每行的数据在MongoDB中是存在于一个Document当中）</p>
+<table>
+<thead>
+<tr>
+<th align="left">姓名</th>
+<th align="left">id</th>
+<th align="left">部门</th>
+<th align="left">city</th>
+<th align="left">score</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">张三</td>
+<td align="left">2</td>
+<td align="left">xxx</td>
+<td align="left">Beijing</td>
+<td align="left">90</td>
+</tr>
+<tr>
+<td align="left">李四</td>
+<td align="left">1</td>
+<td align="left">xxx</td>
+<td align="left">Shanghai</td>
+<td align="left">70</td>
+</tr>
+<tr>
+<td align="left">王五</td>
+<td align="left">3</td>
+<td align="left">xxx</td>
+<td align="left">guangzhou</td>
+<td align="left">60</td>
+</tr>
+</tbody></table>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/mongodb-index/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://kwaibook.com/tcp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1646,155 +1824,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://kwaibook.com/cloud-restart/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/vx.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张嘎">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/cloud-restart/" itemprop="url">云服务器重启事项</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-03-13T19:50:13+08:00">
-                2019-03-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index">
-                    <span itemprop="name">笔记</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>今天遇到腾讯云服务器控制台连上就断开的问题。和腾讯云沟通后反馈可能是由于cpu长时间负载过高引起的。</p>
-<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/5-2.png?resize=640,111" alt="云服务器重启时需要启动的服务 - 第1张  | 张嘎"></p>
-<p>登陆服务器后查看状态，发现进程：dblaunch的cpu负载高达200%。最后定位问题发生在lampp配置和权限的问题。注释掉下面这两行重启即可。</p>
-<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/51.png?resize=640,388" alt="云服务器重启时需要启动的服务 - 第2张  | 张嘎"></p>
-<h2 id="正好记录下重启服务器时需要启动的服务，以免遗漏。"><a href="#正好记录下重启服务器时需要启动的服务，以免遗漏。" class="headerlink" title="正好记录下重启服务器时需要启动的服务，以免遗漏。"></a>正好记录下重启服务器时需要启动的服务，以免遗漏。</h2><p>1.lampp</p>
-<p>2.redis</p>
-<p>3./usr/local/server下需要启动的服务</p>
-<p>4.maven仓库</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1849,7 +1878,7 @@
               
                 <a href="/archives%7C%7Carchive">
               
-                  <span class="site-state-item-count">43</span>
+                  <span class="site-state-item-count">44</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -1871,7 +1900,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
