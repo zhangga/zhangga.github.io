@@ -13,7 +13,9 @@
 </ol>
 <span id="more"></span>
 
-<p>站点搭建完了，现在的方案是，本地编写MD文件，提交Github，Travis自动发布。<br>皮肤：<a href="http://theme-next.iissnan.com/getting-started.html">next</a><br>后续需要的插件陆续添加吧。<br>主要参考的文章：</p>
+<p>站点搭建完了，现在的方案是，本地编写MD文件，提交Github，Travis自动发布。<br>皮肤：<a href="http://theme-next.iissnan.com/getting-started.html">next</a></p>
+<p>皮肤：<a href="https://butterfly.js.org/posts/ceeb73f/">butterfly</a></p>
+<p>后续需要的插件陆续添加吧。<br>主要参考的文章：</p>
 <ul>
 <li><a href="https://segmentfault.com/a/1190000021987832">Travis CI</a></li>
 <li><a href="https://kchen.cc/2016/11/12/hexo-instructions/">Hexo部署</a></li>
@@ -3192,8 +3194,67 @@
 <li>必须收到完整的数据包才可以继续处理，不能收到一半就开始处理。</li>
 <li>水平触发、边缘触发，对编程模型的影响。</li>
 </ol>
-<h2 id="netpoll"><a href="#netpoll" class="headerlink" title="netpoll"></a>netpoll</h2><p><a href="https://github.com/cloudwego/netpoll">netpoll</a></p>
-<p><a href="https://github.com/cloudwego/netpoll-benchmark">netpoll-benchmark</a></p>
+<h2 id="网络库性能调研"><a href="#网络库性能调研" class="headerlink" title="网络库性能调研"></a>网络库性能调研</h2><h3 id="现状"><a href="#现状" class="headerlink" title="现状"></a>现状</h3><p>现在的网络库基于golang/net实现，golang/net本身已经是一个简洁高效的网络库。</p>
+<p>但在海量连接的业务场景下，特别是我们这种大网关的背景下，每个连接一组goroutine(一个接收消息的，一个发送消息的)，此时大量goroutine存在的情况下可能出现的问题：</p>
+<ol>
+<li><p>资源占有：消耗的资源就会呈线性趋势暴涨，首先给go runtime scheduler造成极大的压力和侵占系统资源，然后资源占用又反过来影响runtime的调度，导致性能下降。</p>
+</li>
+<li><p>网络抖动：在系统抖动时，大量网络请求断开并重连，伴随着的是大量协程的创建，退出的协程依旧在allg结构中，造成gc的扫描。</p>
+</li>
+<li><p>减少内存拷贝：新的网络库中解析过一次协议了，直接将buffer交给上层，减少copy。借鉴netpoll的设计，无锁且zero copy。</p>
+</li>
+<li><p>buffer扩容时copy原数组的问题，只能扩容无法缩容，占有大量内存。linkedbuffer。</p>
+</li>
+</ol>
+<h3 id="常见开源库"><a href="#常见开源库" class="headerlink" title="常见开源库"></a>常见开源库</h3><h3 id="gnet"><a href="#gnet" class="headerlink" title="gnet"></a><a href="https://github.com/panjf2000/gnet">gnet</a></h3><p><a href="https://strikefreedom.top/go-netpoll-io-multiplexing-reactor">gnet介绍</a></p>
+<h4 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h4><ul>
+<li><p>海量连接，高频创建销毁。</p>
+</li>
+<li><p>高性能，低损耗。</p>
+</li>
+<li><p>支持TCP、UDP。</p>
+</li>
+<li><p>Multi-Reactors、Multi-Reactors+Goruntine Pool两种网络模型。</p>
+</li>
+</ul>
+<h4 id="可借鉴优化"><a href="#可借鉴优化" class="headerlink" title="可借鉴优化"></a>可借鉴优化</h4><ul>
+<li><p>🔲内置 goroutine 池，由开源库 <a href="https://github.com/panjf2000/ants">ants</a> 提供支持</p>
+</li>
+<li><p>🔲内置 bytes 内存池，由开源库 <a href="https://github.com/valyala/bytebufferpool">bytebufferpool</a> 提供支持</p>
+</li>
+<li><p>🔲高效、可重用而且自动伸缩的环形内存 buffer</p>
+</li>
+<li><p>🔲支持异步写操作</p>
+</li>
+</ul>
+<h3 id="netpoll"><a href="#netpoll" class="headerlink" title="netpoll"></a><a href="https://github.com/cloudwego/netpoll">netpoll</a></h3><p><a href="https://blog.csdn.net/ByteDanceTech/article/details/106066621?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-6-106066621.pc_agg_new_rank&utm_term=netpoll%E5%92%8Cgnet&spm=1000.2123.3001.4430">netpoll介绍</a></p>
+<h4 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h4><ul>
+<li><p>适合重业务的RPC。</p>
+</li>
+<li><p>高效连接池，管理连接状态。</p>
+</li>
+<li><p>协程池，控制goroutine。</p>
+</li>
+<li><p>内存管理。</p>
+</li>
+<li><p>NoCopy Buffer。</p>
+</li>
+</ul>
+<h4 id="劣势"><a href="#劣势" class="headerlink" title="劣势"></a>劣势</h4><ul>
+<li>不支持UDP。</li>
+</ul>
+<h4 id="可借鉴优化-1"><a href="#可借鉴优化-1" class="headerlink" title="可借鉴优化"></a>可借鉴优化</h4><ul>
+<li><p>🔲丰富的测试场景</p>
+</li>
+<li><p>🔲<a href="https://github.com/cloudwego/netpoll/blob/main/nocopy_linkbuffer.go">LinkBuffer</a> 提供可以流式读写的 nocopy API</p>
+</li>
+<li><p>🔲<a href="https://github.com/bytedance/gopkg/tree/develop/util/gopool">gopool</a> 提供高性能的 goroutine 池</p>
+</li>
+<li><p>🔲<a href="https://github.com/bytedance/gopkg/tree/develop/lang/mcache">mcache</a> 提供高效的内存复用</p>
+</li>
+<li><p>🔲IsActive 支持检查连接是否存活</p>
+</li>
+</ul>
 ]]></content>
       <categories>
         <category>服务器技术</category>
