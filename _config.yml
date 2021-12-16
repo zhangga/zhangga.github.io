@@ -7,7 +7,7 @@ title: 张嘎
 subtitle: ''
 description: '游戏技术博客'
 keywords: '游戏'
-author: Zhang Ga
+author: Jossy Zhang
 language: zh-CN
 timezone: 'Asia/Shanghai'
 
@@ -97,7 +97,8 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: next
+# theme: next
+theme: butterfly
 
 search:
   path: search.xml

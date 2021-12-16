@@ -48,9 +48,69 @@ categories:
 4. 必须收到完整的数据包才可以继续处理，不能收到一半就开始处理。
 5. 水平触发、边缘触发，对编程模型的影响。
 
-## netpoll
 
-[netpoll](https://github.com/cloudwego/netpoll)
 
-[netpoll-benchmark](https://github.com/cloudwego/netpoll-benchmark)
+## 网络库性能调研
+
+### 现状
+
+现在的网络库基于golang/net实现，golang/net本身已经是一个简洁高效的网络库。
+
+但在海量连接的业务场景下，特别是我们这种大网关的背景下，每个连接一组goroutine(一个接收消息的，一个发送消息的)，此时大量goroutine存在的情况下可能出现的问题：
+
+1. 资源占有：消耗的资源就会呈线性趋势暴涨，首先给go runtime scheduler造成极大的压力和侵占系统资源，然后资源占用又反过来影响runtime的调度，导致性能下降。
+2. 网络抖动：在系统抖动时，大量网络请求断开并重连，伴随着的是大量协程的创建，退出的协程依旧在allg结构中，造成gc的扫描。
+
+1. 减少内存拷贝：新的网络库中解析过一次协议了，直接将buffer交给上层，减少copy。借鉴netpoll的设计，无锁且zero copy。
+2. buffer扩容时copy原数组的问题，只能扩容无法缩容，占有大量内存。linkedbuffer。
+
+### 常见开源库
+
+### [gnet](https://github.com/panjf2000/gnet)
+
+[gnet介绍](https://strikefreedom.top/go-netpoll-io-multiplexing-reactor)
+
+#### 优势
+
+- 海量连接，高频创建销毁。
+- 高性能，低损耗。
+
+- 支持TCP、UDP。
+- Multi-Reactors、Multi-Reactors+Goruntine Pool两种网络模型。
+
+#### 可借鉴优化
+
+- 🔲内置 goroutine 池，由开源库 [ants](https://github.com/panjf2000/ants) 提供支持
+- 🔲内置 bytes 内存池，由开源库 [bytebufferpool](https://github.com/valyala/bytebufferpool) 提供支持
+
+- 🔲高效、可重用而且自动伸缩的环形内存 buffer
+- 🔲支持异步写操作
+
+### [netpoll](https://github.com/cloudwego/netpoll)
+
+[netpoll介绍](https://blog.csdn.net/ByteDanceTech/article/details/106066621?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-6-106066621.pc_agg_new_rank&utm_term=netpoll%E5%92%8Cgnet&spm=1000.2123.3001.4430)
+
+#### 优势
+
+- 适合重业务的RPC。
+- 高效连接池，管理连接状态。
+
+- 协程池，控制goroutine。
+- 内存管理。
+
+- NoCopy Buffer。
+
+#### 劣势
+
+- 不支持UDP。
+
+#### 可借鉴优化
+
+- 🔲丰富的测试场景
+
+- 🔲[LinkBuffer](https://github.com/cloudwego/netpoll/blob/main/nocopy_linkbuffer.go) 提供可以流式读写的 nocopy API
+- 🔲[gopool](https://github.com/bytedance/gopkg/tree/develop/util/gopool) 提供高性能的 goroutine 池
+
+- 🔲[mcache](https://github.com/bytedance/gopkg/tree/develop/lang/mcache) 提供高效的内存复用
+- 🔲IsActive 支持检查连接是否存活
 

@@ -22,6 +22,9 @@ categories:
 
 站点搭建完了，现在的方案是，本地编写MD文件，提交Github，Travis自动发布。
 皮肤：[next](http://theme-next.iissnan.com/getting-started.html)
+
+皮肤：[butterfly](https://butterfly.js.org/posts/ceeb73f/)
+
 后续需要的插件陆续添加吧。
 主要参考的文章：
 
