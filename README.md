@@ -1,15 +1,14 @@
 # zhangga.github.io.source
-zhangga.github.io code source  
+source分支才是blog真正的编辑源文件。
+
+master分支是自动发布的产物。
 
 ## init
 1. clone到本地后，安装hexo：npm install hexo-cli -g
-2. 安装皮肤even
-3. npm install hexo-renderer-scss hexo-renderer-swig --save
-4. npm install hexo-generator-searchdb --save
-5. git clone https://github.com/ahonn/hexo-theme-even themes/even
-6. cp themes/even/_config.yml.example themes/even/_config.yml
-7. 初始化环境：npm install
-8. 发布：hexo g -d
+7. 初始化环境，进入zhangga.github.io目录：执行npm install
+8. 本地测试：hexo server
+4. 发布：直接提交GitHub自动发布。
+5. 安装uPic图床工具一键上传图片，直接获得Markdown语法。
 
 ## 常用命令
 1. 新建博文：hexo new post $title
