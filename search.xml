@@ -2442,7 +2442,7 @@
         <category>笔记</category>
       </categories>
       <tags>
-        <tag>MAC笔记</tag>
+        <tag>笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3295,6 +3295,29 @@
 
 <h4 id="使用taskset命令让进程运行在指定CPU上"><a href="#使用taskset命令让进程运行在指定CPU上" class="headerlink" title="使用taskset命令让进程运行在指定CPU上"></a>使用taskset命令让进程运行在指定CPU上</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">执行以下命令，指定进程运行在第一个CPU（CPU0）上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -c 0 ./test.sh&amp;</span><br><span class="line"></span><br><span class="line">执行以下命令，获取进程状态（以下操作以进程test.sh为例，对应的pid为19155）</span><br><span class="line">[root@VM_32_4_centos ~]# ps aux|grep test.sh</span><br><span class="line">root     19155  0.0  0.0 113120  1204 pts/3    S+   15:26   0:00 /bin/bash ./test.sh</span><br><span class="line"></span><br><span class="line">执行以下命令，查看进程当前运行在哪个CPU上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -p 19155</span><br><span class="line">pid 19155&#x27;s current affinity mask: 1</span><br></pre></td></tr></table></figure>
 
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>influxDB和grafana环境搭建</title>
+    <url>/influxdb-grafana/</url>
+    <content><![CDATA[<p>本篇为监控服务的环境搭建教程。</p>
+<h2 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h2><p><a href="https://cloud.tencent.com/developer/article/1701451">安装教程</a></p>
+<h4 id="问题一："><a href="#问题一：" class="headerlink" title="问题一："></a>问题一：</h4><p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" alt="WX20211217-005210@2x-AlSghZ"></p>
+<p>当前python环境为python3，修改/usr/bin/yum-config-manager使用的python版本为2即可。如下图</p>
+<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" alt="WX20211217-005513@2x-8lyFc6"></p>
+<h2 id="influxDB"><a href="#influxDB" class="headerlink" title="influxDB"></a>influxDB</h2><p><a href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker">Docker方式安装</a></p>
+<p>上面为使用Docker的方式安装，在腾讯云服务器(CentOS)上成功。文档中也有在Linux服务器上安装的方式。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-010459@2x-VqTczr.png" alt="WX20211217-010459@2x-VqTczr"></p>
+<h2 id="grafana"><a href="#grafana" class="headerlink" title="grafana"></a>grafana</h2><p><a href="https://cloud.tencent.com/developer/article/1411555">安装指南</a></p>
+<p>在腾讯云服务器(CentOS)上安装成功。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" alt="WX20211217-002036@2x-x6aO5K"></p>
+<p><a href="https://www.jianshu.com/p/21ce6ee143f3">https://www.jianshu.com/p/21ce6ee143f3</a></p>
 ]]></content>
       <categories>
         <category>笔记</category>
