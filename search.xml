@@ -3309,16 +3309,16 @@
     <content><![CDATA[<p>本篇为监控服务的环境搭建教程。</p>
 <h2 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h2><p>docker环境可选安装，方便之后可能选择使用influxDB的docker安装环境。</p>
 <p><a href="https://cloud.tencent.com/developer/article/1701451">安装教程</a></p>
-<h4 id="问题一："><a href="#问题一：" class="headerlink" title="问题一："></a>问题一：</h4><p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" alt="WX20211217-005210@2x-AlSghZ"></p>
+<h4 id="问题一："><a href="#问题一：" class="headerlink" title="问题一："></a>问题一：</h4><p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" alt="WX20211217-005210@2x-AlSghZ"></p>
 <p>当前python环境为python3，修改/usr/bin/yum-config-manager使用的python版本为2即可。如下图</p>
-<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" alt="WX20211217-005513@2x-8lyFc6"></p>
+<p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" alt="WX20211217-005513@2x-8lyFc6"></p>
 <h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><ol>
 <li><p><a href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Linux#install-influxdb-as-a-service-with-systemd">Install InfluxDB as a service with systemd</a></p>
 <p>我的是CentOS的系统，使用yum方式安装如下：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/20211220115000-i3NQOj.jpg" alt="20211220115000-i3NQOj"></p>
-<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/20211220115209-ElUVDl.jpg" alt="20211220115209-ElUVDl"></p>
+<p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115000-i3NQOj.jpg" alt="20211220115000-i3NQOj"></p>
+<p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115209-ElUVDl.jpg" alt="20211220115209-ElUVDl"></p>
 <p>启动influxd：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/20211220115329-zLOFBX.jpg" alt="20211220115329-zLOFBX"></p>
+<p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg" alt="20211220115329-zLOFBX"></p>
 </li>
 <li><p><a href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker">Docker方式安装</a></p>
 </li>
@@ -3330,7 +3330,7 @@
 
 <h2 id="grafana"><a href="#grafana" class="headerlink" title="grafana"></a>grafana</h2><p><a href="https://cloud.tencent.com/developer/article/1411555">安装指南</a></p>
 <p>在腾讯云服务器(CentOS)上安装成功。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" alt="WX20211217-002036@2x-x6aO5K"></p>
+<p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" alt="WX20211217-002036@2x-x6aO5K"></p>
 <p><a href="https://www.jianshu.com/p/21ce6ee143f3">https://www.jianshu.com/p/21ce6ee143f3</a></p>
 ]]></content>
       <categories>
