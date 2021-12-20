@@ -1,5 +1,5 @@
 ---
-title: influxDB和grafana环境搭建
+title: InfluxDB和Grafana搭建监控服务
 date: 2021-12-16 23:53:10
 tags:
 	- 笔记
@@ -11,6 +11,8 @@ categories:
 本篇为监控服务的环境搭建教程。
 
 ## Docker安装
+
+docker环境可选安装，方便之后可能选择使用influxDB的docker安装环境。
 
 [安装教程](https://cloud.tencent.com/developer/article/1701451)
 
@@ -24,13 +26,31 @@ categories:
 
 
 
-## influxDB
+## InfluxDB
 
-[Docker方式安装](https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker)
+1. [Install InfluxDB as a service with systemd](https://docs.influxdata.com/influxdb/v2.1/install/?t=Linux#install-influxdb-as-a-service-with-systemd)
 
-上面为使用Docker的方式安装，在腾讯云服务器(CentOS)上成功。文档中也有在Linux服务器上安装的方式。
+   我的是CentOS的系统，使用yum方式安装如下：
 
-![WX20211217-010459@2x-VqTczr](https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/WX20211217-010459@2x-VqTczr.png)
+   ![20211220115000-i3NQOj](https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/20211220115000-i3NQOj.jpg)
+
+   ![20211220115209-ElUVDl](https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/20211220115209-ElUVDl.jpg)
+
+   启动influxd：
+
+   ![20211220115329-zLOFBX](https://cdn.jsdelivr.net/gh/zhangga/gitment-comments@master/uPic/2021-12/20211220115329-zLOFBX.jpg)
+
+2. [Docker方式安装](https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker)
+
+#### 问题一：
+
+如果服务器上已经使用yum安装了其他版本的influxDB，可以选择将旧版本卸载。
+
+```
+rpm -q influxdb
+rpm -e influxdb
+rpm -q influxdb
+```
 
 
 
