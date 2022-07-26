@@ -12,8 +12,6 @@ categories:
 
 ## Docker安装
 
-docker环境可选安装，方便之后可能选择使用influxDB的docker安装环境。
-
 [安装教程](https://cloud.tencent.com/developer/article/1701451)
 
 #### 问题一：
@@ -28,6 +26,8 @@ docker环境可选安装，方便之后可能选择使用influxDB的docker安装
 
 ## InfluxDB
 
+下面一是service方式安装，二是docker方式安装，按需选择一种方式安装即可，**推荐方式1**。
+
 1. [Install InfluxDB as a service with systemd](https://docs.influxdata.com/influxdb/v2.1/install/?t=Linux#install-influxdb-as-a-service-with-systemd)
 
    我的是CentOS的系统，使用yum方式安装如下：
@@ -40,7 +40,7 @@ docker环境可选安装，方便之后可能选择使用influxDB的docker安装
 
    ![20211220115329-zLOFBX](https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg)
 
-2. [Docker方式安装](https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker)
+2. 也可以选择[Docker方式安装](https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker)
 
 #### 问题一：
 
@@ -54,13 +54,28 @@ rpm -q influxdb
 
 
 
-## grafana
+## Grafana
 
-[安装指南](https://cloud.tencent.com/developer/article/1411555)
+* 使用Grafana官网服务
 
-在腾讯云服务器(CentOS)上安装成功。
+  1. https://grafana.com/grafana/
+
+  2. 创建自己的grafana cloud，如：https://zhangga.grafana.net/
+
+  3. 配置数据源![ds1-qTTC9g](https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds1-qTTC9g.jpg)
+
+     ![ds2-3lfW1i](https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds2-3lfW1i.jpg)
+
+     ![ds3-Ve1we7](https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds3-Ve1we7.jpg)
+
+  4. 配置监控面板
+
+     ![ds4-LUiCLt](https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds4-LUiCLt.jpg)
+
+* 云服务器安装Grafana
+  1. [安装指南](https://cloud.tencent.com/developer/article/1411555)。
+  2. 在腾讯云服务器(CentOS)上安装成功。
+  3. 配置数据源同上。
 
 ![WX20211217-002036@2x-x6aO5K](https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png)
-
-https://www.jianshu.com/p/21ce6ee143f3
 
