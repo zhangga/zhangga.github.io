@@ -39,7 +39,7 @@ categories:
 5. https://typora.io/ markdown工具
 6. [Markdown语法](https://markdown.com.cn/basic-syntax/links.html)
 7. [参考链接](http://blog.smallerpig.com/set-hexo-show-more-button-on-indexpage.html)
-9. [参考链接](https://tohugo.com/2021/01/26/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/Hexo%E6%B7%BB%E5%8A%A0%E5%88%86%E7%B1%BB%E5%8F%8A%E6%A0%87%E7%AD%BE%EF%BC%88%E5%9C%A8Next%E4%B8%BB%E9%A2%98%E4%B8%8B%EF%BC%89/)
+8. [参考链接](https://tohugo.com/2021/01/26/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/Hexo%E6%B7%BB%E5%8A%A0%E5%88%86%E7%B1%BB%E5%8F%8A%E6%A0%87%E7%AD%BE%EF%BC%88%E5%9C%A8Next%E4%B8%BB%E9%A2%98%E4%B8%8B%EF%BC%89/)
 9. [met皮肤](https://huyongfei.com/posts/2324b80c.html)
 
 # hexo博客插入图片与视频方法
@@ -92,3 +92,23 @@ src="//player.bilibili.com/player.html?aid=39807850&cid=69927212&page=1" scrolli
 frameborder="no" framespacing="0" allowfullscreen="true" style="position: absolute; width: 100%; 
 height: 100%; left: 0; top: 0;"> </iframe></div>
 ```
+
+
+
+# 常见问题
+
+1. Travis CI发布失败
+
+   2022年07月发现github提交后，网站没有自动更新成功。登录Travis CI后发现CI失败，如下图：
+
+   ![20220727124915-rDXndx](https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2022-07/20220727124915-rDXndx.jpg)
+
+​		原因是node版本问题，修改项目根目录下的`.travis.yml`文件中的node_js版本，原来是`stable`改为`lts`
+
+```yaml
+os: linux
+language: node_js
+node_js:
+  - lts/*
+```
+
