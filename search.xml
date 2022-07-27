@@ -45,7 +45,20 @@
 <h3 id="视频插入"><a href="#视频插入" class="headerlink" title="视频插入"></a>视频插入</h3><p>插入视频与图片不同，这里以b站的视频为例</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;iframe src=&quot;（视频网址）&quot; scrolling=&quot;no&quot; border=&quot;0&quot; frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; width=&quot;100%&quot;  height=&quot;580&quot; quality=&quot;high&quot; &gt; &lt;/iframe&gt;</span><br></pre></td></tr></table></figure>
 <p>这样直接插入的代码手机端不能自适应，效果不完美。<br><strong>最好这样</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;div style=&quot;position: relative; width: 100%; height: 0; padding-bottom: 75%;&quot;&gt;&lt;iframe </span><br><span class="line">src=&quot;//player.bilibili.com/player.html?aid=39807850&amp;cid=69927212&amp;page=1&quot; scrolling=&quot;no&quot; border=&quot;0&quot; </span><br><span class="line">frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; style=&quot;position: absolute; width: 100%; </span><br><span class="line">height: 100%; left: 0; top: 0;&quot;&gt; &lt;/iframe&gt;&lt;/div&gt;</span><br></pre></td></tr></table></figure>]]></content>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;div style=&quot;position: relative; width: 100%; height: 0; padding-bottom: 75%;&quot;&gt;&lt;iframe </span><br><span class="line">src=&quot;//player.bilibili.com/player.html?aid=39807850&amp;cid=69927212&amp;page=1&quot; scrolling=&quot;no&quot; border=&quot;0&quot; </span><br><span class="line">frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; style=&quot;position: absolute; width: 100%; </span><br><span class="line">height: 100%; left: 0; top: 0;&quot;&gt; &lt;/iframe&gt;&lt;/div&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><ol>
+<li><p>Travis CI发布失败</p>
+<p>2022年07月发现github提交后，网站没有自动更新成功。登录Travis CI后发现CI失败，如下图：</p>
+<p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2022-07/20220727124915-rDXndx.jpg" alt="20220727124915-rDXndx"></p>
+</li>
+</ol>
+<p>​        原因是node版本问题，修改项目根目录下的<code>.travis.yml</code>文件中的node_js版本，原来是<code>stable</code>改为<code>lts</code></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">os:</span> <span class="string">linux</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">node_js</span></span><br><span class="line"><span class="attr">node_js:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">lts/*</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
       <categories>
         <category>笔记</category>
       </categories>
