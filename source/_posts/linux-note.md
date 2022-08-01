@@ -89,3 +89,19 @@ root     19155  0.0  0.0 113120  1204 pts/3    S+   15:26   0:00 /bin/bash ./tes
 pid 19155's current affinity mask: 1
 ```
 
+#### 防火墙
+
+```shell
+查看防火墙开放端口
+[root@VM_32_4_centos ~]# firewall-cmd --list-ports
+5000/udp 80/tcp 5044/tcp 8080/tcp 9200/tcp 5043/tcp 9100/tcp 10050/tcp 5601/tcp 5000/tcp
+
+给防火墙添加3000端口
+[root@VM_32_4_centos ~]# firewall-cmd --add-port=3000/tcp --zone=public --permanent
+success
+
+端口生效
+[root@VM_32_4_centos ~]# firewall-cmd --reload
+success
+```
+
