@@ -3514,4 +3514,42 @@
         <tag>笔记</tag>
       </tags>
   </entry>
+  <entry>
+    <title>prometheus+grafana搭建监控服务</title>
+    <url>/prometheus/</url>
+    <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>之前使用过InfluxDB+Grafana的方案，主动push监控数据，现在使用Prometheus pull数据的方案，相比前一种方案，现在这种在部署上更加方便。<strong>推荐</strong>。</p>
+<h1 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h1><h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><p>可以参考另外一篇文章: <a href="http://kwaibook.com/influxdb-grafana/">InfluxDB和Grafana搭建监控服务</a></p>
+<h4 id="Linux服务器安装"><a href="#Linux服务器安装" class="headerlink" title="Linux服务器安装"></a>Linux服务器安装</h4><ol>
+<li><p><a href="https://grafana.com/grafana/download">官网</a>选择对应的版本下载并安装。</p>
+</li>
+<li><p>启动grafana</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@cxm ~]#systemctl daemon-reload</span><br><span class="line">[root@cxm ~]#systemctl start grafana-server</span><br><span class="line">[root@cxm ~]#systemctl stop grafana-server</span><br><span class="line">[root@cxm ~]#systemctl restart grafana-server</span><br><span class="line">[root@cxm ~]#systemctl status grafana-server</span><br><span class="line">[root@cxm ~]#systemctl enable grafana-server</span><br></pre></td></tr></table></figure></li>
+<li><p>开放3000端口</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@cxm ~]#firewall-cmd --list-ports</span><br><span class="line">[root@cxm ~]#firewall-cmd --add-port=3000/tcp --zone=public --permanent</span><br><span class="line">[root@cxm ~]#firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+
+<p>或者直接关闭防火墙</p>
+</li>
+</ol>
+<h1 id="Prometheus"><a href="#Prometheus" class="headerlink" title="Prometheus"></a>Prometheus</h1><h4 id="安装Prometheus"><a href="#安装Prometheus" class="headerlink" title="安装Prometheus"></a>安装Prometheus</h4><ol>
+<li>创建prometheus用户，将相关的都放在该用户下，参考<a href="https://cloud.tencent.com/developer/article/1445255">文章</a></li>
+<li><a href="https://prometheus.io/download/">官网</a>下载</li>
+<li>按照<a href="https://cloud.tencent.com/developer/article/1445255">文章</a>中的步骤以systemctl方式启动，注意新建的data文件夹需要是prometheus用户权限的</li>
+</ol>
+<h4 id="安装node-exporter"><a href="#安装node-exporter" class="headerlink" title="安装node_exporter"></a>安装node_exporter</h4><ul>
+<li><p>用来上报机器性能数据，在prometheus的官网有。</p>
+</li>
+<li><p>按照<a href="https://cloud.tencent.com/developer/article/1445255">文章</a>中的方式以systemctl 启动。</p>
+</li>
+</ul>
+<p>详细参考文章：</p>
+<p><a href="https://mp.weixin.qq.com/s/ZXlBPHGcWeYh2hjBzacc3A">https://mp.weixin.qq.com/s/ZXlBPHGcWeYh2hjBzacc3A</a></p>
+<p><a href="https://blog.csdn.net/shenyuanhaojie/article/details/121775976">https://blog.csdn.net/shenyuanhaojie/article/details/121775976</a></p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>监控</tag>
+      </tags>
+  </entry>
 </search>
