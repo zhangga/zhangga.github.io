@@ -3552,4 +3552,40 @@
         <tag>监控</tag>
       </tags>
   </entry>
+  <entry>
+    <title>setroubleshootd引起的CPU高负载问题</title>
+    <url>/setroubleshootd/</url>
+    <content><![CDATA[<h2 id="记一次setroubleshootd进程引起的CPU高负载问题"><a href="#记一次setroubleshootd进程引起的CPU高负载问题" class="headerlink" title="记一次setroubleshootd进程引起的CPU高负载问题"></a>记一次setroubleshootd进程引起的CPU高负载问题</h2><p><img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2022-08/20220804145148-hCCDzh.jpg" alt="20220804145148-hCCDzh"></p>
+<p>上图可以看到CPU和内存在机器上都不正常</p>
+<p><code>$ top</code>查看具体进程为<code>setroubleshootd</code></p>
+<p>继续通过指令查看：<code>tail -f  /var/log/audit/audit.log</code></p>
+<p>输出如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">type=SYSCALL msg=audit(1659596208.000:3732435): arch=c000003e syscall=4 success=no exit=-13 a0=7fd01c268280 a1=7fd01c267fc0 a2=7fd01c267fc0 a3=0 items=0 ppid=1 pid=75904 auid=4294967295 uid=986 gid=980 euid=986 suid=986 fsuid=986 egid=980 sgid=980 fsgid=980 tty=(none) ses=4294967295 comm=&quot;ftdc&quot; exe=&quot;/usr/bin/mongod&quot; subj=system_u:system_r:mongod_t:s0 key=(null)</span><br><span class="line">type=PROCTITLE msg=audit(1659596208.000:3732435): proctitle=2F7573722F62696E2F6D6F6E676F64002D66002F6574632F6D6F6E676F642E636F6E66</span><br><span class="line">type=AVC msg=audit(1659596208.000:3732436): avc:  denied  &#123; getattr &#125; for  pid=75904 comm=&quot;ftdc&quot; path=&quot;/sys/fs/fuse/connections&quot; dev=&quot;fusectl&quot; ino=1 scontext=system_u:system_r:mongod_t:s0 tcontext=system_u:object_r:fusefs_t:s0 tclass=dir permissive=0</span><br></pre></td></tr></table></figure>
+
+<p>可以看到pid，并且是mongodb引起的。</p>
+<p>继续查看mongodb的日志：<code>tail -f /var/log/messages</code></p>
+<p>输出如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">**************************#012#012If you believe that mongod should be allowed getattr access on the cgroup directory by default.#012Then you should report this as a bug.#012You can generate a local policy module to allow this access.#012Do#012allow this access for now by executing:#012# ausearch -c &#x27;ftdc&#x27; --raw | audit2allow -M my-ftdc#012# semodule -i my-ftdc.pp#012</span><br><span class="line">Aug  3 23:58:48 localhost setroubleshoot: failed to retrieve rpm info for /sys/fs/cgroup</span><br><span class="line">Aug  3 23:58:48 localhost setroubleshoot: SELinux is preventing /usr/bin/mongod from search access on the directory /sys/fs/cgroup. For complete SELinux messages run: sealert -l 8df77a62-a31a-4213-8d52-f65ae3ffce6f</span><br><span class="line">Aug  3 23:58:48 localhost python: SELinux is preventing /usr/bin/mongod from search access on the directory /sys/fs/cgroup.#012#012*****  Plugin catchall (100. confidence) suggests   </span><br></pre></td></tr></table></figure>
+
+<p>上面日志中可以看到原因是：<code>/usr/bin/mongod from search access on the directory /sys/fs/cgroup</code></p>
+<p>并且提示了可以执行命令：<code>sealert -l 8df77a62-a31a-4213-8d52-f65ae3ffce6f</code> 查看完整信息。</p>
+<p>如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@vmcommon fs]# sealert -l 8df77a62-a31a-4213-8d52-f65ae3ffce6f</span><br><span class="line"></span><br><span class="line">(setroubleshoot:123729): Gtk-WARNING **: 15:02:31.126: Locale not supported by C library.</span><br><span class="line">	Using the fallback &#x27;C&#x27; locale.</span><br><span class="line">SELinux is preventing /usr/bin/mongod from search access on the directory /sys/fs/cgroup.</span><br><span class="line"></span><br><span class="line">*****  Plugin catchall (100. confidence) suggests   **************************</span><br><span class="line"></span><br><span class="line">If you believe that mongod should be allowed search access on the cgroup directory by default.</span><br><span class="line">Then you should report this as a bug.</span><br><span class="line">You can generate a local policy module to allow this access.</span><br><span class="line">Do</span><br><span class="line">allow this access for now by executing:</span><br><span class="line"># ausearch -c &#x27;mongod&#x27; --raw | audit2allow -M my-mongod</span><br><span class="line"># semodule -i my-mongod.pp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Additional Information:</span><br><span class="line">Source Context                system_u:system_r:mongod_t:s0</span><br><span class="line">Target Context                system_u:object_r:cgroup_t:s0</span><br><span class="line">Target Objects                /sys/fs/cgroup [ dir ]</span><br><span class="line">Source                        mongod</span><br><span class="line">Source Path                   /usr/bin/mongod</span><br><span class="line">Port                          &lt;Unknown&gt;</span><br><span class="line">Host                          localhost.localdomain</span><br><span class="line">Source RPM Packages           mongodb-org-server-6.0.0-1.el7.x86_64</span><br><span class="line">Target RPM Packages</span><br><span class="line">Policy RPM                    selinux-policy-3.13.1-268.el7.noarch</span><br><span class="line">Selinux Enabled               True</span><br><span class="line">Policy Type                   targeted</span><br><span class="line">Enforcing Mode                Enforcing</span><br><span class="line">Host Name                     vmcommon</span><br><span class="line">Platform                      Linux vmcommon 3.10.0-1160.el7.x86_64 #1 SMP Mon</span><br><span class="line">                              Oct 19 16:18:59 UTC 2020 x86_64 x86_64</span><br><span class="line">Alert Count                   184449</span><br><span class="line">First Seen                    2022-08-02 11:11:38 CST</span><br><span class="line">Last Seen                     2022-08-04 14:52:59 CST</span><br><span class="line">Local ID                      8df77a62-a31a-4213-8d52-f65ae3ffce6f</span><br><span class="line"></span><br><span class="line">Raw Audit Messages</span><br><span class="line">type=AVC msg=audit(1659595979.0:3727845): avc:  denied  &#123; search &#125; for  pid=75904 comm=&quot;ftdc&quot; name=&quot;/&quot; dev=&quot;tmpfs&quot; ino=1164 scontext=system_u:system_r:mongod_t:s0 tcontext=system_u:object_r:cgroup_t:s0 tclass=dir permissive=0</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">type=SYSCALL msg=audit(1659595979.0:3727845): arch=x86_64 syscall=statfs success=no exit=EACCES a0=5567cc31f9a0 a1=7fd01c267f40 a2=7fd01c2681a0 a3=0 items=0 ppid=1 pid=75904 auid=4294967295 uid=986 gid=980 euid=986 suid=986 fsuid=986 egid=980 sgid=980 fsgid=980 tty=(none) ses=4294967295 comm=ftdc exe=/usr/bin/mongod subj=system_u:system_r:mongod_t:s0 key=(null)</span><br><span class="line"></span><br><span class="line">Hash: mongod,mongod_t,cgroup_t,dir,search</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>具体原因是因为安装的MongoDB 6版本需要的SELinux的问题，具体可以查看官网文档：</li>
+</ul>
+<p><a href="https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-red-hat/#configure-selinux">configure-selinux</a></p>
+<h3 id="还有一种情况需要注意"><a href="#还有一种情况需要注意" class="headerlink" title="还有一种情况需要注意"></a>还有一种情况需要注意</h3><p>之前mongodb启动进程的文件<code>/tmp/mongodb-27017.sock</code>权限不是用户mongod的，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ ll /tmp/</span><br><span class="line">total 824</span><br><span class="line">drwxr-xr-x. 2 root  root      18 Aug  1 21:33 hsperfdata_root</span><br><span class="line">-rwx------. 1 root  root     836 Aug  1 21:36 ks-script-0MAoJL</span><br><span class="line">-rwx------. 1 root  root    1237 Aug  1 21:36 ks-script-EGB51o</span><br><span class="line">srwx------. 1 root  root       0 Aug  4 15:44 mongodb-27017.sock</span><br></pre></td></tr></table></figure>
+
+<p>需要把<code>/tmp/mongodb-27017.sock</code>这个文件删除后再尝试启动mongo</p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
 </search>
