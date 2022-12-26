@@ -3310,6 +3310,18 @@
 
 <h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">查看防火墙开放端口</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --list-ports</span><br><span class="line">5000/udp 80/tcp 5044/tcp 8080/tcp 9200/tcp 5043/tcp 9100/tcp 10050/tcp 5601/tcp 5000/tcp</span><br><span class="line"></span><br><span class="line">给防火墙添加3000端口</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --add-port=3000/tcp --zone=public --permanent</span><br><span class="line">success</span><br><span class="line"></span><br><span class="line">端口生效</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure>
 
+<h4 id="Git常用命令"><a href="#Git常用命令" class="headerlink" title="Git常用命令"></a>Git常用命令</h4><ol>
+<li><p>使用<code>git checkout</code>撤销本地修改，仅限未<code>add/commit</code>的</p>
+<p><code>git checkout .</code></p>
+<p><code>git checkout [filename]</code></p>
+<p><code>git checkout . &amp;&amp; git clean -xdf</code></p>
+</li>
+<li><p>使用<code>git reset</code>回退项目版本，可以回退掉已<code>add/commit</code>的</p>
+<p><code>git reset --hard [commit-hashcode]</code></p>
+</li>
+<li><p>使用<code>git push origin master -f</code>推送到远端</p>
+</li>
+</ol>
 ]]></content>
       <categories>
         <category>笔记</category>
