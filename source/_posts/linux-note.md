@@ -105,3 +105,18 @@ success
 success
 ```
 
+#### Git常用命令
+
+1. 使用`git checkout`撤销本地修改，仅限未`add/commit`的
+
+   `git checkout .`
+
+   `git checkout [filename]`
+
+   `git checkout . && git clean -xdf`
+
+2. 使用`git reset`回退项目版本，可以回退掉已`add/commit`的
+
+   `git reset --hard [commit-hashcode]`
+
+3. 使用`git push origin master -f`推送到远端
