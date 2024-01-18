@@ -25,6 +25,11 @@ categories:
 
 皮肤：[butterfly](https://butterfly.js.org/posts/ceeb73f/)
 
+域名：
+
+* github.io 在DNS中添加两个：A, @, 185.199.109.153   A, www, 185.199.109.153
+* Vercel 在DNS中添加一个：A, @, 76.76.21.21 
+
 后续需要的插件陆续添加吧。
 主要参考的文章：
 
