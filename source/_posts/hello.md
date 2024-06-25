@@ -27,14 +27,14 @@ categories:
 
 域名：
 
-* github.io 在DNS中添加两个：A, @, 185.199.109.153   A, www, 185.199.109.153
-* Vercel 在DNS中添加一个：A, @, 76.76.21.21 
+* github.io 在DNS中添加解析，见https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site
 
 后续需要的插件陆续添加吧。
 主要参考的文章：
 
 * [Travis CI](https://segmentfault.com/a/1190000021987832)
-* [Hexo部署](https://kchen.cc/2016/11/12/hexo-instructions/)
+* ~~[Hexo部署](https://kchen.cc/2016/11/12/hexo-instructions/)~~ (已经不免费)
+* [GithubActions CI](https://hexo.io/docs/github-pages)
 
 # 常用笔记
 1. 新建博文：hexo new post $title

@@ -1,0 +1,44 @@
+name: Hexo Build and Deploy
+
+on:
+  push:
+    branches:
+      - source  # 当 source 分支有提交时触发
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source branch
+      uses: actions/checkout@v2
+      with:
+        ref: source
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'  # 设置 Node.js 版本
+
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+    - name: Install Hexo CLI
+      run: npm install -g hexo-cli
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Generate Hexo static files
+      run: hexo generate
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./public
+        force_orphan: true
+        keep_history: true
+        fqdn: kwaibook.com
