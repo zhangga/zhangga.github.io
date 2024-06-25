@@ -1,6 +1,7 @@
 ---
 title: 容器下设置正确的GOMAXPROCS
-date: 2024-02-27 14:30:07tags:
+date: 2024-02-27 14:30:07
+tags:
 	- 笔记
 id: docker-setgomax
 categories:
