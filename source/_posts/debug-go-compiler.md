@@ -1,6 +1,6 @@
 ---
 title: Debugging Go compiler performance in a large codebase[zz]
-date: 2024-01-18 11:47:39tags:
+date: 2024-01-18 11:47:39
 tags:
   - go
 id: debug-go-compiler

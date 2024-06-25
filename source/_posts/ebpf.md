@@ -1,12 +1,16 @@
 ---
-title: [转载]ebpf的使用
-date: 2023-03-03 17:23:56
-tags:
-  - 服务器
-id: ebpf
+title: 使用Go语言开发eBPF程序
+date: 2023-02-10 23:50:05
+tags: 
+	- 服务器
+id: goebpf
 categories:
-  - 笔记
+	- 笔记
 ---
+
+
+
+
 
 原文地址：https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/
 
