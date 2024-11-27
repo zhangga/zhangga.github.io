@@ -1,0 +1,439 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>垃圾回收器G1详解 | 张嘎</title><meta name="keywords" content="面试,JAVA"><meta name="author" content="Jossy Zhang"><meta name="copyright" content="Jossy Zhang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="转载自：JVM七大垃圾回收器下篇G1(Garbage First) G1回收器:区域化分代式既然我们已经有了前面几个强大的GC，为什么还要发布Garbage First （G1）GC？  原因就在于应用程序所应对的业务越来越庞大、复杂，用户越来越多，没有GC就不能保证应用程序正常进行，而经常造成STW的GC又跟不上实际的需求，所以才会不断地尝试对GC进行优化。G1 （Garbage一First）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="垃圾回收器G1详解">
+<meta property="og:url" content="http://kwaibook.com/garbage-first/index.html">
+<meta property="og:site_name" content="张嘎">
+<meta property="og:description" content="转载自：JVM七大垃圾回收器下篇G1(Garbage First) G1回收器:区域化分代式既然我们已经有了前面几个强大的GC，为什么还要发布Garbage First （G1）GC？  原因就在于应用程序所应对的业务越来越庞大、复杂，用户越来越多，没有GC就不能保证应用程序正常进行，而经常造成STW的GC又跟不上实际的需求，所以才会不断地尝试对GC进行优化。G1 （Garbage一First）">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-09-01T05:50:42.000Z">
+<meta property="article:modified_time" content="2024-11-27T10:27:51.107Z">
+<meta property="article:author" content="Jossy Zhang">
+<meta property="article:tag" content="面试">
+<meta property="article:tag" content="JAVA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://kwaibook.com/garbage-first/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-right"},
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '垃圾回收器G1详解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-11-27 18:27:51'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 其他</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">张嘎</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 其他</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">垃圾回收器G1详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-09-01T05:50:42.000Z" title="发表于 2021-09-01 13:50:42">2021-09-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-27T10:27:51.107Z" title="更新于 2024-11-27 18:27:51">2024-11-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>18分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="垃圾回收器G1详解"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><p>转载自：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/yanl55555/p/13366387.html">JVM七大垃圾回收器下篇G1(Garbage First)</a></p>
+<h1 id="G1回收器-区域化分代式"><a href="#G1回收器-区域化分代式" class="headerlink" title="G1回收器:区域化分代式"></a>G1回收器:区域化分代式</h1><p><strong>既然我们已经有了前面几个强大的GC，为什么还要发布Garbage First （G1）GC？</strong><br>  原因就在于应用程序所应对的业务越来越庞大、复杂，用户越来越多，没有GC就不能保证应用程序正常进行，而经常造成STW的GC又跟不上实际的需求，所以才会不断地尝试对GC进行优化。G1 （Garbage一First） 垃圾回收器是在Java7 update4之后引入的一个新的垃圾回收器，是当今收集器技术发展的最前沿成果之一。<br>  与此同时，为了适应现在不断扩大的内存和不断增加的处理器数量，进一步降低暂停时间（pause time） ，同时兼顾良好的吞吐量。<br>  官方给G1设定的目标是在延迟可控（低暂停）的情况下获得尽可能高的吞吐量（高吞吐），所以才担当起“全功能收集器”的重任与期望。</p>
+<span id="more"></span>
+
+<h2 id="为什么名字叫做Garbage-First-（G1）呢？"><a href="#为什么名字叫做Garbage-First-（G1）呢？" class="headerlink" title="为什么名字叫做Garbage First （G1）呢？"></a><strong>为什么名字叫做Garbage First （G1）呢？</strong></h2><ul>
+<li>因为G1是一个并行回收器，它把堆内存分割为很多不相关的区域（Region） （物理上 不连续的）。使用不同的Region来表示Eden、幸存者0区，幸存者1区，老年代等。</li>
+<li>G1 GC有计划地避免在整个Java 堆中进行全区域的垃圾收集。G1跟踪各个Region 里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的Region。</li>
+<li>由于这种方式的侧重点在于回收垃圾最大量的区间（Region），所以我们给G1一个名字：垃圾优先（Garbage First） 。</li>
+<li>G1 （Garbage一First） 是一款面向服务端应用的垃圾收集器，主要针对配备多核CPU及大容量内存的机器，以极高概率满足GC停顿时间的同时，还兼具高吞吐量的性能特征。</li>
+<li>在JDK1. 7版本正式启用，移除了Experimental的标识，是JDK 9以后的默认垃圾回收器，取代了CMS回收器以及Parallel + Parallel 0ld组合。被Oracle官方称为“全功能的垃圾收集器” 。</li>
+<li>与此同时，CMS已经在JDK 9中被标记为废弃（deprecated） 。</li>
+<li>G1在jdk8中还不是默认的垃圾回收器，需要使用一XX： +UseG1GC来启用。</li>
+</ul>
+<h2 id="G1垃圾回收器优势"><a href="#G1垃圾回收器优势" class="headerlink" title="G1垃圾回收器优势"></a>G1垃圾回收器优势</h2><p>与其他GC收集器相比，G1使用了全新的分区算法，其特点如下所示：四个特点：</p>
+<ul>
+<li>并行与并发<ul>
+<li>➢并行性： G1在回收期间，可以有多个Gc线程同时工作，有效利用多核计算能力。此时用户线程STW</li>
+<li>➢并发性： G1拥有与应用程序交替执行的能力，部分工作可以和应用程序同时执行，因此，一般来说，不会在整个回收阶段发生完全阻塞应用程序的情况</li>
+</ul>
+</li>
+<li>分代收集<ul>
+<li>➢从分代上看，G1依然属于分代型垃圾回收器，它会区分年轻代和老年代，年轻代依然有Eden区和Survivor区。但从堆的结构上看，它不要求整个Eden区、年轻代或者老年代都是连续的，也不再坚持固定大小和固定数量。</li>
+<li>➢将堆空间分为若干个区域（Region） ，这些区域中包含了逻辑上的年轻代和老年代。</li>
+<li>➢和之前的各类回收器不同，它同时兼顾年轻代和老年代。对比其他回收器，或者工作在年轻代，或者工作在老年代；</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723144423293-687202683.png" alt="img"><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723144442615-1696089988.png" alt="img"></p>
+<ul>
+<li><p>空间整合</p>
+</li>
+<li><ul>
+<li>➢CMS： “标记一清除”算法、内存碎片、若干次Gc后进行一次碎片整理</li>
+<li>➢G1将内存划分为一个个的region。 内存的回收是以region作为基本单位的。Region之间是复制算法。</li>
+<li>但整体上实际可看作是标记一压缩（Mark一Compact）算法，两种算法都可以避免内存碎片。这种特性有利于程序长时间运行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次GC。尤其是当Java堆非常大的时候，G1的优势更加明显。</li>
+</ul>
+</li>
+<li><p>可预测的停顿时间模型（即：软实时soft real一time）</p>
+<p>： 这是G1相对于CMS的另一大优势，G1除了追求低停顿外，还能建立可预测的停顿时间模型，能让使用者明确指定在一个长度为M毫秒的时间片段内，消耗在垃圾收集上的时间不得超过N毫秒。</p>
+<ul>
+<li>➢由于分区的原因，G1可以只选取部分区域进行内存回收，这样缩小了回收的范围，因此对于全局停顿情况的发生也能得到较好的控制。</li>
+<li>➢G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以 及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的Region。保证了G1 收集器在有限的时间内可以获取尽可能高的收集效率。</li>
+<li>➢相比于CMSGC，G1未必能做到CMS在最好情况下的延时停顿，但是最差情况要.好很多。</li>
+</ul>
+</li>
+</ul>
+<h2 id="G1缺点"><a href="#G1缺点" class="headerlink" title="G1缺点"></a>G1缺点</h2><ul>
+<li>相较于CMS，G1还不具备全方位、压倒性优势。比如在用户程序运行过程中，G1无论是为了垃圾收集产生的内存占用（Footprint） 还是程序运行时的额外执行负载（overload） 都要比CMS要高。</li>
+<li>从经验上来说，在小内存应用上CMS的表现大概率会优于G1，而G1在大内存应用，上则发挥其优势。平衡点在6一8GB之间。</li>
+</ul>
+<h2 id="G1参数设置"><a href="#G1参数设置" class="headerlink" title="G1参数设置"></a>G1参数设置</h2><ul>
+<li>-XX：+UseG1GC 手动指定使用G1收集器执行内存回收任务。</li>
+<li>-XX：G1HeapRegionSize 设置每个Region的大小。值是2的幂，范围是1MB 到32MB之间，目标是根据最小的Java堆大小划分出约2048个区域。默认是堆内存的1/2000。</li>
+<li>-XX：MaxGCPauseMillis 设置期望达到的最大Gc停顿时间指标（JVM会尽力实现，但不保证达到）。默认值是200ms</li>
+<li>-xX：ParallelGCThread 设置sTw.工作线程数的值。最多设置为8</li>
+<li>-XX：ConcGCThreads 设置并发标记的线程数。将n设置为并行垃圾回收线程数（ParallelGCThreads）的1/4左右。</li>
+<li>-XX：Ini tiatingHeapOccupancyPercent 设置触发并发GC周期的Java堆占用率阈值。超过此值，就触发GC。默认值是45。</li>
+</ul>
+<h2 id="G1回收器的常见操作步骤"><a href="#G1回收器的常见操作步骤" class="headerlink" title="G1回收器的常见操作步骤"></a>G1回收器的常见操作步骤</h2><p>G1的设计原则就是简化JVM性能调优，开发人员只需要简单的三步即可完成调优：</p>
+<ul>
+<li>第一步：开启G1垃圾收集器</li>
+<li>第二步：设置堆的最大内存</li>
+<li>第三步：设置最大的停顿时间</li>
+</ul>
+<p>G1中提供了三种垃圾回收模式： YoungGC、 Mixed GC和Full GC， 在不同的条件下被触发。（后文详细讲）</p>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723143818066-1702622040.png" alt="img"></p>
+<h2 id="G1适用场景"><a href="#G1适用场景" class="headerlink" title="G1适用场景"></a>G1适用场景</h2><ul>
+<li>面向服务端应用，针对具有大内存、多处理器的机器。（在普通大小的堆里表现并不惊喜）</li>
+<li>最主要的应用是需要低GC延迟，并具有大堆的应用程序提供解决方案；</li>
+<li>如：在堆大小约6GB或更大时，可预测的暂停时间可以低于0.5秒； （ G1通过每次只清理一部分而不是全部的Region的增量式清理来保证每次GC停顿时间不会过长）。</li>
+<li>用来替换掉JDK1.5中的CMS收集器； 在下面的情况时，使用G1可能比CMS好：<br>①超过50%的Java堆被活动数据占用；<br>②对象分配频率或年代提升频率变化很大；<br>③GC停顿时间过长（长于0. 5至1秒）。</li>
+<li>HotSpot垃圾收集器里，除了G1以外，其他的垃圾收集器使用内置的JVM线程执行GC（线程优先级低）的多线程操作</li>
+<li>而G1 GC可以采用应用线程承担后台运行的GC工作，即当JVM的GC线程处理速度慢时，系统会调用应用程序线程帮助加速垃圾回收过程。</li>
+</ul>
+<h2 id="分区region-化整为零"><a href="#分区region-化整为零" class="headerlink" title="分区region,化整为零"></a>分区region,化整为零</h2><p>使用G1收集器时，它将整个Java堆划分成约2048个大小相同的独立Region块，每个Region块大小根据堆空间的实际大小而定，整体被控制在1MB到32MB之间，且为2的N次幂，即1MB， 2MB， 4MB， 8MB， 1 6MB， 32MB。</p>
+<p>可以通过一 XX：G1HeapRegionSize设定。所有的Region大小相同，且在JVM生命周期内不会被改变。</p>
+<p>虽然还保留有新生代和老年代的概念，但新生代和老年代不再是物理隔离的了，它们都是一部分Region （不需要连续）的集合。通过Region的动态分配方式实现逻辑_上的连续。</p>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723150834993-49164173.png" alt="img"></p>
+<ul>
+<li>一个region 有可能属于Eden， Survivor 或者Old/Tenured 内存区域。但是一个region只可能属于一个角色。图中的E表示该region属于Eden内存区域，s表示属于Survivor内存区域，O表示属于Old内存区域。图中空白的表示未使用的内存空间。</li>
+<li>G1垃圾收集器还增加了一种新的内存区域，叫做Humongous内存区域，如图中的H块。主要用于存储大对象，如果超过1. 5个region，就放到H。</li>
+<li>设置H的原因：对于堆中的大对象，默认直接会被分配到老年代，但是如果它是一个短期存在的大对象，就会对垃圾收集器造成负面影响。为了解决这个问题，G1划分了一个Humongous区，它用来专门存放大对象。如果一个H区装不下一个大对象，那么G1会寻找连续的H区来存储。为了能找到连续的H区，有时候不得不启动Full GC。G1的大多数行为都把H区作为老年代的一部分来看待。</li>
+</ul>
+<h1 id="G1回收器垃圾回收过程"><a href="#G1回收器垃圾回收过程" class="headerlink" title="G1回收器垃圾回收过程"></a>G1回收器垃圾回收过程</h1><p>G1 GC的垃圾回收过程主要包括如下三个环节：</p>
+<ul>
+<li>年轻代GC （Young GC ）</li>
+<li>老年代并发标记过程（ Concurrent Marking）</li>
+<li>混合回收（Mixed GC ）</li>
+<li>（如果需要，单线程、独占式、高强度的Full GC还是继续存在的。它针对GC的评估失败提供了一种失败保护机制，即强力回收。）</li>
+</ul>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723151103477-1084742760.png" alt="img"></p>
+<p> 顺时针， young gc 一&gt; young gc + concurrent mark 一&gt; Mixed GC顺序，进行垃圾回收。</p>
+<p>1.应用程序分配内存，当年轻代的Eden区用尽时开始年轻代回收过程； G1的年轻代收集阶段是一个并行的（多个回收线程）独占式(STW)收集器。在年轻代回收期，G1 GC暂停所有应用程序线程，启动多线程执行年轻代回收。然后从年轻代区间移动存活对象到Survivor区间或者老年区间，也有可能是两个区间都会涉及。</p>
+<p>2.当堆内存使用达到一定值（默认45%）时，开始老年代并发标记过程。</p>
+<p>3.标记完成马.上开始混合回收过程。对于一个混合回收期，G1 GC从老年区间移动存活对象到空闲区间，这些空闲区间也就成为了老年代的一部分。和年轻代不同，老年代的G1回收器和其他GC不同，G1的老年代回收器不需要整个老年代被回收，一次只需要扫描/回收一小部分老年代的Region就可以了。同时，这个老年代Region是和年轻代一起 被回收的。</p>
+<p>举个例子：一个web服务器，Java进程最大堆内存为4G，每分钟响应1500个请求，每45秒钟会新分配大约2G的内存。G1会每45秒钟进行一次年轻代回收，每31 个小时整个堆的使用率会达到45%，会开始老年代并发标记过程，标记完成后开始四到五次的混合回收。</p>
+<h2 id="记忆集与写屏障"><a href="#记忆集与写屏障" class="headerlink" title="记忆集与写屏障"></a>记忆集与写屏障</h2><ul>
+<li>一个对象被不同区域引用的问题(分代引用问题)</li>
+<li>一个Region不可能是孤立的，一个Region中的对象可能被其他任意Region中对象引用，判断对象存活时，是否需要扫描整个Java堆才能保证准确？</li>
+<li>在其他的分代收集器，也存在这样的问题（ 而G1更突出）</li>
+<li>回收新生代也不得不同时扫描老年代？</li>
+<li>这样的话会降低MinorGC的效率；</li>
+</ul>
+<p><strong>·解决方法：</strong></p>
+<ul>
+<li>➢无论G1还是其他分代收集器，JVM都是使用RememberedSet来避免全局扫描：</li>
+<li>➢每个Region都有 一个对应的Remembered Set；</li>
+<li>➢每次Reference类型数据写操作时，都会产生一个Write Barrier暂时中断操作； .</li>
+<li>➢然后检查将要写入的引用指向的对象是否和该Reference类型数据在不同的Region （其他收集器：检查老年代对象是否引用了新生代对象） ；</li>
+<li>➢如果不同，通过CardTable把相关引用信息记录到引用指向对象的所在Region对应的Remembered Set中；</li>
+<li>➢当进行垃圾收集时，在GC根节点的枚举范围加入Remembered Set；就可以保证不进行全局扫描，也不会有遗漏。</li>
+</ul>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723152028598-2055678824.png" alt="img"></p>
+<h1 id="G1回收过程详解"><a href="#G1回收过程详解" class="headerlink" title="G1回收过程详解"></a>G1回收过程详解</h1><h2 id="过程1年轻代GC"><a href="#过程1年轻代GC" class="headerlink" title="过程1年轻代GC"></a>过程1年轻代GC</h2><ul>
+<li>JVM启动时，G1 先准备好Eden区，程序在运行过程中不断创建对象到Eden区，当Eden空间耗尽时，G1会启动一次年轻代垃圾回收过程。</li>
+<li>年轻代垃圾回收只会回收Eden区（主动）和Survivor区（被动）。</li>
+<li>YGC时，首先G1停止应用程序的执行（Stop一The一World），G1创建回收集（Collection Set），回收集是指需要被回收的内存分段的集合，年轻代回收过程的回收集包含年轻代Eden区和Survivor区所有的内存分段。</li>
+<li>复制算法（S、E–&gt;空闲区相当于To区）（S–&gt;寻找新的空闲区作为老年代）</li>
+</ul>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723153515525-318612700.png" alt="img"></p>
+<p>然后开始如下回收过程：</p>
+<ul>
+<li>第一阶段，扫描根<ul>
+<li>根是：指static变量指向的对象（类生命周期，方法区引用的对象），正在执行的方法调用链条上的局部变量等（方法生命周期，虚拟机栈引用的对象）。根引用连同RSet记录的外部引用作为扫描存活对象的入口。</li>
+</ul>
+</li>
+<li><strong>第二阶段，更新RSet</strong></li>
+</ul>
+<p>​     处理dirty card queue（ 见备注）中的card，更新RSet。 此阶段完成后，RSet可 以准确的反映老年代对所在的内存分段中对象的引用（指的新生代）。</p>
+<ul>
+<li><ul>
+<li>dirty card queue: 对于应用程序的引用赋值语句object.field=object，JVM会在之前和之后执行特殊的操作以在dirty card queue中入队一个保存了对象引用信息的card。</li>
+<li>在年轻代回收的时候， G1会对Dirty Card Queue中所有的card进行处理，以更新RSet，保证RSet实时准确的反映引用关系。</li>
+<li>那为什么不在引用赋值语句处直接更新RSet呢？这是为了性能的需要，RSet的处理需要线程同步，开销会很大，使用队列性能会好很多。</li>
+</ul>
+</li>
+<li><p><strong>第三阶段，处理RSet</strong>。<br>识别被老年代对象指向的Eden中的对象，这些被指向的Eden中的对象被认为是存活的对象。</p>
+</li>
+<li><p><strong>第四阶段，复制对象</strong>。<br>此阶段，对象树被遍历，Eden区 内存段中存活的对象会被复制到Survivor区中空的内存分段，Survivor区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到01d区中空的内存分段。如果Survivor空间不够，Eden空间的 部分数据会直接晋升到老年代空间。</p>
+</li>
+<li><p><strong>第五阶段，处理引用</strong>。<br>处理Soft，Weak， Phantom， Final， JNI Weak等引用。最终Eden空间的数据为空，GC停止工作，而目标内存中的对象都是连续存储的，没有碎片，所以复制过程可以达到内存整理的效果，减少碎片。</p>
+</li>
+</ul>
+<h2 id="过程2年轻代GC-并发标记过程"><a href="#过程2年轻代GC-并发标记过程" class="headerlink" title="过程2年轻代GC+并发标记过程"></a>过程2年轻代GC+并发标记过程</h2><ul>
+<li>初始标记阶段：标记从根节点直接可达的对象。这个阶段是STW的，并且会触发一.次年轻代GC。</li>
+<li>根区域扫描（Root Region Scanning） ： G1 GC扫描Survivor区直接可达的老年代区域对象，并标记被引用的对象。这一过程必须在young GC之前完成。</li>
+<li>并发标记（Concurrent Marking）： 在整个堆中进行并发标记（和应用程序并发执行），此过程可能被young GC中断。在并发标记阶段，若发现区域对象中的所有对象都是垃圾，那这个区域会被立即回收。同时，并发标记过程中，会计算每个区域的对象活性（区域中存活对象的比例）。</li>
+<li>再次标记（Remark）： 由于应用程序持续进行，需要修正上一次的标记结果。是STW的。G1中采用了比CMS更快的初始快照算法：snapshot一at一the一beginning （SATB）。</li>
+<li>独占清理（cleanup，STW）：计算各个区域的存活对象和GC回收比例，并进行排序，识别可以混合回收的区域。为下阶段做铺垫。是STW的。<ul>
+<li>➢这个阶段并不会实际上去做垃圾的收集</li>
+</ul>
+</li>
+<li>并发清理阶段：识别并清理完全空闲的区域。</li>
+</ul>
+<h2 id="过程3混合回收"><a href="#过程3混合回收" class="headerlink" title="过程3混合回收"></a>过程3混合回收</h2><p>当越来越多的对象晋升到老年代Oldregion时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即Mixed GC， 该算法并不是一个OldGC，除了回收整个Young Region，还会回收一部分的0ldRegion。这里需要注意：是一部分老年代， 而不是全部老年代。可以选择哪些OldRegion进行收集，从而可以对垃圾回收的耗时时间进行控制。也要注意的是Mixed GC并不是Full GC。</p>
+<ul>
+<li>并发标记结束以后，老年代中百分百为垃圾的内存分段被回收了，部分为垃圾的内存分段被计算了出来。默认情况下，这些老年代的内存分段会分8次（可以通过一XX： G1MixedGCCountTarget设置）被回收。</li>
+<li>混合回收的回收集（Collection Set） 包括八分之一的老年代内存分段，Eden区内存分段，Survivor区内存分段。混合回收的算法和年轻代回收的算法完全一样，只是回收集多了老年代的内存分段。具体过程请参考上面的年轻代回收过程。</li>
+<li>由于老年代中的内存分段默认分8次回收，G1会优先回收垃圾多的内存分段。垃圾占内存分段比例越高的，越会被先回收。并且有一个阈值会决定内存分段是否被回收，一xX： G1MixedGCLiveThresholdPercent，默认为65%，意思是垃圾占内存分段比例要达到65%才会被回收。如果垃圾占比太低，意味着存活的对象占比高，在复制的时候会花费更多的时间。</li>
+<li>混合回收并不一定要进行8次。有一个阈值一Xx： G1HeapWastePercent，默认值为10%，意思是允许整个堆内存中有10%的空间被浪费，意味着如果发现可以回收的垃圾占堆内存的比例低于10%，则不再进行混合回收。因为GC会花费很多的时间但是回收到的内存却很少。</li>
+</ul>
+<h2 id="过程4Full-GC"><a href="#过程4Full-GC" class="headerlink" title="过程4Full GC"></a>过程4Full GC</h2><p>G1的初衷就是要避免Full GC的出现。但是如果上述方式不能正常工作，G1会停止应用程序的执行（Stop一 The一World），使用单线程的内存回收算法进行垃圾回收，性能会非常差，应用程序停顿时间会很长。<br>要避免Full GC的发生，一旦发生需要进行调整。什么时候会发生Full GC呢？比如堆内存太小，当G1在复制存活对象的时候没有空的内存分段可用，则会回退到full gc， 这种情况可以通过增大内存解决。<br>导致G1Full GC的原因可能有两个：</p>
+<ul>
+<li>1.Evacuation的时候没有足够的to一 space来存放晋升的对象；</li>
+<li>2.并发处理过程完成之前空间耗尽。</li>
+</ul>
+<p><strong>补充：</strong></p>
+<p>从Oracle官方透露出来的信息可获知，回收阶段（Evacuation）其实.本也有想过设计成与用户程序一起并发执行，但这件事情做起来比较复杂，考虑到G1只是回收一部分Region， 停顿时间是用户可控制的，所以并不迫切去实现，而选择把这个特性放到了G1之后出现的低延迟垃圾收集器（即ZGC）中。另外，还考虑到G1不是仅仅面向低延迟，停顿用户线程能够最大幅度提高垃圾收集效率，为了保证吞吐量所以才选择了完全暂停用户线程的实现方案。</p>
+<h1 id="G1回收器优化建议"><a href="#G1回收器优化建议" class="headerlink" title="G1回收器优化建议"></a>G1回收器优化建议</h1><ul>
+<li>年轻代大小<ul>
+<li>➢避免使用一Xmn或一XX：NewRatio等相关选项显式设置年轻代大小➢固定年轻代的大小会覆盖暂停时间目标</li>
+</ul>
+</li>
+<li>暂停时间目标不要太过严苛<ul>
+<li>G1 GC的吞吐量目标是90%的应用程序时间和10%的垃圾回收时间</li>
+<li>评估G1 GC的吞吐量时，暂停时间目标不要太严苛。目标太过严苛表 示你愿意承受更多的垃圾回收开销，而这些会直接影响到吞吐量。</li>
+</ul>
+</li>
+</ul>
+<h1 id="7种经典的垃圾回收器总结"><a href="#7种经典的垃圾回收器总结" class="headerlink" title="7种经典的垃圾回收器总结"></a>7种经典的垃圾回收器总结</h1><p>截止JDK 1.8，一共有7款不同的垃圾收集器。每一款不同的垃圾收集器都有不同的特点，在具体使用的时候，需要根据具体的情况选用不同的垃圾收集器。</p>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723155737552-624347732.png" alt="img"></p>
+<p> 不同厂商、不同版本的虚拟机实现差别很大。HotSpot 虚拟机在JDK7/8后所有收集器及组合（连线），如下图：</p>
+<p><img src="https://img2020.cnblogs.com/blog/1846149/202007/1846149-20200723160245863-1482952705.png" alt="img"></p>
+<ul>
+<li>1.两个收集器间有连线，表明它们可以搭配使用： Serial/Serial 0ld、Serial /CMS、ParNew/Serial 0ld、ParNew/CMS、 Parallel Scavenge/Serial 01d、Parallel Scavenge/Parallel 0ld、G1；</li>
+<li>2.其中Serial 0ld作 为CMS出现”Concurrent Mode Failure”失败 的后备预案。</li>
+<li>3.（红色虚线）由于维护和兼容性测试的成本，在JDK 8时将Serial+CMS、 ParNew+Serial 0ld这两个组合声明为Deprecated （JEP 173），并在JDK 9中完全取消了这些组合的支持（JEP214），即：移除。</li>
+<li>4.（绿色虚线）JDK 14中：弃用ParallelScavenge 和Serial0ld GC组合 （JEP 366）</li>
+<li>5.（青色虚线）JDK 14中：删除CMS垃圾回收器 （JEP 363 ） GC发展阶段： Serial =&gt; Parallel （并行） =&gt; CMS （并发） =&gt; G1 =&gt; ZGC</li>
+</ul>
+<h2 id="怎么选择垃圾回收器"><a href="#怎么选择垃圾回收器" class="headerlink" title="怎么选择垃圾回收器"></a><strong>怎么选择垃圾回收器</strong></h2><ul>
+<li>Java垃圾收集器的配置对于JVM优化来说是一个很重要的选择，选择合适的垃圾收集器可以让JVM的性能有一个很大的提升。</li>
+<li>怎么选择垃圾收集器？<ul>
+<li>1.优先调整堆的大小让JVM自适应完成。</li>
+<li>2.如果内存小于100M，使用串行收集器</li>
+<li>3.如果是单核、单机程序，并且没有停顿时间的要求，串行收集器</li>
+<li>4.如果是多CPU、需要高吞吐量、允许停顿时间超过1秒，选择并行或者JVM自己选择</li>
+<li>5.如果是多CPU、追求低停顿时间，需快速响应（比如延迟不能超过1秒，如互联网应用），使用并发收集器</li>
+<li>官方推荐G1，性能高。现在互联网的项目，基本都是使用G1。</li>
+</ul>
+</li>
+<li>最后需要明确一一个观点：<ul>
+<li>1.没有最好的收集器，更没有万能的收集；</li>
+<li>2.调优永远是针对特定场景、特定需求，不存在一劳永逸的收集器</li>
+</ul>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Jossy Zhang</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://kwaibook.com/garbage-first/">http://kwaibook.com/garbage-first/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://kwaibook.com" target="_blank">张嘎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a><a class="post-meta__tags" href="/tags/JAVA/">JAVA</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/golang-summary/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">golang笔记</div></div></a></div><div class="next-post pull-right"><a href="/srv-optimize/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">服务器性能优化</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/gc-charator/" title="常见垃圾收集器的特点"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-31</div><div class="title">常见垃圾收集器的特点</div></div></a></div><div><a href="/docker-net/" title="容器的网络模式"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-10-17</div><div class="title">容器的网络模式</div></div></a></div><div><a href="/golang-summary/" title="golang笔记"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-01</div><div class="title">golang笔记</div></div></a></div><div><a href="/interview/" title="面试笔记"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-12-06</div><div class="title">面试笔记</div></div></a></div><div><a href="/kcp/" title="TCP/KCP详解，及源码注解"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2018-12-08</div><div class="title">TCP/KCP详解，及源码注解</div></div></a></div><div><a href="/limiter/" title="服务流控方案总结"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-26</div><div class="title">服务流控方案总结</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div id="comment-switch"><span class="first-comment">Gitalk</span><span class="switch-btn"></span><span class="second-comment">Valine</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Jossy Zhang</div><div class="author-info__description">游戏技术博客</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhangga" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:383523842@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#G1%E5%9B%9E%E6%94%B6%E5%99%A8-%E5%8C%BA%E5%9F%9F%E5%8C%96%E5%88%86%E4%BB%A3%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">G1回收器:区域化分代式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%90%8D%E5%AD%97%E5%8F%AB%E5%81%9AGarbage-First-%EF%BC%88G1%EF%BC%89%E5%91%A2%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">为什么名字叫做Garbage First （G1）呢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E4%BC%98%E5%8A%BF"><span class="toc-number">1.2.</span> <span class="toc-text">G1垃圾回收器优势</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#G1%E7%BC%BA%E7%82%B9"><span class="toc-number">1.3.</span> <span class="toc-text">G1缺点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#G1%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.4.</span> <span class="toc-text">G1参数设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#G1%E5%9B%9E%E6%94%B6%E5%99%A8%E7%9A%84%E5%B8%B8%E8%A7%81%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.5.</span> <span class="toc-text">G1回收器的常见操作步骤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#G1%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.6.</span> <span class="toc-text">G1适用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BAregion-%E5%8C%96%E6%95%B4%E4%B8%BA%E9%9B%B6"><span class="toc-number">1.7.</span> <span class="toc-text">分区region,化整为零</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#G1%E5%9B%9E%E6%94%B6%E5%99%A8%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E8%BF%87%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">G1回收器垃圾回收过程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%B0%E5%BF%86%E9%9B%86%E4%B8%8E%E5%86%99%E5%B1%8F%E9%9A%9C"><span class="toc-number">2.1.</span> <span class="toc-text">记忆集与写屏障</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#G1%E5%9B%9E%E6%94%B6%E8%BF%87%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">G1回收过程详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%87%E7%A8%8B1%E5%B9%B4%E8%BD%BB%E4%BB%A3GC"><span class="toc-number">3.1.</span> <span class="toc-text">过程1年轻代GC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%87%E7%A8%8B2%E5%B9%B4%E8%BD%BB%E4%BB%A3GC-%E5%B9%B6%E5%8F%91%E6%A0%87%E8%AE%B0%E8%BF%87%E7%A8%8B"><span class="toc-number">3.2.</span> <span class="toc-text">过程2年轻代GC+并发标记过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%87%E7%A8%8B3%E6%B7%B7%E5%90%88%E5%9B%9E%E6%94%B6"><span class="toc-number">3.3.</span> <span class="toc-text">过程3混合回收</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%87%E7%A8%8B4Full-GC"><span class="toc-number">3.4.</span> <span class="toc-text">过程4Full GC</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#G1%E5%9B%9E%E6%94%B6%E5%99%A8%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE"><span class="toc-number">4.</span> <span class="toc-text">G1回收器优化建议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7%E7%A7%8D%E7%BB%8F%E5%85%B8%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">7种经典的垃圾回收器总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%80%89%E6%8B%A9%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8"><span class="toc-number">5.1.</span> <span class="toc-text">怎么选择垃圾回收器</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/llm-lora/" title="模型微调"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="模型微调"/></a><div class="content"><a class="title" href="/llm-lora/" title="模型微调">模型微调</a><time datetime="2024-08-27T10:15:22.000Z" title="发表于 2024-08-27 18:15:22">2024-08-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/dotnet-env/" title="mac下.net环境问题"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="mac下.net环境问题"/></a><div class="content"><a class="title" href="/dotnet-env/" title="mac下.net环境问题">mac下.net环境问题</a><time datetime="2024-06-13T13:02:24.000Z" title="发表于 2024-06-13 21:02:24">2024-06-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/docker-setgomax/" title="容器下设置正确的GOMAXPROCS"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="容器下设置正确的GOMAXPROCS"/></a><div class="content"><a class="title" href="/docker-setgomax/" title="容器下设置正确的GOMAXPROCS">容器下设置正确的GOMAXPROCS</a><time datetime="2024-02-27T06:30:07.000Z" title="发表于 2024-02-27 14:30:07">2024-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/lua-settime/" title="给lua函数添加调用时长限制"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="给lua函数添加调用时长限制"/></a><div class="content"><a class="title" href="/lua-settime/" title="给lua函数添加调用时长限制">给lua函数添加调用时长限制</a><time datetime="2024-02-27T06:27:24.000Z" title="发表于 2024-02-27 14:27:24">2024-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/debug-go-compiler/" title="Debugging Go compiler performance in a large codebase[zz]"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Debugging Go compiler performance in a large codebase[zz]"/></a><div class="content"><a class="title" href="/debug-go-compiler/" title="Debugging Go compiler performance in a large codebase[zz]">Debugging Go compiler performance in a large codebase[zz]</a><time datetime="2024-01-18T03:47:39.000Z" title="发表于 2024-01-18 11:47:39">2024-01-18</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Jossy Zhang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '077b4248c3ff962452cc',
+      clientSecret: 'ade393165d5ec085af450800ccd547408097d356',
+      repo: 'gitment-comments',
+      owner: 'zhangga',
+      admin: ['zhangga'],
+      id: '99f00ecae1ad6100f71836fa26f241b6',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: false,
+      updateCountCallback: commentCount
+    },null))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'Agt1jxQ0cvJ0gC2GaEczsjlk-gzGzoHsz',
+      appKey: '0uCDNXsvh9fFP5gvz6lwuGAf',
+      placeholder: '记得留下你的昵称和邮箱....可以快速收到回复',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'zh-CN',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+      requiredFields: ["nick,mail"],
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Gitalk' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

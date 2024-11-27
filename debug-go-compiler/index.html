@@ -1,0 +1,278 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Debugging Go compiler performance in a large codebase[zz] | 张嘎</title><meta name="keywords" content="go"><meta name="author" content="Jossy Zhang"><meta name="copyright" content="Jossy Zhang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="zz: https:&#x2F;&#x2F;incident.io&#x2F;blog&#x2F;go-build-faster As we’ve talked about before, our app is a monolith: all our backend code lives together and gets compiled into a single binary. One of the reasons I prefe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Debugging Go compiler performance in a large codebase[zz]">
+<meta property="og:url" content="http://kwaibook.com/debug-go-compiler/index.html">
+<meta property="og:site_name" content="张嘎">
+<meta property="og:description" content="zz: https:&#x2F;&#x2F;incident.io&#x2F;blog&#x2F;go-build-faster As we’ve talked about before, our app is a monolith: all our backend code lives together and gets compiled into a single binary. One of the reasons I prefe">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2024-01-18T03:47:39.000Z">
+<meta property="article:modified_time" content="2024-11-27T10:27:51.107Z">
+<meta property="article:author" content="Jossy Zhang">
+<meta property="article:tag" content="go">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://kwaibook.com/debug-go-compiler/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-right"},
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Debugging Go compiler performance in a large codebase[zz]',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-11-27 18:27:51'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 其他</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">张嘎</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 其他</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Debugging Go compiler performance in a large codebase[zz]</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-01-18T03:47:39.000Z" title="发表于 2024-01-18 11:47:39">2024-01-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-27T10:27:51.107Z" title="更新于 2024-11-27 18:27:51">2024-11-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Debugging Go compiler performance in a large codebase[zz]"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><p>zz: <a target="_blank" rel="noopener" href="https://incident.io/blog/go-build-faster">https://incident.io/blog/go-build-faster</a></p>
+<p>As <a target="_blank" rel="noopener" href="https://incident.io/blog/monolith">we’ve talked about before</a>, our app is a monolith: all our backend code lives together and gets compiled into a single binary. One of the reasons I prefer monolithic architectures is that they make it much easier to focus on shipping features without having to spend much time thinking about where code should live and how to get all the data you need together quickly.</p>
+<p>However, I’m not going to claim there aren’t disadvantages too. One of those is compile times. Because all the backend code needs to be built into a single artefact, the time it takes to do that inevitably increases as the amount of code to compile grows.</p>
+<p>That’s bad for shipping quickly: a slower build means it takes longer to get code from “pull request merged” to “running for customers”. It’s also bad for developer experience: time spent waiting for the compiler isn’t productive time, and it can really break your flow.</p>
+<p>While <a target="_blank" rel="noopener" href="https://incident.io/blog/festive-macbooks">faster MacBooks can make a big difference</a>, we can also apply some performance-optimising tools that come with Golang to figure out where the bottlenecks are and remove them!</p>
+<h2 id="Visualising-the-build-process"><a href="#Visualising-the-build-process" class="headerlink" title="Visualising the build process"></a>Visualising the build process</h2><p>The first thing to note is that the Go compiler caches previously-compiled code, so to get a clearer picture of the <em>worst case</em> scenario, I cleared that cache before each run, using <code>go cache -clean</code>.</p>
+<p>Looking at the docs, there are a few interesting-looking flags you can pass to <code>go build</code>:</p>
+<ul>
+<li><code>-debug-actiongraph</code> - this tells you what the compiler is doing at different points, and can be inspected with <a target="_blank" rel="noopener" href="https://github.com/icio/actiongraph">https://github.com/icio/actiongraph</a>.</li>
+<li><code>-debug-trace</code> - this produces a trace, which can be visualised in a tool like <a target="_blank" rel="noopener" href="https://ui.perfetto.dev/#!/viewer">Perfetto</a></li>
+</ul>
+<p>I found the trace view felt more familiar: at <a target="_blank" rel="noopener" href="http://incident.io/">incident.io</a> we debug things by reading traces <em>all the time</em>, and the Perfetto UI is really familiar if you’ve had to optimise JavaScript performance with the Chrome DevTools before.</p>
+<p>So, with a clean cache, I ran <code>go build ./cmd/app/ -debug-trace=tmp/trace.json</code>, and dropped that into Perfetto:</p>
+<p><img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/b145104608fe8490391ffc0a4047167e34a12e45-2648x1516.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></p>
+<p>Well, that is pretty, but what does it tell us? Broadly there’s three phases:</p>
+<ol>
+<li>Planning: up at the top-left, there’s a bunch of short spans which are the compiler figuring out which packages import which other packages, and planning out the build. This is pretty quick!</li>
+<li>Next there’s a <em>really dense</em> set of spans: this is almost entirely compiling external dependencies. This uses all 8 cores and isn’t all that interesting to us: these packages don’t change much and therefore the build cache should be very effective at avoiding recompiling them.</li>
+<li>At about 25s in, we finally start compiling our own code. This code has a lot more dependencies between packages, which creates those gaps where every package waiting to be compiled imports something that is currently being compiled, and so has to wait.</li>
+</ol>
+<p>At this point, there’s only really one path to making this faster: eliminating as much of the empty space in the trace where there’s only one or two cores doing any work.</p>
+<p>The first thing to tackle is the turquoise span I’ve circled. That’s a package called <code>./pkg/domain</code>, which defines a struct for each table in our database. Things like:</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> <span class="title class_">Incident</span> struct &#123;</span><br><span class="line">  <span class="variable constant_">ID</span> <span class="built_in">string</span></span><br><span class="line">  <span class="title class_">Name</span> <span class="built_in">string</span></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>It makes sense that a <em>lot</em> of our code will import that package: if you’re using the database, you need to! It also makes sense that it’s a relatively big package, since we have around 250 tables. Once you add in the <a target="_blank" rel="noopener" href="https://incident.io/blog/code-generation#builders">builders we generate</a>, that gets up to around 800 files, containing almost 100k lines of code.</p>
+<p>To speed things up there were two strategies I tried:</p>
+<h2 id="Start-sooner-finish-sooner"><a href="#Start-sooner-finish-sooner" class="headerlink" title="Start sooner, finish sooner"></a>Start sooner, finish sooner</h2><p>The first option I tried at this point was removing dependencies from <code>pkg/domain</code>, so the compiler could get started on building it sooner.</p>
+<p>We were already using a great little linter called <code>depguard</code> to set rules that help us avoid import cycles. I started off setting an ultra-strict rule, saying <code>pkg/domain</code> cannot import anything except the standard library:</p>
+<p><img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/58a6bc56a12beb19c09887c55f07455e3fe744df-1594x1074.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></p>
+<p>This produced a <em>long</em> list of violations! Working through those one-by-one let me check each of the packages we were importing and either add them to the <code>allow</code> list, or figure out how to break that dependency.</p>
+<p>After breaking each dependency I cleared the cache and did a fresh build to see if the trace had really changed much. The biggest improvement was removing the dependency on <a target="_blank" rel="noopener" href="https://github.com/yuin/goldmark">yuin/goldmark</a>, a markdown parsing library, which allowed these two large packages to be compiled in parallel, and got <code>pkg/domain</code> started at around 15s in, rather than 25s!</p>
+<p><img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/4063c53eff31d8458b730265277e711dada2d686-2656x1462.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></p>
+<h2 id="Break-it-up"><a href="#Break-it-up" class="headerlink" title="Break it up"></a>Break it up</h2><p>That helped a lot with the worst case compile without anything cached. Luckily, that’s not all that common: a more frequent situation is that someone has changed a file inside <code>pkg/domain</code>. In that case, the compiler will recompile that package <em>plus anything that imports it</em>, which here means pretty much the whole app! A trace of that looks something like this:</p>
+<p><img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/978bb9ee4a6228f6329ea7fe5b1bd27bf61970c8-3600x542.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></p>
+<p>Look at all those sad, bored CPUs not doing anything while we’re building <code>pkg/domain</code>!</p>
+<p>The only solution here is to make this package smaller. At first that seemed like a pretty complex task: there are lots of bidirectional relationships between different structs in this code for good reason! For example, we have code like this:</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// in incident.go</span></span><br><span class="line"><span class="keyword">type</span> <span class="title class_">Incident</span> struct &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="title class_">IncidentUpdates</span> []*<span class="title class_">IncidentUpdate</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// in incident_update.go</span></span><br><span class="line"><span class="keyword">type</span> <span class="title class_">IncidentUpdate</span> struct &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="title class_">Incident</span> *<span class="title class_">Incident</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>This lets us write code that loads both an incident with all its updates, or an update with the incident it belongs to. Splitting these across two packages creates an import cycle.</p>
+<p>That’s just one example - splitting this package up seemed like a recipe for nasty import cycles and unhappy engineers.</p>
+<p>Luckily, there was another axis to split this code along: app code vs test code. We <a target="_blank" rel="noopener" href="https://incident.io/blog/code-generation#matchers">generate type-safe <code>gomega</code> matchers</a> for each of these domain types, to make writing tests like this really simple:</p>
+<p><img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/ae6d4d76526bacf5a0f1b698937d547b279c42a4-1102x578.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></p>
+<p>That’s a big chunk of code that could live in a separate package, that will only be imported by tests. Moving those out into <code>pkg/domain/matchers</code> reduced the time to compile <code>pkg/domain</code> by about 30%, which adds up pretty quickly when that package get rebuilt 10-20 times a day across the team.</p>
+<p>That same example now looks like this:</p>
+<p><img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/be4a5b2c81b238dda65376921db0ef02b58e8257-1120x578.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></p>
+<h2 id="What-did-I-learn"><a href="#What-did-I-learn" class="headerlink" title="What did I learn?"></a>What did I learn?</h2><p>Developer tools like compilers can feel strange and scary if (like me) you’ve never really taken a look at what they’re doing. When you find something annoying about them, like a slow build or a dodgy error message it’s all <em>just more code</em> that you can use your normal skills and tools to work on.</p>
+<p>Your teammates will appreciate it 🫶</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Jossy Zhang</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://kwaibook.com/debug-go-compiler/">http://kwaibook.com/debug-go-compiler/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://kwaibook.com" target="_blank">张嘎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/go/">go</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/lua-settime/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">给lua函数添加调用时长限制</div></div></a></div><div class="next-post pull-right"><a href="/debug-remote-go-k8s/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Debugging Remotely with Go in Kubernetes[zz]</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/debug-remote-go-k8s/" title="Debugging Remotely with Go in Kubernetes[zz]"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-18</div><div class="title">Debugging Remotely with Go in Kubernetes[zz]</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div id="comment-switch"><span class="first-comment">Gitalk</span><span class="switch-btn"></span><span class="second-comment">Valine</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Jossy Zhang</div><div class="author-info__description">游戏技术博客</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhangga" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:383523842@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Visualising-the-build-process"><span class="toc-number">1.</span> <span class="toc-text">Visualising the build process</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Start-sooner-finish-sooner"><span class="toc-number">2.</span> <span class="toc-text">Start sooner, finish sooner</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Break-it-up"><span class="toc-number">3.</span> <span class="toc-text">Break it up</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#What-did-I-learn"><span class="toc-number">4.</span> <span class="toc-text">What did I learn?</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/llm-lora/" title="模型微调"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="模型微调"/></a><div class="content"><a class="title" href="/llm-lora/" title="模型微调">模型微调</a><time datetime="2024-08-27T10:15:22.000Z" title="发表于 2024-08-27 18:15:22">2024-08-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/dotnet-env/" title="mac下.net环境问题"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="mac下.net环境问题"/></a><div class="content"><a class="title" href="/dotnet-env/" title="mac下.net环境问题">mac下.net环境问题</a><time datetime="2024-06-13T13:02:24.000Z" title="发表于 2024-06-13 21:02:24">2024-06-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/docker-setgomax/" title="容器下设置正确的GOMAXPROCS"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="容器下设置正确的GOMAXPROCS"/></a><div class="content"><a class="title" href="/docker-setgomax/" title="容器下设置正确的GOMAXPROCS">容器下设置正确的GOMAXPROCS</a><time datetime="2024-02-27T06:30:07.000Z" title="发表于 2024-02-27 14:30:07">2024-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/lua-settime/" title="给lua函数添加调用时长限制"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="给lua函数添加调用时长限制"/></a><div class="content"><a class="title" href="/lua-settime/" title="给lua函数添加调用时长限制">给lua函数添加调用时长限制</a><time datetime="2024-02-27T06:27:24.000Z" title="发表于 2024-02-27 14:27:24">2024-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/debug-go-compiler/" title="Debugging Go compiler performance in a large codebase[zz]"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Debugging Go compiler performance in a large codebase[zz]"/></a><div class="content"><a class="title" href="/debug-go-compiler/" title="Debugging Go compiler performance in a large codebase[zz]">Debugging Go compiler performance in a large codebase[zz]</a><time datetime="2024-01-18T03:47:39.000Z" title="发表于 2024-01-18 11:47:39">2024-01-18</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Jossy Zhang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '077b4248c3ff962452cc',
+      clientSecret: 'ade393165d5ec085af450800ccd547408097d356',
+      repo: 'gitment-comments',
+      owner: 'zhangga',
+      admin: ['zhangga'],
+      id: '8cc0db9f1fe2ce37c5b0d163da68085f',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: false,
+      updateCountCallback: commentCount
+    },null))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'Agt1jxQ0cvJ0gC2GaEczsjlk-gzGzoHsz',
+      appKey: '0uCDNXsvh9fFP5gvz6lwuGAf',
+      placeholder: '记得留下你的昵称和邮箱....可以快速收到回复',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'zh-CN',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+      requiredFields: ["nick,mail"],
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Gitalk' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

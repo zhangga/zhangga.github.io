@@ -1,0 +1,331 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TCP/KCP详解，及源码注解 | 张嘎</title><meta name="keywords" content="网络,面试"><meta name="author" content="Jossy Zhang"><meta name="copyright" content="Jossy Zhang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="KCP-Netty的中文注解版：kcp-netty中文注释 KCP&#x2F;UDT比较：kcp&#x2F;udt KCP传输层，可靠性，ARQ协议。 目的：解决在网络拥堵情况下tcp协议的网络速度慢的问题。可靠性，传输速度。 一般用udp作为下层传输协议，udp报文+控制头。 传输数据大于mss(最大报文段)时，kcp将数据分片存储在多个kcp包(Segment)中。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP&#x2F;KCP详解，及源码注解">
+<meta property="og:url" content="http://kwaibook.com/kcp/index.html">
+<meta property="og:site_name" content="张嘎">
+<meta property="og:description" content="KCP-Netty的中文注解版：kcp-netty中文注释 KCP&#x2F;UDT比较：kcp&#x2F;udt KCP传输层，可靠性，ARQ协议。 目的：解决在网络拥堵情况下tcp协议的网络速度慢的问题。可靠性，传输速度。 一般用udp作为下层传输协议，udp报文+控制头。 传输数据大于mss(最大报文段)时，kcp将数据分片存储在多个kcp包(Segment)中。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2018-12-08T11:36:07.000Z">
+<meta property="article:modified_time" content="2024-11-27T10:27:51.107Z">
+<meta property="article:author" content="Jossy Zhang">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="面试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://kwaibook.com/kcp/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-right"},
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'TCP/KCP详解，及源码注解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-11-27 18:27:51'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 其他</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">张嘎</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 其他</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">TCP/KCP详解，及源码注解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2018-12-08T11:36:07.000Z" title="发表于 2018-12-08 19:36:07">2018-12-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-27T10:27:51.107Z" title="更新于 2024-11-27 18:27:51">2024-11-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%AC%94%E8%AE%B0/">笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">4.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>13分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="TCP/KCP详解，及源码注解"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="KCP-Netty的中文注解版："><a href="#KCP-Netty的中文注解版：" class="headerlink" title="KCP-Netty的中文注解版："></a>KCP-Netty的中文注解版：</h1><p><a target="_blank" rel="noopener" href="https://github.com/zhangga/kcp-netty">kcp-netty中文注释</a></p>
+<h1 id="KCP-UDT比较："><a href="#KCP-UDT比较：" class="headerlink" title="KCP/UDT比较："></a>KCP/UDT比较：</h1><p><a target="_blank" rel="noopener" href="https://github.com/libinzhangyuan/asio_kcp">kcp/udt</a></p>
+<h1 id="KCP"><a href="#KCP" class="headerlink" title="KCP"></a>KCP</h1><p>传输层，可靠性，ARQ协议。</p>
+<p>目的：解决在网络拥堵情况下tcp协议的网络速度慢的问题。可靠性，传输速度。</p>
+<p>一般用udp作为下层传输协议，udp报文+控制头。</p>
+<p>传输数据大于mss(最大报文段)时，kcp将数据分片存储在多个kcp包(Segment)中。</p>
+<span id="more"></span>
+
+<ol>
+<li><ol>
+<li><strong>滑动窗口机制：</strong>kcp采用滑动窗口机制来提高发送速度。由于UDP在网络中的传输是不可靠的，因此会出现丢包和包的乱序。kcp是可靠的保证数据有序的协议，所以为了纠正包的乱序。接收方维护一个接收窗口。接收窗口有一个起始序号rcv_nxt以及尾序号rcv_nxt+rcv_wnd。如果接收窗口收到序号为rcv_nxt的分片那么rcv_nxt就加一，形象一点的说法是滑动窗口右移,并把该数据放入接收队列供应用层取用。如果收到的数据在窗口范围内但不是rcv_nxt那么就把数据保存起来,等收到rcv_nxt序号的分片时再一并放入接收队列供应用层取用。</li>
+</ol>
+</li>
+<li><p><strong>快速重传机制：</strong>数据在网络中的传输时间是不固定的，因此超时重传时间比较长。而为了尽早地判断出数据包的丢失，kcp引入了快速重传机制。快速重传机制工作原理是，当发送方发送了n,n+1,n+2…等等包出去后，接收方没有接收到n,而接收到n+1,n+2..等等n号包之后的包，这时因为n号包之后的包都已经接收到了，而n号包还没有接收到，所以可以认为n号包已经丢失了，告知发送方可以进行快速重传。kcp为了支持快速重传，接收方需要告诉发送方，哪些包已经成功收到了，哪些包没有收到。因此接收方返回发送方的确认数据（ack）中包含以下信息：接收窗口左端的序号rcv_nxt,接收到的大于rcv_nxt的包序号sn。rcv_nxt的含义是接收方已经成功按顺序接收了rcv_nxt序号之前的所有包,大于rcv_nxt的序号sn表示的是在接收窗口内的不连续的包。发送方接收到接收方发过来的数据时，首先解析rcv_nxt，把发送缓存中所有小于rcv_nxt序号的包全部移除掉（因为这些包全都都已经正确接收了）。然后再解析sn,遍历发送缓存，找到所有序号小于sn的包，这些包就是可能在网络中已经丢掉了的包,只是可能，因为有可能这些包只是拥堵在了网络中，需要更长的时间到达，所以这里我们设置一个快速重传的门限，对每个分片维护一个快速重传的计数，每收到一个ack解析sn后找到了一个分片，就把该分片的快速重传的计数加一，如果该计数达到了快速重传门限，那么就认为该分片已经丢失，可以触发快速重传，该门限值在kcp中可以设置，tcp中是3。</p>
+</li>
+<li><p><strong>选择重传机制：</strong>选择重传的关键在于接收方要告知发送方哪些包已经收到了，哪些包没有收到，为了最小化数据量，接收方可以告诉发送方哪些包已经按序收到了，哪些包是收到的但是不连续。所以返回的ack中包含rcv_nxt和sn。rcv_nxt代表收到的所有连续的包，sn代表哪些不连续的包收到了，那么根据这两个参数可以计算出来没有收到的包的序号。</p>
+</li>
+<li><p><strong>拥塞控制：</strong>拥塞控制就是告诉发送方，网络太堵了，应该少发一些数据，因此在滑动窗口的机制上引入了拥塞窗口，也就是说发送发发送的数据不得超过拥塞窗口，拥塞窗口的大小会随网络情况而变快，网络快拥塞窗口就大，反之同理。拥塞窗口的大小控制使用慢启动机制，具体参考TCP。</p>
+</li>
+</ol>
+<p>应用：kcp采取一系列措施尽量提高网络传输速率，在网络实时性和可靠性要求比较高的场景下可以考虑kcp协议代替tcp协议。</p>
+<p>名词说明（源码字段）：<br>用户数据：应用层发送的数据，如一张图片2Kb的数据<br>MTU：最大传输单元。即每次发送的最大数据<br>RTO：Retransmission TimeOut，重传超时时间。<br>cwnd:congestion window，拥塞窗口，表示发送方可发送多少个KCP数据包。与接收方窗口有关，与网络状况（拥塞控制）有关，与发送窗口大小有关。<br>rwnd:receiver window,接收方窗口大小，表示接收方还可接收多少个KCP数据包<br>snd_queue:待发送KCP数据包队列<br>snd_nxt:下一个即将发送的kcp数据包序列号<br>snd_una:下一个待确认的序列号</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1.png?resize=640,467" alt="TCP/KCP详解，及源码注解 - 第1张  | 张嘎"></p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2.png?resize=640,351" alt="TCP/KCP详解，及源码注解 - 第2张  | 张嘎"></p>
+<p>[ KCP 发送过程 ]</p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3.jpg?resize=485,296" alt="TCP/KCP详解，及源码注解 - 第3张  | 张嘎"></p>
+<p>[ RTO算法对比图 ]</p>
+<p>KCP的接收过程是将UDP收到的数据进行解包，重新组装顺序的、可靠的数据后交付给用户。</p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4.png?resize=365,353" alt="TCP/KCP详解，及源码注解 - 第4张  | 张嘎"></p>
+<p><strong>rcv_queue的数据是连续的，rcv_buf可能是间隔的</strong></p>
+<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/5.png?resize=355,448" alt="TCP/KCP详解，及源码注解 - 第5张  | 张嘎"></p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/6.png?resize=466,424" alt="TCP/KCP详解，及源码注解 - 第6张  | 张嘎"></p>
+<p>[ 数据确认包处理流程 ]</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/7.png?resize=574,403" alt="TCP/KCP详解，及源码注解 - 第7张  | 张嘎"></p>
+<p>[ KCP快速确认 ]</p>
+<p><strong>总结：TCP可靠简单，但是复杂无私，所以速度慢。KCP尽可能保留UDP快的特点下，保证可靠。</strong></p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/992994-20180616162318524-660296383.jpg?resize=640,323" alt="TCP/KCP详解，及源码注解 - 第8张  | 张嘎"></p>
+<p>总结：UDP收到的包，不断通过kcp_input喂给KCP，KCP会对这部分数据（KCP协议数据）进行解包，重新封装成应用层用户数据，应用层通过kcp_recv获取。应用层通过kcp_send发送数据，KCP会把用户数据拆分kcp数据包，通过kcp_output，以UDP（send）的方式发送。</p>
+<p><strong>KCP的配置模式</strong></p>
+<p>\1. 工作模式：</p>
+<blockquote>
+<p>int ikcp_nodelay(ikcpcb *kcp, int nodelay, int interval, int resend, int nc)</p>
+</blockquote>
+<ul>
+<li>nodelay ：是否启用 nodelay模式，0不启用；1启用。</li>
+<li>interval ：协议内部工作的 interval，单位毫秒，比如 10ms或者 20ms</li>
+<li>resend ：快速重传模式，默认0关闭，可以设置2（2次ACK跨越将会直接重传）</li>
+<li>nc ：是否关闭流控，默认是0代表不关闭，1代表关闭。</li>
+</ul>
+<p><strong>普通模式：</strong> ikcp_nodelay(kcp, 0, 40, 0, 0);</p>
+<p><strong>极速模式：</strong> ikcp_nodelay(kcp, 1, 10, 2, 1)</p>
+<p>\1. 最大窗口</p>
+<blockquote>
+<p>int ikcp_wndsize(ikcpcb *kcp, int sndwnd, int rcvwnd);</p>
+</blockquote>
+<p>该调用将会设置协议的最大发送窗口和最大接收窗口大小，默认为32. 这个可以理解为 TCP的 SND_BUF 和 RCV_BUF，只不过单位不一样 SND/RCV_BUF 单位是字节，这个单位是包。</p>
+<p>\2. 最大传输单元：</p>
+<p>纯算法协议并不负责探测 MTU，默认 mtu是1400字节，可以使用ikcp_setmtu来设置该值。该值将会影响数据包归并及分片时候的最大传输单元。</p>
+<p>\3. 最小RTO：</p>
+<p>不管是 TCP还是 KCP计算 RTO时都有最小 RTO的限制，即便计算出来RTO为40ms，由于默认的 RTO是100ms，协议只有在100ms后才能检测到丢包，快速模式下为30ms，可以手动更改该值：<br>kcp-&gt;rx_minrto = 10;</p>
+<p>KCP原理见：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wetest/p/9190786.html">KCP原理</a></p>
+<h1 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h1><h3 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h3><p>1.为流量设计（KB数据/秒），充分利用宽带。</p>
+<p>2.安全可靠，丢包全部重传。</p>
+<p>3.超时 = RTO * 2。</p>
+<p>4.延迟ACK，充分利用宽带。</p>
+<h4 id="UNA-vs-ACK-UNA："><a href="#UNA-vs-ACK-UNA：" class="headerlink" title="UNA vs ACK+UNA："></a>UNA vs ACK+UNA：</h4><p>ARQ模型响应有两种，UNA（此编号前所有包已收到，如TCP）和ACK（该编号包已收到  ），光用UNA将导致全部重传，光用ACK则丢失成本太高，以往协议都是二选其一，而  KCP协议中，除去单独的 ACK包外，所有包都有UNA信息。</p>
+<h3 id="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"><a href="#拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。" class="headerlink" title="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"></a>拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。</h3><p><strong>慢开始算法</strong>：当主机开始发送数据时，如果立即所大量数据字节注入到网络，那么就有可能引起网络拥塞，因为现在并不清楚网络的负荷情况。因此，较好的方法是 先探测一下，即由小到大逐渐增大发送窗口，也就是说，由小到大逐渐增大拥塞窗口数值。通常在刚刚开始发送报文段时，先把拥塞窗口 cwnd 设置为一个最大报文段MSS的数值。而在每收到一个对新的报文段的确认后，把拥塞窗口增加至多一个MSS的数值。用这样的方法逐步增大发送方的拥塞窗口 cwnd ，可以使分组注入到网络的速率更加合理。</p>
+<p><img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120451114.jpg?resize=499,305" alt="TCP/KCP详解，及源码注解 - 第9张  | 张嘎"></p>
+<p>每经过一个传输轮次，拥塞窗口 cwnd 就加倍。一个传输轮次所经历的时间其实就是往返时间RTT。不过“传输轮次”更加强调：把拥塞窗口cwnd所允许发送的报文段都连续发送出去，并收到了对已发送的最后一个字节的确认。</p>
+<p>另，慢开始的“慢”并不是指cwnd的增长速率慢，而是指在TCP开始发送报文段时先设置cwnd=1，使得发送方在开始时只发送一个报文段（目的是试探一下网络的拥塞情况），然后再逐渐增大cwnd。</p>
+<p>为了防止拥塞窗口cwnd增长过大引起网络拥塞，还需要设置一个慢开始门限ssthresh状态变量（如何设置ssthresh）。慢开始门限ssthresh的用法如下：</p>
+<p>当 cwnd &lt; ssthresh 时，使用上述的慢开始算法。</p>
+<p>当 cwnd &gt; ssthresh 时，停止使用慢开始算法而改用拥塞避免算法。</p>
+<p>当 cwnd = ssthresh 时，既可使用慢开始算法，也可使用拥塞控制避免算法。</p>
+<p>拥塞避免算法：让拥塞窗口cwnd缓慢地增大，即每经过一个往返时间RTT就把发送方的拥塞窗口cwnd加1，而不是加倍。这样拥塞窗口cwnd按线性规律缓慢增长，比慢开始算法的拥塞窗口增长速率缓慢得多。</p>
+<p>无论在慢开始阶段还是在拥塞避免阶段，只要发送方判断网络出现拥塞（其根据就是没有收到确认），就要把慢开始门限ssthresh设置为出现拥塞时的发送 方窗口值的一半（但不能小于2）。然后把拥塞窗口cwnd重新设置为1，执行慢开始算法。这样做的目的就是要迅速减少主机发送到网络中的分组数，使得发生 拥塞的路由器有足够时间把队列中积压的分组处理完毕。</p>
+<p>如下图，用具体数值说明了上述拥塞控制的过程。现在发送窗口的大小和拥塞窗口一样大。</p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120591634.jpg?resize=570,306" alt="TCP/KCP详解，及源码注解 - 第10张  | 张嘎"></p>
+<p>&lt;1&gt;. 当TCP连接进行初始化时，把拥塞窗口cwnd置为1。前面已说过，为了便于理解，图中的窗口单位不使用字节而使用报文段的个数。慢开始门限的初始值设置为16个报文段，即 cwnd = 16 。</p>
+<p>&lt;2&gt;. 在执行慢开始算法时，拥塞窗口 cwnd 的初始值为1。以后发送方每收到一个对新报文段的确认ACK，就把拥塞窗口值另1，然后开始下一轮的传输（图中横坐标为传输轮次）。因此拥塞窗口cwnd 随着传输轮次按指数规律增长。当拥塞窗口cwnd增长到慢开始门限值ssthresh时（即当cwnd=16时），就改为执行拥塞控制算法，拥塞窗口按线 性规律增长。</p>
+<p>&lt;3&gt;. 假定拥塞窗口的数值增长到24时，网络出现超时（这很可能就是网络发生拥塞了）。更新后的ssthresh值变为12（即变为出现超时时的拥塞窗口数值 24的一半），拥塞窗口再重新设置为1，并执行慢开始算法。当cwnd=ssthresh=12时改为执行拥塞避免算法，拥塞窗口按线性规律增长，每经过 一个往返时间增加一个MSS的大小。</p>
+<p>强调：“拥塞避免”并非指完全能够避免了拥塞。利用以上的措施要完全避免网络拥塞还是不可能的。“拥塞避免”是说在拥塞避免阶段将拥塞窗口控制为按线性规律增长，<strong>使网络比较不容易出现拥塞。</strong></p>
+<h3 id="快重传和快恢复算法："><a href="#快重传和快恢复算法：" class="headerlink" title="快重传和快恢复算法："></a>快重传和快恢复算法：</h3><p>如果发送方设置的超时计时器时限已到但还没有收到确认，那么很可能是网络出现了拥塞，致使报文段在网络中的某处被丢弃。这时，TCP马上把拥塞窗口 cwnd 减小到1，并执行慢开始算法，同时把慢开始门限值ssthresh减半。这是不使用快重传的情况。</p>
+<p>快重传算法首先要求接收方每收到一个失序的报文段后就立即发出重复确认（为的是使发送方及早知道有报文段没有到达对方）而不要等到自己发送数据时才进行捎带确认。</p>
+<p><img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2010101122524670.jpg?resize=492,276" alt="TCP/KCP详解，及源码注解 - 第11张  | 张嘎"></p>
+<p>接收方收到了M1和M2后都分别发出了确认。现在假定接收方没有收到M3但接着收到了M4。显然，接收方不能确认M4，因为M4是收到的失序报文段。根据 可靠传输原理，接收方可以什么都不做，也可以在适当时机发送一次对M2的确认。但按照快重传算法的规定，接收方应及时发送对M2的重复确认，这样做可以让 发送方及早知道报文段M3没有到达接收方。发送方接着发送了M5和M6。接收方收到这两个报文后，也还要再次发出对M2的重复确认。这样，发送方共收到了 接收方的四个对M2的确认，其中后三个都是重复确认。快重传算法还规定，发送方只要一连收到三个重复确认就应当立即重传对方尚未收到的报文段M3，而不必 继续等待M3设置的重传计时器到期。由于发送方尽早重传未被确认的报文段，因此采用快重传后可以使整个网络吞吐量提高约20%。</p>
+<p>与快重传配合使用的还有快恢复算法，其过程有以下两个要点：</p>
+<p>&lt;1&gt;. 当发送方连续收到三个重复确认，就执行“乘法减小”算法，把慢开始门限ssthresh减半。这是为了预防网络发生拥塞。请注意：接下去不执行慢开始算法。</p>
+<p>&lt;2&gt;. 由于发送方现在认为网络很可能没有发生拥塞，因此与慢开始不同之处是现在不执行慢开始算法（即拥塞窗口cwnd现在不设置为1），而是把cwnd值设置为 慢开始门限ssthresh减半后的数值，然后开始执行拥塞避免算法（“加法增大”），使拥塞窗口缓慢地线性增大。</p>
+<p>下图给出了快重传和快恢复的示意图，并标明了“TCP Reno版本”。</p>
+<p>区别：新的 TCP Reno 版本在快重传之后采用快恢复算法而不是采用慢开始算法。</p>
+<p><img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101123101842.jpg?resize=621,313" alt="TCP/KCP详解，及源码注解 - 第12张  | 张嘎"></p>
+<p>也有的快重传实现是把开始时的拥塞窗口cwnd值再增大一点，即等于 ssthresh + 3 X MSS 。这样做的理由是：既然发送方收到三个重复的确认，就表明有三个分组已经离开了网络。这三个分组不再消耗网络 的资源而是停留在接收方的缓存中。可见现在网络中并不是堆积了分组而是减少了三个分组。因此可以适当把拥塞窗口扩大了些。</p>
+<p>在采用快恢复算法时，慢开始算法只是在TCP连接建立时和网络出现超时时才使用。</p>
+<p>采用这样的拥塞控制方法使得TCP的性能有明显的改进。</p>
+<p>接收方根据自己的接收能力设定了接收窗口rwnd，并把这个窗口值写入TCP首部中的窗口字段，传送给发送方。因此，接收窗口又称为通知窗口。因此，从接收方对发送方的流量控制的角度考虑，发送方的发送窗口一定不能超过对方给出的接收窗口rwnd 。</p>
+<p>发送方窗口的上限值 = Min [ rwnd, cwnd ]</p>
+<p>当rwnd &lt; cwnd 时，是接收方的接收能力限制发送方窗口的最大值。</p>
+<p>当cwnd &lt; rwnd 时，则是网络的拥塞限制发送方窗口的最大值。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Jossy Zhang</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://kwaibook.com/kcp/">http://kwaibook.com/kcp/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://kwaibook.com" target="_blank">张嘎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C/">网络</a><a class="post-meta__tags" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/zset/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">JAVA版ZSet性能测试</div></div></a></div><div class="next-post pull-right"><a href="/flutter-dev/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">使用Flutter进行APP开发流程</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/docker-net/" title="容器的网络模式"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-10-17</div><div class="title">容器的网络模式</div></div></a></div><div><a href="/tcp/" title="TCP/UDP"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-08</div><div class="title">TCP/UDP</div></div></a></div><div><a href="/servernet/" title="游戏服务器网络库"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-12-06</div><div class="title">游戏服务器网络库</div></div></a></div><div><a href="/garbage-first/" title="垃圾回收器G1详解"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-01</div><div class="title">垃圾回收器G1详解</div></div></a></div><div><a href="/gc-charator/" title="常见垃圾收集器的特点"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-31</div><div class="title">常见垃圾收集器的特点</div></div></a></div><div><a href="/golang-summary/" title="golang笔记"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-01</div><div class="title">golang笔记</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div id="comment-switch"><span class="first-comment">Gitalk</span><span class="switch-btn"></span><span class="second-comment">Valine</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Jossy Zhang</div><div class="author-info__description">游戏技术博客</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhangga" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:383523842@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#KCP-Netty%E7%9A%84%E4%B8%AD%E6%96%87%E6%B3%A8%E8%A7%A3%E7%89%88%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">KCP-Netty的中文注解版：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#KCP-UDT%E6%AF%94%E8%BE%83%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">KCP&#x2F;UDT比较：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#KCP"><span class="toc-number">3.</span> <span class="toc-text">KCP</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TCP"><span class="toc-number">4.</span> <span class="toc-text">TCP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%80%A7%EF%BC%9A"><span class="toc-number">4.0.1.</span> <span class="toc-text">特性：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#UNA-vs-ACK-UNA%EF%BC%9A"><span class="toc-number">4.0.1.1.</span> <span class="toc-text">UNA vs ACK+UNA：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%EF%BC%9A%E7%9B%AE%E6%A0%87%EF%BC%9A%E5%85%AC%E5%B9%B3%E5%8D%A0%E6%9C%89%E5%AE%BD%E5%B8%A6%E7%9A%84%E5%89%8D%E6%8F%90%E4%B8%8B%EF%BC%8C%E6%97%A0%E9%99%90%E5%BA%A6%E6%8F%90%E9%AB%98%E5%AE%BD%E5%B8%A6%E7%9A%84%E5%88%A9%E7%94%A8%E7%8E%87%E3%80%82"><span class="toc-number">4.0.2.</span> <span class="toc-text">拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%AB%E9%87%8D%E4%BC%A0%E5%92%8C%E5%BF%AB%E6%81%A2%E5%A4%8D%E7%AE%97%E6%B3%95%EF%BC%9A"><span class="toc-number">4.0.3.</span> <span class="toc-text">快重传和快恢复算法：</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/llm-lora/" title="模型微调"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="模型微调"/></a><div class="content"><a class="title" href="/llm-lora/" title="模型微调">模型微调</a><time datetime="2024-08-27T10:15:22.000Z" title="发表于 2024-08-27 18:15:22">2024-08-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/dotnet-env/" title="mac下.net环境问题"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="mac下.net环境问题"/></a><div class="content"><a class="title" href="/dotnet-env/" title="mac下.net环境问题">mac下.net环境问题</a><time datetime="2024-06-13T13:02:24.000Z" title="发表于 2024-06-13 21:02:24">2024-06-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/docker-setgomax/" title="容器下设置正确的GOMAXPROCS"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="容器下设置正确的GOMAXPROCS"/></a><div class="content"><a class="title" href="/docker-setgomax/" title="容器下设置正确的GOMAXPROCS">容器下设置正确的GOMAXPROCS</a><time datetime="2024-02-27T06:30:07.000Z" title="发表于 2024-02-27 14:30:07">2024-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/lua-settime/" title="给lua函数添加调用时长限制"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="给lua函数添加调用时长限制"/></a><div class="content"><a class="title" href="/lua-settime/" title="给lua函数添加调用时长限制">给lua函数添加调用时长限制</a><time datetime="2024-02-27T06:27:24.000Z" title="发表于 2024-02-27 14:27:24">2024-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/debug-go-compiler/" title="Debugging Go compiler performance in a large codebase[zz]"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Debugging Go compiler performance in a large codebase[zz]"/></a><div class="content"><a class="title" href="/debug-go-compiler/" title="Debugging Go compiler performance in a large codebase[zz]">Debugging Go compiler performance in a large codebase[zz]</a><time datetime="2024-01-18T03:47:39.000Z" title="发表于 2024-01-18 11:47:39">2024-01-18</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Jossy Zhang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '077b4248c3ff962452cc',
+      clientSecret: 'ade393165d5ec085af450800ccd547408097d356',
+      repo: 'gitment-comments',
+      owner: 'zhangga',
+      admin: ['zhangga'],
+      id: '871599d82b0c9985483f86d8dcf0384b',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: false,
+      updateCountCallback: commentCount
+    },null))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'Agt1jxQ0cvJ0gC2GaEczsjlk-gzGzoHsz',
+      appKey: '0uCDNXsvh9fFP5gvz6lwuGAf',
+      placeholder: '记得留下你的昵称和邮箱....可以快速收到回复',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'zh-CN',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+      requiredFields: ["nick,mail"],
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Gitalk' === 'Valine' || !true) {
+  if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
