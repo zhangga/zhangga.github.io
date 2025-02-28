@@ -42,4 +42,4 @@ jobs:
         publish_branch: master
         force_orphan: true
         keep_history: true
-        fqdn: kwaibook.com
+        fqdn: zhangga.github.io
