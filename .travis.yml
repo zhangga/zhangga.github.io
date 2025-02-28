@@ -40,7 +40,7 @@ deploy:
   skip_cleanup: true # 构建完成后不清除
   token: $GITHUB_TOKEN # 你刚刚设置的 token
   keep_history: true # 保存历史
-  fqdn: kwaibook.com # 自定义域名，使用 username.github.io 可删除
+  # fqdn: kwaibook.com # 自定义域名，使用 username.github.io 可删除
   on:
     branch: source # hexo 站点源文件所在的 branch
   local_dir: public 
