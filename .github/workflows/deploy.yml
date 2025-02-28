@@ -29,7 +29,7 @@ jobs:
       run: npm install -g hexo-cli
 
     - name: Install dependencies
-      run: npm ci
+      run: npm install
 
     - name: Generate Hexo static files
       run: hexo generate
