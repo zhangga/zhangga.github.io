@@ -98,7 +98,8 @@ ignore:
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
 # theme: next
-theme: butterfly
+# theme: butterfly
+theme: A4
 
 search:
   path: search.xml
