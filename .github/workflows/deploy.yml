@@ -10,17 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         ref: source
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
-        node-version: '20'  # 设置 Node.js 版本
+        node-version: '18'  # 设置 Node.js 版本
 
     - name: Cache node_modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -29,7 +29,7 @@ jobs:
       run: npm install -g hexo-cli
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
     - name: Generate Hexo static files
       run: hexo generate
@@ -40,6 +40,6 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./public
         publish_branch: master
-        force_orphan: true
+        force_orphan: false
         keep_history: true
         fqdn: zhangga.github.io
