@@ -1,0 +1,84 @@
+<% class HashMap {
+  constructor() {
+    this.map = {};
+  }
+
+  put(key, value) {
+    this.map[key] = value;
+  }
+
+  get(key) {
+    return this.map[key];
+  }
+
+  containsKey(key) {
+    return key in this.map;
+  }
+
+  remove(key) {
+    delete this.map[key];
+  }
+
+  size() {
+    return Object.keys(this.map).length;
+  }
+
+  isEmpty() {
+    return this.size() === 0;
+  }
+
+  clear() {
+    this.map = {};
+  }
+}
+%>
+
+<div class="archive-list">
+  <ul class="archive">
+
+    <% var pageCategoriesName = path.substring("categories/".length, path.indexOf("/index.html")) %>
+    <span><span class="darkmode-ignore">🔖</span><i><%= pageCategoriesName %></i></span>
+          
+    <% const categoriesHashmap = new HashMap() %>
+
+    <% var allPostArray = eval('site.posts.data'); %>
+    <% for(var i = 0; i < allPostArray.length; i++) {  
+       var postTemp = allPostArray[i];
+       var postTempCategory = postTemp.categories.data;
+        
+       for(var j = 0; j < postTempCategory.length; j++) {
+          if(!categoriesHashmap.containsKey(postTempCategory[j].name)) {
+              var tempArray = [];
+              tempArray.push(postTemp);
+              categoriesHashmap.put(postTempCategory[j].name, tempArray);
+            } else {
+              categoriesHashmap.get(postTempCategory[j].name).push(postTemp);
+            }
+          
+       }
+    }  %>
+
+    <% var array = categoriesHashmap.containsKey(pageCategoriesName) ? categoriesHashmap.get(pageCategoriesName) : [] %>
+    <% if(Array.isArray(array)) { array.sort((a, b) => {
+      if (a.date > b.date) {
+        return -1;
+      }
+      if (a.date < b.date) {
+        return 1;
+      }
+      return 0;
+    }) 
+    }%>
+
+  <% for (let i = 0; i < array.length; i++) { %>
+    <% if (!('hide' in array[i]) || array[i].hide == false) {%>
+        <li>
+          <span class="archive-date"><%= date(array[i].date, "YYYY/MM/DD") %></span>
+          <div class="archive-main">
+              <a class="archive-title" href="<%- url_for(array[i].path) %>"><%= array[i].title %></a>
+          </div>
+        </li>
+    <% } %>
+  <% } %>
+  </ul>
+</div>

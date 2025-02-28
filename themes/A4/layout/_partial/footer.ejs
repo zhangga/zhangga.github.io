@@ -1,0 +1,187 @@
+<div class="footer">
+    <% if(path != 'index.html') { %>
+        <span> 
+            <%= theme.footerLink.info %> 
+
+            <% for (name in theme.footerLink) { %>
+                <% if(name != 'info') { %>
+                    / <a href="<%- url_for(theme.footerLink[name]) %>"> <%= name %> </a>
+                <% } %>
+
+            <% } %>
+        </span>
+       
+    <% } %>
+</div>
+
+<% if(path == 'index.html' && (theme.indexInfo.allWordCount || theme.indexInfo.allViewCount)){ %>
+    <div class="footer-last-without-line">
+        <% if(theme.indexInfo.allWordCount) { %>
+        <span>本站总字数：<%= totalcount(site) %></span>
+        <% } %>
+        <% if(theme.indexInfo.allWordCount && theme.indexInfo.allViewCount) { %>
+            <div class="footer-last-span-right">
+        <% } else if(!theme.indexInfo.allWordCount && theme.indexInfo.allViewCount) { %>
+            <div>
+        <% } %>
+        <% if(theme.indexInfo.allViewCount) { %>
+                <span id="busuanzi_container_site_pv" class="">
+                    本站总访问：<span id="busuanzi_value_site_pv"></span>次
+                </span>
+            </div>
+        <% } %>
+    </div>
+<% } %>
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    <% if(path == 'index.html'){ %>
+         <% if(theme.index.footer != null || theme.index.footer != "") { %>
+            <% if(theme.index.footer.length > "Email:".length && theme.index.footer.substring(0, 6) == "Email:") { %>
+                <% var email = theme.index.footer.substring(6, theme.index.footer.length) %>
+                <span class="index-footer-last-span">Email:<%- mail_to(email) %></span>
+            <% } else { %>
+                <span class="index-footer-last-span"><%= theme.index.footer %></span>
+            <% } %>
+        <% } %>
+    <% } else { %>
+            <span><%= theme.post.footer %></span>
+            <% if(theme.post.themeInfo) { %>
+                <span class="footer-last-span-right"><i>本站由<a href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            <% } %>
+    <% } %>
+</div>
+
+<% if(theme.cdn.enable) { %>
+    <% if(theme.cdn.choose == "aliyun") { %>
+        <%- js('https://npm.elemecdn.com/hexo-theme-a4@latest/source/js/highlight.min.js') %>
+        <%- js('https://npm.elemecdn.com/hexo-theme-a4@latest/source/js/highlightjs-line-numbers.js') %>
+
+        <%- js('js/randomHeaderContent.js') %>
+        <!--回到顶部按钮-->
+        <% if(theme.tool.returnToTop) { %>
+            <%- js('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js') %>
+            <%- js('https://npm.elemecdn.com/hexo-theme-a4@latest/source/js/returnToTop.js') %>
+        <% } %>
+    
+        <!--目录-->
+        <% if(theme.tool.leftToc) { %>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+            <%- js('https://npm.elemecdn.com/hexo-theme-a4@latest/source/js/toc.js') %>
+        <% } %>
+    <% } else if(theme.cdn.choose == "zzko") { %>
+        <%- js('https://jsd.cdn.zzko.cn/npm/hexo-theme-a4@latest/source/js/highlight.min.js') %>
+        <%- js('https://jsd.cdn.zzko.cn/npm/hexo-theme-a4@latest/source/js/highlightjs-line-numbers.js') %>
+
+        <%- js('https://jsd.cdn.zzko.cn/npm/hexo-theme-a4@latest/source/js/randomHeaderContent.js') %>
+        <!--回到顶部按钮-->
+        <% if(theme.tool.returnToTop) { %>
+            <%- js('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js') %>
+            <%- js('https://jsd.cdn.zzko.cn/npm/hexo-theme-a4@latest/source/js/returnToTop.js') %>
+        <% } %>
+    
+        <!--目录-->
+        <% if(theme.tool.leftToc) { %>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+            <%- js('https://jsd.cdn.zzko.cn/npm/hexo-theme-a4@latest/source/js/toc.js') %>
+        <% } %>
+    <% } else if(theme.cdn.choose == "jsdelivr") { %>
+        <%- js('https://jsd.onmicrosoft.cn/npm/hexo-theme-a4@latest/source/js/highlight.min.js') %>
+        <%- js('https://jsd.onmicrosoft.cn/npm/hexo-theme-a4@latest/source/js/highlightjs-line-numbers.js') %>
+
+        <%- js('https://jsd.onmicrosoft.cn/npm/hexo-theme-a4@latest/source/js/randomHeaderContent.js') %>
+        <!--回到顶部按钮-->
+        <% if(theme.tool.returnToTop) { %>
+            <%- js('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js') %>
+            <%- js('https://jsd.onmicrosoft.cn/npm/hexo-theme-a4@latest/source/js/returnToTop.js') %>
+        <% } %>
+        
+        <!--目录-->
+        <% if(theme.tool.leftToc) { %>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+            <%- js('https://jsd.onmicrosoft.cn/npm/hexo-theme-a4@latest/source/js/toc.js') %>
+        <% } %>
+    <% } else if(theme.cdn.choose == "unpkg") { %>
+        <%- js('https://npm.onmicrosoft.cn/hexo-theme-a4@latest/source/js/highlight.min.js') %>
+        <%- js('https://npm.onmicrosoft.cn/hexo-theme-a4@latest/source/js/highlightjs-line-numbers.js') %>
+
+        <%- js('https://npm.onmicrosoft.cn/hexo-theme-a4@latest/source/js/randomHeaderContent.js') %>
+        <!--回到顶部按钮-->
+        <% if(theme.tool.returnToTop) { %>
+            <%- js('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js') %>
+            <%- js('https://npm.onmicrosoft.cn/hexo-theme-a4@latest/source/js/returnToTop.js') %>
+        <% } %>
+    
+        <!--目录-->
+        <% if(theme.tool.leftToc) { %>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+            <%- js('https://npm.onmicrosoft.cn/hexo-theme-a4@latest/source/js/toc.js') %>
+        <% } %>
+    <% } %>
+<% } else { %>
+    <%- js('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js') %>
+    <!--目录-->
+    <% if(theme.tool.leftToc) { %>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        <%- js('js/toc.js') %>
+    <% } %>
+
+    <%- js('js/randomHeaderContent.js') %>
+    <!--回到顶部按钮-->
+    <% if(theme.tool.returnToTop) { %>
+        <%- js('js/returnToTop.js') %>
+    <% } %>
+
+    <% if(theme.tool.returnToTop) { %>
+        <%- js('js/returnToLastPage.js') %>
+    <% } %>
+
+<% } %>
+
+
+<%- js('js/lightgallery/lightgallery.umd.min.js') %>
+
+<%- js('js/lightgallery/plugins/lg-thumbnail.umd.min.js') %>
+
+<%- js('js/lightgallery/plugins/lg-fullscreen.umd.min.js') %>
+<%- js('js/lightgallery/plugins/lg-autoplay.umd.min.js') %>
+<%- js('js/lightgallery/plugins/lg-zoom.umd.min.js') %>
+<%- js('js/lightgallery/plugins/lg-rotate.umd.min.js') %>
+<%- js('js/lightgallery/plugins/lg-paper.umd.min.js') %>
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: <%= theme.lightgallery.thumbnail %>,          // 显示缩略图
+            zoom: <%= theme.lightgallery.zoom %>,               // 启用缩放功
+            rotate: <%= theme.lightgallery.rotate %>,             // 启用旋转功能能
+            autoplay: <%= theme.lightgallery.autoplay %>,        // 启用自动播放功能
+            fullScreen: <%= theme.lightgallery.fullScreen %>,      // 启用全屏功能
+            pager: <%= theme.lightgallery.pager %>, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+<% if(theme.postInfo.viewCount) { %>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+<% } %>

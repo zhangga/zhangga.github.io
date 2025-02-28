@@ -1,0 +1,140 @@
+<div class="post-main">
+    <% var titlePosition = "left" %>
+
+    <% if(is_post()) { %>
+        <% if(page.hasOwnProperty('titlePosition') && (page.titlePosition == 'left' || page.titlePosition == 'center')) { %>
+            <% if(page.titlePosition == 'left') {  %>
+                <div class="post-main-title">
+                    <%= page.title %>
+                </div>
+            <% } else {  titlePosition = "center" %>
+                <div class="post-main-title" style="text-align: center;">
+                    <%= page.title %>
+                </div>
+            <% } %>
+
+        <% } else { %>
+            <% if(theme.post.titlePosition == 'left') {  %>
+                <div class="post-main-title">
+                    <%= page.title %>
+                </div>
+            <% } else { titlePosition = "center" %>
+                <div class="post-main-title" style="text-align: center;">
+                    <%= page.title %>
+                </div>
+            <% } %>
+        <% } %>
+      
+    <% } %>
+
+    <% if(is_post() && !(page.hasOwnProperty('postInfo') && page.postInfo == false)) { %>
+
+        <% if(titlePosition == "left") { %>
+            <div class="post-head-meta-left">
+        <% } else { %>
+            <div class="post-head-meta-center">
+        <% } %>
+                <% if(theme.postInfo.updateDate) { %>
+                    <span>最近更新：<%- date(page.updated, "YYYY-MM-DD") %></span> 
+                <% } %>
+                <% if(theme.postInfo.wordCount) { %>
+                    <% if(theme.postInfo.updateDate) {  %>
+                        &nbsp; | &nbsp;
+                    <% } %>
+                     <span>字数总计：<%= wordcount(page.content) %></span>
+                <% } %>
+                <% if(theme.postInfo.readTime) { %>
+                    <% if(theme.postInfo.wordCount || theme.postInfo.updateDate) {  %>
+                        &nbsp; | &nbsp;
+                    <% } %>
+                    <span>阅读估时：<%= min2read(page.content) %>分钟</span>
+                <% } %>
+                <% if(theme.postInfo.viewCount) { %>
+                    <% if(theme.postInfo.wordCount || theme.postInfo.updateDate|| theme.postInfo.readTime) {  %>
+                        &nbsp; | &nbsp;
+                    <% } %>
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                <% } %>
+            </div>
+    <% } %>
+
+    <div class="post-md">
+        <% if(theme.tool.topToc) { %>
+            <% if(is_post() && (!('toc' in page) || page.toc == true)) { %>
+                <%- toc(page.content, {
+                    class: 'post-toc',
+                    list_number: false,
+                    min_depth: 1,
+                    max_depth: 6
+                }) %>
+            <% } %>
+        <% } %>
+        <%- page.content %>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        <% if(is_post()) { %>
+            <span><%- date(page.date, "YYYY-MM-DD") %></span>
+            <% if(page.tags.data.length > 0 || page.categories.data.length > 0) { %>
+                <span>该篇文章被 <%= config.author %></span>
+            <% } %>
+            <% if(page.tags.data.length > 0) { %>
+                <span>打上标签:
+                    <% var postTags = page.tags.data; %>
+                    <%   for(var j = 0; j < postTags.length; j++) { %>
+                        <a href='<%- url_for(postTags[j].path)%>'>
+                            <%= postTags[j].name %>
+                        </a>
+                    <% }  %>
+                </span>
+             <% } %>
+             <% if(page.categories.data.length > 0) { %>
+                <span>归为分类:
+                    <% var postCategories = page.categories.data; %>
+                    <%   for(var j = 0; j < postCategories.length; j++) { %>
+                        <a href='<%- url_for(postCategories[j].path)%>'>
+                            <%= postCategories[j].name %>
+                        </a>
+                    <% break;}  %>
+                </span>
+            <% } %>
+        <% } %>
+        </i>
+    </div>
+    <br>
+    
+    <% if(theme.postInfo.prevAndNextLink.status == true) { %>
+        <% if(!(page.hasOwnProperty('hide') && page.hide == true)) { %>
+            <% var prev_page = page.prev;
+                while(prev_page != null && prev_page.hasOwnProperty('hide') && prev_page.hide == true) {
+                    prev_page = prev_page.prev;
+                };
+                var next_page = page.next;
+                while(next_page != null && next_page.hasOwnProperty('hide') && next_page.hide == true) {
+                    next_page = next_page.next;
+                }
+            %>
+    
+            <div class="post-footer-pre-next">
+                <% if(prev_page != null) { %>
+                    <span><%= theme.postInfo.prevAndNextLink.prevInfo %>：<a href='<%- url_for(prev_page.path) %>'><%= prev_page.title %></a></span>
+                <% } %>
+
+                <% if(next_page != null) { %>
+                    <span class="post-footer-pre-next-last-span-right"><%= theme.postInfo.prevAndNextLink.nextInfo %>：<a href="<%- url_for(next_page.path) %>"><%= next_page.title %></a>
+                    </span>
+                <% } %>
+            </div>
+    
+        <% } %>
+    <% } %>
+
+    <% if (!page.hasOwnProperty('comment') || page.comment == true) { %>
+        <%- partial('_partial/comments/comment') %>
+    <% } %> 
+</div>
+
+

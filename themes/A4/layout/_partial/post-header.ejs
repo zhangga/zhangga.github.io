@@ -1,0 +1,69 @@
+
+<% if(is_post() && ('words' in page) && page.words != null) {%>
+    <div class="index-header-line" >
+        <div id="hiddenHeaderContentArray" style="display: none;">
+            <% var headerContentArray = page.words %>
+            <% var headerContentArrayLength = headerContentArray.length %>
+            <% for(let i = 0; i < headerContentArrayLength; i++) { %>
+                <span><%= page.words[i] %></span>
+            <% } %>
+        </div>
+        <span id="targetSpan"></span>
+    </div>
+<% } %>
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: <%= theme.isRoundedAvatar ? '50%' : '0' %>; 
+            }
+            <% if (theme.isAvatarRotating && theme.isRoundedAvatar) { %>
+            .header-img:hover {
+                animation: rotateAnimation 2s linear infinite; /* 悬停旋转动画 */
+            }
+            @keyframes rotateAnimation {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+            <% } %>
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="<%- url_for(theme.favicon) %>" 
+        />
+        <div class="header-content">
+            <a class="logo" href="<%- url_for() %>"><%= config.title %></a> 
+            <span class="description"><%= config.description %></span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        <% for (name in theme.menu) { %>
+            <% if(theme.menu[name].substring(1, theme.menu[name].length - 1) == path.substring(0, path.indexOf("/"))) { %>
+                <li><i>
+                    <% if(theme.color.enable) { %>
+                        <u>
+                            <a  href="<%- url_for(theme.menu[name]) %>"><%= name %></a>
+                        </u>
+                    <% } else { %>
+                        <a style="color: #4e7dde;" href="<%- url_for(theme.menu[name]) %>"><%= name %></a>
+                    <% } %>
+                </i></li>
+            <%} else {%>
+                <li><a href="<%- url_for(theme.menu[name]) %>"><%= name %></a></li>
+            <% } %>
+        <% } %>
+    </ul>
+</div>

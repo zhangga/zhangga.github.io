@@ -1,0 +1,207 @@
+<div class="archive-list">
+  <ul class="archive">
+      <% var postArray = eval('site.posts.data') %>
+
+      <!--文章先按照时间排好序-->
+      <% postArray.sort((a, b) => {
+          if (a.date > b.date) {
+            return -1;
+          }
+          if (a.date < b.date) {
+            return 1;
+          }
+          return 0;
+        }) 
+      %>
+
+
+      
+      <% class HashMap {
+        constructor() {
+          this.map = {};
+        }
+      
+        put(key, value) {
+          this.map[key] = value;
+        }
+      
+        get(key) {
+          return this.map[key];
+        }
+      
+        containsKey(key) {
+          return key in this.map;
+        }
+      
+        remove(key) {
+          delete this.map[key];
+        }
+      
+        size() {
+          return Object.keys(this.map).length;
+        }
+      
+        isEmpty() {
+          return this.size() === 0;
+        }
+      
+        clear() {
+          this.map = {};
+        }
+      }
+      %>
+
+      <% class List {
+        constructor() {
+          this.items = [];
+        }
+      
+        add(item) {
+          this.items.push(item);
+        }
+      
+        remove(item) {
+          const index = this.items.indexOf(item);
+          if (index > -1) {
+            this.items.splice(index, 1);
+          }
+        }
+      
+        get(index) {
+          return this.items[index];
+        }
+      
+        size() {
+          return this.items.length;
+        }
+      }
+       %>
+
+      <% const hashmap = new HashMap() %>
+      <% const allYearList = new List() %>
+      <% var topPostArray = [] %>
+
+      <!--循环遍历文章数组-->
+      <% for (let i = 0; i < postArray.length; i++) { 
+        if(!('hide' in postArray[i]) || postArray[i].hide == false) {
+          if('top' in postArray[i]) {
+            topPostArray.push(postArray[i]);
+          } else {
+            var postYear = new Date(postArray[i].date).getFullYear();
+            if(!hashmap.containsKey(postYear)) {
+              hashmap.put(postYear, new List());
+              allYearList.add(postYear);
+            } 
+            hashmap.get(postYear).add(postArray[i]);
+          }
+        }
+      }  %>
+
+      <!--排序 置顶 文章-->
+      <% 
+        topPostArray.sort((a, b) => {
+          return a.top - b.top;
+        }) 
+      %>
+
+      <!--先放 置顶 文章-->
+      <% for (let i = 0; i < topPostArray.length; i++) { %>
+          <% var thisPost = topPostArray[i] %>
+          <li>
+            <span class="archive-date"> &nbsp;&nbsp;&nbsp;TOP
+            </span>
+            <div class="archive-main">
+                <a class="archive-title" href="<%- url_for(thisPost.path) %>"><%= thisPost.title %></a>
+            </div>
+          </li>
+      <% } %>
+
+      <!--rough-notation风格效果-->
+      <% if(theme && theme.listInfo.enable) { %>
+        <script src="<%= url_for('/js/roughNotation.js') %>" defer></script>
+        <script>
+          // 浏览器严格模式
+          if (typeof window !== 'undefined') {
+            window.themeConfig = <%- JSON.stringify(theme) %>;
+          }
+          document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.archive-title').forEach(el => {
+              const annotation = RoughNotation.annotate(el, {
+                type: themeConfig?.tool?.hoverStyle || 'underline', // 效果,默认为'underline'
+                color: themeConfig?.tool?.hoverColor || '#4f7dde', // 自定义效果颜色
+                animationDuration: themeConfig?.tool?.animationDuration || 800, // 动画持续时间ms
+              });
+              el.addEventListener('mouseenter', () => {
+                if(annotation){
+                annotation.show();
+            }});
+              el.addEventListener('mouseleave', () => {
+                if(annotation){
+                annotation.hide();
+            }});
+            });
+          });
+        </script>
+        <% } %>
+
+      <!--文章先按照时间排好序-->
+      <% postArray.sort((a, b) => {
+        if (a.updated > b.updated) {
+          return -1;
+        }
+        if (a.updated < b.updated) {
+          return 1;
+        }
+        return 0;
+      }) 
+    %>
+      
+      <!--再放 最近更新 文章-->
+      <% if(theme.tool.recentUpdatePost) { %>
+        <li>
+          <span class="year-font-color">
+            <a class="archive-title"  href="/recent-updates/">Recent-Updates</a>
+          </span>
+        </li>
+        <% var countRecentPost = 0 %>
+        <% for (let i = 0; i < postArray.length && countRecentPost < 3; i++) { %>
+          <% if(('hide' in postArray[i]) && postArray[i].hide == true) { continue; } else { countRecentPost++;}%>
+          <% var thisPost = postArray[i] %>
+          <li>
+            <span class="archive-date"><%= date(thisPost.updated, "YYYY/MM/DD") %> 
+            </span>
+            <div class="archive-main">
+                <a class="archive-title" href="<%- url_for(thisPost.path) %>"><%= thisPost.title %></a>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+
+      <!--后放 其他 文章-->
+      <% for (let i = 0; i < allYearList.size(); i++) { %>
+        <% var year = allYearList.get(i) %>
+        <li>
+          <span class="year-font-color"><%= year %>[<%= hashmap.get(year).size() %>]
+            <% if(i==0) { %> <span class="darkmode-ignore">🍃</span> <% } %>
+          </span>
+        </li>
+        <% var thisYearPostList = hashmap.get(year) %>
+        <% for(var j = 0; j < thisYearPostList.size(); j++) { %>
+          <% var thisPost = thisYearPostList.get(j) %>
+          <li>
+            <span class="archive-date">&nbsp;&nbsp;&nbsp;<%= date(thisPost.date, "MM/DD") %> 
+            </span>
+            <div class="archive-main">
+              <% if(thisPost.categories.length > 0) { %>
+                <a class="archive-title"  href="/<%= thisPost.categories.data[0].path %>">
+                  <%= thisPost.categories.data[0].name %> 
+                </a> | 
+              <% } %>
+                <a class="archive-title" href="<%- url_for(thisPost.path) %>"><%= thisPost.title %></a>
+            </div>
+          </li>
+        <% } %>
+      <% } %>
+  </ul>
+</div>
+<!-- <%- partial('_partial/paginator') %> -->
