@@ -546,30 +546,6 @@
       </tags>
   </entry>
   <entry>
-    <title>使用Flutter进行APP开发流程</title>
-    <url>/flutter-dev/</url>
-    <content><![CDATA[<p><a href="https://imgtu.com/i/hBsVC6"><img src="https://z3.ax1x.com/2021/09/01/hBsVC6.md.png" alt="hBsVC6.md.png"></a></p>
-<h1 id="资源加载："><a href="#资源加载：" class="headerlink" title="资源加载："></a>资源加载：</h1><h3 id="1-本地"><a href="#1-本地" class="headerlink" title="1.本地"></a>1.本地</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String DEFAULT_USER_ICON = &#x27;static/images/logo.png&#x27;;</span><br><span class="line">Image.asset(AppICons.DEFAULT_USER_ICON, width: AppICons.USER_ICON_WIDTH, height: AppICons.USER_ICON_HEIGHT),</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-iconfont。-https-www-iconfont-cn"><a href="#2-iconfont。-https-www-iconfont-cn" class="headerlink" title="2.iconfont。 https://www.iconfont.cn/"></a>2.iconfont。 <a href="https://www.iconfont.cn/">https://www.iconfont.cn/</a></h3><p>在iconfont网站上传资源。下载到本地，放入项目资源文件夹下。</p>
-<p>pubspec.yaml中配置。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fonts:</span><br><span class="line">  - family: myIconFont</span><br><span class="line">    fonts:</span><br><span class="line">      - asset: static/font/iconfont.ttf</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-UI编辑器。-https-norbert515-github-io-widget-maker-website"><a href="#3-UI编辑器。-https-norbert515-github-io-widget-maker-website" class="headerlink" title="3.UI编辑器。 https://norbert515.github.io/widget_maker/website/"></a>3.UI编辑器。 <a href="https://norbert515.github.io/widget_maker/website/">https://norbert515.github.io/widget_maker/website/</a></h3><p><a href="https://github.com/Norbert515/flutter_ide">https://github.com/Norbert515/flutter_ide</a></p>
-<p>项目中使用：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String FONT_FAMILY = &#x27;myIconFont&#x27;;</span><br><span class="line">static const IconData LOGIN_USER = const IconData(0xe652, fontFamily: AppICons.FONT_FAMILY);</span><br><span class="line">iconData: AppICons.LOGIN_USER,</span><br></pre></td></tr></table></figure>
-
-<h1 id="原型开发："><a href="#原型开发：" class="headerlink" title="原型开发："></a>原型开发：</h1><p><a href="https://www.xiaopiu.com/">https://www.xiaopiu.com/</a></p>
-<p>在上面设计开发，然后导出到本地，可以查看里面的资源文件。</p>
-]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>使用Go语言开发eBPF程序</title>
     <url>/goebpf/</url>
     <content><![CDATA[<p>原文地址：<a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/">https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/</a></p>
@@ -688,6 +664,30 @@
       </categories>
       <tags>
         <tag>服务器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用Flutter进行APP开发流程</title>
+    <url>/flutter-dev/</url>
+    <content><![CDATA[<p><a href="https://imgtu.com/i/hBsVC6"><img src="https://z3.ax1x.com/2021/09/01/hBsVC6.md.png" alt="hBsVC6.md.png"></a></p>
+<h1 id="资源加载："><a href="#资源加载：" class="headerlink" title="资源加载："></a>资源加载：</h1><h3 id="1-本地"><a href="#1-本地" class="headerlink" title="1.本地"></a>1.本地</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String DEFAULT_USER_ICON = &#x27;static/images/logo.png&#x27;;</span><br><span class="line">Image.asset(AppICons.DEFAULT_USER_ICON, width: AppICons.USER_ICON_WIDTH, height: AppICons.USER_ICON_HEIGHT),</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-iconfont。-https-www-iconfont-cn"><a href="#2-iconfont。-https-www-iconfont-cn" class="headerlink" title="2.iconfont。 https://www.iconfont.cn/"></a>2.iconfont。 <a href="https://www.iconfont.cn/">https://www.iconfont.cn/</a></h3><p>在iconfont网站上传资源。下载到本地，放入项目资源文件夹下。</p>
+<p>pubspec.yaml中配置。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fonts:</span><br><span class="line">  - family: myIconFont</span><br><span class="line">    fonts:</span><br><span class="line">      - asset: static/font/iconfont.ttf</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-UI编辑器。-https-norbert515-github-io-widget-maker-website"><a href="#3-UI编辑器。-https-norbert515-github-io-widget-maker-website" class="headerlink" title="3.UI编辑器。 https://norbert515.github.io/widget_maker/website/"></a>3.UI编辑器。 <a href="https://norbert515.github.io/widget_maker/website/">https://norbert515.github.io/widget_maker/website/</a></h3><p><a href="https://github.com/Norbert515/flutter_ide">https://github.com/Norbert515/flutter_ide</a></p>
+<p>项目中使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String FONT_FAMILY = &#x27;myIconFont&#x27;;</span><br><span class="line">static const IconData LOGIN_USER = const IconData(0xe652, fontFamily: AppICons.FONT_FAMILY);</span><br><span class="line">iconData: AppICons.LOGIN_USER,</span><br></pre></td></tr></table></figure>
+
+<h1 id="原型开发："><a href="#原型开发：" class="headerlink" title="原型开发："></a>原型开发：</h1><p><a href="https://www.xiaopiu.com/">https://www.xiaopiu.com/</a></p>
+<p>在上面设计开发，然后导出到本地，可以查看里面的资源文件。</p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
       </tags>
   </entry>
   <entry>
@@ -1504,6 +1504,24 @@
       </tags>
   </entry>
   <entry>
+    <title>JAVA游戏服务器热更</title>
+    <url>/java-hot/</url>
+    <content><![CDATA[<p>具体工程详见github:</p>
+<p><a href="https://github.com/zhangga/HotswapJAVA.git">https://github.com/zhangga/HotswapJAVA.git</a></p>
+<p>agentmain和premain方法都只能修改方法体。</p>
+<p><a href="https://imgtu.com/i/hKvk5V"><img src="https://z3.ax1x.com/2021/08/27/hKvk5V.md.png" alt="hKvk5V.md.png"></a></p>
+<p>jrebel可以热更类，新增、删除、修改等。</p>
+<p>jrebel有eclipse和idea的插件，方便平时开发时，不用重启服务器。</p>
+<p>破解版的插件在我的百度云盘里。</p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>JAVA</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>【转载】 IO 多路复用</title>
     <url>/ionet/</url>
     <content><![CDATA[<h1 id="你管这破玩意叫-IO-多路复用？"><a href="#你管这破玩意叫-IO-多路复用？" class="headerlink" title="你管这破玩意叫 IO 多路复用？"></a>你管这破玩意叫 IO 多路复用？</h1><p>原创 闪客 <a href="javascript:void(0);">低并发编程</a> <em>2021-03-25 09:00</em></p>
@@ -1639,24 +1657,6 @@
       </categories>
       <tags>
         <tag>笔记</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>JAVA游戏服务器热更</title>
-    <url>/java-hot/</url>
-    <content><![CDATA[<p>具体工程详见github:</p>
-<p><a href="https://github.com/zhangga/HotswapJAVA.git">https://github.com/zhangga/HotswapJAVA.git</a></p>
-<p>agentmain和premain方法都只能修改方法体。</p>
-<p><a href="https://imgtu.com/i/hKvk5V"><img src="https://z3.ax1x.com/2021/08/27/hKvk5V.md.png" alt="hKvk5V.md.png"></a></p>
-<p>jrebel可以热更类，新增、删除、修改等。</p>
-<p>jrebel有eclipse和idea的插件，方便平时开发时，不用重启服务器。</p>
-<p>破解版的插件在我的百度云盘里。</p>
-]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>JAVA</tag>
       </tags>
   </entry>
   <entry>
@@ -2478,6 +2478,21 @@
       </tags>
   </entry>
   <entry>
+    <title>给lua函数添加调用时长限制</title>
+    <url>/lua-settime/</url>
+    <content><![CDATA[<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><p>战斗验证服务会调用客户端同学写的lua函数，lua写出了死循环导致内存飙升最终OOM</p>
+<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2><p>用lua的debug.sethook方法加调用钩子</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">-- 设置一个时间限制钩子</span><br><span class="line"><span class="keyword">function</span> set_time_limit(seconds)</span><br><span class="line">    <span class="built_in">local</span> start = os.clock()</span><br><span class="line">    debug.sethook(<span class="keyword">function</span>()</span><br><span class="line">        <span class="keyword">if</span> os.clock() - start &gt;= seconds <span class="keyword">then</span></span><br><span class="line">            debug.sethook() -- 移除钩子</span><br><span class="line">            error(<span class="string">&quot;Time limit exceeded&quot;</span>) -- 终止执行</span><br><span class="line">        end</span><br><span class="line">    end, <span class="string">&quot;&quot;</span>, 1e7) -- 第三个参数是钩子的调用频率，这里是每执行大约1000万条指令检查一次</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mac使用手册</title>
     <url>/mac-manual/</url>
     <content><![CDATA[<h3 id="Mac新手使用指南"><a href="#Mac新手使用指南" class="headerlink" title="Mac新手使用指南"></a><a href="https://post.smzdm.com/p/679153/">Mac新手使用指南</a></h3><h1 id="MAC环境安装"><a href="#MAC环境安装" class="headerlink" title="MAC环境安装"></a>MAC环境安装</h1><ol>
@@ -2593,21 +2608,6 @@
 </li>
 <li></li>
 </ol>
-]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>笔记</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>给lua函数添加调用时长限制</title>
-    <url>/lua-settime/</url>
-    <content><![CDATA[<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><p>战斗验证服务会调用客户端同学写的lua函数，lua写出了死循环导致内存飙升最终OOM</p>
-<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2><p>用lua的debug.sethook方法加调用钩子</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">-- 设置一个时间限制钩子</span><br><span class="line"><span class="keyword">function</span> set_time_limit(seconds)</span><br><span class="line">    <span class="built_in">local</span> start = os.clock()</span><br><span class="line">    debug.sethook(<span class="keyword">function</span>()</span><br><span class="line">        <span class="keyword">if</span> os.clock() - start &gt;= seconds <span class="keyword">then</span></span><br><span class="line">            debug.sethook() -- 移除钩子</span><br><span class="line">            error(<span class="string">&quot;Time limit exceeded&quot;</span>) -- 终止执行</span><br><span class="line">        end</span><br><span class="line">    end, <span class="string">&quot;&quot;</span>, 1e7) -- 第三个参数是钩子的调用频率，这里是每执行大约1000万条指令检查一次</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
-
 ]]></content>
       <categories>
         <category>笔记</category>
@@ -2888,9 +2888,9 @@
 <h2 id="idea建立maven"><a href="#idea建立maven" class="headerlink" title="idea建立maven"></a>idea建立maven</h2><p>在settings里面：</p>
 <p><img src="https://img-blog.csdn.net/20170818231853882?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHV5YW9xaWFveWFvZ2U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="IDEA+MAVEN+GIT项目管理 - 第1张  | 张嘎"></p>
 <h2 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h2><p>git下载地址 ：<a href="https://gitforwindows.org/">https://gitforwindows.org/</a><br>安装完成后，在开始菜单里找到“Git”-&gt;“Git Bash”，蹦出一个类似命令行窗口的东西，就说明Git安装成功！<br>安装完成后，还需要最后一步设置，在命令行输入：</p>
-<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#x65;&#x6d;&#x61;&#x69;&#108;&#x40;&#101;&#120;&#x61;&#x6d;&#112;&#x6c;&#101;&#46;&#x63;&#x6f;&#109;">&#x65;&#x6d;&#x61;&#x69;&#108;&#x40;&#101;&#120;&#x61;&#x6d;&#112;&#x6c;&#101;&#46;&#x63;&#x6f;&#109;</a>”</p>
+<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#101;&#x6d;&#x61;&#x69;&#x6c;&#x40;&#x65;&#120;&#x61;&#x6d;&#x70;&#108;&#101;&#x2e;&#x63;&#x6f;&#x6d;">&#101;&#x6d;&#x61;&#x69;&#x6c;&#x40;&#x65;&#120;&#x61;&#x6d;&#x70;&#108;&#101;&#x2e;&#x63;&#x6f;&#x6d;</a>”</p>
 <p>具体过程请参见：<br><a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/00137396287703354d8c6c01c904c7d9ff056ae23da865a000">廖雪峰Git安装</a></p>
-<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#121;&#111;&#117;&#x72;&#x2e;&#101;&#x6d;&#x61;&#105;&#x6c;&#x40;&#101;&#x78;&#x61;&#109;&#112;&#x6c;&#x65;&#x2e;&#x63;&#111;&#x6d;">&#121;&#111;&#117;&#x72;&#x2e;&#101;&#x6d;&#x61;&#105;&#x6c;&#x40;&#101;&#x78;&#x61;&#109;&#112;&#x6c;&#x65;&#x2e;&#x63;&#111;&#x6d;</a>” -b 4096</p>
+<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#121;&#111;&#117;&#x72;&#46;&#101;&#x6d;&#x61;&#105;&#x6c;&#x40;&#x65;&#120;&#97;&#x6d;&#x70;&#108;&#101;&#46;&#99;&#x6f;&#x6d;">&#121;&#111;&#117;&#x72;&#46;&#101;&#x6d;&#x61;&#105;&#x6c;&#x40;&#x65;&#120;&#97;&#x6d;&#x70;&#108;&#101;&#46;&#99;&#x6f;&#x6d;</a>” -b 4096</p>
 <p>会在本地用户目录下的.ssh文件夹下生成id_rsa和id_rsa.pub文件，</p>
 <p>将id_rsa.pub公钥文件加入到远程git/Setttings/SSH Keys里面。</p>
 <p>右键菜单“Git GUI”</p>
@@ -2901,18 +2901,6 @@
       </categories>
       <tags>
         <tag>杂乱</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>notice</title>
-    <url>/notice/</url>
-    <content><![CDATA[<h2 id="文章还在迁移中，更多旧文章见主页"><a href="#文章还在迁移中，更多旧文章见主页" class="headerlink" title="文章还在迁移中，更多旧文章见主页"></a>文章还在迁移中，更多旧文章见<a href="https://192.144.167.243/">主页</a></h2><p>主页已停止更新，新文章都在这里。</p>
-]]></content>
-      <categories>
-        <category>公告</category>
-      </categories>
-      <tags>
-        <tag>公告</tag>
       </tags>
   </entry>
   <entry>
@@ -3066,6 +3054,18 @@
       </tags>
   </entry>
   <entry>
+    <title>notice</title>
+    <url>/notice/</url>
+    <content><![CDATA[<h2 id="文章还在迁移中，更多旧文章见主页"><a href="#文章还在迁移中，更多旧文章见主页" class="headerlink" title="文章还在迁移中，更多旧文章见主页"></a>文章还在迁移中，更多旧文章见<a href="https://192.144.167.243/">主页</a></h2><p>主页已停止更新，新文章都在这里。</p>
+]]></content>
+      <categories>
+        <category>公告</category>
+      </categories>
+      <tags>
+        <tag>公告</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>prometheus+grafana搭建监控服务</title>
     <url>/prometheus/</url>
     <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>之前使用过InfluxDB+Grafana的方案，主动push监控数据，现在使用Prometheus pull数据的方案，相比前一种方案，现在这种在部署上更加方便。<strong>推荐</strong>。</p>
@@ -3135,29 +3135,6 @@
       </categories>
       <tags>
         <tag>数据库</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>RoadMap</title>
-    <url>/roadmap/</url>
-    <content><![CDATA[<p>RoadMap</p>
-<p>规划</p>
-<ul>
-<li>双周产出一篇文章</li>
-<li>迁移WordPress的文章</li>
-<li>总结Golang的一系列文章</li>
-<li>Golang stream作业</li>
-<li>C++学习</li>
-<li>工作总结</li>
-<li>面试总结</li>
-<li>自己实现一套开源框架</li>
-</ul>
-]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>RoadMap</tag>
       </tags>
   </entry>
   <entry>
@@ -3313,6 +3290,29 @@
       <tags>
         <tag>面试</tag>
         <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>RoadMap</title>
+    <url>/roadmap/</url>
+    <content><![CDATA[<p>RoadMap</p>
+<p>规划</p>
+<ul>
+<li>双周产出一篇文章</li>
+<li>迁移WordPress的文章</li>
+<li>总结Golang的一系列文章</li>
+<li>Golang stream作业</li>
+<li>C++学习</li>
+<li>工作总结</li>
+<li>面试总结</li>
+<li>自己实现一套开源框架</li>
+</ul>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>RoadMap</tag>
       </tags>
   </entry>
   <entry>
@@ -3877,22 +3877,6 @@
       </tags>
   </entry>
   <entry>
-    <title>搭建WordPress个人站点</title>
-    <url>/wordpress-build/</url>
-    <content><![CDATA[<p><a href="https://imgtu.com/i/hZViiq"><img src="https://z3.ax1x.com/2021/08/25/hZViiq.md.png" alt="hZViiq.md.png"></a></p>
-<h2 id="LAMPP-WordPress搭建"><a href="#LAMPP-WordPress搭建" class="headerlink" title="LAMPP+WordPress搭建"></a>LAMPP+WordPress搭建</h2><h3 id="官网：https-wordpress-org"><a href="#官网：https-wordpress-org" class="headerlink" title="官网：https://wordpress.org/"></a>官网：<a href="https://wordpress.org/">https://wordpress.org/</a></h3><h3 id="中文网：https-cn-wordpress-org"><a href="#中文网：https-cn-wordpress-org" class="headerlink" title="中文网：https://cn.wordpress.org/"></a>中文网：<a href="https://cn.wordpress.org/">https://cn.wordpress.org/</a></h3><span id="more"></span>
-
-<p>下载tar包，解压到lampp/htdocs文件夹下文件夹，修改成自己喜欢的名。<br>访问站点。如：<a href="http://47.95.10.167/%E7%AB%99%E7%82%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%90%8D">http://47.95.10.167/站点文件夹名</a><br>设置数据库（数据库需要先建库），设置admin等信息。（配置文件存储在站点文件夹/wp-config.php文件）<br>使用域名访问指定博客<br>重定向。在xampp目录下修改文件重定向，我的机器在/opt/lampp/htdocs/目录下。修改index.php如下：  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	if (!empty($_SERVER[&#x27;HTTPS&#x27;]) &amp;&amp; (&#x27;on&#x27; == $_SERVER[&#x27;HTTPS&#x27;])) &#123;</span><br><span class="line">		$uri = &#x27;https://&#x27;;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		$uri = &#x27;http://&#x27;;</span><br><span class="line">	&#125;</span><br><span class="line">	$uri .= $_SERVER[&#x27;HTTP_HOST&#x27;];</span><br><span class="line">	header(&#x27;Location: &#x27;.$uri.&#x27;/blog/&#x27;);</span><br><span class="line">	exit;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>网站</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>WordPress上传权限问题及主题</title>
     <url>/wordpress/</url>
     <content><![CDATA[<p><a href="https://imgtu.com/i/htjgKI"><img src="https://z3.ax1x.com/2021/08/30/htjgKI.md.png" alt="htjgKI.md.png"></a></p>
@@ -3905,6 +3889,22 @@
 <p>还原文件夹权限</p>
 <p>chmod 755 /usr/local/lampp/htdocs/zzq/</p>
 <h2 id="主题网站"><a href="#主题网站" class="headerlink" title="主题网站"></a>主题网站</h2><p><a href="http://ztmao.com/">http://ztmao.com/</a></p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>网站</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>搭建WordPress个人站点</title>
+    <url>/wordpress-build/</url>
+    <content><![CDATA[<p><a href="https://imgtu.com/i/hZViiq"><img src="https://z3.ax1x.com/2021/08/25/hZViiq.md.png" alt="hZViiq.md.png"></a></p>
+<h2 id="LAMPP-WordPress搭建"><a href="#LAMPP-WordPress搭建" class="headerlink" title="LAMPP+WordPress搭建"></a>LAMPP+WordPress搭建</h2><h3 id="官网：https-wordpress-org"><a href="#官网：https-wordpress-org" class="headerlink" title="官网：https://wordpress.org/"></a>官网：<a href="https://wordpress.org/">https://wordpress.org/</a></h3><h3 id="中文网：https-cn-wordpress-org"><a href="#中文网：https-cn-wordpress-org" class="headerlink" title="中文网：https://cn.wordpress.org/"></a>中文网：<a href="https://cn.wordpress.org/">https://cn.wordpress.org/</a></h3><span id="more"></span>
+
+<p>下载tar包，解压到lampp/htdocs文件夹下文件夹，修改成自己喜欢的名。<br>访问站点。如：<a href="http://47.95.10.167/%E7%AB%99%E7%82%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%90%8D">http://47.95.10.167/站点文件夹名</a><br>设置数据库（数据库需要先建库），设置admin等信息。（配置文件存储在站点文件夹/wp-config.php文件）<br>使用域名访问指定博客<br>重定向。在xampp目录下修改文件重定向，我的机器在/opt/lampp/htdocs/目录下。修改index.php如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	if (!empty($_SERVER[&#x27;HTTPS&#x27;]) &amp;&amp; (&#x27;on&#x27; == $_SERVER[&#x27;HTTPS&#x27;])) &#123;</span><br><span class="line">		$uri = &#x27;https://&#x27;;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		$uri = &#x27;http://&#x27;;</span><br><span class="line">	&#125;</span><br><span class="line">	$uri .= $_SERVER[&#x27;HTTP_HOST&#x27;];</span><br><span class="line">	header(&#x27;Location: &#x27;.$uri.&#x27;/blog/&#x27;);</span><br><span class="line">	exit;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>笔记</category>
