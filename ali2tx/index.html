@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="阿里云转战腾讯云-全纪录" />
+    <meta name="hexo-theme-A4" content="v1.9.7" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+    
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            <div class="left-toc-container">
+                <nav id="toc" class="bs-docs-sidebar"></nav>
+            </div>
+        
+        <div class="paper">
+            
+            
+            
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div> 
+        
+                    
+                    
+
+                    
+                    
+                    
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    阿里云转战腾讯云-全纪录
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2025-02-28</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：659</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：2分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%9C%BA%E5%99%A8%E8%BF%81%E7%A7%BB%E5%85%A8%E8%AE%B0%E5%BD%95%E3%80%82"><span class="post-toc-text">机器迁移全记录。</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-JDK"><span class="post-toc-text">1.JDK</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-maven"><span class="post-toc-text">2.maven</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-cmake"><span class="post-toc-text">3.cmake</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-xampp"><span class="post-toc-text">4.xampp</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-%E8%BF%81%E7%A7%BBwordpress%E3%80%82"><span class="post-toc-text">4.迁移wordpress。</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-redis%E8%BF%81%E7%A7%BB%E3%80%82"><span class="post-toc-text">5.redis迁移。</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#6-server%E5%92%8Chtdocs%E8%BF%81%E7%A7%BB%E3%80%82"><span class="post-toc-text">6.server和htdocs迁移。</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#7-maven%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93%E5%92%8CSVN%E3%80%82"><span class="post-toc-text">7.maven私有仓库和SVN。</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="机器迁移全记录。"><a href="#机器迁移全记录。" class="headerlink" title="机器迁移全记录。"></a>机器迁移全记录。</h1><p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hMnUVP"><a target="_blank" rel="noopener" href="https://z3.ax1x.com/2021/08/27/hMnUVP.md.png" title="hMnUVP.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/08/27/hMnUVP.md.png" alt="hMnUVP.md.png"></a></a></p>
+<span id="more"></span>
+
+<h3 id="1-JDK"><a href="#1-JDK" class="headerlink" title="1.JDK"></a>1.JDK</h3><p>/usr/local/java/下，放jdk11和jdk1.8。default软连接到jdk11。</p>
+<p>/etc/profile 文件加入环境变量指向default。执行source /etc/profile</p>
+<h3 id="2-maven"><a href="#2-maven" class="headerlink" title="2.maven"></a>2.maven</h3><p>/usr/local/mvn/下，放maven解压包，加入环境变量。</p>
+<h3 id="3-cmake"><a href="#3-cmake" class="headerlink" title="3.cmake"></a>3.cmake</h3><p>/opt下放cmake的解压包，加入环境变量。</p>
+<h3 id="4-xampp"><a href="#4-xampp" class="headerlink" title="4.xampp"></a>4.xampp</h3><p>/opt下放xampp的安装文件，xampp-xxx.run文件。</p>
+<p>chmod -R 755 xampp-linux-xxx-installer.run 添加执行权限。</p>
+<p>./xampp-linux-xxx-installer.run 执行安装。</p>
+<p>安装的过程就不多说了，也不用设置什么，无非就是问你时候确定一些选项，出现提问，直接按 回车 下去即可。xampp默认安装在/opt/lampp下</p>
+<p>安装完毕之后，并没有运行，我们需要手动启动xampp服务，也就是启动apache，ftp和mysql这些服务器。使用命令</p>
+<p>/opt/lampp/lampp start</p>
+<p>此时，lampp组件就成功启动了，但它并不是每次随系统启动<br>输入以下命令<br>ln -s /opt/lampp/lampp /etc/rc.d/rc3.d/S99lampp<br>ln -s /opt/lampp/lampp /etc/rc.d/rc4.d/S99lampp<br>ln -s /opt/lampp/lampp /etc/rc.d/rc5.d/S99lampp</p>
+<p>这样，就随系统启动了！</p>
+<p>环境安装完了，但是MySQL的密码是多少，ftp的账号密码也是多少？我们不知道，这个默认为空，还需要我们自己设置。【要先在文本上面写好先在复制安全点，不然密码设置成什么自己都不记得了】输入命令</p>
+<p>sudo /opt/lampp/lampp security</p>
+<p>如图所示:他会依次要求你</p>
+<p>1、先输入xampp控制面板的密码（用户名是xampp）；</p>
+<p>2、输入phpmyadmin的密码（用户名是pma）</p>
+<p>3、输入mysql的密码（用户名是root）</p>
+<p>4、输入ftp密码（用户名是daemon，默认端口21）</p>
+<p>9、在浏览器输入服务器的ip访问看一下成功了没有？</p>
+<p>由于服务器设置了xampp不允许远程访问，所以远程不能访问需要修改conf文件</p>
+<p>vi /opt/lampp/etc/extra/httpd-xampp.conf</p>
+<p>将  Require local 改成 Require all granted</p>
+<p>/opt/lampp/lampp restart 重启xampp</p>
+<p>到此xampp安装完成</p>
+<p>mysql指令无法执行，简单的方法是可以直接将/opt/lampp/bin/目录添加到环境变量中，这样就可以直接使用mysql和mysqldump命令了。</p>
+<p>打开 ~/.bashrc 文件<br>在最后一行加入<br># PATH<br>export PATH=/opt/lampp/bin:$PATH<br>保存退出执行该文件中的命令<br>source ~/.bashrc</p>
+<p>修改/opt/lampp/etc/my.cnf 配置文件，开放3306端口。可能需要重启服务器，注意查看下mysql是否启动在33066端口上。</p>
+<h3 id="4-迁移wordpress。"><a href="#4-迁移wordpress。" class="headerlink" title="4.迁移wordpress。"></a>4.迁移wordpress。</h3><h3 id="5-redis迁移。"><a href="#5-redis迁移。" class="headerlink" title="5.redis迁移。"></a>5.redis迁移。</h3><h3 id="6-server和htdocs迁移。"><a href="#6-server和htdocs迁移。" class="headerlink" title="6.server和htdocs迁移。"></a>6.server和htdocs迁移。</h3><h2 id="7-maven私有仓库和SVN。"><a href="#7-maven私有仓库和SVN。" class="headerlink" title="7.maven私有仓库和SVN。"></a>7.maven私有仓库和SVN。</h2><p>8.nginx安装<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wyd168/p/6636529.html">https://www.cnblogs.com/wyd168/p/6636529.html</a></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2018-10-01</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%BD%91%E7%AB%99/'>
+                            网站
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/wordpress/'>WordPress上传权限问题及主题</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/geohash/">地理位置信息GeoHash算法及Google S2算法</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+                                      
+                    
+                    
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->  
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->  
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>

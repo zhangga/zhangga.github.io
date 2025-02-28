@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="Debugging Remotely with Go in Kubernetes[zz]" />
+    <meta name="hexo-theme-A4" content="v1.9.7" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+    
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            <div class="left-toc-container">
+                <nav id="toc" class="bs-docs-sidebar"></nav>
+            </div>
+        
+        <div class="paper">
+            
+            
+            
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div> 
+        
+                    
+                    
+
+                    
+                    
+                    
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    Debugging Remotely with Go in Kubernetes[zz]
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2025-02-28</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：6分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Example-Code"><span class="post-toc-text">Example Code</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Remote-Debugging"><span class="post-toc-text">Remote Debugging</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Debugging-the-Pod"><span class="post-toc-text">Debugging the Pod</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Conclusion"><span class="post-toc-text">Conclusion</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>zz: <a target="_blank" rel="noopener" href="https://alexsniffin.medium.com/debugging-remotely-in-kubernetes-with-go-fda4f3332316">https://alexsniffin.medium.com/debugging-remotely-in-kubernetes-with-go-fda4f3332316</a></p>
+<p>Proper testing can be difficult and even seem impossible. Following best practices to test your code is a good start, but you’re still going to run into edge cases where things aren’t as expected. One challenge in particular, is being able to accurately simulate your deployments remote environment.</p>
+<p>Figuring out the inconsistencies to why your program works on your local machine but not on another machine can be painstakingly frustrating. Maybe it’s the version of your compiler, your operating system, configuration, or certain dependencies that were missed— etcetera-etcetera.</p>
+<p>This has been a common problem with software development and why the rise of <a target="_blank" rel="noopener" href="https://www.ibm.com/topics/containerization">virtualization and containerization have become so popular, especially in cloud-based applications</a>. Even so, things can still go wrong with your VM’s and containers.</p>
+<p>Let’s take a look into how debugging your application’s runtime in it’s deployed environment can help you quickly find the root cause to what isn’t working as expected. For this example we’ll use Go to write the application and deploy it to Kubernetes in a Docker container.</p>
+<h1 id="Example-Code"><a href="#Example-Code" class="headerlink" title="Example Code"></a>Example Code</h1><p>Lets create a simple API that can calculate a value in the Fibonacci sequence that we want to be able to debug. I’ll be using <a target="_blank" rel="noopener" href="https://github.com/go-chi/chi">Chi</a> as the router and then use the <a target="_blank" rel="noopener" href="https://pkg.go.dev/net/http@go1.19.3">stdlib</a> to run the server. I’ve tried to keep the example simple, you can checkout the <a target="_blank" rel="noopener" href="https://github.com/alexsniffin/go-blog3-example">repo</a> to see all of the code.</p>
+<p>Let’s first create a handler that takes a query parameter of n and calls the Fibonacci function.</p>
+<iframe src="https://alexsniffin.medium.com/media/ab6e886ad4073a10f0ee293e70940f46" allowfullscreen="" frameborder="0" height="307" width="680" title="Blog3Example1_1.go" class="fp n gf dv bg" scrolling="no" style="box-sizing: inherit; top: 0px; width: 680px; height: 307px; position: absolute; left: 0px;"></iframe>
+
+<p>Then for the Fibonacci function, I wrote the <a target="_blank" rel="noopener" href="https://www.geeksforgeeks.org/what-is-memoization-a-complete-tutorial/">memoized</a> implementation.</p>
+<iframe src="https://alexsniffin.medium.com/media/8a2375ee5e2710f323efc71d9763427b" allowfullscreen="" frameborder="0" height="329" width="680" title="Blog3Example1_1.go" class="fp n gf dv bg" scrolling="no" style="box-sizing: inherit; top: 0px; width: 680px; height: 329px; position: absolute; left: 0px;"></iframe>
+
+<h1 id="Remote-Debugging"><a href="#Remote-Debugging" class="headerlink" title="Remote Debugging"></a>Remote Debugging</h1><p>To debug the container we’ll need to set up remote debugging, to do this, we can use the popular Go debugger <a target="_blank" rel="noopener" href="https://github.com/derekparker/delve">Delve</a>. Delve supports attaching to a process and will allow us to introspect our application in the runtime. To debug, Delve is supported in a few IDE’s and editors including <a target="_blank" rel="noopener" href="https://blog.jetbrains.com/go/2019/02/06/debugging-with-goland-getting-started/">GoLand</a> and <a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/languages/go#_debugging">VS Code</a>. For this example I’ll be using GoLand.</p>
+<p>We’ll need a Dockerfile which has the Delve binary in it which we’ll be able to remotely execute the application binary. The command I’ll be using is:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dlv --listen=:40000 --headless=true --api-version=2 --log exec ./example</span><br></pre></td></tr></table></figure>
+
+<p>Where the listening port is 40,000 and it points to the example binary. The complete Dockerfile downloads Delve, builds the app, and starts the Delve process.</p>
+<iframe src="https://alexsniffin.medium.com/media/55081a02d05948e449d3bc87c0d1541c" allowfullscreen="" frameborder="0" height="637" width="680" title="Blog3Example1_3.debug.Dockerfile" class="fp n gf dv bg" scrolling="no" style="box-sizing: inherit; top: 0px; width: 680px; height: 637px; position: absolute; left: 0px;"></iframe>
+
+<p>When running the container, we want to make sure we set the binded ports to map with what we’re using for the example app and Delve. The following build and run commands will work for this example.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker build -t go-blog3-example -f .\debug.Dockerfile .</span><br><span class="line">docker run -p 8080:8080 -p 40000:40000 --name example go-blog3-example:latest</span><br></pre></td></tr></table></figure>
+
+<p>Similarly, we can use the interface in GoLand to do this too.</p>
+<p><a target="_blank" rel="noopener" href="https://miro.medium.com/v2/resize:fit:700/1*LRql3LDD2wVDg1jgLz3V_g.png" title="docker in goland" class="gallery-item" style="box-shadow: none;"> <img src="https://miro.medium.com/v2/resize:fit:700/1*LRql3LDD2wVDg1jgLz3V_g.png" alt="docker in goland"></a></p>
+<p>Now for the fun part, lets remotely connect! In GoLand we can do this by creating a new Run configuration with the Go Remote option.</p>
+<p><a target="_blank" rel="noopener" href="https://miro.medium.com/v2/resize:fit:211/1*ElWmHRQ1vlOoZ_IVnUDi_Q.png" title="run configuration for go remote" class="gallery-item" style="box-shadow: none;"> <img src="https://miro.medium.com/v2/resize:fit:211/1*ElWmHRQ1vlOoZ_IVnUDi_Q.png" alt="run configuration for go remote"></a></p>
+<p>Then using the following settings.</p>
+<p><a target="_blank" rel="noopener" href="https://miro.medium.com/v2/resize:fit:700/1*_xrt7a_nDH0kZQ3bfahoeQ.png" title="go remote settings" class="gallery-item" style="box-shadow: none;"> <img src="https://miro.medium.com/v2/resize:fit:700/1*_xrt7a_nDH0kZQ3bfahoeQ.png" alt="go remote settings"></a></p>
+<p>With the container running, we should be able to remotely start the debugging session.</p>
+<p><a target="_blank" rel="noopener" href="https://miro.medium.com/v2/resize:fit:588/1*BV7-2OOWvPpwgN8i55LYyA.png" title="debug window" class="gallery-item" style="box-shadow: none;"> <img src="https://miro.medium.com/v2/resize:fit:588/1*BV7-2OOWvPpwgN8i55LYyA.png" alt="debug window"></a></p>
+<p>Awesome! That’s it but now lets see how we can utilize this through Kubernetes with a pod to debug the container in the same environment that it normally runs in.</p>
+<h1 id="Debugging-the-Pod"><a href="#Debugging-the-Pod" class="headerlink" title="Debugging the Pod"></a>Debugging the Pod</h1><p>Lets say we currently already have the container running normally as a Deployment and it’s currently receiving traffic. We’ve noticed that there’s odd behavior happening and we can’t accurately replicate what’s happening locally. For this, we’ll want to stand up a new pod along side our current deployment and start debugging.</p>
+<p>To do this, we can add the new container as a standalone pod from the normal deployment. If you have additional resources that you’ll need, you’ll want to be sure to include them too. You can do that with kubectl apply, your Kubernetes package manager or CD tool.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl run example --image=asniffin/go-blog3-example:latest --namespace=blog</span><br><span class="line">pod/example created</span><br></pre></td></tr></table></figure>
+
+<p>We should be able to check the state of the pod and see it’s running.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl describe pod example --namespace=blog</span><br><span class="line">...</span><br><span class="line">Conditions:</span><br><span class="line">  Type              Status</span><br><span class="line">  Initialized       True</span><br><span class="line">  Ready             True</span><br><span class="line">  ContainersReady   True</span><br><span class="line">  PodScheduled      True</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>Then checking the logs, we can see that it’s listening for a connection.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl logs example --namespace=blog</span><br><span class="line">API server listening at: [::]:40000</span><br><span class="line">2022-11-23T18:37:00Z warning layer=rpc Listening for remote connections (connections are not authenticated nor encrypted)</span><br><span class="line">2022-11-23T18:37:00Z info layer=debugger launching process with args: [./example]</span><br></pre></td></tr></table></figure>
+
+<p>Now to debug from our local machine, we need to tunnel to the pod with the correct ports and protocol. To do this, we can use the port-forward kubectl command provided our pod and ports.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl port-forward pods/example 8080:8080 40000:40000 --namespace=blog</span><br><span class="line">Forwarding from 127.0.0.1:8080 -&gt; 8080</span><br><span class="line">Forwarding from [::1]:8080 -&gt; 8080</span><br><span class="line">Forwarding from 127.0.0.1:40000 -&gt; 40000</span><br><span class="line">Forwarding from [::1]:40000 -&gt; 40000</span><br></pre></td></tr></table></figure>
+
+<p>Now when running the remote debugger we should be able to connect and start debugging! Let’s try with sending a request to the fib endpoint.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; curl http://localhost:8080/fib?n=10</span><br><span class="line">55</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://miro.medium.com/v2/resize:fit:621/1*YngWz7M0Y419StR8H2G9nQ.png" title="debug window from kubernetes" class="gallery-item" style="box-shadow: none;"> <img src="https://miro.medium.com/v2/resize:fit:621/1*YngWz7M0Y419StR8H2G9nQ.png" alt="debug window from kubernetes"></a></p>
+<p>Nice 😎! We can see that we’re able to both debug and send requests to the pod. With this, we can accurately debug the container and pod in the same environment where it’s deployed and with all of it’s remote resources. Remember to remove your pod when you’ve finished!</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl delete pod example --namespace=blog</span><br><span class="line">pod &quot;example&quot; deleted</span><br></pre></td></tr></table></figure>
+
+<h1 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h1><p>Debugging is an effective tool that every developer should keep on their tool belt. When it’s difficult to simulate your applications environment, being able to accurately pinpoint the root cause to a problem can prove to be difficult. Remotely debugging your application lets you quickly introspect the runtime and observe the behavior of your application.</p>
+<p>Thanks for reading!</p>
+<p><em>Disclaimer: Doing this in production should be done with caution, probably best left in a development or QA environment!</em></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2024-01-18</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/go/'>
+                            go
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/debug-go-compiler/'>Debugging Go compiler performance in a large codebase[zz]</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/llvm-clang/">centos安装LLVM和CLANG</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+                                      
+                    
+                    
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->  
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->  
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
