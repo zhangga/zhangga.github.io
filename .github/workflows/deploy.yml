@@ -17,7 +17,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'  # 设置 Node.js 版本
+        node-version: '22'  # 设置 Node.js 版本
 
     - name: Cache node_modules
       uses: actions/cache@v3
