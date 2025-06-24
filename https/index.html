@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="JAVA HTTPS服务" />
+    <meta name="hexo-theme-A4" content="v1.9.7" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+    
+    
+    
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            <div class="left-toc-container">
+                <nav id="toc" class="bs-docs-sidebar"></nav>
+            </div>
+        
+        <div class="paper">
+            
+            
+            
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+            
+                <li><a href="/">首页</a></li>
+            
+        
+            
+                <li><a href="/list/">文章</a></li>
+            
+        
+            
+                <li><a href="/about/">关于</a></li>
+            
+        
+            
+                <li><a href="/tags/">标签</a></li>
+            
+        
+            
+                <li><a href="/categories/">分类</a></li>
+            
+        
+    </ul>
+</div> 
+        
+                    
+                    
+
+                    
+                    
+                    
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    JAVA HTTPS服务
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2025-01-10</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：497</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：2分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%88%86%E8%87%AA%E7%AD%BE%E8%AF%81%E4%B9%A6%E5%92%8CCA%E8%AF%81%E4%B9%A6%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E3%80%82"><span class="post-toc-text">分自签证书和CA证书两种方式。</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E5%88%B6%E4%BD%9C%E4%B8%80%E5%BC%A0%E8%87%AA%E7%AD%BE%E8%AF%81%E4%B9%A6%EF%BC%88jks%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="post-toc-text">一、制作一张自签证书（jks格式）</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%9C%A8%E7%A8%8B%E5%BA%8F%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E6%97%B6%E5%80%99%E7%94%9F%E6%88%90SSLContext"><span class="post-toc-text">在程序初始化的时候生成SSLContext</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%9C%A8ChannelInitializer%E7%9A%84initChannel%E4%B8%AD"><span class="post-toc-text">在ChannelInitializer的initChannel中</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81CA%E8%AF%81%E4%B9%A6"><span class="post-toc-text">二、CA证书</span></a>
+            
+        
+        <div class=".article-gallery"><h2 id="分自签证书和CA证书两种方式。"><a href="#分自签证书和CA证书两种方式。" class="headerlink" title="分自签证书和CA证书两种方式。"></a>分自签证书和CA证书两种方式。</h2><h1 id="一、制作一张自签证书（jks格式）"><a href="#一、制作一张自签证书（jks格式）" class="headerlink" title="一、制作一张自签证书（jks格式）"></a>一、制作一张自签证书（jks格式）</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#keytool -genkey -keysize 2048 -validity 3650 -keyalg RSA -dname &quot;CN=myyiba.com&quot; -keypass 123456 -storepass 123456 -keystore myyiba.jks</span><br></pre></td></tr></table></figure>
+
+<p>keytool为JDK提供的生成证书工具</p>
+<ul>
+<li>-keysize 2048 密钥长度2048位（这个长度的密钥目前可认为无法被暴力破解）</li>
+<li>-validity 3650 证书有效期3650天</li>
+<li>-keyalg RSA 使用RSA非对称加密算法</li>
+<li>-dname “CN=myyiba.com” 设置Common Name为myyiba.com，这是我的域名</li>
+<li>-keypass 123456 密钥的访问密码为123456</li>
+<li>-storepass 123456 密钥库的访问密码为123456（其实这两个密码也可以设置一样，通常都设置一样，方便记）</li>
+<li>-keystore myyiba.jks 指定生成的密钥库文件为 myyiba .jks</li>
+</ul>
+<p>完了之后就拿到了myyiba.jks这个密钥库文件了，把它放到自己的项目目录下，比如：/usr/local/server/project/resource/myyiba.jks</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">项目示例：github下HttpServerInitializer</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h1 id="在程序初始化的时候生成SSLContext"><a href="#在程序初始化的时候生成SSLContext" class="headerlink" title="在程序初始化的时候生成SSLContext"></a>在程序初始化的时候生成SSLContext</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">keyStore ks = KeyStore.getInstance(&quot;JKS&quot;);</span><br><span class="line">InputStream ksInputStream = new FileInputStream(&quot;/usr/local/server/project/resource/myyiba.jks&quot;);</span><br><span class="line">ks.load(ksInputStream, &quot;123456&quot;.toCharArray());</span><br><span class="line">keyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());</span><br><span class="line">kmf.init(ks, &quot;123456&quot;.toCharArray());</span><br><span class="line">SSLContext sslContext = SSLContext.getInstance(&quot;TLS&quot;);</span><br><span class="line">sslContext.init(kmf.getKeyManagers(), null, null);</span><br></pre></td></tr></table></figure>
+
+<p>这个过程在整个程序周期只需要做一次，最好try-catch一下，以便检查异常，好了之后保存好sslContext，后面用到。</p>
+<h1 id="在ChannelInitializer的initChannel中"><a href="#在ChannelInitializer的initChannel中" class="headerlink" title="在ChannelInitializer的initChannel中"></a>在ChannelInitializer的initChannel中</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void initChannel(SocketChannel socketChannel) throws Exception &#123;</span><br><span class="line">SSLEngine sslEngine = sslContext.createSSLEngine();</span><br><span class="line">sslEngine.setUseClientMode(false); //服务器端模式</span><br><span class="line">sslEngine.setNeedClientAuth(false); //不需要验证客户端</span><br><span class="line">socketChannel.pipeline().addLast(&quot;ssl&quot;, new SslHandler(sslEngine)); //搞定</span><br><span class="line">//...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="二、CA证书"><a href="#二、CA证书" class="headerlink" title="二、CA证书"></a>二、CA证书</h1><p>例如微信小程序的服务器，需要CA证书的HTTPS服务，阿里云提供免费的SSL证书，申请证书后，下载tomcat版。解压有后两个文件：xxx.pfx和pfx-password.txt。</p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/hBsD5q"><a target="_blank" rel="noopener" href="https://z3.ax1x.com/2021/09/01/hBsD5q.md.png" title="hBsD5q.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/09/01/hBsD5q.md.png" alt="hBsD5q.md.png"></a></a></p>
+<p>pfx文件类似上面的自签证书xxx.jks文件。加载证书的密码在<br>pfx-password.txt文件中。</p>
+<p>同上面自签证书一样的方式加载CA证书SSL。项目地址见同一个GitHub项目。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2019-01-12</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/JAVA/'>
+                            JAVA
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/jvm-self/'>自己动手写JVM</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/zset/">JAVA版ZSet性能测试</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+                                      
+                    
+                    
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->  
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->  
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
