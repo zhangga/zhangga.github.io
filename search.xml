@@ -44,6 +44,86 @@
       </tags>
   </entry>
   <entry>
+    <title>APP开发选型</title>
+    <url>/app-dev/</url>
+    <content><![CDATA[<div class=".article-gallery"><h2 id="这次真的是从入坑到弃坑。最后还是觉得使用flutter"><a href="#这次真的是从入坑到弃坑。最后还是觉得使用flutter" class="headerlink" title="这次真的是从入坑到弃坑。最后还是觉得使用flutter"></a>这次真的是从入坑到弃坑。最后还是觉得使用flutter</h2><p>在使用weex做了一个简单的应用，调通通信和资源加载后，发现坑还是很多的。</p>
+<p>主要weex适合用来做单页面的开发，开发完整的APP还是有一些局限性，在浏览器端调试也存在问题。</p>
+<p>主要还是社区和文档很不齐全。</p>
+<p>为什么选择flutter呢？</p>
+<span id="more"></span>
+
+<p>1.google爸爸背书。</p>
+<p>2.dart开发。（自己对JS不熟悉。常年使用JAVA）</p>
+<p>3.idea，和服务器端统一IDE。</p>
+<p>4.flutter的理念才是跨平台的最终解决方案。</p>
+<p>5.感觉不能再好了、</p>
+<p>ps：就在前几天（2018.12.5）出正式1.0版本了</p>
+<h2 id="原文："><a href="#原文：" class="headerlink" title="原文："></a>原文：</h2><p>最近有做一款APP的想法，调研下开发工具链。一直做游戏开发，引擎用过u3d，cocos，egret。</p>
+<p>最终决定使用weex。</p>
+<p>学习整理：</p>
+<p><a href="https://segmentfault.com/a/1190000011027225">https://segmentfault.com/a/1190000011027225</a></p>
+<p>html，css的基础知识；</p>
+<p>Node：<a href="http://www.runoob.com/nodejs/nodejs-tutorial.html">《Node.js 教程》</a><br>Vue：<a href="https://cn.vuejs.org/v2/guide/">《Vue.js官方教程》</a><br>ES6：<a href="http://es6.ruanyifeng.com/">《ECMAScript 6 入门》</a></p>
+<p>转载：<a href="https://www.jianshu.com/p/33246251cfae">https://www.jianshu.com/p/33246251cfae</a></p>
+<h1 id="浅谈Native、Web-App、Hybrid、ReactNative和WEEX的优劣"><a href="#浅谈Native、Web-App、Hybrid、ReactNative和WEEX的优劣" class="headerlink" title="浅谈Native、Web App、Hybrid、ReactNative和WEEX的优劣"></a>浅谈Native、Web App、Hybrid、ReactNative和WEEX的优劣</h1><h1 id="一句话概要"><a href="#一句话概要" class="headerlink" title="一句话概要"></a>一句话概要</h1><blockquote>
+<p>Native、Web App、Hybrid、ReactNative（后面以RN简称）、WEEX间的异同点</p>
+</blockquote>
+<h1 id="APP常用开发模式【简介】"><a href="#APP常用开发模式【简介】" class="headerlink" title="APP常用开发模式【简介】"></a>APP常用开发模式【简介】</h1><p>此处APP为应用，application，并非我们通常讲的手机App<br><a href="https://link.jianshu.com/?t=http://naotu.baidu.com/file/6af15fcbb72f89926043779811b1ea44?token=df0378691ecdcef2">常用的几种APP开发模式-脑图</a></p>
+<h2 id="Native-App"><a href="#Native-App" class="headerlink" title="Native App"></a>Native App</h2><p>传统的原生APP开发模式，有IOS和AOS两大系统，需要各自语言开发各自APP。</p>
+<p><strong>优点</strong>：性能和体验都是最好的<br><strong>缺点</strong>：开发和发布成本高<br><strong>举个栗子</strong>：<a href="https://link.jianshu.com/?t=https://id.163.com/gj/">网易管家APP</a> （Tab1，Tab2）<br><strong>应用技术</strong>：Swift，OC，JAVA</p>
+<h2 id="WebApp"><a href="#WebApp" class="headerlink" title="WebApp"></a>WebApp</h2><p>移动端的网站，常被称为H5应用，说白了就是特定运行在移动端浏览器上的网站应用。一般泛指 SPA(Single Page Application)模式开发出的网站，与MPA（Multi-page Application，再后面做介绍）对应。</p>
+<p><strong>优点</strong>：开发和发布成本最低<br><strong>缺点</strong>：性能和体验不能讲是最差的，但也受到浏览器处理能力的限制，多次下载同样会占用用户一定的流量<br><strong>举个栗子</strong>：<a href="https://link.jianshu.com/?t=https://id.163.com/gj/">网易管家APP</a>（Tab3）<br><strong>应用技术</strong>：ReactJS，RegularJS等</p>
+<h2 id="Hybrid-App"><a href="#Hybrid-App" class="headerlink" title="Hybrid App"></a>Hybrid App</h2><p>混合模式移动应用，介于web-app、native-app这两者之间的app，兼具“Native App良好交互体验的优势”和“Web App跨平台开发的优势”（百度百科解释）</p>
+<p>主要的原理是，由Native通过JSBridge等方法提供统一的API，然后用HTML+CSS实现界面，JS来写逻辑，调用API，最终的页面在webview中显示，这种模式下，Android、iOS的API一般有一致性，Hybrid App所有有跨平台效果。</p>
+<p><strong>优点</strong>：开发和发布都比较方便，效率介于Native App、Web App之间<br><strong>缺点</strong>：学习范围较广，需要原生配合<br><strong>举个栗子</strong>：<a href="https://link.jianshu.com/?t=https://music.163.com/#/download">网易云音乐</a>，我爱我家App<br><strong>应用技术</strong>：PhoneGap，AppCan，Wex5</p>
+<h2 id="React-Native-App"><a href="#React-Native-App" class="headerlink" title="React Native App"></a>React Native App</h2><p>Facebook发现Hybrid App存在很多缺陷和不足，于是发起开源的一套新的APP开发方案RN App。。使用JSX语言写原生界面，js通过JSBridge调用原生API渲染UI交互通信。</p>
+<p><strong>优点</strong>：效率体验接近Native App，发布和开发成本低于Native App<br><strong>缺点</strong>：学习有一定成本，且文档较少，免不了踩坑<br><strong>举个栗子</strong>：Facebook、youtube、discord、QQ、百度等等</p>
+<h2 id="WEEX-App"><a href="#WEEX-App" class="headerlink" title="WEEX App"></a>WEEX App</h2><p>阿里巴巴开发团队在RN的成功案例上，重新设计出的一套开发模式，站在了巨人肩膀上并有淘宝团队项目做养料，广受关注，2016年4月正式开源，并在v2.0版本官方支持Vue.js，与RN分庭抗礼。</p>
+<p><strong>优点</strong>：开发效率和体验上跟RN不相上下，并且跨平台性更强<br><strong>缺点</strong>：刚刚起步，社区没有RN活跃<br><strong>举个栗子</strong>：淘宝、天猫、饿了么等</p>
+<h1 id="继续剖析"><a href="#继续剖析" class="headerlink" title="继续剖析"></a>继续剖析</h1><h2 id="Native-App-1"><a href="#Native-App-1" class="headerlink" title="Native App"></a>Native App</h2><p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-70fa348f3db0fca7.png?w=640" title="APP开发选型 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-70fa348f3db0fca7.png?w=640" alt="APP开发选型 - 第1张  | 张嘎"></a></p>
+<p>Native App是一种基于智能手机本地操作系统如iOS、Android、WP并使用原生程式编写运行的第三方应用程序,也叫本地app。一般使用的开发语言为JAVA、C++、Objective-C。</p>
+<p>自iOS和Android这两个的手机操作系统发布以来，在互联网界从此就多了一个新的名词：App意为运行在智能的移动终端设备第三方应用程序)。</p>
+<p>Native App因为位于平台层上方，向下访问和兼容的能力会比较好一些，可以支持在线或离线，消息推送或本地资源访问，摄像拨号功能的调取。但是由于设备碎片化，App的开发成本要高很多，维持多个版本的更新升级比较麻烦，用户的安装门槛也比较高。但是比较乐观的是，AppStore培养了一种比较好的用户付费模式，所以在Apple的生态圈里，开发者的盈利模式是一种明朗状态，其他market也在往这条路上靠拢。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><p>1、相比于其它模式，提供最佳的用户体验，最优质的用户界面，最华丽的交互<br>2、针对不同平台提供不同体验<br>3、可节省带宽成本，打开速度更快<br>4、功能最为强大,特别是在与系统交互中,几乎所有功能都能实现</p>
+<h3 id="劣势"><a href="#劣势" class="headerlink" title="劣势"></a>劣势</h3><p>1、门槛高，原生开发人才稀缺，至少比前端和后端少，开发环境昂贵<br>2、无法跨平台，开发的成本比较大，各个系统独立开发<br>3、发布成本高，需要通过store或market的审核，导致更新缓慢<br>4、维持多个版本、多个系统的成本比较高，而且必须做兼容<br>5、应用市场逐渐饱和，怎么样抢占用户时间需要投入大量时间和金钱，这也导致“僵尸”App的增多</p>
+<h2 id="WebApp-1"><a href="#WebApp-1" class="headerlink" title="WebApp"></a>WebApp</h2><p><a href="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-a16fa91905d4214e.png?w=640" title="APP开发选型 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-a16fa91905d4214e.png?w=640" alt="APP开发选型 - 第2张  | 张嘎"></a></p>
+<p>说到Web App不少人会联想到WAP，或者有人认为，WAP就是WebApp，其实不然。</p>
+<p>WebApp与WAP最直接的区别就是功能层面。WAP更侧重使用网页技术在移动端做展示，包括文字、媒体文件等。而Web App更侧重“功能”，是使用网页技术实现的App。总的来说，Web App就是运行于网络和标准浏览器上，基于网页技术开发实现特定功能的应用。</p>
+<p>响应式的大部分技术都是为实现WebApp能适配多类客户端而设计的。</p>
+<p>Web网站一般分两种，MPA(Multi-page Application)和SPA(Single-page Application)。而WebApp一般泛指SPA形式开发出的网站。这样更像是一个App。</p>
+<h3 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h3><p>1、可以跨平台，调试方便<br>2、无需安装，不会占用手机内存，而且更新速度最快<br>3、不存在多版本问题，维护成本低<br>4、临时入口，可以随意嵌入</p>
+<h3 id="劣势-1"><a href="#劣势-1" class="headerlink" title="劣势"></a>劣势</h3><p>1、依赖于网络，第一次访问页面速度慢，耗费流量<br>2、受限于手机和浏览器性能，用户体验相较于其他模式最差<br>3、功能受限，大量移动端功能无法实现<br>4、入口强依赖于第三方浏览器，且只能以URL地址的形式存在，导致用户留存率低（优点即缺点）</p>
+<h2 id="Hybird-App"><a href="#Hybird-App" class="headerlink" title="Hybird App"></a>Hybird App</h2><p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-e8ed4f0375d2639b.png?w=640" title="APP开发选型 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-e8ed4f0375d2639b.png?w=640" alt="APP开发选型 - 第3张  | 张嘎"></a></p>
+<p>混合开发，也就是半原生半Web的开发模式，由原生提供统一的API给JS调用，实际的主要逻辑有Html和JS来完成，最终是放在webview中显示的，所以只需要写一套代码即可达到跨平台效果，另外也可以直接在浏览器中调试，很方便。最重要的是只需要一个前端人员稍微学习下JS api的调用即可。</p>
+<p>Hybird App 的较早实践者是PhoneGap，随后遍地开花，如Titanium、Salama、WeX5、Kerkee和国内的AppCan，项目各有各的实现方式，大致的原理基本相同。有幸在AppCan上海总部参与过一段时间的学习研究，如下大致简介：</p>
+<p>AppCan是基于HTML5技术的Hybird跨平台移动应用开发工具。开发者利用HTML5+CSS3+JavaScript技术，通过AppCan IDE集成开发系统、云端打包器等，快速开发出Android、iOS、WP平台上的移动应用。</p>
+<p>AppCan的平台构成</p>
+<p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-cd8c63378a612022.png?w=640" title="APP开发选型 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-cd8c63378a612022.png?w=640" alt="APP开发选型 - 第4张  | 张嘎"></a></p>
+<p>在实际的APP开发中，AppCan可以完成大部分的工作量，如图示：</p>
+<p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-634591b2598fa8ad.png?w=640" title="APP开发选型 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-634591b2598fa8ad.png?w=640" alt="APP开发选型 - 第5张  | 张嘎"></a></p>
+<p>AppCan将APP底层复杂的原生功能封装在引擎、插件中，开发者仅需调用接口、打包编译，就可以获得原生功能；灵活的插件扩展机制。</p>
+<p>开发者可以像开发WebApp一样开发app的视觉UI，以及绝大部分的交互，当需要使用原生功能（如摄像头，陀螺仪等功能）时，只需要调用官方的API就可以轻松实现Native的效果。至于JS和Native的通信，常用的有URL监听和绝大部分Hybrid厂商使用的JSBridge通信，两者原理相近。</p>
+<p><a href="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-400b4c6162d774f4.png?w=640" title="APP开发选型 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-400b4c6162d774f4.png?w=640" alt="APP开发选型 - 第6张  | 张嘎"></a></p>
+<p>JsBridge通信简图</p>
+<p>关于JsBridge的原理详解，可见<a href="https://link.jianshu.com/?t=http://blog.csdn.net/xiangzhihong8/article/details/66970600">http://blog.csdn.net/xiangzhihong8/article/details/66970600</a></p>
+<p>在Hybird概念盛行的时候，国内外各大公司也参与了探索，国外代表有Facebook、google、亚马逊，国内的有腾讯、阿里巴巴、网易等，慢慢的他们发现Hybird严重受限于WebView的解析渲染效率，于是Facebook开始了他的类原生的研究探索。</p>
+<h2 id="React-Native-App-1"><a href="#React-Native-App-1" class="headerlink" title="React Native App"></a>React Native App</h2><p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-846d1bcbe4f9b505.png?w=640" title="APP开发选型 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-846d1bcbe4f9b505.png?w=640" alt="APP开发选型 - 第7张  | 张嘎"></a></p>
+<p>请移驾 <a href="https://link.jianshu.com/?t=https://segmentfault.com/a/1190000010989345">【笔记】React Native 快速入门笔记</a></p>
+<h2 id="Weex-App"><a href="#Weex-App" class="headerlink" title="Weex App"></a>Weex App</h2><p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-ec1e7c9c4de9f9c0.png?w=640" title="APP开发选型 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-ec1e7c9c4de9f9c0.png?w=640" alt="APP开发选型 - 第8张  | 张嘎"></a></p>
+<p>请移驾<a href="https://link.jianshu.com/?t=https://segmentfault.com/a/1190000011027225">网易严选App感受Weex开发</a></p>
+<p>作者：木羽zwwill<br>链接：<a href="https://www.jianshu.com/p/33246251cfae">https://www.jianshu.com/p/33246251cfae</a><br>來源：简书<br>简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。</p>
+<p>真的从入门到放弃，fluuter</p>
+<p><a href="http://www.52im.net/thread-1870-1-1.html">http://www.52im.net/thread-1870-1-1.html</a></p>
+<p><a href="https://www.jianshu.com/p/139c5074ae5d">https://www.jianshu.com/p/139c5074ae5d</a></p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>读书笔记</title>
     <url>/booknote/</url>
     <content><![CDATA[<div class=".article-gallery"><h1 id="一、Redis"><a href="#一、Redis" class="headerlink" title="一、Redis"></a>一、Redis</h1><p>1.《redis设计与实现》</p>
@@ -152,86 +232,6 @@
       </categories>
       <tags>
         <tag>网站</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>APP开发选型</title>
-    <url>/app-dev/</url>
-    <content><![CDATA[<div class=".article-gallery"><h2 id="这次真的是从入坑到弃坑。最后还是觉得使用flutter"><a href="#这次真的是从入坑到弃坑。最后还是觉得使用flutter" class="headerlink" title="这次真的是从入坑到弃坑。最后还是觉得使用flutter"></a>这次真的是从入坑到弃坑。最后还是觉得使用flutter</h2><p>在使用weex做了一个简单的应用，调通通信和资源加载后，发现坑还是很多的。</p>
-<p>主要weex适合用来做单页面的开发，开发完整的APP还是有一些局限性，在浏览器端调试也存在问题。</p>
-<p>主要还是社区和文档很不齐全。</p>
-<p>为什么选择flutter呢？</p>
-<span id="more"></span>
-
-<p>1.google爸爸背书。</p>
-<p>2.dart开发。（自己对JS不熟悉。常年使用JAVA）</p>
-<p>3.idea，和服务器端统一IDE。</p>
-<p>4.flutter的理念才是跨平台的最终解决方案。</p>
-<p>5.感觉不能再好了、</p>
-<p>ps：就在前几天（2018.12.5）出正式1.0版本了</p>
-<h2 id="原文："><a href="#原文：" class="headerlink" title="原文："></a>原文：</h2><p>最近有做一款APP的想法，调研下开发工具链。一直做游戏开发，引擎用过u3d，cocos，egret。</p>
-<p>最终决定使用weex。</p>
-<p>学习整理：</p>
-<p><a href="https://segmentfault.com/a/1190000011027225">https://segmentfault.com/a/1190000011027225</a></p>
-<p>html，css的基础知识；</p>
-<p>Node：<a href="http://www.runoob.com/nodejs/nodejs-tutorial.html">《Node.js 教程》</a><br>Vue：<a href="https://cn.vuejs.org/v2/guide/">《Vue.js官方教程》</a><br>ES6：<a href="http://es6.ruanyifeng.com/">《ECMAScript 6 入门》</a></p>
-<p>转载：<a href="https://www.jianshu.com/p/33246251cfae">https://www.jianshu.com/p/33246251cfae</a></p>
-<h1 id="浅谈Native、Web-App、Hybrid、ReactNative和WEEX的优劣"><a href="#浅谈Native、Web-App、Hybrid、ReactNative和WEEX的优劣" class="headerlink" title="浅谈Native、Web App、Hybrid、ReactNative和WEEX的优劣"></a>浅谈Native、Web App、Hybrid、ReactNative和WEEX的优劣</h1><h1 id="一句话概要"><a href="#一句话概要" class="headerlink" title="一句话概要"></a>一句话概要</h1><blockquote>
-<p>Native、Web App、Hybrid、ReactNative（后面以RN简称）、WEEX间的异同点</p>
-</blockquote>
-<h1 id="APP常用开发模式【简介】"><a href="#APP常用开发模式【简介】" class="headerlink" title="APP常用开发模式【简介】"></a>APP常用开发模式【简介】</h1><p>此处APP为应用，application，并非我们通常讲的手机App<br><a href="https://link.jianshu.com/?t=http://naotu.baidu.com/file/6af15fcbb72f89926043779811b1ea44?token=df0378691ecdcef2">常用的几种APP开发模式-脑图</a></p>
-<h2 id="Native-App"><a href="#Native-App" class="headerlink" title="Native App"></a>Native App</h2><p>传统的原生APP开发模式，有IOS和AOS两大系统，需要各自语言开发各自APP。</p>
-<p><strong>优点</strong>：性能和体验都是最好的<br><strong>缺点</strong>：开发和发布成本高<br><strong>举个栗子</strong>：<a href="https://link.jianshu.com/?t=https://id.163.com/gj/">网易管家APP</a> （Tab1，Tab2）<br><strong>应用技术</strong>：Swift，OC，JAVA</p>
-<h2 id="WebApp"><a href="#WebApp" class="headerlink" title="WebApp"></a>WebApp</h2><p>移动端的网站，常被称为H5应用，说白了就是特定运行在移动端浏览器上的网站应用。一般泛指 SPA(Single Page Application)模式开发出的网站，与MPA（Multi-page Application，再后面做介绍）对应。</p>
-<p><strong>优点</strong>：开发和发布成本最低<br><strong>缺点</strong>：性能和体验不能讲是最差的，但也受到浏览器处理能力的限制，多次下载同样会占用用户一定的流量<br><strong>举个栗子</strong>：<a href="https://link.jianshu.com/?t=https://id.163.com/gj/">网易管家APP</a>（Tab3）<br><strong>应用技术</strong>：ReactJS，RegularJS等</p>
-<h2 id="Hybrid-App"><a href="#Hybrid-App" class="headerlink" title="Hybrid App"></a>Hybrid App</h2><p>混合模式移动应用，介于web-app、native-app这两者之间的app，兼具“Native App良好交互体验的优势”和“Web App跨平台开发的优势”（百度百科解释）</p>
-<p>主要的原理是，由Native通过JSBridge等方法提供统一的API，然后用HTML+CSS实现界面，JS来写逻辑，调用API，最终的页面在webview中显示，这种模式下，Android、iOS的API一般有一致性，Hybrid App所有有跨平台效果。</p>
-<p><strong>优点</strong>：开发和发布都比较方便，效率介于Native App、Web App之间<br><strong>缺点</strong>：学习范围较广，需要原生配合<br><strong>举个栗子</strong>：<a href="https://link.jianshu.com/?t=https://music.163.com/#/download">网易云音乐</a>，我爱我家App<br><strong>应用技术</strong>：PhoneGap，AppCan，Wex5</p>
-<h2 id="React-Native-App"><a href="#React-Native-App" class="headerlink" title="React Native App"></a>React Native App</h2><p>Facebook发现Hybrid App存在很多缺陷和不足，于是发起开源的一套新的APP开发方案RN App。。使用JSX语言写原生界面，js通过JSBridge调用原生API渲染UI交互通信。</p>
-<p><strong>优点</strong>：效率体验接近Native App，发布和开发成本低于Native App<br><strong>缺点</strong>：学习有一定成本，且文档较少，免不了踩坑<br><strong>举个栗子</strong>：Facebook、youtube、discord、QQ、百度等等</p>
-<h2 id="WEEX-App"><a href="#WEEX-App" class="headerlink" title="WEEX App"></a>WEEX App</h2><p>阿里巴巴开发团队在RN的成功案例上，重新设计出的一套开发模式，站在了巨人肩膀上并有淘宝团队项目做养料，广受关注，2016年4月正式开源，并在v2.0版本官方支持Vue.js，与RN分庭抗礼。</p>
-<p><strong>优点</strong>：开发效率和体验上跟RN不相上下，并且跨平台性更强<br><strong>缺点</strong>：刚刚起步，社区没有RN活跃<br><strong>举个栗子</strong>：淘宝、天猫、饿了么等</p>
-<h1 id="继续剖析"><a href="#继续剖析" class="headerlink" title="继续剖析"></a>继续剖析</h1><h2 id="Native-App-1"><a href="#Native-App-1" class="headerlink" title="Native App"></a>Native App</h2><p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-70fa348f3db0fca7.png?w=640" title="APP开发选型 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-70fa348f3db0fca7.png?w=640" alt="APP开发选型 - 第1张  | 张嘎"></a></p>
-<p>Native App是一种基于智能手机本地操作系统如iOS、Android、WP并使用原生程式编写运行的第三方应用程序,也叫本地app。一般使用的开发语言为JAVA、C++、Objective-C。</p>
-<p>自iOS和Android这两个的手机操作系统发布以来，在互联网界从此就多了一个新的名词：App意为运行在智能的移动终端设备第三方应用程序)。</p>
-<p>Native App因为位于平台层上方，向下访问和兼容的能力会比较好一些，可以支持在线或离线，消息推送或本地资源访问，摄像拨号功能的调取。但是由于设备碎片化，App的开发成本要高很多，维持多个版本的更新升级比较麻烦，用户的安装门槛也比较高。但是比较乐观的是，AppStore培养了一种比较好的用户付费模式，所以在Apple的生态圈里，开发者的盈利模式是一种明朗状态，其他market也在往这条路上靠拢。</p>
-<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><p>1、相比于其它模式，提供最佳的用户体验，最优质的用户界面，最华丽的交互<br>2、针对不同平台提供不同体验<br>3、可节省带宽成本，打开速度更快<br>4、功能最为强大,特别是在与系统交互中,几乎所有功能都能实现</p>
-<h3 id="劣势"><a href="#劣势" class="headerlink" title="劣势"></a>劣势</h3><p>1、门槛高，原生开发人才稀缺，至少比前端和后端少，开发环境昂贵<br>2、无法跨平台，开发的成本比较大，各个系统独立开发<br>3、发布成本高，需要通过store或market的审核，导致更新缓慢<br>4、维持多个版本、多个系统的成本比较高，而且必须做兼容<br>5、应用市场逐渐饱和，怎么样抢占用户时间需要投入大量时间和金钱，这也导致“僵尸”App的增多</p>
-<h2 id="WebApp-1"><a href="#WebApp-1" class="headerlink" title="WebApp"></a>WebApp</h2><p><a href="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-a16fa91905d4214e.png?w=640" title="APP开发选型 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-a16fa91905d4214e.png?w=640" alt="APP开发选型 - 第2张  | 张嘎"></a></p>
-<p>说到Web App不少人会联想到WAP，或者有人认为，WAP就是WebApp，其实不然。</p>
-<p>WebApp与WAP最直接的区别就是功能层面。WAP更侧重使用网页技术在移动端做展示，包括文字、媒体文件等。而Web App更侧重“功能”，是使用网页技术实现的App。总的来说，Web App就是运行于网络和标准浏览器上，基于网页技术开发实现特定功能的应用。</p>
-<p>响应式的大部分技术都是为实现WebApp能适配多类客户端而设计的。</p>
-<p>Web网站一般分两种，MPA(Multi-page Application)和SPA(Single-page Application)。而WebApp一般泛指SPA形式开发出的网站。这样更像是一个App。</p>
-<h3 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h3><p>1、可以跨平台，调试方便<br>2、无需安装，不会占用手机内存，而且更新速度最快<br>3、不存在多版本问题，维护成本低<br>4、临时入口，可以随意嵌入</p>
-<h3 id="劣势-1"><a href="#劣势-1" class="headerlink" title="劣势"></a>劣势</h3><p>1、依赖于网络，第一次访问页面速度慢，耗费流量<br>2、受限于手机和浏览器性能，用户体验相较于其他模式最差<br>3、功能受限，大量移动端功能无法实现<br>4、入口强依赖于第三方浏览器，且只能以URL地址的形式存在，导致用户留存率低（优点即缺点）</p>
-<h2 id="Hybird-App"><a href="#Hybird-App" class="headerlink" title="Hybird App"></a>Hybird App</h2><p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-e8ed4f0375d2639b.png?w=640" title="APP开发选型 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-e8ed4f0375d2639b.png?w=640" alt="APP开发选型 - 第3张  | 张嘎"></a></p>
-<p>混合开发，也就是半原生半Web的开发模式，由原生提供统一的API给JS调用，实际的主要逻辑有Html和JS来完成，最终是放在webview中显示的，所以只需要写一套代码即可达到跨平台效果，另外也可以直接在浏览器中调试，很方便。最重要的是只需要一个前端人员稍微学习下JS api的调用即可。</p>
-<p>Hybird App 的较早实践者是PhoneGap，随后遍地开花，如Titanium、Salama、WeX5、Kerkee和国内的AppCan，项目各有各的实现方式，大致的原理基本相同。有幸在AppCan上海总部参与过一段时间的学习研究，如下大致简介：</p>
-<p>AppCan是基于HTML5技术的Hybird跨平台移动应用开发工具。开发者利用HTML5+CSS3+JavaScript技术，通过AppCan IDE集成开发系统、云端打包器等，快速开发出Android、iOS、WP平台上的移动应用。</p>
-<p>AppCan的平台构成</p>
-<p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-cd8c63378a612022.png?w=640" title="APP开发选型 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-cd8c63378a612022.png?w=640" alt="APP开发选型 - 第4张  | 张嘎"></a></p>
-<p>在实际的APP开发中，AppCan可以完成大部分的工作量，如图示：</p>
-<p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-634591b2598fa8ad.png?w=640" title="APP开发选型 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-634591b2598fa8ad.png?w=640" alt="APP开发选型 - 第5张  | 张嘎"></a></p>
-<p>AppCan将APP底层复杂的原生功能封装在引擎、插件中，开发者仅需调用接口、打包编译，就可以获得原生功能；灵活的插件扩展机制。</p>
-<p>开发者可以像开发WebApp一样开发app的视觉UI，以及绝大部分的交互，当需要使用原生功能（如摄像头，陀螺仪等功能）时，只需要调用官方的API就可以轻松实现Native的效果。至于JS和Native的通信，常用的有URL监听和绝大部分Hybrid厂商使用的JSBridge通信，两者原理相近。</p>
-<p><a href="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-400b4c6162d774f4.png?w=640" title="APP开发选型 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-400b4c6162d774f4.png?w=640" alt="APP开发选型 - 第6张  | 张嘎"></a></p>
-<p>JsBridge通信简图</p>
-<p>关于JsBridge的原理详解，可见<a href="https://link.jianshu.com/?t=http://blog.csdn.net/xiangzhihong8/article/details/66970600">http://blog.csdn.net/xiangzhihong8/article/details/66970600</a></p>
-<p>在Hybird概念盛行的时候，国内外各大公司也参与了探索，国外代表有Facebook、google、亚马逊，国内的有腾讯、阿里巴巴、网易等，慢慢的他们发现Hybird严重受限于WebView的解析渲染效率，于是Facebook开始了他的类原生的研究探索。</p>
-<h2 id="React-Native-App-1"><a href="#React-Native-App-1" class="headerlink" title="React Native App"></a>React Native App</h2><p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-846d1bcbe4f9b505.png?w=640" title="APP开发选型 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-846d1bcbe4f9b505.png?w=640" alt="APP开发选型 - 第7张  | 张嘎"></a></p>
-<p>请移驾 <a href="https://link.jianshu.com/?t=https://segmentfault.com/a/1190000010989345">【笔记】React Native 快速入门笔记</a></p>
-<h2 id="Weex-App"><a href="#Weex-App" class="headerlink" title="Weex App"></a>Weex App</h2><p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-ec1e7c9c4de9f9c0.png?w=640" title="APP开发选型 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-ec1e7c9c4de9f9c0.png?w=640" alt="APP开发选型 - 第8张  | 张嘎"></a></p>
-<p>请移驾<a href="https://link.jianshu.com/?t=https://segmentfault.com/a/1190000011027225">网易严选App感受Weex开发</a></p>
-<p>作者：木羽zwwill<br>链接：<a href="https://www.jianshu.com/p/33246251cfae">https://www.jianshu.com/p/33246251cfae</a><br>來源：简书<br>简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。</p>
-<p>真的从入门到放弃，fluuter</p>
-<p><a href="http://www.52im.net/thread-1870-1-1.html">http://www.52im.net/thread-1870-1-1.html</a></p>
-<p><a href="https://www.jianshu.com/p/139c5074ae5d">https://www.jianshu.com/p/139c5074ae5d</a></p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
       </tags>
   </entry>
   <entry>
@@ -518,6 +518,179 @@
       </tags>
   </entry>
   <entry>
+    <title>mac下.net环境问题</title>
+    <url>/dotnet-env/</url>
+    <content><![CDATA[<div class=".article-gallery"><h1 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h1><ul>
+<li><a href="https://learn.microsoft.com/zh-cn/dotnet/core/runtime-discovery/troubleshoot-app-launch?pivots=os-macos">https://learn.microsoft.com/zh-cn/dotnet/core/runtime-discovery/troubleshoot-app-launch?pivots=os-macos</a></li>
+</ul>
+<p>我遇到的问题是mac上装了多个.net环境，在Rider下运行.net程序报错，.NET location: Not found。</p>
+<h1 id="net相关路径"><a href="#net相关路径" class="headerlink" title=".net相关路径"></a>.net相关路径</h1><ol>
+<li><p>Mac下.net的安装路径在该文件下</p>
+<p><code>/etc/dotnet/install_location</code></p>
+</li>
+<li><p>我的电脑上两个.net的路径在</p>
+<ul>
+<li>/usr/local/share/dotnet/</li>
+<li>~/.dotnet</li>
+</ul>
+</li>
+<li><p>删除一个多余的，只保留一个</p>
+</li>
+</ol>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用Go语言开发eBPF程序</title>
+    <url>/goebpf/</url>
+    <content><![CDATA[<div class=".article-gallery"><p>原文地址：<a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/">https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/</a></p>
+<h1 id="使用Go语言开发eBPF程序"><a href="#使用Go语言开发eBPF程序" class="headerlink" title="使用Go语言开发eBPF程序"></a>使用Go语言开发eBPF程序</h1><ul>
+<li>七月 19, 2022</li>
+<li><a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/#respond">0 条评论</a></li>
+</ul>
+<p><a href="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-1.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-1.png" alt="img"></a></p>
+<p><a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go">本文永久链接</a> – <a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go">https://tonybai.com/2022/07/19/develop-ebpf-program-in-go</a></p>
+<p>在前面的<a href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中，我们详细说明了如何基于C语言和libbpf库从头开发一个eBPF程序(包括其用户态部分)。那篇文章是后续有关eBPF程序开发文章的基础，因为到目前为止，无论eBPF程序的用户态部分用什么语言开发，运行于内核态的eBPF程序内核态部分还是必须由C语言开发的。这样一来，其他编程语言只能拼一下如何让eBPF程序的用户态部分的开发更为简单了，Go语言也不例外。</p>
+<p>在Go社区中，目前最为活跃的用于开发eBPF用户态部分的Go eBPF包莫过于cilium项目开源的<a href="https://github.com/cilium/ebpf/">cilium/ebpf</a>，cilium项目背后的<a href="https://isovalent.com/">Isovalent公司</a>也是eBPF技术在云原生领域应用的主要推手之一。</p>
+<p>本文我们就来说说<strong>基于cilium/ebpf开发eBPF程序的套路</strong>！</p>
+<h3 id="一-探索cilium-ebpf项目示例"><a href="#一-探索cilium-ebpf项目示例" class="headerlink" title="一. 探索cilium/ebpf项目示例"></a>一. 探索cilium/ebpf项目示例</h3><p>cilium/ebpf项目借鉴了<a href="https://github.com/libbpf/libbpf-bootstrap">libbpf-boostrap</a>的思路，通过代码生成与bpf程序内嵌的方式构建eBPF程序用户态部分。为了搞清楚基于cilium/ebpf开发ebpf程序的套路，我们先来探索一下cilium/ebpf项目提供的示例代码。</p>
+<p>我们首先来下载和看看ebpf的示例的结构。</p>
+<ul>
+<li>下载cilium/ebpf项目</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ git clone https://github.com/cilium/ebpf.git</span><br><span class="line">Cloning into &#x27;ebpf&#x27;...</span><br><span class="line">remote: Enumerating objects: 7054, done.</span><br><span class="line">remote: Counting objects: 100% (183/183), done.</span><br><span class="line">remote: Compressing objects: 100% (112/112), done.</span><br><span class="line">remote: Total 7054 (delta 91), reused 124 (delta 69), pack-reused 6871</span><br><span class="line">Receiving objects: 100% (7054/7054), 10.91 MiB | 265.00 KiB/s, done.</span><br><span class="line">Resolving deltas: 100% (4871/4871), done.</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>探索ebpf项目示例代码结构</li>
+</ul>
+<p>ebpf示例在examples目录下，我们以tracepoint_in_c为例看看其组织形式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$tree tracepoint_in_c</span><br><span class="line">tracepoint_in_c</span><br><span class="line">├── bpf_bpfeb.go</span><br><span class="line">├── bpf_bpfeb.o</span><br><span class="line">├── bpf_bpfel.go</span><br><span class="line">├── bpf_bpfel.o</span><br><span class="line">├── main.go</span><br><span class="line">└── tracepoint.c</span><br><span class="line"></span><br><span class="line">0 directories, 6 files</span><br></pre></td></tr></table></figure>
+
+<p>根据经验判断，这里面的tracepoint.c对应的是ebpf程序内核态部分，而main.go和bpf_bpfel.go/bpf_bpfeb.go则是ebpf程序用户态部分，至于bpf_bpfeb.o/bpf_bpfel.o应该是某种中间目标文件。通过readelf -a bpf_bpfeb.o查看该中间文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$readelf -a bpf_bpfeb.o</span><br><span class="line">ELF Header:</span><br><span class="line">  Magic:   7f 45 4c 46 02 02 01 00 00 00 00 00 00 00 00 00</span><br><span class="line">  Class:                             ELF64</span><br><span class="line">  Data:                              2&#x27;s complement, big endian</span><br><span class="line">  Version:                           1 (current)</span><br><span class="line">  OS/ABI:                            UNIX - System V</span><br><span class="line">  ABI Version:                       0</span><br><span class="line">  Type:                              REL (Relocatable file)</span><br><span class="line">  Machine:                           Linux BPF</span><br><span class="line">  Version:                           0x1</span><br><span class="line">  Entry point address:               0x0</span><br><span class="line">  Start of program headers:          0 (bytes into file)</span><br><span class="line">  Start of section headers:          1968 (bytes into file)</span><br><span class="line">  Flags:                             0x0</span><br><span class="line">  Size of this header:               64 (bytes)</span><br><span class="line">  Size of program headers:           0 (bytes)</span><br><span class="line">  Number of program headers:         0</span><br><span class="line">  Size of section headers:           64 (bytes)</span><br><span class="line">  Number of section headers:         13</span><br><span class="line">  Section header string table index: 1</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure>
+
+<p>我们看到这是一个内含linux bpf字节码的elf文件(Machine: Linux BPF)。</p>
+<p>阅读了cilium/ebpf的相关文档，我搞明白了这几个文件的关系，用下面示意图呈现给大家：</p>
+<p><a href="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-2.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-2.png" alt="img"></a></p>
+<p>ebpf程序的源码文件(比如图中tracepoint.c)经过bpf2go(cilium/ebpf提供的一个代码生成工具)被编译(bpf2go调用clang)为ebpf字节码文件bpf_bpfeb.o(大端)和bpf_bpfel.o(小端)，然后bpf2go会基于ebpf字节码文件生成bpf_bpfeb.go或bpf_bpfel.go，ebpf程序的字节码会以二进制数据的形式内嵌到这两个go源文件中，以bpf_bpfel.go为例，我们可以在其代码中找到下面内容(利用<a href="https://tonybai.com/2021/02/25/some-changes-in-go-1-16">go:embed特性</a>)：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//go:embed bpf_bpfel.o</span><br><span class="line">var _BpfBytes []byte</span><br></pre></td></tr></table></figure>
+
+<p>main.go则是ebpf程序用户态部分的主程序，将main.go与bpf_bpfeb.go或bpf_bpfel.go之一一起编译就形成了ebpf程序。</p>
+<p>有了对cilium/ebpf项目示例的初步探索后，我们来构建ebpf示例代码。</p>
+<h3 id="二-构建ebpf示例代码"><a href="#二-构建ebpf示例代码" class="headerlink" title="二. 构建ebpf示例代码"></a>二. 构建ebpf示例代码</h3><p>cilium/ebpf提供了便利的构建脚本，我们只需在ebpf/examples下面执行”make -C ..”即可进行示例代码的构建。</p>
+<p>make构建过程会基于quay.io/cilium/ebpf-builder镜像启动构建容器，不过在国内的童鞋需要像下面一样对Makefile内容做一丁点修改，增加GOPROXY环境变量，否则wall外的go module无法拉取：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$git diff ../Makefile</span><br><span class="line">diff --git a/Makefile b/Makefile</span><br><span class="line">index 3a1da88..d7b1712 100644</span><br><span class="line">--- a/Makefile</span><br><span class="line">+++ b/Makefile</span><br><span class="line">@@ -48,6 +48,7 @@ container-all:</span><br><span class="line">        $&#123;CONTAINER_ENGINE&#125; run --rm $&#123;CONTAINER_RUN_ARGS&#125; \</span><br><span class="line">                -v &quot;$&#123;REPODIR&#125;&quot;:/ebpf -w /ebpf --env MAKEFLAGS \</span><br><span class="line">                --env CFLAGS=&quot;-fdebug-prefix-map=/ebpf=.&quot; \</span><br><span class="line">+               --env GOPROXY=&quot;https://goproxy.io&quot; \</span><br><span class="line">                --env HOME=&quot;/tmp&quot; \</span><br><span class="line">                &quot;$&#123;IMAGE&#125;:$&#123;VERSION&#125;&quot; \</span><br><span class="line">                $(MAKE) all</span><br></pre></td></tr></table></figure>
+
+<p>这之后再执行构建就会顺利得到我们所要的结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cd examples</span><br><span class="line">$ make -C ..</span><br><span class="line">make: Entering directory &#x27;/root/go/src/github.com/cilium/ebpf&#x27;</span><br><span class="line">docker run --rm  --user &quot;0:0&quot; \</span><br><span class="line">    -v &quot;/root/go/src/github.com/cilium/ebpf&quot;:/ebpf -w /ebpf --env MAKEFLAGS \</span><br><span class="line">    --env CFLAGS=&quot;-fdebug-prefix-map=/ebpf=.&quot; \</span><br><span class="line">    --env GOPROXY=&quot;https://goproxy.io&quot; \</span><br><span class="line">    --env HOME=&quot;/tmp&quot; \</span><br><span class="line">    &quot;quay.io/cilium/ebpf-builder:1648566014&quot; \</span><br><span class="line">    make all</span><br><span class="line">make: Entering directory &#x27;/ebpf&#x27;</span><br><span class="line">find . -type f -name &quot;*.c&quot; | xargs clang-format -i</span><br><span class="line">go generate ./cmd/bpf2go/test</span><br><span class="line">go: downloading golang.org/x/sys v0.0.0-20210906170528-6f6e22806c34</span><br><span class="line">Compiled /ebpf/cmd/bpf2go/test/test_bpfel.o</span><br><span class="line">Stripped /ebpf/cmd/bpf2go/test/test_bpfel.o</span><br><span class="line">Wrote /ebpf/cmd/bpf2go/test/test_bpfel.go</span><br><span class="line">Compiled /ebpf/cmd/bpf2go/test/test_bpfeb.o</span><br><span class="line">Stripped /ebpf/cmd/bpf2go/test/test_bpfeb.o</span><br><span class="line">Wrote /ebpf/cmd/bpf2go/test/test_bpfeb.go</span><br><span class="line">go generate ./internal/sys</span><br><span class="line">enum AdjRoomMode</span><br><span class="line">enum AttachType</span><br><span class="line">enum Cmd</span><br><span class="line">enum FunctionId</span><br><span class="line">enum HdrStartOff</span><br><span class="line">enum LinkType</span><br><span class="line">enum MapType</span><br><span class="line">enum ProgType</span><br><span class="line">enum RetCode</span><br><span class="line">enum SkAction</span><br><span class="line">enum StackBuildIdStatus</span><br><span class="line">enum StatsType</span><br><span class="line">enum XdpAction</span><br><span class="line">struct BtfInfo</span><br><span class="line">... ...</span><br><span class="line">attr ProgRun</span><br><span class="line">attr RawTracepointOpen</span><br><span class="line">cd examples/ &amp;&amp; go generate ./...</span><br><span class="line">go: downloading github.com/cilium/ebpf v0.8.2-0.20220424153111-6da9518107a8</span><br><span class="line">go: downloading golang.org/x/sys v0.0.0-20211001092434-39dca1131b70</span><br><span class="line">Compiled /ebpf/examples/cgroup_skb/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/cgroup_skb/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/cgroup_skb/bpf_bpfel.go</span><br><span class="line">Compiled /ebpf/examples/cgroup_skb/bpf_bpfeb.o</span><br><span class="line">Stripped /ebpf/examples/cgroup_skb/bpf_bpfeb.o</span><br><span class="line">Wrote /ebpf/examples/cgroup_skb/bpf_bpfeb.go</span><br><span class="line">Compiled /ebpf/examples/fentry/bpf_bpfeb.o</span><br><span class="line">Stripped /ebpf/examples/fentry/bpf_bpfeb.o</span><br><span class="line">Wrote /ebpf/examples/fentry/bpf_bpfeb.go</span><br><span class="line">Compiled /ebpf/examples/fentry/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/fentry/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/fentry/bpf_bpfel.go</span><br><span class="line">Compiled /ebpf/examples/kprobe/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/kprobe/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/kprobe/bpf_bpfel.go</span><br><span class="line">Stripped /ebpf/examples/uretprobe/bpf_bpfel_x86.o</span><br><span class="line">... ...</span><br><span class="line">Wrote /ebpf/examples/uretprobe/bpf_bpfel_x86.go</span><br><span class="line">ln -srf testdata/loader-clang-14-el.elf testdata/loader-el.elf</span><br><span class="line">ln -srf testdata/loader-clang-14-eb.elf testdata/loader-eb.elf</span><br><span class="line">make: Leaving directory &#x27;/ebpf&#x27;</span><br><span class="line">make: Leaving directory &#x27;/root/go/src/github.com/cilium/ebpf&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>以uretprobe下面的ebpf为例，我们运行一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$go run -exec sudo uretprobe/*.go</span><br><span class="line">2022/06/05 18:23:23 Listening for events..</span><br></pre></td></tr></table></figure>
+
+<p>打开一个新的terminal，然后在用户home目录下执行vi .bashrc。在上面的uretprobe程序的执行窗口我们能看到：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2022/06/05 18:24:34 Listening for events..</span><br><span class="line">2022/06/05 18:24:42 /bin/bash:readline return value: vi .bashrc</span><br></pre></td></tr></table></figure>
+
+<p>这就表明uretprobe下面的ebpf程序如预期地执行了。</p>
+<h3 id="三-使用cilium-ebpf为前文的Hello-World-eBPF程序开发用户态部分"><a href="#三-使用cilium-ebpf为前文的Hello-World-eBPF程序开发用户态部分" class="headerlink" title="三. 使用cilium/ebpf为前文的Hello World eBPF程序开发用户态部分"></a>三. 使用cilium/ebpf为前文的Hello World eBPF程序开发用户态部分</h3><p>有了对cilium/ebpf示例程序的初步了解，下面我们就来为前面的<a href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中的那个helloworld ebpf程序开发用户态部分。</p>
+<p>回顾一下那个hello world ebpf程序的C源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/tree/master/ebpf-examples/helloworld-go/helloworld.bpf.c</span><br><span class="line">#include &lt;linux/bpf.h&gt;</span><br><span class="line">#include &lt;bpf/bpf_helpers.h&gt;</span><br><span class="line"></span><br><span class="line">SEC(&quot;tracepoint/syscalls/sys_enter_execve&quot;)</span><br><span class="line"></span><br><span class="line">int bpf_prog(void *ctx) &#123;</span><br><span class="line">  char msg[] = &quot;Hello, World!&quot;;</span><br><span class="line">  bpf_printk(&quot;invoke bpf_prog: %s\n&quot;, msg);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">char LICENSE[] SEC(&quot;license&quot;) = &quot;Dual BSD/GPL&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>当这个ebpf程序被加载到内核中后，每当execve这个系统调用被执行，该ebpf程序都会被调用一次，我们就会在/sys/kernel/debug/tracing/trace_pipe中看到对应的日志输出。</p>
+<h4 id="1-使用bpf2go将ebpf核心态程序转换为Go代码"><a href="#1-使用bpf2go将ebpf核心态程序转换为Go代码" class="headerlink" title="1. 使用bpf2go将ebpf核心态程序转换为Go代码"></a>1. 使用bpf2go将ebpf核心态程序转换为Go代码</h4><p>根据我们在前面探索cilium/ebpf示例程序时所得到的“套路”，我们接下来第一个要做的就是将helloworld.bpf.c转换为Go代码文件，这一转换过程不可缺少的工具就是cilium/ebpf提供的bpf2go工具，我们先来安装一下该工具：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$go install github.com/cilium/ebpf/cmd/bpf2go@latest</span><br></pre></td></tr></table></figure>
+
+<p>接下来，我们可以直接使用bpf2go工具将helloworld.ebpf.c转换为对应的go源文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$GOPACKAGE=main bpf2go -cc clang-10 -cflags &#x27;-O2 -g -Wall -Werror&#x27; -target bpfel,bpfeb bpf helloworld.bpf.c -- -I /home/tonybai/test/ebpf/libbpf/include/uapi -I /usr/local/bpf/include -idirafter /usr/local/include -idirafter /usr/lib/llvm-10/lib/clang/10.0.0/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include</span><br><span class="line"></span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
+
+<p>不过这里有一个问题，那就是bpf2go命令行后面的一系列提供给clang编译器的头文件引用路径参考了<a href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中的Makefile。如果按照这些头文件路径来引用，虽然bpf2go转换可以成功，但是我们需要依赖并安装libbpf这个库，这显然不是我们想要的。</p>
+<p>cilium/ebpf在examples中提供了一个headers目录，这个目录中包含了开发ebpf程序用户态部分所需的所有头文件，我们使用它作为我们的头文件引用路径。不过要想基于这个headers目录构建ebpf，我们需要将helloworld.bpf.c中的原头文件include语句由：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;linux/bpf.h&gt;</span><br><span class="line">#include &lt;bpf/bpf_helpers.h&gt;</span><br></pre></td></tr></table></figure>
+
+<p>改为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &quot;common.h&quot;</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们再来执行bpf2go工具进行转换：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$GOPACKAGE=main bpf2go -cc clang-10 -cflags &#x27;-O2 -g -Wall -Werror&#x27; -target bpfel,bpfeb bpf helloworld.bpf.c -- -I /home/tonybai/go/src/github.com/cilium/ebpf/examples/headers</span><br><span class="line"></span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
+
+<p>我们看到bpf2go顺利生成ebpf字节码与对应的Go源文件。</p>
+<h4 id="2-构建helloworld-ebpf程序用户态部分"><a href="#2-构建helloworld-ebpf程序用户态部分" class="headerlink" title="2. 构建helloworld ebpf程序用户态部分"></a>2. 构建helloworld ebpf程序用户态部分</h4><p>下面是参考cilium/ebpf示例而构建的helloword ebpf程序用户态部分的main.go源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/main.go</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;log&quot;</span><br><span class="line">    &quot;os&quot;</span><br><span class="line">    &quot;os/signal&quot;</span><br><span class="line">    &quot;syscall&quot;</span><br><span class="line"></span><br><span class="line">    &quot;github.com/cilium/ebpf/link&quot;</span><br><span class="line">    &quot;github.com/cilium/ebpf/rlimit&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    stopper := make(chan os.Signal, 1)</span><br><span class="line">    signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)</span><br><span class="line"></span><br><span class="line">    // Allow the current process to lock memory for eBPF resources.</span><br><span class="line">    if err := rlimit.RemoveMemlock(); err != nil &#123;</span><br><span class="line">        log.Fatal(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // Load pre-compiled programs and maps into the kernel.</span><br><span class="line">    objs := bpfObjects&#123;&#125;</span><br><span class="line">    if err := loadBpfObjects(&amp;objs, nil); err != nil &#123;</span><br><span class="line">        log.Fatalf(&quot;loading objects: %s&quot;, err)</span><br><span class="line">    &#125;</span><br><span class="line">    defer objs.Close()</span><br><span class="line"></span><br><span class="line">    //SEC(&quot;tracepoint/syscalls/sys_enter_execve&quot;)</span><br><span class="line">    // attach to xxx</span><br><span class="line">    kp, err := link.Tracepoint(&quot;syscalls&quot;, &quot;sys_enter_execve&quot;, objs.BpfProg, nil)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">        log.Fatalf(&quot;opening tracepoint: %s&quot;, err)</span><br><span class="line">    &#125;</span><br><span class="line">    defer kp.Close()</span><br><span class="line"></span><br><span class="line">    log.Printf(&quot;Successfully started! Please run \&quot;sudo cat /sys/kernel/debug/tracing/trace_pipe\&quot; to see output of the BPF programs\n&quot;)</span><br><span class="line"></span><br><span class="line">    // Wait for a signal and close the perf reader,</span><br><span class="line">    // which will interrupt rd.Read() and make the program exit.</span><br><span class="line">    &lt;-stopper</span><br><span class="line">    log.Println(&quot;Received signal, exiting program..&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们知道一个ebpf程序有几个关键组成：</p>
+<ul>
+<li>ebpf程序数据</li>
+<li>map：用于用户态与内核态的数据交互</li>
+<li>挂接点(attach point)</li>
+</ul>
+<p>根据<a href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">cilium/ebpf架构</a>的说明，ebpf包将前两部分抽象为了一个数据结构bpfObjects：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line"></span><br><span class="line">// bpfObjects contains all objects after they have been loaded into the kernel.</span><br><span class="line">//</span><br><span class="line">// It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.</span><br><span class="line">type bpfObjects struct &#123;</span><br><span class="line">    bpfPrograms</span><br><span class="line">    bpfMaps</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到，main函数通过生成的loadBpfObjects函数将ebpf程序加载到内核，并填充bpfObjects结构，一旦加载bpf程序成功，后续我们便可以使用bpfObjects结构中的字段来完成其余操作，比如通过link包的函数将bpf程序与目标挂节点对接在一起(如文中的link.Tracepoint函数），这样挂接后，bpf才能在对应的事件发生后被回调执行。</p>
+<p>下面编译执行一下该helloworld示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$go run -exec sudo main.go bpf_bpfel.go</span><br><span class="line">[sudo] password for tonybai:</span><br><span class="line">2022/06/05 14:12:40 Successfully started! Please run &quot;sudo cat /sys/kernel/debug/tracing/trace_pipe&quot; to see output of the BPF programs</span><br></pre></td></tr></table></figure>
+
+<p>之后新打开一个窗口，执行sudo cat /sys/kernel/debug/tracing/trace_pipe，当execve被调用时，我们就能看到类似下面的日志输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;...&gt;-551077  [000] .... 6062226.208943: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551077  [000] .... 6062226.209098: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551079  [007] .... 6062226.215421: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551079  [007] .... 6062226.215578: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-554756  [007] .... 6063476.785212: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-554756  [007] .... 6063476.785378: 0: invoke bpf_prog: Hello, World!</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-使用go-generate来驱动bpf2go的转换"><a href="#3-使用go-generate来驱动bpf2go的转换" class="headerlink" title="3. 使用go generate来驱动bpf2go的转换"></a>3. 使用go generate来驱动bpf2go的转换</h4><p>在生成代码方面，Go工具链原生提供了go generate工具，cilium/ebpf的examples中也是利用go generate来驱动bpf2go将bpf程序转换为Go源文件的，这里我们也来做一下改造。</p>
+<p>首先我们在main.go的main函数上面增加一行go:generate指示语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/main.go</span><br><span class="line"></span><br><span class="line">// $BPF_CLANG, $BPF_CFLAGS and $BPF_HEADERS are set by the Makefile.</span><br><span class="line">//go:generate bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS -target bpfel,bpfeb bpf helloworld.bpf.c -- -I $BPF_HEADERS</span><br><span class="line">func main() &#123;</span><br><span class="line">    stopper := make(chan os.Signal,  1)</span><br><span class="line">    ... ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样当我们显式执行go generate语句时，go generate会扫描到该指示语句，并执行后面的命令。这里使用了几个变量，变量是定义在Makefile中的。当然如果你不想使用Makefile，也可以将变量替换为相应的值。这里我们使用Makefile，下面是Makefile的内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/Makefile</span><br><span class="line"></span><br><span class="line">CLANG ?= clang-10</span><br><span class="line">CFLAGS ?= -O2 -g -Wall -Werror</span><br><span class="line"></span><br><span class="line">LIBEBPF_TOP = /home/tonybai/go/src/github.com/cilium/ebpf</span><br><span class="line">EXAMPLES_HEADERS = $(LIBEBPF_TOP)/examples/headers</span><br><span class="line"></span><br><span class="line">all: generate</span><br><span class="line"></span><br><span class="line">generate: export BPF_CLANG=$(CLANG)</span><br><span class="line">generate: export BPF_CFLAGS=$(CFLAGS)</span><br><span class="line">generate: export BPF_HEADERS=$(EXAMPLES_HEADERS)</span><br><span class="line">generate:</span><br><span class="line">    go generate ./...</span><br></pre></td></tr></table></figure>
+
+<p>有了该Makefile后，我们执行make命令便可以执行bpf2go对bpf程序的转换：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$make</span><br><span class="line">go generate ./...</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
+
+<h3 id="四-小结"><a href="#四-小结" class="headerlink" title="四. 小结"></a>四. 小结</h3><p>本文我们讲解了如何基于cilium/ebpf包来开发ebpf的用户态部分。</p>
+<p>ebpf借鉴了libbpf的思路，通过生成代码与数据内嵌的方式来构建ebpf的用户态部分。</p>
+<p>ebpf提供了bpf2go工具，可以将bpf的C源码转换为相应的go源码。</p>
+<p>ebpf将bpf程序抽象为bpfObjects，通过生成的loadBpfObjects完成bpf程序加载到内核的过程，然后利用ebpf库提供的诸如link之类的包实现ebpf与内核事件的关联。</p>
+<p>ebpf包的玩法还有很多，这一篇仅仅是为了打好基础，在后续文章中，我们还会针对各种类型的bpf程序做进一步学习和说明。</p>
+<p>本文代码可以在<a href="https://github.com/bigwhite/experiments/tree/master/ebpf-examples/helloworld-go">这里</a>下载。</p>
+<h3 id="无-参考资料"><a href="#无-参考资料" class="headerlink" title="无. 参考资料"></a>无. 参考资料</h3><ul>
+<li><a href="https://www.ebpf.top/post/ebpf_go/">使用Go语言管理和分发ebpf程序</a> – <a href="https://www.ebpf.top/post/ebpf_go/">https://www.ebpf.top/post/ebpf_go/</a></li>
+<li><a href="https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf">A Pure Go eBPF library</a> – <a href="https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf">https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf</a></li>
+<li><a href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">cilium ebpf library architecture</a> – <a href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md</a></li>
+</ul>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>服务器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用Flutter进行APP开发流程</title>
+    <url>/flutter-dev/</url>
+    <content><![CDATA[<div class=".article-gallery"><p><a href="https://imgtu.com/i/hBsVC6"><a href="https://z3.ax1x.com/2021/09/01/hBsVC6.md.png" title="hBsVC6.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/09/01/hBsVC6.md.png" alt="hBsVC6.md.png"></a></a></p>
+<h1 id="资源加载："><a href="#资源加载：" class="headerlink" title="资源加载："></a>资源加载：</h1><h3 id="1-本地"><a href="#1-本地" class="headerlink" title="1.本地"></a>1.本地</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String DEFAULT_USER_ICON = &#x27;static/images/logo.png&#x27;;</span><br><span class="line">Image.asset(AppICons.DEFAULT_USER_ICON, width: AppICons.USER_ICON_WIDTH, height: AppICons.USER_ICON_HEIGHT),</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-iconfont。-https-www-iconfont-cn"><a href="#2-iconfont。-https-www-iconfont-cn" class="headerlink" title="2.iconfont。 https://www.iconfont.cn/"></a>2.iconfont。 <a href="https://www.iconfont.cn/">https://www.iconfont.cn/</a></h3><p>在iconfont网站上传资源。下载到本地，放入项目资源文件夹下。</p>
+<p>pubspec.yaml中配置。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fonts:</span><br><span class="line">  - family: myIconFont</span><br><span class="line">    fonts:</span><br><span class="line">      - asset: static/font/iconfont.ttf</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-UI编辑器。-https-norbert515-github-io-widget-maker-website"><a href="#3-UI编辑器。-https-norbert515-github-io-widget-maker-website" class="headerlink" title="3.UI编辑器。 https://norbert515.github.io/widget_maker/website/"></a>3.UI编辑器。 <a href="https://norbert515.github.io/widget_maker/website/">https://norbert515.github.io/widget_maker/website/</a></h3><p><a href="https://github.com/Norbert515/flutter_ide">https://github.com/Norbert515/flutter_ide</a></p>
+<p>项目中使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String FONT_FAMILY = &#x27;myIconFont&#x27;;</span><br><span class="line">static const IconData LOGIN_USER = const IconData(0xe652, fontFamily: AppICons.FONT_FAMILY);</span><br><span class="line">iconData: AppICons.LOGIN_USER,</span><br></pre></td></tr></table></figure>
+
+<h1 id="原型开发："><a href="#原型开发：" class="headerlink" title="原型开发："></a>原型开发：</h1><p><a href="https://www.xiaopiu.com/">https://www.xiaopiu.com/</a></p>
+<p>在上面设计开发，然后导出到本地，可以查看里面的资源文件。</p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>服务器云基础设施介绍</title>
     <url>/game-server-cloud/</url>
     <content><![CDATA[<div class=".article-gallery"><p>服务器云基础设施介绍</p>
@@ -661,179 +834,6 @@
       </categories>
       <tags>
         <tag>服务器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>使用Go语言开发eBPF程序</title>
-    <url>/goebpf/</url>
-    <content><![CDATA[<div class=".article-gallery"><p>原文地址：<a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/">https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/</a></p>
-<h1 id="使用Go语言开发eBPF程序"><a href="#使用Go语言开发eBPF程序" class="headerlink" title="使用Go语言开发eBPF程序"></a>使用Go语言开发eBPF程序</h1><ul>
-<li>七月 19, 2022</li>
-<li><a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/#respond">0 条评论</a></li>
-</ul>
-<p><a href="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-1.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-1.png" alt="img"></a></p>
-<p><a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go">本文永久链接</a> – <a href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go">https://tonybai.com/2022/07/19/develop-ebpf-program-in-go</a></p>
-<p>在前面的<a href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中，我们详细说明了如何基于C语言和libbpf库从头开发一个eBPF程序(包括其用户态部分)。那篇文章是后续有关eBPF程序开发文章的基础，因为到目前为止，无论eBPF程序的用户态部分用什么语言开发，运行于内核态的eBPF程序内核态部分还是必须由C语言开发的。这样一来，其他编程语言只能拼一下如何让eBPF程序的用户态部分的开发更为简单了，Go语言也不例外。</p>
-<p>在Go社区中，目前最为活跃的用于开发eBPF用户态部分的Go eBPF包莫过于cilium项目开源的<a href="https://github.com/cilium/ebpf/">cilium/ebpf</a>，cilium项目背后的<a href="https://isovalent.com/">Isovalent公司</a>也是eBPF技术在云原生领域应用的主要推手之一。</p>
-<p>本文我们就来说说<strong>基于cilium/ebpf开发eBPF程序的套路</strong>！</p>
-<h3 id="一-探索cilium-ebpf项目示例"><a href="#一-探索cilium-ebpf项目示例" class="headerlink" title="一. 探索cilium/ebpf项目示例"></a>一. 探索cilium/ebpf项目示例</h3><p>cilium/ebpf项目借鉴了<a href="https://github.com/libbpf/libbpf-bootstrap">libbpf-boostrap</a>的思路，通过代码生成与bpf程序内嵌的方式构建eBPF程序用户态部分。为了搞清楚基于cilium/ebpf开发ebpf程序的套路，我们先来探索一下cilium/ebpf项目提供的示例代码。</p>
-<p>我们首先来下载和看看ebpf的示例的结构。</p>
-<ul>
-<li>下载cilium/ebpf项目</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ git clone https://github.com/cilium/ebpf.git</span><br><span class="line">Cloning into &#x27;ebpf&#x27;...</span><br><span class="line">remote: Enumerating objects: 7054, done.</span><br><span class="line">remote: Counting objects: 100% (183/183), done.</span><br><span class="line">remote: Compressing objects: 100% (112/112), done.</span><br><span class="line">remote: Total 7054 (delta 91), reused 124 (delta 69), pack-reused 6871</span><br><span class="line">Receiving objects: 100% (7054/7054), 10.91 MiB | 265.00 KiB/s, done.</span><br><span class="line">Resolving deltas: 100% (4871/4871), done.</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>探索ebpf项目示例代码结构</li>
-</ul>
-<p>ebpf示例在examples目录下，我们以tracepoint_in_c为例看看其组织形式：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$tree tracepoint_in_c</span><br><span class="line">tracepoint_in_c</span><br><span class="line">├── bpf_bpfeb.go</span><br><span class="line">├── bpf_bpfeb.o</span><br><span class="line">├── bpf_bpfel.go</span><br><span class="line">├── bpf_bpfel.o</span><br><span class="line">├── main.go</span><br><span class="line">└── tracepoint.c</span><br><span class="line"></span><br><span class="line">0 directories, 6 files</span><br></pre></td></tr></table></figure>
-
-<p>根据经验判断，这里面的tracepoint.c对应的是ebpf程序内核态部分，而main.go和bpf_bpfel.go/bpf_bpfeb.go则是ebpf程序用户态部分，至于bpf_bpfeb.o/bpf_bpfel.o应该是某种中间目标文件。通过readelf -a bpf_bpfeb.o查看该中间文件：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$readelf -a bpf_bpfeb.o</span><br><span class="line">ELF Header:</span><br><span class="line">  Magic:   7f 45 4c 46 02 02 01 00 00 00 00 00 00 00 00 00</span><br><span class="line">  Class:                             ELF64</span><br><span class="line">  Data:                              2&#x27;s complement, big endian</span><br><span class="line">  Version:                           1 (current)</span><br><span class="line">  OS/ABI:                            UNIX - System V</span><br><span class="line">  ABI Version:                       0</span><br><span class="line">  Type:                              REL (Relocatable file)</span><br><span class="line">  Machine:                           Linux BPF</span><br><span class="line">  Version:                           0x1</span><br><span class="line">  Entry point address:               0x0</span><br><span class="line">  Start of program headers:          0 (bytes into file)</span><br><span class="line">  Start of section headers:          1968 (bytes into file)</span><br><span class="line">  Flags:                             0x0</span><br><span class="line">  Size of this header:               64 (bytes)</span><br><span class="line">  Size of program headers:           0 (bytes)</span><br><span class="line">  Number of program headers:         0</span><br><span class="line">  Size of section headers:           64 (bytes)</span><br><span class="line">  Number of section headers:         13</span><br><span class="line">  Section header string table index: 1</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure>
-
-<p>我们看到这是一个内含linux bpf字节码的elf文件(Machine: Linux BPF)。</p>
-<p>阅读了cilium/ebpf的相关文档，我搞明白了这几个文件的关系，用下面示意图呈现给大家：</p>
-<p><a href="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-2.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-2.png" alt="img"></a></p>
-<p>ebpf程序的源码文件(比如图中tracepoint.c)经过bpf2go(cilium/ebpf提供的一个代码生成工具)被编译(bpf2go调用clang)为ebpf字节码文件bpf_bpfeb.o(大端)和bpf_bpfel.o(小端)，然后bpf2go会基于ebpf字节码文件生成bpf_bpfeb.go或bpf_bpfel.go，ebpf程序的字节码会以二进制数据的形式内嵌到这两个go源文件中，以bpf_bpfel.go为例，我们可以在其代码中找到下面内容(利用<a href="https://tonybai.com/2021/02/25/some-changes-in-go-1-16">go:embed特性</a>)：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//go:embed bpf_bpfel.o</span><br><span class="line">var _BpfBytes []byte</span><br></pre></td></tr></table></figure>
-
-<p>main.go则是ebpf程序用户态部分的主程序，将main.go与bpf_bpfeb.go或bpf_bpfel.go之一一起编译就形成了ebpf程序。</p>
-<p>有了对cilium/ebpf项目示例的初步探索后，我们来构建ebpf示例代码。</p>
-<h3 id="二-构建ebpf示例代码"><a href="#二-构建ebpf示例代码" class="headerlink" title="二. 构建ebpf示例代码"></a>二. 构建ebpf示例代码</h3><p>cilium/ebpf提供了便利的构建脚本，我们只需在ebpf/examples下面执行”make -C ..”即可进行示例代码的构建。</p>
-<p>make构建过程会基于quay.io/cilium/ebpf-builder镜像启动构建容器，不过在国内的童鞋需要像下面一样对Makefile内容做一丁点修改，增加GOPROXY环境变量，否则wall外的go module无法拉取：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$git diff ../Makefile</span><br><span class="line">diff --git a/Makefile b/Makefile</span><br><span class="line">index 3a1da88..d7b1712 100644</span><br><span class="line">--- a/Makefile</span><br><span class="line">+++ b/Makefile</span><br><span class="line">@@ -48,6 +48,7 @@ container-all:</span><br><span class="line">        $&#123;CONTAINER_ENGINE&#125; run --rm $&#123;CONTAINER_RUN_ARGS&#125; \</span><br><span class="line">                -v &quot;$&#123;REPODIR&#125;&quot;:/ebpf -w /ebpf --env MAKEFLAGS \</span><br><span class="line">                --env CFLAGS=&quot;-fdebug-prefix-map=/ebpf=.&quot; \</span><br><span class="line">+               --env GOPROXY=&quot;https://goproxy.io&quot; \</span><br><span class="line">                --env HOME=&quot;/tmp&quot; \</span><br><span class="line">                &quot;$&#123;IMAGE&#125;:$&#123;VERSION&#125;&quot; \</span><br><span class="line">                $(MAKE) all</span><br></pre></td></tr></table></figure>
-
-<p>这之后再执行构建就会顺利得到我们所要的结果：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cd examples</span><br><span class="line">$ make -C ..</span><br><span class="line">make: Entering directory &#x27;/root/go/src/github.com/cilium/ebpf&#x27;</span><br><span class="line">docker run --rm  --user &quot;0:0&quot; \</span><br><span class="line">    -v &quot;/root/go/src/github.com/cilium/ebpf&quot;:/ebpf -w /ebpf --env MAKEFLAGS \</span><br><span class="line">    --env CFLAGS=&quot;-fdebug-prefix-map=/ebpf=.&quot; \</span><br><span class="line">    --env GOPROXY=&quot;https://goproxy.io&quot; \</span><br><span class="line">    --env HOME=&quot;/tmp&quot; \</span><br><span class="line">    &quot;quay.io/cilium/ebpf-builder:1648566014&quot; \</span><br><span class="line">    make all</span><br><span class="line">make: Entering directory &#x27;/ebpf&#x27;</span><br><span class="line">find . -type f -name &quot;*.c&quot; | xargs clang-format -i</span><br><span class="line">go generate ./cmd/bpf2go/test</span><br><span class="line">go: downloading golang.org/x/sys v0.0.0-20210906170528-6f6e22806c34</span><br><span class="line">Compiled /ebpf/cmd/bpf2go/test/test_bpfel.o</span><br><span class="line">Stripped /ebpf/cmd/bpf2go/test/test_bpfel.o</span><br><span class="line">Wrote /ebpf/cmd/bpf2go/test/test_bpfel.go</span><br><span class="line">Compiled /ebpf/cmd/bpf2go/test/test_bpfeb.o</span><br><span class="line">Stripped /ebpf/cmd/bpf2go/test/test_bpfeb.o</span><br><span class="line">Wrote /ebpf/cmd/bpf2go/test/test_bpfeb.go</span><br><span class="line">go generate ./internal/sys</span><br><span class="line">enum AdjRoomMode</span><br><span class="line">enum AttachType</span><br><span class="line">enum Cmd</span><br><span class="line">enum FunctionId</span><br><span class="line">enum HdrStartOff</span><br><span class="line">enum LinkType</span><br><span class="line">enum MapType</span><br><span class="line">enum ProgType</span><br><span class="line">enum RetCode</span><br><span class="line">enum SkAction</span><br><span class="line">enum StackBuildIdStatus</span><br><span class="line">enum StatsType</span><br><span class="line">enum XdpAction</span><br><span class="line">struct BtfInfo</span><br><span class="line">... ...</span><br><span class="line">attr ProgRun</span><br><span class="line">attr RawTracepointOpen</span><br><span class="line">cd examples/ &amp;&amp; go generate ./...</span><br><span class="line">go: downloading github.com/cilium/ebpf v0.8.2-0.20220424153111-6da9518107a8</span><br><span class="line">go: downloading golang.org/x/sys v0.0.0-20211001092434-39dca1131b70</span><br><span class="line">Compiled /ebpf/examples/cgroup_skb/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/cgroup_skb/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/cgroup_skb/bpf_bpfel.go</span><br><span class="line">Compiled /ebpf/examples/cgroup_skb/bpf_bpfeb.o</span><br><span class="line">Stripped /ebpf/examples/cgroup_skb/bpf_bpfeb.o</span><br><span class="line">Wrote /ebpf/examples/cgroup_skb/bpf_bpfeb.go</span><br><span class="line">Compiled /ebpf/examples/fentry/bpf_bpfeb.o</span><br><span class="line">Stripped /ebpf/examples/fentry/bpf_bpfeb.o</span><br><span class="line">Wrote /ebpf/examples/fentry/bpf_bpfeb.go</span><br><span class="line">Compiled /ebpf/examples/fentry/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/fentry/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/fentry/bpf_bpfel.go</span><br><span class="line">Compiled /ebpf/examples/kprobe/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/kprobe/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/kprobe/bpf_bpfel.go</span><br><span class="line">Stripped /ebpf/examples/uretprobe/bpf_bpfel_x86.o</span><br><span class="line">... ...</span><br><span class="line">Wrote /ebpf/examples/uretprobe/bpf_bpfel_x86.go</span><br><span class="line">ln -srf testdata/loader-clang-14-el.elf testdata/loader-el.elf</span><br><span class="line">ln -srf testdata/loader-clang-14-eb.elf testdata/loader-eb.elf</span><br><span class="line">make: Leaving directory &#x27;/ebpf&#x27;</span><br><span class="line">make: Leaving directory &#x27;/root/go/src/github.com/cilium/ebpf&#x27;</span><br></pre></td></tr></table></figure>
-
-<p>以uretprobe下面的ebpf为例，我们运行一下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$go run -exec sudo uretprobe/*.go</span><br><span class="line">2022/06/05 18:23:23 Listening for events..</span><br></pre></td></tr></table></figure>
-
-<p>打开一个新的terminal，然后在用户home目录下执行vi .bashrc。在上面的uretprobe程序的执行窗口我们能看到：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2022/06/05 18:24:34 Listening for events..</span><br><span class="line">2022/06/05 18:24:42 /bin/bash:readline return value: vi .bashrc</span><br></pre></td></tr></table></figure>
-
-<p>这就表明uretprobe下面的ebpf程序如预期地执行了。</p>
-<h3 id="三-使用cilium-ebpf为前文的Hello-World-eBPF程序开发用户态部分"><a href="#三-使用cilium-ebpf为前文的Hello-World-eBPF程序开发用户态部分" class="headerlink" title="三. 使用cilium/ebpf为前文的Hello World eBPF程序开发用户态部分"></a>三. 使用cilium/ebpf为前文的Hello World eBPF程序开发用户态部分</h3><p>有了对cilium/ebpf示例程序的初步了解，下面我们就来为前面的<a href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中的那个helloworld ebpf程序开发用户态部分。</p>
-<p>回顾一下那个hello world ebpf程序的C源码：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/tree/master/ebpf-examples/helloworld-go/helloworld.bpf.c</span><br><span class="line">#include &lt;linux/bpf.h&gt;</span><br><span class="line">#include &lt;bpf/bpf_helpers.h&gt;</span><br><span class="line"></span><br><span class="line">SEC(&quot;tracepoint/syscalls/sys_enter_execve&quot;)</span><br><span class="line"></span><br><span class="line">int bpf_prog(void *ctx) &#123;</span><br><span class="line">  char msg[] = &quot;Hello, World!&quot;;</span><br><span class="line">  bpf_printk(&quot;invoke bpf_prog: %s\n&quot;, msg);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">char LICENSE[] SEC(&quot;license&quot;) = &quot;Dual BSD/GPL&quot;;</span><br></pre></td></tr></table></figure>
-
-<p>当这个ebpf程序被加载到内核中后，每当execve这个系统调用被执行，该ebpf程序都会被调用一次，我们就会在/sys/kernel/debug/tracing/trace_pipe中看到对应的日志输出。</p>
-<h4 id="1-使用bpf2go将ebpf核心态程序转换为Go代码"><a href="#1-使用bpf2go将ebpf核心态程序转换为Go代码" class="headerlink" title="1. 使用bpf2go将ebpf核心态程序转换为Go代码"></a>1. 使用bpf2go将ebpf核心态程序转换为Go代码</h4><p>根据我们在前面探索cilium/ebpf示例程序时所得到的“套路”，我们接下来第一个要做的就是将helloworld.bpf.c转换为Go代码文件，这一转换过程不可缺少的工具就是cilium/ebpf提供的bpf2go工具，我们先来安装一下该工具：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$go install github.com/cilium/ebpf/cmd/bpf2go@latest</span><br></pre></td></tr></table></figure>
-
-<p>接下来，我们可以直接使用bpf2go工具将helloworld.ebpf.c转换为对应的go源文件：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$GOPACKAGE=main bpf2go -cc clang-10 -cflags &#x27;-O2 -g -Wall -Werror&#x27; -target bpfel,bpfeb bpf helloworld.bpf.c -- -I /home/tonybai/test/ebpf/libbpf/include/uapi -I /usr/local/bpf/include -idirafter /usr/local/include -idirafter /usr/lib/llvm-10/lib/clang/10.0.0/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include</span><br><span class="line"></span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
-
-<p>不过这里有一个问题，那就是bpf2go命令行后面的一系列提供给clang编译器的头文件引用路径参考了<a href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中的Makefile。如果按照这些头文件路径来引用，虽然bpf2go转换可以成功，但是我们需要依赖并安装libbpf这个库，这显然不是我们想要的。</p>
-<p>cilium/ebpf在examples中提供了一个headers目录，这个目录中包含了开发ebpf程序用户态部分所需的所有头文件，我们使用它作为我们的头文件引用路径。不过要想基于这个headers目录构建ebpf，我们需要将helloworld.bpf.c中的原头文件include语句由：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;linux/bpf.h&gt;</span><br><span class="line">#include &lt;bpf/bpf_helpers.h&gt;</span><br></pre></td></tr></table></figure>
-
-<p>改为：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &quot;common.h&quot;</span><br></pre></td></tr></table></figure>
-
-<p>接下来我们再来执行bpf2go工具进行转换：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$GOPACKAGE=main bpf2go -cc clang-10 -cflags &#x27;-O2 -g -Wall -Werror&#x27; -target bpfel,bpfeb bpf helloworld.bpf.c -- -I /home/tonybai/go/src/github.com/cilium/ebpf/examples/headers</span><br><span class="line"></span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
-
-<p>我们看到bpf2go顺利生成ebpf字节码与对应的Go源文件。</p>
-<h4 id="2-构建helloworld-ebpf程序用户态部分"><a href="#2-构建helloworld-ebpf程序用户态部分" class="headerlink" title="2. 构建helloworld ebpf程序用户态部分"></a>2. 构建helloworld ebpf程序用户态部分</h4><p>下面是参考cilium/ebpf示例而构建的helloword ebpf程序用户态部分的main.go源码：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/main.go</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;log&quot;</span><br><span class="line">    &quot;os&quot;</span><br><span class="line">    &quot;os/signal&quot;</span><br><span class="line">    &quot;syscall&quot;</span><br><span class="line"></span><br><span class="line">    &quot;github.com/cilium/ebpf/link&quot;</span><br><span class="line">    &quot;github.com/cilium/ebpf/rlimit&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    stopper := make(chan os.Signal, 1)</span><br><span class="line">    signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)</span><br><span class="line"></span><br><span class="line">    // Allow the current process to lock memory for eBPF resources.</span><br><span class="line">    if err := rlimit.RemoveMemlock(); err != nil &#123;</span><br><span class="line">        log.Fatal(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // Load pre-compiled programs and maps into the kernel.</span><br><span class="line">    objs := bpfObjects&#123;&#125;</span><br><span class="line">    if err := loadBpfObjects(&amp;objs, nil); err != nil &#123;</span><br><span class="line">        log.Fatalf(&quot;loading objects: %s&quot;, err)</span><br><span class="line">    &#125;</span><br><span class="line">    defer objs.Close()</span><br><span class="line"></span><br><span class="line">    //SEC(&quot;tracepoint/syscalls/sys_enter_execve&quot;)</span><br><span class="line">    // attach to xxx</span><br><span class="line">    kp, err := link.Tracepoint(&quot;syscalls&quot;, &quot;sys_enter_execve&quot;, objs.BpfProg, nil)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">        log.Fatalf(&quot;opening tracepoint: %s&quot;, err)</span><br><span class="line">    &#125;</span><br><span class="line">    defer kp.Close()</span><br><span class="line"></span><br><span class="line">    log.Printf(&quot;Successfully started! Please run \&quot;sudo cat /sys/kernel/debug/tracing/trace_pipe\&quot; to see output of the BPF programs\n&quot;)</span><br><span class="line"></span><br><span class="line">    // Wait for a signal and close the perf reader,</span><br><span class="line">    // which will interrupt rd.Read() and make the program exit.</span><br><span class="line">    &lt;-stopper</span><br><span class="line">    log.Println(&quot;Received signal, exiting program..&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们知道一个ebpf程序有几个关键组成：</p>
-<ul>
-<li>ebpf程序数据</li>
-<li>map：用于用户态与内核态的数据交互</li>
-<li>挂接点(attach point)</li>
-</ul>
-<p>根据<a href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">cilium/ebpf架构</a>的说明，ebpf包将前两部分抽象为了一个数据结构bpfObjects：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line"></span><br><span class="line">// bpfObjects contains all objects after they have been loaded into the kernel.</span><br><span class="line">//</span><br><span class="line">// It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.</span><br><span class="line">type bpfObjects struct &#123;</span><br><span class="line">    bpfPrograms</span><br><span class="line">    bpfMaps</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们看到，main函数通过生成的loadBpfObjects函数将ebpf程序加载到内核，并填充bpfObjects结构，一旦加载bpf程序成功，后续我们便可以使用bpfObjects结构中的字段来完成其余操作，比如通过link包的函数将bpf程序与目标挂节点对接在一起(如文中的link.Tracepoint函数），这样挂接后，bpf才能在对应的事件发生后被回调执行。</p>
-<p>下面编译执行一下该helloworld示例：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$go run -exec sudo main.go bpf_bpfel.go</span><br><span class="line">[sudo] password for tonybai:</span><br><span class="line">2022/06/05 14:12:40 Successfully started! Please run &quot;sudo cat /sys/kernel/debug/tracing/trace_pipe&quot; to see output of the BPF programs</span><br></pre></td></tr></table></figure>
-
-<p>之后新打开一个窗口，执行sudo cat /sys/kernel/debug/tracing/trace_pipe，当execve被调用时，我们就能看到类似下面的日志输出：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;...&gt;-551077  [000] .... 6062226.208943: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551077  [000] .... 6062226.209098: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551079  [007] .... 6062226.215421: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551079  [007] .... 6062226.215578: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-554756  [007] .... 6063476.785212: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-554756  [007] .... 6063476.785378: 0: invoke bpf_prog: Hello, World!</span><br></pre></td></tr></table></figure>
-
-<h4 id="3-使用go-generate来驱动bpf2go的转换"><a href="#3-使用go-generate来驱动bpf2go的转换" class="headerlink" title="3. 使用go generate来驱动bpf2go的转换"></a>3. 使用go generate来驱动bpf2go的转换</h4><p>在生成代码方面，Go工具链原生提供了go generate工具，cilium/ebpf的examples中也是利用go generate来驱动bpf2go将bpf程序转换为Go源文件的，这里我们也来做一下改造。</p>
-<p>首先我们在main.go的main函数上面增加一行go:generate指示语句：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/main.go</span><br><span class="line"></span><br><span class="line">// $BPF_CLANG, $BPF_CFLAGS and $BPF_HEADERS are set by the Makefile.</span><br><span class="line">//go:generate bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS -target bpfel,bpfeb bpf helloworld.bpf.c -- -I $BPF_HEADERS</span><br><span class="line">func main() &#123;</span><br><span class="line">    stopper := make(chan os.Signal,  1)</span><br><span class="line">    ... ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这样当我们显式执行go generate语句时，go generate会扫描到该指示语句，并执行后面的命令。这里使用了几个变量，变量是定义在Makefile中的。当然如果你不想使用Makefile，也可以将变量替换为相应的值。这里我们使用Makefile，下面是Makefile的内容：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/Makefile</span><br><span class="line"></span><br><span class="line">CLANG ?= clang-10</span><br><span class="line">CFLAGS ?= -O2 -g -Wall -Werror</span><br><span class="line"></span><br><span class="line">LIBEBPF_TOP = /home/tonybai/go/src/github.com/cilium/ebpf</span><br><span class="line">EXAMPLES_HEADERS = $(LIBEBPF_TOP)/examples/headers</span><br><span class="line"></span><br><span class="line">all: generate</span><br><span class="line"></span><br><span class="line">generate: export BPF_CLANG=$(CLANG)</span><br><span class="line">generate: export BPF_CFLAGS=$(CFLAGS)</span><br><span class="line">generate: export BPF_HEADERS=$(EXAMPLES_HEADERS)</span><br><span class="line">generate:</span><br><span class="line">    go generate ./...</span><br></pre></td></tr></table></figure>
-
-<p>有了该Makefile后，我们执行make命令便可以执行bpf2go对bpf程序的转换：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$make</span><br><span class="line">go generate ./...</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
-
-<h3 id="四-小结"><a href="#四-小结" class="headerlink" title="四. 小结"></a>四. 小结</h3><p>本文我们讲解了如何基于cilium/ebpf包来开发ebpf的用户态部分。</p>
-<p>ebpf借鉴了libbpf的思路，通过生成代码与数据内嵌的方式来构建ebpf的用户态部分。</p>
-<p>ebpf提供了bpf2go工具，可以将bpf的C源码转换为相应的go源码。</p>
-<p>ebpf将bpf程序抽象为bpfObjects，通过生成的loadBpfObjects完成bpf程序加载到内核的过程，然后利用ebpf库提供的诸如link之类的包实现ebpf与内核事件的关联。</p>
-<p>ebpf包的玩法还有很多，这一篇仅仅是为了打好基础，在后续文章中，我们还会针对各种类型的bpf程序做进一步学习和说明。</p>
-<p>本文代码可以在<a href="https://github.com/bigwhite/experiments/tree/master/ebpf-examples/helloworld-go">这里</a>下载。</p>
-<h3 id="无-参考资料"><a href="#无-参考资料" class="headerlink" title="无. 参考资料"></a>无. 参考资料</h3><ul>
-<li><a href="https://www.ebpf.top/post/ebpf_go/">使用Go语言管理和分发ebpf程序</a> – <a href="https://www.ebpf.top/post/ebpf_go/">https://www.ebpf.top/post/ebpf_go/</a></li>
-<li><a href="https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf">A Pure Go eBPF library</a> – <a href="https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf">https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf</a></li>
-<li><a href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">cilium ebpf library architecture</a> – <a href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md</a></li>
-</ul>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>服务器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>mac下.net环境问题</title>
-    <url>/dotnet-env/</url>
-    <content><![CDATA[<div class=".article-gallery"><h1 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h1><ul>
-<li><a href="https://learn.microsoft.com/zh-cn/dotnet/core/runtime-discovery/troubleshoot-app-launch?pivots=os-macos">https://learn.microsoft.com/zh-cn/dotnet/core/runtime-discovery/troubleshoot-app-launch?pivots=os-macos</a></li>
-</ul>
-<p>我遇到的问题是mac上装了多个.net环境，在Rider下运行.net程序报错，.NET location: Not found。</p>
-<h1 id="net相关路径"><a href="#net相关路径" class="headerlink" title=".net相关路径"></a>.net相关路径</h1><ol>
-<li><p>Mac下.net的安装路径在该文件下</p>
-<p><code>/etc/dotnet/install_location</code></p>
-</li>
-<li><p>我的电脑上两个.net的路径在</p>
-<ul>
-<li>/usr/local/share/dotnet/</li>
-<li>~/.dotnet</li>
-</ul>
-</li>
-<li><p>删除一个多余的，只保留一个</p>
-</li>
-</ol>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>笔记</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>使用Flutter进行APP开发流程</title>
-    <url>/flutter-dev/</url>
-    <content><![CDATA[<div class=".article-gallery"><p><a href="https://imgtu.com/i/hBsVC6"><a href="https://z3.ax1x.com/2021/09/01/hBsVC6.md.png" title="hBsVC6.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/09/01/hBsVC6.md.png" alt="hBsVC6.md.png"></a></a></p>
-<h1 id="资源加载："><a href="#资源加载：" class="headerlink" title="资源加载："></a>资源加载：</h1><h3 id="1-本地"><a href="#1-本地" class="headerlink" title="1.本地"></a>1.本地</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String DEFAULT_USER_ICON = &#x27;static/images/logo.png&#x27;;</span><br><span class="line">Image.asset(AppICons.DEFAULT_USER_ICON, width: AppICons.USER_ICON_WIDTH, height: AppICons.USER_ICON_HEIGHT),</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-iconfont。-https-www-iconfont-cn"><a href="#2-iconfont。-https-www-iconfont-cn" class="headerlink" title="2.iconfont。 https://www.iconfont.cn/"></a>2.iconfont。 <a href="https://www.iconfont.cn/">https://www.iconfont.cn/</a></h3><p>在iconfont网站上传资源。下载到本地，放入项目资源文件夹下。</p>
-<p>pubspec.yaml中配置。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fonts:</span><br><span class="line">  - family: myIconFont</span><br><span class="line">    fonts:</span><br><span class="line">      - asset: static/font/iconfont.ttf</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-UI编辑器。-https-norbert515-github-io-widget-maker-website"><a href="#3-UI编辑器。-https-norbert515-github-io-widget-maker-website" class="headerlink" title="3.UI编辑器。 https://norbert515.github.io/widget_maker/website/"></a>3.UI编辑器。 <a href="https://norbert515.github.io/widget_maker/website/">https://norbert515.github.io/widget_maker/website/</a></h3><p><a href="https://github.com/Norbert515/flutter_ide">https://github.com/Norbert515/flutter_ide</a></p>
-<p>项目中使用：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">static const String FONT_FAMILY = &#x27;myIconFont&#x27;;</span><br><span class="line">static const IconData LOGIN_USER = const IconData(0xe652, fontFamily: AppICons.FONT_FAMILY);</span><br><span class="line">iconData: AppICons.LOGIN_USER,</span><br></pre></td></tr></table></figure>
-
-<h1 id="原型开发："><a href="#原型开发：" class="headerlink" title="原型开发："></a>原型开发：</h1><p><a href="https://www.xiaopiu.com/">https://www.xiaopiu.com/</a></p>
-<p>在上面设计开发，然后导出到本地，可以查看里面的资源文件。</p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
       </tags>
   </entry>
   <entry>
@@ -1309,6 +1309,94 @@
       </tags>
   </entry>
   <entry>
+    <title>向优秀团队学习（转载）</title>
+    <url>/good-team/</url>
+    <content><![CDATA[<div class=".article-gallery"><p>价值导向，数据驱动</p>
+<ul>
+<li>用产出和价值说话，推动力和执行力第一</li>
+<li>数据驱动，主动做数据分析，而不是等着别人给数据</li>
+<li>用数据和深入分析结果来讨论，不拍脑袋，通过数据分析跟产品一起找优化方向，不做纯执行者</li>
+<li>承诺必达，关注交付，不延期 - 我们要追求极致，但不要追求完美，必要时需要在按时交付和追求极致间作出权衡，可以在尽最大努力的情况下，先按时交付，同时说明哪些地方还不够极致，交付后会持续、马上去优化 - 按时交付 和 追求极致之间不是妥协，是权衡，判断优先级<br>提倡</li>
+<li>「研发：这个需求解决了用户什么痛点？目标用户是谁？优先级高吗？有运营计划吗？我还可以做点什么，还能再一起推动一下合作方吗？」「产品：😱」</li>
+<li>项目很重要，排期实在太紧，不追求完美，以可行的最小方案保障项目上线，并把权衡考虑因素、影响同步到相关同学</li>
+<li>需求上线后，积极主动关注上线效果；核心项目，长期关注数据波动、一线反馈<br>反对</li>
+<li>「A：我真厉害呀，这个双月上线了 30 个接口」「用户：这些接口有啥用？一点价值没有～」</li>
+<li>「A：这个项目各方资源投入 OK 吗？推进有什么困难吗？」「B：我这里没问题，运营、测试就要问 xxx 了，我也不知道。这个我觉得应该是产品的问题吧」</li>
+<li>延期了也没事，就说有临时有事占用了时间～</li>
+<li>我就要追求完美，就算项目延期我也要抠每一个细节点，延期一个月后，项目终于上线了：大家快来看，我的项目都是精品</li>
+<li>我所有的工作在代码上线的那一刻就结束了，后面就不关我的事了</li>
+</ul>
+<p>成为解决问题的高手</p>
+<ul>
+<li>去解决问题，主动去解决，而不是等着团队分配，不挑容易的、喜欢的事</li>
+<li>技术是为了解决问题，不为了技术而技术，不为了技术而造轮子，避免自嗨</li>
+<li>去成为 owner，不仅仅是 coder - 每个角色要「边界清晰」（PM 出合理需求，RD、FE 高质量代码，QA 质量保障），更要「不设边界」，不要说「我觉得这是 xx 该做的」，可能确实是他该做的，But，我们是 one team，他没有 action，可以提醒他，可以跟他一起推进，我们的价值应该不仅仅是一个执行者 - Owner 感不是说我就是把代码写好了（我的极端看法：把代码写好是本质工作，并不是 owner 感的体现，owner 感体现在代码之外的事上）<br>提倡</li>
+<li>「A：系统中有这么一个 bug，我们一起来配合优化下」「B：我来一起，对这个比较有兴趣」</li>
+<li>主动承担起项目的 owner 角色，提前协调各方资源，同步风险，更大范围去寻找保证项目可以如期交付的办法</li>
+<li>在做一个项目前，充分调研公司内部、开源方案，想清楚要解决的业务问题</li>
+<li>你的方向有这个问题，是不是隔壁方向也可能会有 ？发起横向项目专项，一起系统化解决<br>反对</li>
+<li>「B：我不想碰 A 写的代码，一坨屎。」，一年后，「C：我不想碰 B 写的代码，一坨屎。」</li>
+<li>「A：系统中有这么一个 bug，我们一起来配合优化下」「B：嗨，C，不要跟 A 一起去合作，这个 bug 关我们什么事」</li>
+<li>项目延期又不是我的问题，是 B delay 了，是 C 没有人力呀</li>
+<li>「A：做这个项目是要解决什么业务问题啊？」「B: 不知道啊，我管它呢，我就觉得这个技术牛逼，就要做」</li>
+<li>推动横向项目太麻烦了，累死个人，我就管我自己就好了<br>小故事分享</li>
+<li>2 个小伙子被派去完成一个任务：去集市采购土豆</li>
+<li>老板问小伙子 A：集市上有土豆吗？小伙子跑去集市看了以后回来说：有</li>
+<li>老板又问：有多少家在卖？ 小伙子赶紧又跑回去看，回来说：有 10 家</li>
+<li>老板又问：多少钱一斤？小伙子很委屈，你没有要我问价格呀，只好再跑去问</li>
+<li>小伙子 B：看了市场上有多少土豆货源、价格、品质，市场需求，根据这些情况想好了如果批量采购，如何跟供应商谈价格，形成一个方案</li>
+<li>预定酒店（纯属虚构）</li>
+<li>公司需要预定当天某地酒店的一件朝南海景房，这个任务派给了同事 A</li>
+<li>同事 A 马上打电话去酒店预定，但是发现这个酒店当天的海景房已经没有了，同事 A 向公司汇报了该情况，并询问是否可以换一个酒店或者不是海景房是否可以，在得到否定答案后，继续跟进</li>
+<li>同事 A 向酒店打听了海景房被预定的情况，发现有一间海景房是被一对年轻情侣预定了，马上跟这对情侣联系，提出一个方案：这间海景房的钱由同事 A 补贴给他们，同时给他们定好另外一间非海景房。在成功预定到海景房后，跟公司汇报：海景房预定完成</li>
+</ul>
+<p>深挖本质，积极主动</p>
+<ul>
+<li>多问几个「为什么」，找到最根本的原因</li>
+<li>多问几个「然后呢」，推演最深远的价值</li>
+<li>主动发现问题，形成自己的理解和思考，提出想法，并推动落地<br>提倡<ul>
+<li>「A: 服务有周期性报警，值班同学看下」「B：不需要管，框架的报错，它自己会好的」「A：为什么框架会报错呢？」「B: 服务端关闭链接了」「A：为什么服务端会偶发关闭链接？」</li>
+<li>「产品：这个需求要做一下」「研发：这个需求要解决用户的什么问题啊？用户诉求强吗？需求很紧急吗？」</li>
+<li>问题墙上的问题还没有人去解决，主动认领，钻研解决</li>
+<li>团队安排的工作做完了，主动寻找有哪些优化工作可以做，跟团队沟通有哪些问题可以自己去解决<br>反对</li>
+<li>「A: 服务有周期性报警，值班同学看下」「B：不需要管，瞬间波动，它自己会好的，不需要管」</li>
+<li>有啥需求就做啥需求，管它重要不重要</li>
+<li>又不是我的 bug，管我屁事，我需求做完了要下班的呀</li>
+<li>排期多排一点真是好～</li>
+</ul>
+</li>
+</ul>
+<p>开放合作，持续精进</p>
+<ul>
+<li>多一些善意假设，少一些恶意揣测</li>
+<li>乐观皮实，学习总结<ul>
+<li>乐观：可以拓展为 坚韧的乐观，不会因为遇到一点困难、一点挫折就一蹶不振了。<ul>
+<li>为什么我会遇到这种事 ？ ➡️ 这件事教会了我什么 ？</li>
+</ul>
+</li>
+<li>皮实：不要玻璃心，说不得，不能接受任何建议，只希望听夸赞。 - 我们的工作不可能每件事都做的很成功很到位，不要想着我之前的事都做好了，就这件没做好，为什么要说我？ - 如果都不值得被说了，那是不是期望也不大了～ 最深的不爱，不是争吵，而是懒得吵<br>学习：学习是自己的事，团队只能给引导<br>总结：对某个需求质量的总结、对某次决策的总结、对过去一段时间自己表现的总结。并记录下来～<br>提倡</li>
+<li>有误会，坦诚清晰的沟通，寻求合作和共同利益</li>
+<li>新同事来了主动打招呼，一起吃饭，有困难主动帮助</li>
+<li>善于思考、总结、沉淀，积极自省，并转化为下一步的提升计划</li>
+<li>会对外输出最佳实践和技术积累，赋能团队的同时，也提升影响力<br>反对</li>
+<li>「A 这个人不行，B 啥也不懂，我不想跟他们合作」</li>
+<li>「他在群里这么说，不就是在针对我嘛」</li>
+<li>他是 A 的实习生，关我什么事</li>
+<li>玻璃心，接受不了团队/同事的建议</li>
+<li>只埋头做需求，不总结、不沉淀、不输出、不提升</li>
+<li>「我做的探索，为什么要告诉别人，他要用，自己研究去」</li>
+</ul>
+</li>
+</ul>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>杂乱</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>首届hackathon的一些感想</title>
     <url>/hackathon/</url>
     <content><![CDATA[<div class=".article-gallery"><p>很开心我们团队能获得《最佳用户体验奖》。从零开始，全新的团队，30个小时出demo。</p>
@@ -1321,75 +1409,6 @@
       </categories>
       <tags>
         <tag>杂乱</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>InfluxDB和Grafana搭建监控服务</title>
-    <url>/influxdb-grafana/</url>
-    <content><![CDATA[<div class=".article-gallery"><p>本篇为监控服务的环境搭建教程。</p>
-<h2 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h2><p><a href="https://cloud.tencent.com/developer/article/1701451">安装教程</a></p>
-<h4 id="问题一："><a href="#问题一：" class="headerlink" title="问题一："></a>问题一：</h4><p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" title="WX20211217-005210@2x-AlSghZ" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" alt="WX20211217-005210@2x-AlSghZ"></a></p>
-<p>当前python环境为python3，修改/usr/bin/yum-config-manager使用的python版本为2即可。如下图</p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" title="WX20211217-005513@2x-8lyFc6" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" alt="WX20211217-005513@2x-8lyFc6"></a></p>
-<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p>下面一是service方式安装，二是docker方式安装，按需选择一种方式安装即可，<strong>推荐方式1</strong>。</p>
-<ol>
-<li><p><a href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Linux#install-influxdb-as-a-service-with-systemd">Install InfluxDB as a service with systemd</a></p>
-<p>我的是CentOS的系统，使用yum方式安装如下：</p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115000-i3NQOj.jpg" title="20211220115000-i3NQOj" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115000-i3NQOj.jpg" alt="20211220115000-i3NQOj"></a></p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115209-ElUVDl.jpg" title="20211220115209-ElUVDl" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115209-ElUVDl.jpg" alt="20211220115209-ElUVDl"></a></p>
-<p>启动influxd：</p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg" title="20211220115329-zLOFBX" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg" alt="20211220115329-zLOFBX"></a></p>
-</li>
-<li><p>也可以选择<a href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker">Docker方式安装</a></p>
-</li>
-</ol>
-<h4 id="问题一：-1"><a href="#问题一：-1" class="headerlink" title="问题一："></a>问题一：</h4><p>如果服务器上已经使用yum安装了其他版本的influxDB，可以选择将旧版本卸载。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rpm -q influxdb</span><br><span class="line">rpm -e influxdb</span><br><span class="line">rpm -q influxdb</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><ul>
-<li><p>使用Grafana官网服务</p>
-<ol>
-<li><p><a href="https://grafana.com/grafana/">https://grafana.com/grafana/</a></p>
-</li>
-<li><p>创建自己的grafana cloud，如：<a href="https://zhangga.grafana.net/">https://zhangga.grafana.net/</a></p>
-</li>
-<li><p>配置数据源<a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds1-qTTC9g.jpg" title="ds1-qTTC9g" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds1-qTTC9g.jpg" alt="ds1-qTTC9g"></a></p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds2-3lfW1i.jpg" title="ds2-3lfW1i" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds2-3lfW1i.jpg" alt="ds2-3lfW1i"></a></p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds3-Ve1we7.jpg" title="ds3-Ve1we7" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds3-Ve1we7.jpg" alt="ds3-Ve1we7"></a></p>
-</li>
-<li><p>配置监控面板</p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds4-LUiCLt.jpg" title="ds4-LUiCLt" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds4-LUiCLt.jpg" alt="ds4-LUiCLt"></a></p>
-</li>
-</ol>
-</li>
-<li><p>云服务器安装Grafana</p>
-<ol>
-<li><a href="https://cloud.tencent.com/developer/article/1411555">安装指南</a>。</li>
-<li>在腾讯云服务器(CentOS)上安装成功。</li>
-<li>配置数据源同上。</li>
-</ol>
-</li>
-</ul>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" title="WX20211217-002036@2x-x6aO5K" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" alt="WX20211217-002036@2x-x6aO5K"></a></p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>笔记</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>面试笔记</title>
-    <url>/interview/</url>
-    <content><![CDATA[<div class=".article-gallery"></div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>面试</tag>
       </tags>
   </entry>
   <entry>
@@ -1464,6 +1483,112 @@
       </categories>
       <tags>
         <tag>网站</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JAVA HTTPS服务</title>
+    <url>/https/</url>
+    <content><![CDATA[<div class=".article-gallery"><h2 id="分自签证书和CA证书两种方式。"><a href="#分自签证书和CA证书两种方式。" class="headerlink" title="分自签证书和CA证书两种方式。"></a>分自签证书和CA证书两种方式。</h2><h1 id="一、制作一张自签证书（jks格式）"><a href="#一、制作一张自签证书（jks格式）" class="headerlink" title="一、制作一张自签证书（jks格式）"></a>一、制作一张自签证书（jks格式）</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#keytool -genkey -keysize 2048 -validity 3650 -keyalg RSA -dname &quot;CN=myyiba.com&quot; -keypass 123456 -storepass 123456 -keystore myyiba.jks</span><br></pre></td></tr></table></figure>
+
+<p>keytool为JDK提供的生成证书工具</p>
+<ul>
+<li>-keysize 2048 密钥长度2048位（这个长度的密钥目前可认为无法被暴力破解）</li>
+<li>-validity 3650 证书有效期3650天</li>
+<li>-keyalg RSA 使用RSA非对称加密算法</li>
+<li>-dname “CN=myyiba.com” 设置Common Name为myyiba.com，这是我的域名</li>
+<li>-keypass 123456 密钥的访问密码为123456</li>
+<li>-storepass 123456 密钥库的访问密码为123456（其实这两个密码也可以设置一样，通常都设置一样，方便记）</li>
+<li>-keystore myyiba.jks 指定生成的密钥库文件为 myyiba .jks</li>
+</ul>
+<p>完了之后就拿到了myyiba.jks这个密钥库文件了，把它放到自己的项目目录下，比如：/usr/local/server/project/resource/myyiba.jks</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">项目示例：github下HttpServerInitializer</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h1 id="在程序初始化的时候生成SSLContext"><a href="#在程序初始化的时候生成SSLContext" class="headerlink" title="在程序初始化的时候生成SSLContext"></a>在程序初始化的时候生成SSLContext</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">keyStore ks = KeyStore.getInstance(&quot;JKS&quot;);</span><br><span class="line">InputStream ksInputStream = new FileInputStream(&quot;/usr/local/server/project/resource/myyiba.jks&quot;);</span><br><span class="line">ks.load(ksInputStream, &quot;123456&quot;.toCharArray());</span><br><span class="line">keyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());</span><br><span class="line">kmf.init(ks, &quot;123456&quot;.toCharArray());</span><br><span class="line">SSLContext sslContext = SSLContext.getInstance(&quot;TLS&quot;);</span><br><span class="line">sslContext.init(kmf.getKeyManagers(), null, null);</span><br></pre></td></tr></table></figure>
+
+<p>这个过程在整个程序周期只需要做一次，最好try-catch一下，以便检查异常，好了之后保存好sslContext，后面用到。</p>
+<h1 id="在ChannelInitializer的initChannel中"><a href="#在ChannelInitializer的initChannel中" class="headerlink" title="在ChannelInitializer的initChannel中"></a>在ChannelInitializer的initChannel中</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void initChannel(SocketChannel socketChannel) throws Exception &#123;</span><br><span class="line">SSLEngine sslEngine = sslContext.createSSLEngine();</span><br><span class="line">sslEngine.setUseClientMode(false); //服务器端模式</span><br><span class="line">sslEngine.setNeedClientAuth(false); //不需要验证客户端</span><br><span class="line">socketChannel.pipeline().addLast(&quot;ssl&quot;, new SslHandler(sslEngine)); //搞定</span><br><span class="line">//...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="二、CA证书"><a href="#二、CA证书" class="headerlink" title="二、CA证书"></a>二、CA证书</h1><p>例如微信小程序的服务器，需要CA证书的HTTPS服务，阿里云提供免费的SSL证书，申请证书后，下载tomcat版。解压有后两个文件：xxx.pfx和pfx-password.txt。</p>
+<p><a href="https://imgtu.com/i/hBsD5q"><a href="https://z3.ax1x.com/2021/09/01/hBsD5q.md.png" title="hBsD5q.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/09/01/hBsD5q.md.png" alt="hBsD5q.md.png"></a></a></p>
+<p>pfx文件类似上面的自签证书xxx.jks文件。加载证书的密码在<br>pfx-password.txt文件中。</p>
+<p>同上面自签证书一样的方式加载CA证书SSL。项目地址见同一个GitHub项目。</p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>JAVA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>InfluxDB和Grafana搭建监控服务</title>
+    <url>/influxdb-grafana/</url>
+    <content><![CDATA[<div class=".article-gallery"><p>本篇为监控服务的环境搭建教程。</p>
+<h2 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h2><p><a href="https://cloud.tencent.com/developer/article/1701451">安装教程</a></p>
+<h4 id="问题一："><a href="#问题一：" class="headerlink" title="问题一："></a>问题一：</h4><p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" title="WX20211217-005210@2x-AlSghZ" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" alt="WX20211217-005210@2x-AlSghZ"></a></p>
+<p>当前python环境为python3，修改/usr/bin/yum-config-manager使用的python版本为2即可。如下图</p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" title="WX20211217-005513@2x-8lyFc6" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" alt="WX20211217-005513@2x-8lyFc6"></a></p>
+<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p>下面一是service方式安装，二是docker方式安装，按需选择一种方式安装即可，<strong>推荐方式1</strong>。</p>
+<ol>
+<li><p><a href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Linux#install-influxdb-as-a-service-with-systemd">Install InfluxDB as a service with systemd</a></p>
+<p>我的是CentOS的系统，使用yum方式安装如下：</p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115000-i3NQOj.jpg" title="20211220115000-i3NQOj" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115000-i3NQOj.jpg" alt="20211220115000-i3NQOj"></a></p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115209-ElUVDl.jpg" title="20211220115209-ElUVDl" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115209-ElUVDl.jpg" alt="20211220115209-ElUVDl"></a></p>
+<p>启动influxd：</p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg" title="20211220115329-zLOFBX" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg" alt="20211220115329-zLOFBX"></a></p>
+</li>
+<li><p>也可以选择<a href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker">Docker方式安装</a></p>
+</li>
+</ol>
+<h4 id="问题一：-1"><a href="#问题一：-1" class="headerlink" title="问题一："></a>问题一：</h4><p>如果服务器上已经使用yum安装了其他版本的influxDB，可以选择将旧版本卸载。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rpm -q influxdb</span><br><span class="line">rpm -e influxdb</span><br><span class="line">rpm -q influxdb</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><ul>
+<li><p>使用Grafana官网服务</p>
+<ol>
+<li><p><a href="https://grafana.com/grafana/">https://grafana.com/grafana/</a></p>
+</li>
+<li><p>创建自己的grafana cloud，如：<a href="https://zhangga.grafana.net/">https://zhangga.grafana.net/</a></p>
+</li>
+<li><p>配置数据源<a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds1-qTTC9g.jpg" title="ds1-qTTC9g" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds1-qTTC9g.jpg" alt="ds1-qTTC9g"></a></p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds2-3lfW1i.jpg" title="ds2-3lfW1i" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds2-3lfW1i.jpg" alt="ds2-3lfW1i"></a></p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds3-Ve1we7.jpg" title="ds3-Ve1we7" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds3-Ve1we7.jpg" alt="ds3-Ve1we7"></a></p>
+</li>
+<li><p>配置监控面板</p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds4-LUiCLt.jpg" title="ds4-LUiCLt" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds4-LUiCLt.jpg" alt="ds4-LUiCLt"></a></p>
+</li>
+</ol>
+</li>
+<li><p>云服务器安装Grafana</p>
+<ol>
+<li><a href="https://cloud.tencent.com/developer/article/1411555">安装指南</a>。</li>
+<li>在腾讯云服务器(CentOS)上安装成功。</li>
+<li>配置数据源同上。</li>
+</ol>
+</li>
+</ul>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" title="WX20211217-002036@2x-x6aO5K" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" alt="WX20211217-002036@2x-x6aO5K"></a></p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>面试笔记</title>
+    <url>/interview/</url>
+    <content><![CDATA[<div class=".article-gallery"></div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>面试</tag>
       </tags>
   </entry>
   <entry>
@@ -1605,6 +1730,24 @@
       </tags>
   </entry>
   <entry>
+    <title>JAVA游戏服务器热更</title>
+    <url>/java-hot/</url>
+    <content><![CDATA[<div class=".article-gallery"><p>具体工程详见github:</p>
+<p><a href="https://github.com/zhangga/HotswapJAVA.git">https://github.com/zhangga/HotswapJAVA.git</a></p>
+<p>agentmain和premain方法都只能修改方法体。</p>
+<p><a href="https://imgtu.com/i/hKvk5V"><a href="https://z3.ax1x.com/2021/08/27/hKvk5V.md.png" title="hKvk5V.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/08/27/hKvk5V.md.png" alt="hKvk5V.md.png"></a></a></p>
+<p>jrebel可以热更类，新增、删除、修改等。</p>
+<p>jrebel有eclipse和idea的插件，方便平时开发时，不用重启服务器。</p>
+<p>破解版的插件在我的百度云盘里。</p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>JAVA</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>JVisualVM远程调试</title>
     <url>/jvm-remote/</url>
     <content><![CDATA[<div class=".article-gallery"><h1 id="一、使用jstatd"><a href="#一、使用jstatd" class="headerlink" title="一、使用jstatd"></a>一、使用jstatd</h1><p>linux下使用 hostname -i  查看hostname对应的IP</p>
@@ -1631,117 +1774,6 @@
       </categories>
       <tags>
         <tag>JAVA</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>TCP/KCP详解，及源码注解</title>
-    <url>/kcp/</url>
-    <content><![CDATA[<div class=".article-gallery"><h1 id="KCP-Netty的中文注解版："><a href="#KCP-Netty的中文注解版：" class="headerlink" title="KCP-Netty的中文注解版："></a>KCP-Netty的中文注解版：</h1><p><a href="https://github.com/zhangga/kcp-netty">kcp-netty中文注释</a></p>
-<h1 id="KCP-UDT比较："><a href="#KCP-UDT比较：" class="headerlink" title="KCP/UDT比较："></a>KCP/UDT比较：</h1><p><a href="https://github.com/libinzhangyuan/asio_kcp">kcp/udt</a></p>
-<h1 id="KCP"><a href="#KCP" class="headerlink" title="KCP"></a>KCP</h1><p>传输层，可靠性，ARQ协议。</p>
-<p>目的：解决在网络拥堵情况下tcp协议的网络速度慢的问题。可靠性，传输速度。</p>
-<p>一般用udp作为下层传输协议，udp报文+控制头。</p>
-<p>传输数据大于mss(最大报文段)时，kcp将数据分片存储在多个kcp包(Segment)中。</p>
-<span id="more"></span>
-
-<ol>
-<li><ol>
-<li><strong>滑动窗口机制：</strong>kcp采用滑动窗口机制来提高发送速度。由于UDP在网络中的传输是不可靠的，因此会出现丢包和包的乱序。kcp是可靠的保证数据有序的协议，所以为了纠正包的乱序。接收方维护一个接收窗口。接收窗口有一个起始序号rcv_nxt以及尾序号rcv_nxt+rcv_wnd。如果接收窗口收到序号为rcv_nxt的分片那么rcv_nxt就加一，形象一点的说法是滑动窗口右移,并把该数据放入接收队列供应用层取用。如果收到的数据在窗口范围内但不是rcv_nxt那么就把数据保存起来,等收到rcv_nxt序号的分片时再一并放入接收队列供应用层取用。</li>
-</ol>
-</li>
-<li><p><strong>快速重传机制：</strong>数据在网络中的传输时间是不固定的，因此超时重传时间比较长。而为了尽早地判断出数据包的丢失，kcp引入了快速重传机制。快速重传机制工作原理是，当发送方发送了n,n+1,n+2…等等包出去后，接收方没有接收到n,而接收到n+1,n+2..等等n号包之后的包，这时因为n号包之后的包都已经接收到了，而n号包还没有接收到，所以可以认为n号包已经丢失了，告知发送方可以进行快速重传。kcp为了支持快速重传，接收方需要告诉发送方，哪些包已经成功收到了，哪些包没有收到。因此接收方返回发送方的确认数据（ack）中包含以下信息：接收窗口左端的序号rcv_nxt,接收到的大于rcv_nxt的包序号sn。rcv_nxt的含义是接收方已经成功按顺序接收了rcv_nxt序号之前的所有包,大于rcv_nxt的序号sn表示的是在接收窗口内的不连续的包。发送方接收到接收方发过来的数据时，首先解析rcv_nxt，把发送缓存中所有小于rcv_nxt序号的包全部移除掉（因为这些包全都都已经正确接收了）。然后再解析sn,遍历发送缓存，找到所有序号小于sn的包，这些包就是可能在网络中已经丢掉了的包,只是可能，因为有可能这些包只是拥堵在了网络中，需要更长的时间到达，所以这里我们设置一个快速重传的门限，对每个分片维护一个快速重传的计数，每收到一个ack解析sn后找到了一个分片，就把该分片的快速重传的计数加一，如果该计数达到了快速重传门限，那么就认为该分片已经丢失，可以触发快速重传，该门限值在kcp中可以设置，tcp中是3。</p>
-</li>
-<li><p><strong>选择重传机制：</strong>选择重传的关键在于接收方要告知发送方哪些包已经收到了，哪些包没有收到，为了最小化数据量，接收方可以告诉发送方哪些包已经按序收到了，哪些包是收到的但是不连续。所以返回的ack中包含rcv_nxt和sn。rcv_nxt代表收到的所有连续的包，sn代表哪些不连续的包收到了，那么根据这两个参数可以计算出来没有收到的包的序号。</p>
-</li>
-<li><p><strong>拥塞控制：</strong>拥塞控制就是告诉发送方，网络太堵了，应该少发一些数据，因此在滑动窗口的机制上引入了拥塞窗口，也就是说发送发发送的数据不得超过拥塞窗口，拥塞窗口的大小会随网络情况而变快，网络快拥塞窗口就大，反之同理。拥塞窗口的大小控制使用慢启动机制，具体参考TCP。</p>
-</li>
-</ol>
-<p>应用：kcp采取一系列措施尽量提高网络传输速率，在网络实时性和可靠性要求比较高的场景下可以考虑kcp协议代替tcp协议。</p>
-<p>名词说明（源码字段）：<br>用户数据：应用层发送的数据，如一张图片2Kb的数据<br>MTU：最大传输单元。即每次发送的最大数据<br>RTO：Retransmission TimeOut，重传超时时间。<br>cwnd:congestion window，拥塞窗口，表示发送方可发送多少个KCP数据包。与接收方窗口有关，与网络状况（拥塞控制）有关，与发送窗口大小有关。<br>rwnd:receiver window,接收方窗口大小，表示接收方还可接收多少个KCP数据包<br>snd_queue:待发送KCP数据包队列<br>snd_nxt:下一个即将发送的kcp数据包序列号<br>snd_una:下一个待确认的序列号</p>
-<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1.png?resize=640,467" title="TCP/KCP详解，及源码注解 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1.png?resize=640,467" alt="TCP/KCP详解，及源码注解 - 第1张  | 张嘎"></a></p>
-<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2.png?resize=640,351" title="TCP/KCP详解，及源码注解 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2.png?resize=640,351" alt="TCP/KCP详解，及源码注解 - 第2张  | 张嘎"></a></p>
-<p>[ KCP 发送过程 ]</p>
-<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3.jpg?resize=485,296" title="TCP/KCP详解，及源码注解 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3.jpg?resize=485,296" alt="TCP/KCP详解，及源码注解 - 第3张  | 张嘎"></a></p>
-<p>[ RTO算法对比图 ]</p>
-<p>KCP的接收过程是将UDP收到的数据进行解包，重新组装顺序的、可靠的数据后交付给用户。</p>
-<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4.png?resize=365,353" title="TCP/KCP详解，及源码注解 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4.png?resize=365,353" alt="TCP/KCP详解，及源码注解 - 第4张  | 张嘎"></a></p>
-<p><strong>rcv_queue的数据是连续的，rcv_buf可能是间隔的</strong></p>
-<p><a href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/5.png?resize=355,448" title="TCP/KCP详解，及源码注解 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/5.png?resize=355,448" alt="TCP/KCP详解，及源码注解 - 第5张  | 张嘎"></a></p>
-<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/6.png?resize=466,424" title="TCP/KCP详解，及源码注解 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/6.png?resize=466,424" alt="TCP/KCP详解，及源码注解 - 第6张  | 张嘎"></a></p>
-<p>[ 数据确认包处理流程 ]</p>
-<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/7.png?resize=574,403" title="TCP/KCP详解，及源码注解 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/7.png?resize=574,403" alt="TCP/KCP详解，及源码注解 - 第7张  | 张嘎"></a></p>
-<p>[ KCP快速确认 ]</p>
-<p><strong>总结：TCP可靠简单，但是复杂无私，所以速度慢。KCP尽可能保留UDP快的特点下，保证可靠。</strong></p>
-<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/992994-20180616162318524-660296383.jpg?resize=640,323" title="TCP/KCP详解，及源码注解 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/992994-20180616162318524-660296383.jpg?resize=640,323" alt="TCP/KCP详解，及源码注解 - 第8张  | 张嘎"></a></p>
-<p>总结：UDP收到的包，不断通过kcp_input喂给KCP，KCP会对这部分数据（KCP协议数据）进行解包，重新封装成应用层用户数据，应用层通过kcp_recv获取。应用层通过kcp_send发送数据，KCP会把用户数据拆分kcp数据包，通过kcp_output，以UDP（send）的方式发送。</p>
-<p><strong>KCP的配置模式</strong></p>
-<p>\1. 工作模式：</p>
-<blockquote>
-<p>int ikcp_nodelay(ikcpcb *kcp, int nodelay, int interval, int resend, int nc)</p>
-</blockquote>
-<ul>
-<li>nodelay ：是否启用 nodelay模式，0不启用；1启用。</li>
-<li>interval ：协议内部工作的 interval，单位毫秒，比如 10ms或者 20ms</li>
-<li>resend ：快速重传模式，默认0关闭，可以设置2（2次ACK跨越将会直接重传）</li>
-<li>nc ：是否关闭流控，默认是0代表不关闭，1代表关闭。</li>
-</ul>
-<p><strong>普通模式：</strong> ikcp_nodelay(kcp, 0, 40, 0, 0);</p>
-<p><strong>极速模式：</strong> ikcp_nodelay(kcp, 1, 10, 2, 1)</p>
-<p>\1. 最大窗口</p>
-<blockquote>
-<p>int ikcp_wndsize(ikcpcb *kcp, int sndwnd, int rcvwnd);</p>
-</blockquote>
-<p>该调用将会设置协议的最大发送窗口和最大接收窗口大小，默认为32. 这个可以理解为 TCP的 SND_BUF 和 RCV_BUF，只不过单位不一样 SND/RCV_BUF 单位是字节，这个单位是包。</p>
-<p>\2. 最大传输单元：</p>
-<p>纯算法协议并不负责探测 MTU，默认 mtu是1400字节，可以使用ikcp_setmtu来设置该值。该值将会影响数据包归并及分片时候的最大传输单元。</p>
-<p>\3. 最小RTO：</p>
-<p>不管是 TCP还是 KCP计算 RTO时都有最小 RTO的限制，即便计算出来RTO为40ms，由于默认的 RTO是100ms，协议只有在100ms后才能检测到丢包，快速模式下为30ms，可以手动更改该值：<br>kcp-&gt;rx_minrto = 10;</p>
-<p>KCP原理见：<a href="https://www.cnblogs.com/wetest/p/9190786.html">KCP原理</a></p>
-<h1 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h1><h3 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h3><p>1.为流量设计（KB数据/秒），充分利用宽带。</p>
-<p>2.安全可靠，丢包全部重传。</p>
-<p>3.超时 = RTO * 2。</p>
-<p>4.延迟ACK，充分利用宽带。</p>
-<h4 id="UNA-vs-ACK-UNA："><a href="#UNA-vs-ACK-UNA：" class="headerlink" title="UNA vs ACK+UNA："></a>UNA vs ACK+UNA：</h4><p>ARQ模型响应有两种，UNA（此编号前所有包已收到，如TCP）和ACK（该编号包已收到  ），光用UNA将导致全部重传，光用ACK则丢失成本太高，以往协议都是二选其一，而  KCP协议中，除去单独的 ACK包外，所有包都有UNA信息。</p>
-<h3 id="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"><a href="#拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。" class="headerlink" title="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"></a>拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。</h3><p><strong>慢开始算法</strong>：当主机开始发送数据时，如果立即所大量数据字节注入到网络，那么就有可能引起网络拥塞，因为现在并不清楚网络的负荷情况。因此，较好的方法是 先探测一下，即由小到大逐渐增大发送窗口，也就是说，由小到大逐渐增大拥塞窗口数值。通常在刚刚开始发送报文段时，先把拥塞窗口 cwnd 设置为一个最大报文段MSS的数值。而在每收到一个对新的报文段的确认后，把拥塞窗口增加至多一个MSS的数值。用这样的方法逐步增大发送方的拥塞窗口 cwnd ，可以使分组注入到网络的速率更加合理。</p>
-<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120451114.jpg?resize=499,305" title="TCP/KCP详解，及源码注解 - 第9张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120451114.jpg?resize=499,305" alt="TCP/KCP详解，及源码注解 - 第9张  | 张嘎"></a></p>
-<p>每经过一个传输轮次，拥塞窗口 cwnd 就加倍。一个传输轮次所经历的时间其实就是往返时间RTT。不过“传输轮次”更加强调：把拥塞窗口cwnd所允许发送的报文段都连续发送出去，并收到了对已发送的最后一个字节的确认。</p>
-<p>另，慢开始的“慢”并不是指cwnd的增长速率慢，而是指在TCP开始发送报文段时先设置cwnd=1，使得发送方在开始时只发送一个报文段（目的是试探一下网络的拥塞情况），然后再逐渐增大cwnd。</p>
-<p>为了防止拥塞窗口cwnd增长过大引起网络拥塞，还需要设置一个慢开始门限ssthresh状态变量（如何设置ssthresh）。慢开始门限ssthresh的用法如下：</p>
-<p>当 cwnd &lt; ssthresh 时，使用上述的慢开始算法。</p>
-<p>当 cwnd &gt; ssthresh 时，停止使用慢开始算法而改用拥塞避免算法。</p>
-<p>当 cwnd = ssthresh 时，既可使用慢开始算法，也可使用拥塞控制避免算法。</p>
-<p>拥塞避免算法：让拥塞窗口cwnd缓慢地增大，即每经过一个往返时间RTT就把发送方的拥塞窗口cwnd加1，而不是加倍。这样拥塞窗口cwnd按线性规律缓慢增长，比慢开始算法的拥塞窗口增长速率缓慢得多。</p>
-<p>无论在慢开始阶段还是在拥塞避免阶段，只要发送方判断网络出现拥塞（其根据就是没有收到确认），就要把慢开始门限ssthresh设置为出现拥塞时的发送 方窗口值的一半（但不能小于2）。然后把拥塞窗口cwnd重新设置为1，执行慢开始算法。这样做的目的就是要迅速减少主机发送到网络中的分组数，使得发生 拥塞的路由器有足够时间把队列中积压的分组处理完毕。</p>
-<p>如下图，用具体数值说明了上述拥塞控制的过程。现在发送窗口的大小和拥塞窗口一样大。</p>
-<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120591634.jpg?resize=570,306" title="TCP/KCP详解，及源码注解 - 第10张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120591634.jpg?resize=570,306" alt="TCP/KCP详解，及源码注解 - 第10张  | 张嘎"></a></p>
-<p>&lt;1&gt;. 当TCP连接进行初始化时，把拥塞窗口cwnd置为1。前面已说过，为了便于理解，图中的窗口单位不使用字节而使用报文段的个数。慢开始门限的初始值设置为16个报文段，即 cwnd = 16 。</p>
-<p>&lt;2&gt;. 在执行慢开始算法时，拥塞窗口 cwnd 的初始值为1。以后发送方每收到一个对新报文段的确认ACK，就把拥塞窗口值另1，然后开始下一轮的传输（图中横坐标为传输轮次）。因此拥塞窗口cwnd 随着传输轮次按指数规律增长。当拥塞窗口cwnd增长到慢开始门限值ssthresh时（即当cwnd=16时），就改为执行拥塞控制算法，拥塞窗口按线 性规律增长。</p>
-<p>&lt;3&gt;. 假定拥塞窗口的数值增长到24时，网络出现超时（这很可能就是网络发生拥塞了）。更新后的ssthresh值变为12（即变为出现超时时的拥塞窗口数值 24的一半），拥塞窗口再重新设置为1，并执行慢开始算法。当cwnd=ssthresh=12时改为执行拥塞避免算法，拥塞窗口按线性规律增长，每经过 一个往返时间增加一个MSS的大小。</p>
-<p>强调：“拥塞避免”并非指完全能够避免了拥塞。利用以上的措施要完全避免网络拥塞还是不可能的。“拥塞避免”是说在拥塞避免阶段将拥塞窗口控制为按线性规律增长，<strong>使网络比较不容易出现拥塞。</strong></p>
-<h3 id="快重传和快恢复算法："><a href="#快重传和快恢复算法：" class="headerlink" title="快重传和快恢复算法："></a>快重传和快恢复算法：</h3><p>如果发送方设置的超时计时器时限已到但还没有收到确认，那么很可能是网络出现了拥塞，致使报文段在网络中的某处被丢弃。这时，TCP马上把拥塞窗口 cwnd 减小到1，并执行慢开始算法，同时把慢开始门限值ssthresh减半。这是不使用快重传的情况。</p>
-<p>快重传算法首先要求接收方每收到一个失序的报文段后就立即发出重复确认（为的是使发送方及早知道有报文段没有到达对方）而不要等到自己发送数据时才进行捎带确认。</p>
-<p><a href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2010101122524670.jpg?resize=492,276" title="TCP/KCP详解，及源码注解 - 第11张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2010101122524670.jpg?resize=492,276" alt="TCP/KCP详解，及源码注解 - 第11张  | 张嘎"></a></p>
-<p>接收方收到了M1和M2后都分别发出了确认。现在假定接收方没有收到M3但接着收到了M4。显然，接收方不能确认M4，因为M4是收到的失序报文段。根据 可靠传输原理，接收方可以什么都不做，也可以在适当时机发送一次对M2的确认。但按照快重传算法的规定，接收方应及时发送对M2的重复确认，这样做可以让 发送方及早知道报文段M3没有到达接收方。发送方接着发送了M5和M6。接收方收到这两个报文后，也还要再次发出对M2的重复确认。这样，发送方共收到了 接收方的四个对M2的确认，其中后三个都是重复确认。快重传算法还规定，发送方只要一连收到三个重复确认就应当立即重传对方尚未收到的报文段M3，而不必 继续等待M3设置的重传计时器到期。由于发送方尽早重传未被确认的报文段，因此采用快重传后可以使整个网络吞吐量提高约20%。</p>
-<p>与快重传配合使用的还有快恢复算法，其过程有以下两个要点：</p>
-<p>&lt;1&gt;. 当发送方连续收到三个重复确认，就执行“乘法减小”算法，把慢开始门限ssthresh减半。这是为了预防网络发生拥塞。请注意：接下去不执行慢开始算法。</p>
-<p>&lt;2&gt;. 由于发送方现在认为网络很可能没有发生拥塞，因此与慢开始不同之处是现在不执行慢开始算法（即拥塞窗口cwnd现在不设置为1），而是把cwnd值设置为 慢开始门限ssthresh减半后的数值，然后开始执行拥塞避免算法（“加法增大”），使拥塞窗口缓慢地线性增大。</p>
-<p>下图给出了快重传和快恢复的示意图，并标明了“TCP Reno版本”。</p>
-<p>区别：新的 TCP Reno 版本在快重传之后采用快恢复算法而不是采用慢开始算法。</p>
-<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101123101842.jpg?resize=621,313" title="TCP/KCP详解，及源码注解 - 第12张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101123101842.jpg?resize=621,313" alt="TCP/KCP详解，及源码注解 - 第12张  | 张嘎"></a></p>
-<p>也有的快重传实现是把开始时的拥塞窗口cwnd值再增大一点，即等于 ssthresh + 3 X MSS 。这样做的理由是：既然发送方收到三个重复的确认，就表明有三个分组已经离开了网络。这三个分组不再消耗网络 的资源而是停留在接收方的缓存中。可见现在网络中并不是堆积了分组而是减少了三个分组。因此可以适当把拥塞窗口扩大了些。</p>
-<p>在采用快恢复算法时，慢开始算法只是在TCP连接建立时和网络出现超时时才使用。</p>
-<p>采用这样的拥塞控制方法使得TCP的性能有明显的改进。</p>
-<p>接收方根据自己的接收能力设定了接收窗口rwnd，并把这个窗口值写入TCP首部中的窗口字段，传送给发送方。因此，接收窗口又称为通知窗口。因此，从接收方对发送方的流量控制的角度考虑，发送方的发送窗口一定不能超过对方给出的接收窗口rwnd 。</p>
-<p>发送方窗口的上限值 = Min [ rwnd, cwnd ]</p>
-<p>当rwnd &lt; cwnd 时，是接收方的接收能力限制发送方窗口的最大值。</p>
-<p>当cwnd &lt; rwnd 时，则是网络的拥塞限制发送方窗口的最大值。</p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>网络</tag>
-        <tag>面试</tag>
       </tags>
   </entry>
   <entry>
@@ -1993,192 +2025,114 @@
       </tags>
   </entry>
   <entry>
-    <title>JAVA游戏服务器热更</title>
-    <url>/java-hot/</url>
-    <content><![CDATA[<div class=".article-gallery"><p>具体工程详见github:</p>
-<p><a href="https://github.com/zhangga/HotswapJAVA.git">https://github.com/zhangga/HotswapJAVA.git</a></p>
-<p>agentmain和premain方法都只能修改方法体。</p>
-<p><a href="https://imgtu.com/i/hKvk5V"><a href="https://z3.ax1x.com/2021/08/27/hKvk5V.md.png" title="hKvk5V.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/08/27/hKvk5V.md.png" alt="hKvk5V.md.png"></a></a></p>
-<p>jrebel可以热更类，新增、删除、修改等。</p>
-<p>jrebel有eclipse和idea的插件，方便平时开发时，不用重启服务器。</p>
-<p>破解版的插件在我的百度云盘里。</p>
+    <title>TCP/KCP详解，及源码注解</title>
+    <url>/kcp/</url>
+    <content><![CDATA[<div class=".article-gallery"><h1 id="KCP-Netty的中文注解版："><a href="#KCP-Netty的中文注解版：" class="headerlink" title="KCP-Netty的中文注解版："></a>KCP-Netty的中文注解版：</h1><p><a href="https://github.com/zhangga/kcp-netty">kcp-netty中文注释</a></p>
+<h1 id="KCP-UDT比较："><a href="#KCP-UDT比较：" class="headerlink" title="KCP/UDT比较："></a>KCP/UDT比较：</h1><p><a href="https://github.com/libinzhangyuan/asio_kcp">kcp/udt</a></p>
+<h1 id="KCP"><a href="#KCP" class="headerlink" title="KCP"></a>KCP</h1><p>传输层，可靠性，ARQ协议。</p>
+<p>目的：解决在网络拥堵情况下tcp协议的网络速度慢的问题。可靠性，传输速度。</p>
+<p>一般用udp作为下层传输协议，udp报文+控制头。</p>
+<p>传输数据大于mss(最大报文段)时，kcp将数据分片存储在多个kcp包(Segment)中。</p>
+<span id="more"></span>
+
+<ol>
+<li><ol>
+<li><strong>滑动窗口机制：</strong>kcp采用滑动窗口机制来提高发送速度。由于UDP在网络中的传输是不可靠的，因此会出现丢包和包的乱序。kcp是可靠的保证数据有序的协议，所以为了纠正包的乱序。接收方维护一个接收窗口。接收窗口有一个起始序号rcv_nxt以及尾序号rcv_nxt+rcv_wnd。如果接收窗口收到序号为rcv_nxt的分片那么rcv_nxt就加一，形象一点的说法是滑动窗口右移,并把该数据放入接收队列供应用层取用。如果收到的数据在窗口范围内但不是rcv_nxt那么就把数据保存起来,等收到rcv_nxt序号的分片时再一并放入接收队列供应用层取用。</li>
+</ol>
+</li>
+<li><p><strong>快速重传机制：</strong>数据在网络中的传输时间是不固定的，因此超时重传时间比较长。而为了尽早地判断出数据包的丢失，kcp引入了快速重传机制。快速重传机制工作原理是，当发送方发送了n,n+1,n+2…等等包出去后，接收方没有接收到n,而接收到n+1,n+2..等等n号包之后的包，这时因为n号包之后的包都已经接收到了，而n号包还没有接收到，所以可以认为n号包已经丢失了，告知发送方可以进行快速重传。kcp为了支持快速重传，接收方需要告诉发送方，哪些包已经成功收到了，哪些包没有收到。因此接收方返回发送方的确认数据（ack）中包含以下信息：接收窗口左端的序号rcv_nxt,接收到的大于rcv_nxt的包序号sn。rcv_nxt的含义是接收方已经成功按顺序接收了rcv_nxt序号之前的所有包,大于rcv_nxt的序号sn表示的是在接收窗口内的不连续的包。发送方接收到接收方发过来的数据时，首先解析rcv_nxt，把发送缓存中所有小于rcv_nxt序号的包全部移除掉（因为这些包全都都已经正确接收了）。然后再解析sn,遍历发送缓存，找到所有序号小于sn的包，这些包就是可能在网络中已经丢掉了的包,只是可能，因为有可能这些包只是拥堵在了网络中，需要更长的时间到达，所以这里我们设置一个快速重传的门限，对每个分片维护一个快速重传的计数，每收到一个ack解析sn后找到了一个分片，就把该分片的快速重传的计数加一，如果该计数达到了快速重传门限，那么就认为该分片已经丢失，可以触发快速重传，该门限值在kcp中可以设置，tcp中是3。</p>
+</li>
+<li><p><strong>选择重传机制：</strong>选择重传的关键在于接收方要告知发送方哪些包已经收到了，哪些包没有收到，为了最小化数据量，接收方可以告诉发送方哪些包已经按序收到了，哪些包是收到的但是不连续。所以返回的ack中包含rcv_nxt和sn。rcv_nxt代表收到的所有连续的包，sn代表哪些不连续的包收到了，那么根据这两个参数可以计算出来没有收到的包的序号。</p>
+</li>
+<li><p><strong>拥塞控制：</strong>拥塞控制就是告诉发送方，网络太堵了，应该少发一些数据，因此在滑动窗口的机制上引入了拥塞窗口，也就是说发送发发送的数据不得超过拥塞窗口，拥塞窗口的大小会随网络情况而变快，网络快拥塞窗口就大，反之同理。拥塞窗口的大小控制使用慢启动机制，具体参考TCP。</p>
+</li>
+</ol>
+<p>应用：kcp采取一系列措施尽量提高网络传输速率，在网络实时性和可靠性要求比较高的场景下可以考虑kcp协议代替tcp协议。</p>
+<p>名词说明（源码字段）：<br>用户数据：应用层发送的数据，如一张图片2Kb的数据<br>MTU：最大传输单元。即每次发送的最大数据<br>RTO：Retransmission TimeOut，重传超时时间。<br>cwnd:congestion window，拥塞窗口，表示发送方可发送多少个KCP数据包。与接收方窗口有关，与网络状况（拥塞控制）有关，与发送窗口大小有关。<br>rwnd:receiver window,接收方窗口大小，表示接收方还可接收多少个KCP数据包<br>snd_queue:待发送KCP数据包队列<br>snd_nxt:下一个即将发送的kcp数据包序列号<br>snd_una:下一个待确认的序列号</p>
+<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1.png?resize=640,467" title="TCP/KCP详解，及源码注解 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1.png?resize=640,467" alt="TCP/KCP详解，及源码注解 - 第1张  | 张嘎"></a></p>
+<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2.png?resize=640,351" title="TCP/KCP详解，及源码注解 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2.png?resize=640,351" alt="TCP/KCP详解，及源码注解 - 第2张  | 张嘎"></a></p>
+<p>[ KCP 发送过程 ]</p>
+<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3.jpg?resize=485,296" title="TCP/KCP详解，及源码注解 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3.jpg?resize=485,296" alt="TCP/KCP详解，及源码注解 - 第3张  | 张嘎"></a></p>
+<p>[ RTO算法对比图 ]</p>
+<p>KCP的接收过程是将UDP收到的数据进行解包，重新组装顺序的、可靠的数据后交付给用户。</p>
+<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4.png?resize=365,353" title="TCP/KCP详解，及源码注解 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4.png?resize=365,353" alt="TCP/KCP详解，及源码注解 - 第4张  | 张嘎"></a></p>
+<p><strong>rcv_queue的数据是连续的，rcv_buf可能是间隔的</strong></p>
+<p><a href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/5.png?resize=355,448" title="TCP/KCP详解，及源码注解 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/5.png?resize=355,448" alt="TCP/KCP详解，及源码注解 - 第5张  | 张嘎"></a></p>
+<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/6.png?resize=466,424" title="TCP/KCP详解，及源码注解 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/6.png?resize=466,424" alt="TCP/KCP详解，及源码注解 - 第6张  | 张嘎"></a></p>
+<p>[ 数据确认包处理流程 ]</p>
+<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/7.png?resize=574,403" title="TCP/KCP详解，及源码注解 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/7.png?resize=574,403" alt="TCP/KCP详解，及源码注解 - 第7张  | 张嘎"></a></p>
+<p>[ KCP快速确认 ]</p>
+<p><strong>总结：TCP可靠简单，但是复杂无私，所以速度慢。KCP尽可能保留UDP快的特点下，保证可靠。</strong></p>
+<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/992994-20180616162318524-660296383.jpg?resize=640,323" title="TCP/KCP详解，及源码注解 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/992994-20180616162318524-660296383.jpg?resize=640,323" alt="TCP/KCP详解，及源码注解 - 第8张  | 张嘎"></a></p>
+<p>总结：UDP收到的包，不断通过kcp_input喂给KCP，KCP会对这部分数据（KCP协议数据）进行解包，重新封装成应用层用户数据，应用层通过kcp_recv获取。应用层通过kcp_send发送数据，KCP会把用户数据拆分kcp数据包，通过kcp_output，以UDP（send）的方式发送。</p>
+<p><strong>KCP的配置模式</strong></p>
+<p>\1. 工作模式：</p>
+<blockquote>
+<p>int ikcp_nodelay(ikcpcb *kcp, int nodelay, int interval, int resend, int nc)</p>
+</blockquote>
+<ul>
+<li>nodelay ：是否启用 nodelay模式，0不启用；1启用。</li>
+<li>interval ：协议内部工作的 interval，单位毫秒，比如 10ms或者 20ms</li>
+<li>resend ：快速重传模式，默认0关闭，可以设置2（2次ACK跨越将会直接重传）</li>
+<li>nc ：是否关闭流控，默认是0代表不关闭，1代表关闭。</li>
+</ul>
+<p><strong>普通模式：</strong> ikcp_nodelay(kcp, 0, 40, 0, 0);</p>
+<p><strong>极速模式：</strong> ikcp_nodelay(kcp, 1, 10, 2, 1)</p>
+<p>\1. 最大窗口</p>
+<blockquote>
+<p>int ikcp_wndsize(ikcpcb *kcp, int sndwnd, int rcvwnd);</p>
+</blockquote>
+<p>该调用将会设置协议的最大发送窗口和最大接收窗口大小，默认为32. 这个可以理解为 TCP的 SND_BUF 和 RCV_BUF，只不过单位不一样 SND/RCV_BUF 单位是字节，这个单位是包。</p>
+<p>\2. 最大传输单元：</p>
+<p>纯算法协议并不负责探测 MTU，默认 mtu是1400字节，可以使用ikcp_setmtu来设置该值。该值将会影响数据包归并及分片时候的最大传输单元。</p>
+<p>\3. 最小RTO：</p>
+<p>不管是 TCP还是 KCP计算 RTO时都有最小 RTO的限制，即便计算出来RTO为40ms，由于默认的 RTO是100ms，协议只有在100ms后才能检测到丢包，快速模式下为30ms，可以手动更改该值：<br>kcp-&gt;rx_minrto = 10;</p>
+<p>KCP原理见：<a href="https://www.cnblogs.com/wetest/p/9190786.html">KCP原理</a></p>
+<h1 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h1><h3 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h3><p>1.为流量设计（KB数据/秒），充分利用宽带。</p>
+<p>2.安全可靠，丢包全部重传。</p>
+<p>3.超时 = RTO * 2。</p>
+<p>4.延迟ACK，充分利用宽带。</p>
+<h4 id="UNA-vs-ACK-UNA："><a href="#UNA-vs-ACK-UNA：" class="headerlink" title="UNA vs ACK+UNA："></a>UNA vs ACK+UNA：</h4><p>ARQ模型响应有两种，UNA（此编号前所有包已收到，如TCP）和ACK（该编号包已收到  ），光用UNA将导致全部重传，光用ACK则丢失成本太高，以往协议都是二选其一，而  KCP协议中，除去单独的 ACK包外，所有包都有UNA信息。</p>
+<h3 id="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"><a href="#拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。" class="headerlink" title="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"></a>拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。</h3><p><strong>慢开始算法</strong>：当主机开始发送数据时，如果立即所大量数据字节注入到网络，那么就有可能引起网络拥塞，因为现在并不清楚网络的负荷情况。因此，较好的方法是 先探测一下，即由小到大逐渐增大发送窗口，也就是说，由小到大逐渐增大拥塞窗口数值。通常在刚刚开始发送报文段时，先把拥塞窗口 cwnd 设置为一个最大报文段MSS的数值。而在每收到一个对新的报文段的确认后，把拥塞窗口增加至多一个MSS的数值。用这样的方法逐步增大发送方的拥塞窗口 cwnd ，可以使分组注入到网络的速率更加合理。</p>
+<p><a href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120451114.jpg?resize=499,305" title="TCP/KCP详解，及源码注解 - 第9张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120451114.jpg?resize=499,305" alt="TCP/KCP详解，及源码注解 - 第9张  | 张嘎"></a></p>
+<p>每经过一个传输轮次，拥塞窗口 cwnd 就加倍。一个传输轮次所经历的时间其实就是往返时间RTT。不过“传输轮次”更加强调：把拥塞窗口cwnd所允许发送的报文段都连续发送出去，并收到了对已发送的最后一个字节的确认。</p>
+<p>另，慢开始的“慢”并不是指cwnd的增长速率慢，而是指在TCP开始发送报文段时先设置cwnd=1，使得发送方在开始时只发送一个报文段（目的是试探一下网络的拥塞情况），然后再逐渐增大cwnd。</p>
+<p>为了防止拥塞窗口cwnd增长过大引起网络拥塞，还需要设置一个慢开始门限ssthresh状态变量（如何设置ssthresh）。慢开始门限ssthresh的用法如下：</p>
+<p>当 cwnd &lt; ssthresh 时，使用上述的慢开始算法。</p>
+<p>当 cwnd &gt; ssthresh 时，停止使用慢开始算法而改用拥塞避免算法。</p>
+<p>当 cwnd = ssthresh 时，既可使用慢开始算法，也可使用拥塞控制避免算法。</p>
+<p>拥塞避免算法：让拥塞窗口cwnd缓慢地增大，即每经过一个往返时间RTT就把发送方的拥塞窗口cwnd加1，而不是加倍。这样拥塞窗口cwnd按线性规律缓慢增长，比慢开始算法的拥塞窗口增长速率缓慢得多。</p>
+<p>无论在慢开始阶段还是在拥塞避免阶段，只要发送方判断网络出现拥塞（其根据就是没有收到确认），就要把慢开始门限ssthresh设置为出现拥塞时的发送 方窗口值的一半（但不能小于2）。然后把拥塞窗口cwnd重新设置为1，执行慢开始算法。这样做的目的就是要迅速减少主机发送到网络中的分组数，使得发生 拥塞的路由器有足够时间把队列中积压的分组处理完毕。</p>
+<p>如下图，用具体数值说明了上述拥塞控制的过程。现在发送窗口的大小和拥塞窗口一样大。</p>
+<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120591634.jpg?resize=570,306" title="TCP/KCP详解，及源码注解 - 第10张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120591634.jpg?resize=570,306" alt="TCP/KCP详解，及源码注解 - 第10张  | 张嘎"></a></p>
+<p>&lt;1&gt;. 当TCP连接进行初始化时，把拥塞窗口cwnd置为1。前面已说过，为了便于理解，图中的窗口单位不使用字节而使用报文段的个数。慢开始门限的初始值设置为16个报文段，即 cwnd = 16 。</p>
+<p>&lt;2&gt;. 在执行慢开始算法时，拥塞窗口 cwnd 的初始值为1。以后发送方每收到一个对新报文段的确认ACK，就把拥塞窗口值另1，然后开始下一轮的传输（图中横坐标为传输轮次）。因此拥塞窗口cwnd 随着传输轮次按指数规律增长。当拥塞窗口cwnd增长到慢开始门限值ssthresh时（即当cwnd=16时），就改为执行拥塞控制算法，拥塞窗口按线 性规律增长。</p>
+<p>&lt;3&gt;. 假定拥塞窗口的数值增长到24时，网络出现超时（这很可能就是网络发生拥塞了）。更新后的ssthresh值变为12（即变为出现超时时的拥塞窗口数值 24的一半），拥塞窗口再重新设置为1，并执行慢开始算法。当cwnd=ssthresh=12时改为执行拥塞避免算法，拥塞窗口按线性规律增长，每经过 一个往返时间增加一个MSS的大小。</p>
+<p>强调：“拥塞避免”并非指完全能够避免了拥塞。利用以上的措施要完全避免网络拥塞还是不可能的。“拥塞避免”是说在拥塞避免阶段将拥塞窗口控制为按线性规律增长，<strong>使网络比较不容易出现拥塞。</strong></p>
+<h3 id="快重传和快恢复算法："><a href="#快重传和快恢复算法：" class="headerlink" title="快重传和快恢复算法："></a>快重传和快恢复算法：</h3><p>如果发送方设置的超时计时器时限已到但还没有收到确认，那么很可能是网络出现了拥塞，致使报文段在网络中的某处被丢弃。这时，TCP马上把拥塞窗口 cwnd 减小到1，并执行慢开始算法，同时把慢开始门限值ssthresh减半。这是不使用快重传的情况。</p>
+<p>快重传算法首先要求接收方每收到一个失序的报文段后就立即发出重复确认（为的是使发送方及早知道有报文段没有到达对方）而不要等到自己发送数据时才进行捎带确认。</p>
+<p><a href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2010101122524670.jpg?resize=492,276" title="TCP/KCP详解，及源码注解 - 第11张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2010101122524670.jpg?resize=492,276" alt="TCP/KCP详解，及源码注解 - 第11张  | 张嘎"></a></p>
+<p>接收方收到了M1和M2后都分别发出了确认。现在假定接收方没有收到M3但接着收到了M4。显然，接收方不能确认M4，因为M4是收到的失序报文段。根据 可靠传输原理，接收方可以什么都不做，也可以在适当时机发送一次对M2的确认。但按照快重传算法的规定，接收方应及时发送对M2的重复确认，这样做可以让 发送方及早知道报文段M3没有到达接收方。发送方接着发送了M5和M6。接收方收到这两个报文后，也还要再次发出对M2的重复确认。这样，发送方共收到了 接收方的四个对M2的确认，其中后三个都是重复确认。快重传算法还规定，发送方只要一连收到三个重复确认就应当立即重传对方尚未收到的报文段M3，而不必 继续等待M3设置的重传计时器到期。由于发送方尽早重传未被确认的报文段，因此采用快重传后可以使整个网络吞吐量提高约20%。</p>
+<p>与快重传配合使用的还有快恢复算法，其过程有以下两个要点：</p>
+<p>&lt;1&gt;. 当发送方连续收到三个重复确认，就执行“乘法减小”算法，把慢开始门限ssthresh减半。这是为了预防网络发生拥塞。请注意：接下去不执行慢开始算法。</p>
+<p>&lt;2&gt;. 由于发送方现在认为网络很可能没有发生拥塞，因此与慢开始不同之处是现在不执行慢开始算法（即拥塞窗口cwnd现在不设置为1），而是把cwnd值设置为 慢开始门限ssthresh减半后的数值，然后开始执行拥塞避免算法（“加法增大”），使拥塞窗口缓慢地线性增大。</p>
+<p>下图给出了快重传和快恢复的示意图，并标明了“TCP Reno版本”。</p>
+<p>区别：新的 TCP Reno 版本在快重传之后采用快恢复算法而不是采用慢开始算法。</p>
+<p><a href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101123101842.jpg?resize=621,313" title="TCP/KCP详解，及源码注解 - 第12张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101123101842.jpg?resize=621,313" alt="TCP/KCP详解，及源码注解 - 第12张  | 张嘎"></a></p>
+<p>也有的快重传实现是把开始时的拥塞窗口cwnd值再增大一点，即等于 ssthresh + 3 X MSS 。这样做的理由是：既然发送方收到三个重复的确认，就表明有三个分组已经离开了网络。这三个分组不再消耗网络 的资源而是停留在接收方的缓存中。可见现在网络中并不是堆积了分组而是减少了三个分组。因此可以适当把拥塞窗口扩大了些。</p>
+<p>在采用快恢复算法时，慢开始算法只是在TCP连接建立时和网络出现超时时才使用。</p>
+<p>采用这样的拥塞控制方法使得TCP的性能有明显的改进。</p>
+<p>接收方根据自己的接收能力设定了接收窗口rwnd，并把这个窗口值写入TCP首部中的窗口字段，传送给发送方。因此，接收窗口又称为通知窗口。因此，从接收方对发送方的流量控制的角度考虑，发送方的发送窗口一定不能超过对方给出的接收窗口rwnd 。</p>
+<p>发送方窗口的上限值 = Min [ rwnd, cwnd ]</p>
+<p>当rwnd &lt; cwnd 时，是接收方的接收能力限制发送方窗口的最大值。</p>
+<p>当cwnd &lt; rwnd 时，则是网络的拥塞限制发送方窗口的最大值。</p>
 </div>]]></content>
       <categories>
         <category>笔记</category>
       </categories>
       <tags>
-        <tag>JAVA</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux常用命令</title>
-    <url>/linux-note/</url>
-    <content><![CDATA[<div class=".article-gallery"><h4 id="Linux查看物理CPU个数、核数、逻辑CPU个数"><a href="#Linux查看物理CPU个数、核数、逻辑CPU个数" class="headerlink" title="Linux查看物理CPU个数、核数、逻辑CPU个数"></a>Linux查看物理CPU个数、核数、逻辑CPU个数</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 总核数 = 物理CPU个数 X 每颗物理CPU的核数 </span><br><span class="line"># 总逻辑CPU数 = 物理CPU个数 X 每颗物理CPU的核数 X 超线程数</span><br><span class="line"></span><br><span class="line"># 查看物理CPU个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l</span><br><span class="line"></span><br><span class="line"># 查看每个物理CPU中core的个数(即核数)</span><br><span class="line">cat /proc/cpuinfo| grep &quot;cpu cores&quot;| uniq</span><br><span class="line"></span><br><span class="line"># 查看逻辑CPU的个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l</span><br></pre></td></tr></table></figure>
-
-<h4 id="查看CPU信息（型号）"><a href="#查看CPU信息（型号）" class="headerlink" title="查看CPU信息（型号）"></a>查看CPU信息（型号）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c</span><br></pre></td></tr></table></figure>
-
-<h4 id="查看内存信息"><a href="#查看内存信息" class="headerlink" title="查看内存信息"></a>查看内存信息</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># cat /proc/meminfo</span><br></pre></td></tr></table></figure>
-
-<h4 id="如何查看Linux-内核"><a href="#如何查看Linux-内核" class="headerlink" title="如何查看Linux 内核"></a>如何查看Linux 内核</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">uname -a</span><br><span class="line">cat /proc/version</span><br></pre></td></tr></table></figure>
-
-<h4 id="查看机器型号（机器硬件型号）"><a href="#查看机器型号（机器硬件型号）" class="headerlink" title="查看机器型号（机器硬件型号）"></a>查看机器型号（机器硬件型号）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dmidecode | grep &quot;Product Name&quot;</span><br><span class="line">dmidecode</span><br></pre></td></tr></table></figure>
-
-<h4 id="如何查看linux-系统版本"><a href="#如何查看linux-系统版本" class="headerlink" title="如何查看linux 系统版本"></a>如何查看linux 系统版本</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/redhat-release</span><br><span class="line">lsb_release -a</span><br><span class="line">cat /etc/issue</span><br></pre></td></tr></table></figure>
-
-<h4 id="如何查看linux系统和CPU型号，类型和大小"><a href="#如何查看linux系统和CPU型号，类型和大小" class="headerlink" title="如何查看linux系统和CPU型号，类型和大小"></a>如何查看linux系统和CPU型号，类型和大小</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/cpuinfo</span><br><span class="line"></span><br><span class="line">关于CPU的核心参数说明：</span><br><span class="line">· processor：指明第几个CPU处理器</span><br><span class="line">· cpu cores：指明每个处理器的核心数</span><br></pre></td></tr></table></figure>
-
-<h4 id="如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"><a href="#如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息" class="headerlink" title="如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"></a>如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/meminfo</span><br></pre></td></tr></table></figure>
-
-<h4 id="使用taskset命令让进程运行在指定CPU上"><a href="#使用taskset命令让进程运行在指定CPU上" class="headerlink" title="使用taskset命令让进程运行在指定CPU上"></a>使用taskset命令让进程运行在指定CPU上</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">执行以下命令，指定进程运行在第一个CPU（CPU0）上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -c 0 ./test.sh&amp;</span><br><span class="line"></span><br><span class="line">执行以下命令，获取进程状态（以下操作以进程test.sh为例，对应的pid为19155）</span><br><span class="line">[root@VM_32_4_centos ~]# ps aux|grep test.sh</span><br><span class="line">root     19155  0.0  0.0 113120  1204 pts/3    S+   15:26   0:00 /bin/bash ./test.sh</span><br><span class="line"></span><br><span class="line">执行以下命令，查看进程当前运行在哪个CPU上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -p 19155</span><br><span class="line">pid 19155&#x27;s current affinity mask: 1</span><br></pre></td></tr></table></figure>
-
-<h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">查看防火墙开放端口</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --list-ports</span><br><span class="line">5000/udp 80/tcp 5044/tcp 8080/tcp 9200/tcp 5043/tcp 9100/tcp 10050/tcp 5601/tcp 5000/tcp</span><br><span class="line"></span><br><span class="line">给防火墙添加3000端口</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --add-port=3000/tcp --zone=public --permanent</span><br><span class="line">success</span><br><span class="line"></span><br><span class="line">端口生效</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure>
-
-<h4 id="Git常用命令"><a href="#Git常用命令" class="headerlink" title="Git常用命令"></a>Git常用命令</h4><ol>
-<li><p>使用<code>git checkout</code>撤销本地修改，仅限未<code>add/commit</code>的</p>
-<p><code>git checkout .</code></p>
-<p><code>git checkout [filename]</code></p>
-<p><code>git checkout . &amp;&amp; git clean -xdf</code></p>
-</li>
-<li><p>使用<code>git reset</code>回退项目版本，可以回退掉已<code>add/commit</code>的</p>
-<p><code>git reset --hard [commit-hashcode]</code></p>
-</li>
-<li><p>使用<code>git push origin master -f</code>推送到远端</p>
-</li>
-</ol>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>笔记</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>模型微调</title>
-    <url>/llm-lora/</url>
-    <content><![CDATA[<div class=".article-gallery"><h2 id="训练大模型的三个阶段"><a href="#训练大模型的三个阶段" class="headerlink" title="训练大模型的三个阶段"></a>训练大模型的三个阶段</h2><ul>
-<li>预训练：学说话</li>
-<li>微调：学根据指令回答</li>
-<li>偏好对齐：学会按照人类偏好回答</li>
-</ul>
-<h2 id="增量预训练"><a href="#增量预训练" class="headerlink" title="增量预训练"></a>增量预训练</h2><h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><ul>
-<li>更新知识</li>
-<li>修改常识性错误</li>
-<li>扩充领域知识</li>
-<li>……</li>
-</ul>
-<h3 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h3><ul>
-<li>比如把知识从去年扩充到今年</li>
-<li>比如训练一个小说家小说家</li>
-<li>比如他对某个历史人物记忆有错误</li>
-</ul>
-<h2 id="微调"><a href="#微调" class="headerlink" title="微调"></a>微调</h2><h3 id="作用-1"><a href="#作用-1" class="headerlink" title="作用"></a>作用</h3><ul>
-<li>回答特定领域问题</li>
-<li>完成特定任务</li>
-<li>个性化需求，比方当我让他用某种特殊方式回答某个特定问题</li>
-<li>……</li>
-</ul>
-<h3 id="场景-1"><a href="#场景-1" class="headerlink" title="场景"></a>场景</h3><ul>
-<li>医疗客服</li>
-<li>金融咨询</li>
-<li>角色扮演</li>
-</ul>
-<h2 id="微调目标分类"><a href="#微调目标分类" class="headerlink" title="微调目标分类"></a>微调目标分类</h2><ul>
-<li>指令微调 （总结、情感分析）</li>
-<li>领域微调( 金融类问题回答、医疗类问题回答)</li>
-<li>多任务微调</li>
-<li>知识蒸馏（老师模型微调学生模型）</li>
-<li>工具调用</li>
-<li>……</li>
-</ul>
-<h2 id="微调的两个主要类型"><a href="#微调的两个主要类型" class="headerlink" title="微调的两个主要类型"></a>微调的两个主要类型</h2><ol>
-<li>监督微调（Supervised Fine-tuning）：监督微调是指在进行微调时使用有标签的训练数据集。这些标签提供了模型在微调过程中的目标输出。在监督微调中，通常使用带有标签的任务特定数据集，例如分类任务的数据集，其中每个样本都有一个与之关联的标签。通过使用这些标签来指导模型的微调，可以使模型更好地适应特定任务。</li>
-<li>无监督微调（Unsupervised Fine-tuning）：无监督微调是指在进行微调时使用无标签的训练数据集。这意味着在微调过程中，模型只能利用输入数据本身的信息，而没有明确的目标输出。这些方法通过学习数据的内在结构或生成数据来进行微调，以提取有用的特征或改进模型的表示能力。</li>
-</ol>
-<h2 id="微调方法"><a href="#微调方法" class="headerlink" title="微调方法"></a>微调方法</h2><ul>
-<li>Lora微调</li>
-<li>全参数微调</li>
-<li>冻结部分参数微调</li>
-</ul>
-<h2 id="Lora微调"><a href="#Lora微调" class="headerlink" title="Lora微调"></a>Lora微调</h2><h3 id="什么是Lora"><a href="#什么是Lora" class="headerlink" title="什么是Lora"></a>什么是Lora</h3><p>Low Rank Adapter</p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora1-6ZPzRm.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora1-6ZPzRm.png" alt="img"></a></p>
-<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora2-AxMP25.png" title="lora2-AxMP25" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora2-AxMP25.png" alt="lora2-AxMP25"></a></p>
-<h3 id="Lora微调的优势"><a href="#Lora微调的优势" class="headerlink" title="Lora微调的优势"></a>Lora微调的优势</h3><ol>
-<li><strong>效率高</strong>：只需更新低秩适应层，而不是整个模型，更快、更高效地对大型语言模型进行微调。</li>
-<li><strong>节省资源</strong>：降低微调过程的复杂性，节省计算资源、能源和时间。</li>
-<li><strong><a href="https://ai-bot.cn/what-is-lora/">灵活性：适用于各种大规模语言模型，易于适应不同的任务或领域</a></strong></li>
-</ol>
-<h2 id="语言模型微调过程"><a href="#语言模型微调过程" class="headerlink" title="语言模型微调过程"></a>语言模型微调过程</h2><ol>
-<li>确定训练目标</li>
-<li>选择合适的基座模型 (Base、Instrcution、Chat、Code、MOE、Toolcall、VLM)，参数量</li>
-<li>选择微调框架 推荐用 <a href="https://github.com/hiyouga/LLaMA-Factory">https://github.com/hiyouga/LLaMA-Factory</a></li>
-<li>准备微调数据<ol>
-<li>找合适的数据源（自有数据\爬虫\huggingface\github\wiki\kaggle\modelscope）</li>
-<li>数据清洗（过滤、去重、脱敏）</li>
-<li>数据处理<ul>
-<li>数据增强</li>
-<li>合成数据</li>
-<li>数据格式（text，instrcution，conversation）</li>
-</ul>
-</li>
-</ol>
-</li>
-<li>确定微调参数，开始微调</li>
-<li>观察loss变化</li>
-<li>模型评估</li>
-<li>合并模型，将Lora参数和Base模型参数合并导出</li>
-<li>模型量化（可选）</li>
-</ol>
-<h2 id="部署推理服务"><a href="#部署推理服务" class="headerlink" title="部署推理服务"></a>部署推理服务</h2><p>推理框架</p>
-<ol>
-<li>Transformers</li>
-<li>vllm </li>
-<li>Ollama</li>
-<li>Xinference</li>
-<li>onnx</li>
-</ol>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>学习</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>centos安装LLVM和CLANG</title>
-    <url>/llvm-clang/</url>
-    <content><![CDATA[<div class=".article-gallery"><p>在 CentOS 上安装 LLVM Clang 的过程如下:</p>
-<ol>
-<li>首先，确保系统已经更新并安装了必要的编译工具，如gcc和make，可以通过执行以下命令完成:</li>
-</ol>
-<figure class="highlight go"><table><tr><td class="code"><pre><span class="line">sudo yum update</span><br><span class="line">sudo yum install gcc <span class="built_in">make</span></span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>下载LLVM和Clang的源码包。可以在LLVM官网下载最新版本的源码包，或者使用以下命令下载:</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget http://releases.llvm.org/&lt;version&gt;/llvm-&lt;version&gt;.src.tar.xz</span><br><span class="line">wget http://releases.llvm.org/&lt;version&gt;/cfe-&lt;version&gt;.src.tar.xz</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>解压源码包并进入目录:</li>
-</ol>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">tar xf llvm-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src.tar.xz</span><br><span class="line">tar xf cfe-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src.tar.xz</span><br><span class="line">mv cfe-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src llvm-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src/tools/clang</span><br><span class="line">cd llvm-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>使用以下命令来配置、编译和安装LLVM和Clang:</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> build</span><br><span class="line"><span class="built_in">cd</span> build</span><br><span class="line">cmake -G <span class="string">&quot;Unix Makefiles&quot;</span> ../</span><br><span class="line">make</span><br><span class="line"><span class="built_in">sudo</span> make install</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>编译完成后，可以使用 clang 和 llvm-config 命令来检查安装是否成功。</li>
-</ol>
-<p>注意: 上述的请替换成你要安装的版本号，如llvm-11.0.0</p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>笔记</tag>
+        <tag>网络</tag>
+        <tag>面试</tag>
       </tags>
   </entry>
   <entry>
@@ -2441,6 +2395,192 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux常用命令</title>
+    <url>/linux-note/</url>
+    <content><![CDATA[<div class=".article-gallery"><h4 id="Linux查看物理CPU个数、核数、逻辑CPU个数"><a href="#Linux查看物理CPU个数、核数、逻辑CPU个数" class="headerlink" title="Linux查看物理CPU个数、核数、逻辑CPU个数"></a>Linux查看物理CPU个数、核数、逻辑CPU个数</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 总核数 = 物理CPU个数 X 每颗物理CPU的核数 </span><br><span class="line"># 总逻辑CPU数 = 物理CPU个数 X 每颗物理CPU的核数 X 超线程数</span><br><span class="line"></span><br><span class="line"># 查看物理CPU个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l</span><br><span class="line"></span><br><span class="line"># 查看每个物理CPU中core的个数(即核数)</span><br><span class="line">cat /proc/cpuinfo| grep &quot;cpu cores&quot;| uniq</span><br><span class="line"></span><br><span class="line"># 查看逻辑CPU的个数</span><br><span class="line">cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看CPU信息（型号）"><a href="#查看CPU信息（型号）" class="headerlink" title="查看CPU信息（型号）"></a>查看CPU信息（型号）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看内存信息"><a href="#查看内存信息" class="headerlink" title="查看内存信息"></a>查看内存信息</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># cat /proc/meminfo</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看Linux-内核"><a href="#如何查看Linux-内核" class="headerlink" title="如何查看Linux 内核"></a>如何查看Linux 内核</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">uname -a</span><br><span class="line">cat /proc/version</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看机器型号（机器硬件型号）"><a href="#查看机器型号（机器硬件型号）" class="headerlink" title="查看机器型号（机器硬件型号）"></a>查看机器型号（机器硬件型号）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dmidecode | grep &quot;Product Name&quot;</span><br><span class="line">dmidecode</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux-系统版本"><a href="#如何查看linux-系统版本" class="headerlink" title="如何查看linux 系统版本"></a>如何查看linux 系统版本</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/redhat-release</span><br><span class="line">lsb_release -a</span><br><span class="line">cat /etc/issue</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux系统和CPU型号，类型和大小"><a href="#如何查看linux系统和CPU型号，类型和大小" class="headerlink" title="如何查看linux系统和CPU型号，类型和大小"></a>如何查看linux系统和CPU型号，类型和大小</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/cpuinfo</span><br><span class="line"></span><br><span class="line">关于CPU的核心参数说明：</span><br><span class="line">· processor：指明第几个CPU处理器</span><br><span class="line">· cpu cores：指明每个处理器的核心数</span><br></pre></td></tr></table></figure>
+
+<h4 id="如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"><a href="#如何查看linux-系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息" class="headerlink" title="如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息"></a>如何查看linux 系统内存大小的信息，可以查看总内存，剩余内存，可使用内存等信息</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /proc/meminfo</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用taskset命令让进程运行在指定CPU上"><a href="#使用taskset命令让进程运行在指定CPU上" class="headerlink" title="使用taskset命令让进程运行在指定CPU上"></a>使用taskset命令让进程运行在指定CPU上</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">执行以下命令，指定进程运行在第一个CPU（CPU0）上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -c 0 ./test.sh&amp;</span><br><span class="line"></span><br><span class="line">执行以下命令，获取进程状态（以下操作以进程test.sh为例，对应的pid为19155）</span><br><span class="line">[root@VM_32_4_centos ~]# ps aux|grep test.sh</span><br><span class="line">root     19155  0.0  0.0 113120  1204 pts/3    S+   15:26   0:00 /bin/bash ./test.sh</span><br><span class="line"></span><br><span class="line">执行以下命令，查看进程当前运行在哪个CPU上。</span><br><span class="line">[root@VM_32_4_centos ~]# taskset -p 19155</span><br><span class="line">pid 19155&#x27;s current affinity mask: 1</span><br></pre></td></tr></table></figure>
+
+<h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">查看防火墙开放端口</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --list-ports</span><br><span class="line">5000/udp 80/tcp 5044/tcp 8080/tcp 9200/tcp 5043/tcp 9100/tcp 10050/tcp 5601/tcp 5000/tcp</span><br><span class="line"></span><br><span class="line">给防火墙添加3000端口</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --add-port=3000/tcp --zone=public --permanent</span><br><span class="line">success</span><br><span class="line"></span><br><span class="line">端口生效</span><br><span class="line">[root@VM_32_4_centos ~]# firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure>
+
+<h4 id="Git常用命令"><a href="#Git常用命令" class="headerlink" title="Git常用命令"></a>Git常用命令</h4><ol>
+<li><p>使用<code>git checkout</code>撤销本地修改，仅限未<code>add/commit</code>的</p>
+<p><code>git checkout .</code></p>
+<p><code>git checkout [filename]</code></p>
+<p><code>git checkout . &amp;&amp; git clean -xdf</code></p>
+</li>
+<li><p>使用<code>git reset</code>回退项目版本，可以回退掉已<code>add/commit</code>的</p>
+<p><code>git reset --hard [commit-hashcode]</code></p>
+</li>
+<li><p>使用<code>git push origin master -f</code>推送到远端</p>
+</li>
+</ol>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>模型微调</title>
+    <url>/llm-lora/</url>
+    <content><![CDATA[<div class=".article-gallery"><h2 id="训练大模型的三个阶段"><a href="#训练大模型的三个阶段" class="headerlink" title="训练大模型的三个阶段"></a>训练大模型的三个阶段</h2><ul>
+<li>预训练：学说话</li>
+<li>微调：学根据指令回答</li>
+<li>偏好对齐：学会按照人类偏好回答</li>
+</ul>
+<h2 id="增量预训练"><a href="#增量预训练" class="headerlink" title="增量预训练"></a>增量预训练</h2><h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><ul>
+<li>更新知识</li>
+<li>修改常识性错误</li>
+<li>扩充领域知识</li>
+<li>……</li>
+</ul>
+<h3 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h3><ul>
+<li>比如把知识从去年扩充到今年</li>
+<li>比如训练一个小说家小说家</li>
+<li>比如他对某个历史人物记忆有错误</li>
+</ul>
+<h2 id="微调"><a href="#微调" class="headerlink" title="微调"></a>微调</h2><h3 id="作用-1"><a href="#作用-1" class="headerlink" title="作用"></a>作用</h3><ul>
+<li>回答特定领域问题</li>
+<li>完成特定任务</li>
+<li>个性化需求，比方当我让他用某种特殊方式回答某个特定问题</li>
+<li>……</li>
+</ul>
+<h3 id="场景-1"><a href="#场景-1" class="headerlink" title="场景"></a>场景</h3><ul>
+<li>医疗客服</li>
+<li>金融咨询</li>
+<li>角色扮演</li>
+</ul>
+<h2 id="微调目标分类"><a href="#微调目标分类" class="headerlink" title="微调目标分类"></a>微调目标分类</h2><ul>
+<li>指令微调 （总结、情感分析）</li>
+<li>领域微调( 金融类问题回答、医疗类问题回答)</li>
+<li>多任务微调</li>
+<li>知识蒸馏（老师模型微调学生模型）</li>
+<li>工具调用</li>
+<li>……</li>
+</ul>
+<h2 id="微调的两个主要类型"><a href="#微调的两个主要类型" class="headerlink" title="微调的两个主要类型"></a>微调的两个主要类型</h2><ol>
+<li>监督微调（Supervised Fine-tuning）：监督微调是指在进行微调时使用有标签的训练数据集。这些标签提供了模型在微调过程中的目标输出。在监督微调中，通常使用带有标签的任务特定数据集，例如分类任务的数据集，其中每个样本都有一个与之关联的标签。通过使用这些标签来指导模型的微调，可以使模型更好地适应特定任务。</li>
+<li>无监督微调（Unsupervised Fine-tuning）：无监督微调是指在进行微调时使用无标签的训练数据集。这意味着在微调过程中，模型只能利用输入数据本身的信息，而没有明确的目标输出。这些方法通过学习数据的内在结构或生成数据来进行微调，以提取有用的特征或改进模型的表示能力。</li>
+</ol>
+<h2 id="微调方法"><a href="#微调方法" class="headerlink" title="微调方法"></a>微调方法</h2><ul>
+<li>Lora微调</li>
+<li>全参数微调</li>
+<li>冻结部分参数微调</li>
+</ul>
+<h2 id="Lora微调"><a href="#Lora微调" class="headerlink" title="Lora微调"></a>Lora微调</h2><h3 id="什么是Lora"><a href="#什么是Lora" class="headerlink" title="什么是Lora"></a>什么是Lora</h3><p>Low Rank Adapter</p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora1-6ZPzRm.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora1-6ZPzRm.png" alt="img"></a></p>
+<p><a href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora2-AxMP25.png" title="lora2-AxMP25" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora2-AxMP25.png" alt="lora2-AxMP25"></a></p>
+<h3 id="Lora微调的优势"><a href="#Lora微调的优势" class="headerlink" title="Lora微调的优势"></a>Lora微调的优势</h3><ol>
+<li><strong>效率高</strong>：只需更新低秩适应层，而不是整个模型，更快、更高效地对大型语言模型进行微调。</li>
+<li><strong>节省资源</strong>：降低微调过程的复杂性，节省计算资源、能源和时间。</li>
+<li><strong><a href="https://ai-bot.cn/what-is-lora/">灵活性：适用于各种大规模语言模型，易于适应不同的任务或领域</a></strong></li>
+</ol>
+<h2 id="语言模型微调过程"><a href="#语言模型微调过程" class="headerlink" title="语言模型微调过程"></a>语言模型微调过程</h2><ol>
+<li>确定训练目标</li>
+<li>选择合适的基座模型 (Base、Instrcution、Chat、Code、MOE、Toolcall、VLM)，参数量</li>
+<li>选择微调框架 推荐用 <a href="https://github.com/hiyouga/LLaMA-Factory">https://github.com/hiyouga/LLaMA-Factory</a></li>
+<li>准备微调数据<ol>
+<li>找合适的数据源（自有数据\爬虫\huggingface\github\wiki\kaggle\modelscope）</li>
+<li>数据清洗（过滤、去重、脱敏）</li>
+<li>数据处理<ul>
+<li>数据增强</li>
+<li>合成数据</li>
+<li>数据格式（text，instrcution，conversation）</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>确定微调参数，开始微调</li>
+<li>观察loss变化</li>
+<li>模型评估</li>
+<li>合并模型，将Lora参数和Base模型参数合并导出</li>
+<li>模型量化（可选）</li>
+</ol>
+<h2 id="部署推理服务"><a href="#部署推理服务" class="headerlink" title="部署推理服务"></a>部署推理服务</h2><p>推理框架</p>
+<ol>
+<li>Transformers</li>
+<li>vllm </li>
+<li>Ollama</li>
+<li>Xinference</li>
+<li>onnx</li>
+</ol>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>学习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>centos安装LLVM和CLANG</title>
+    <url>/llvm-clang/</url>
+    <content><![CDATA[<div class=".article-gallery"><p>在 CentOS 上安装 LLVM Clang 的过程如下:</p>
+<ol>
+<li>首先，确保系统已经更新并安装了必要的编译工具，如gcc和make，可以通过执行以下命令完成:</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line">sudo yum update</span><br><span class="line">sudo yum install gcc <span class="built_in">make</span></span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>下载LLVM和Clang的源码包。可以在LLVM官网下载最新版本的源码包，或者使用以下命令下载:</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget http://releases.llvm.org/&lt;version&gt;/llvm-&lt;version&gt;.src.tar.xz</span><br><span class="line">wget http://releases.llvm.org/&lt;version&gt;/cfe-&lt;version&gt;.src.tar.xz</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>解压源码包并进入目录:</li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">tar xf llvm-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src.tar.xz</span><br><span class="line">tar xf cfe-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src.tar.xz</span><br><span class="line">mv cfe-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src llvm-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src/tools/clang</span><br><span class="line">cd llvm-<span class="tag">&lt;<span class="name">version</span>&gt;</span>.src</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>使用以下命令来配置、编译和安装LLVM和Clang:</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> build</span><br><span class="line"><span class="built_in">cd</span> build</span><br><span class="line">cmake -G <span class="string">&quot;Unix Makefiles&quot;</span> ../</span><br><span class="line">make</span><br><span class="line"><span class="built_in">sudo</span> make install</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>编译完成后，可以使用 clang 和 llvm-config 命令来检查安装是否成功。</li>
+</ol>
+<p>注意: 上述的请替换成你要安装的版本号，如llvm-11.0.0</p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>给lua函数添加调用时长限制</title>
+    <url>/lua-settime/</url>
+    <content><![CDATA[<div class=".article-gallery"><h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><p>战斗验证服务会调用客户端同学写的lua函数，lua写出了死循环导致内存飙升最终OOM</p>
+<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2><p>用lua的debug.sethook方法加调用钩子</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">-- 设置一个时间限制钩子</span><br><span class="line"><span class="keyword">function</span> set_time_limit(seconds)</span><br><span class="line">    <span class="built_in">local</span> start = os.clock()</span><br><span class="line">    debug.sethook(<span class="keyword">function</span>()</span><br><span class="line">        <span class="keyword">if</span> os.clock() - start &gt;= seconds <span class="keyword">then</span></span><br><span class="line">            debug.sethook() -- 移除钩子</span><br><span class="line">            error(<span class="string">&quot;Time limit exceeded&quot;</span>) -- 终止执行</span><br><span class="line">        end</span><br><span class="line">    end, <span class="string">&quot;&quot;</span>, 1e7) -- 第三个参数是钩子的调用频率，这里是每执行大约1000万条指令检查一次</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>笔记</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mac使用手册</title>
     <url>/mac-manual/</url>
     <content><![CDATA[<div class=".article-gallery"><h3 id="Mac新手使用指南"><a href="#Mac新手使用指南" class="headerlink" title="Mac新手使用指南"></a><a href="https://post.smzdm.com/p/679153/">Mac新手使用指南</a></h3><h1 id="MAC环境安装"><a href="#MAC环境安装" class="headerlink" title="MAC环境安装"></a>MAC环境安装</h1><ol>
@@ -2565,18 +2705,57 @@
       </tags>
   </entry>
   <entry>
-    <title>给lua函数添加调用时长限制</title>
-    <url>/lua-settime/</url>
-    <content><![CDATA[<div class=".article-gallery"><h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><p>战斗验证服务会调用客户端同学写的lua函数，lua写出了死循环导致内存飙升最终OOM</p>
-<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2><p>用lua的debug.sethook方法加调用钩子</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">-- 设置一个时间限制钩子</span><br><span class="line"><span class="keyword">function</span> set_time_limit(seconds)</span><br><span class="line">    <span class="built_in">local</span> start = os.clock()</span><br><span class="line">    debug.sethook(<span class="keyword">function</span>()</span><br><span class="line">        <span class="keyword">if</span> os.clock() - start &gt;= seconds <span class="keyword">then</span></span><br><span class="line">            debug.sethook() -- 移除钩子</span><br><span class="line">            error(<span class="string">&quot;Time limit exceeded&quot;</span>) -- 终止执行</span><br><span class="line">        end</span><br><span class="line">    end, <span class="string">&quot;&quot;</span>, 1e7) -- 第三个参数是钩子的调用频率，这里是每执行大约1000万条指令检查一次</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+    <title>IDEA+MAVEN+GIT项目管理</title>
+    <url>/mvn-git/</url>
+    <content><![CDATA[<div class=".article-gallery"><h2 id="安装maven"><a href="#安装maven" class="headerlink" title="安装maven"></a>安装maven</h2><p>下载地址：<a href="http://maven.apache.org/download.cgi#">http://maven.apache.org/download.cgi#</a></p>
+<p>解压到D盘Maven文件夹下：</p>
+<p>在Maven文件夹下新建一个Repository文件夹，用作仓库。</p>
+<p>修改D:\Maven\apache-maven-3.6.0\conf下settings.xml文件：</p>
+<p>添加：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;localRepository&gt;D:\Maven\Repository&lt;/localRepository&gt;</span><br></pre></td></tr></table></figure>
 
+<span id="more"></span>
+
+<p>在mirrors下添加阿里云远程镜像，速度贼快：</p>
+<p>&lt;!– 阿里云仓库 –&gt;<br><mirror><br><id>alimaven</id><br><mirrorOf>central</mirrorOf><br><name>aliyun maven</name><br><url><a href="http://maven.aliyun.com/nexus/content/repositories/central/">http://maven.aliyun.com/nexus/content/repositories/central/</a></url><br></mirror></p>
+<mirror>
+<id>alimaven</id>
+<name>aliyun maven</name>
+<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+<mirrorOf>central</mirrorOf>
+</mirror>
+
+<p>在profiles下添加，修改jdk为11：</p>
+<profile>
+<id>jdk-11</id>
+<activation>
+<activeByDefault>true</activeByDefault>
+<jdk>11</jdk>
+</activation>
+<properties>
+<maven.compiler.source>11</maven.compiler.source>
+<maven.compiler.target>11</maven.compiler.target>
+<maven.compiler.compilerVersion>11</maven.compiler.compilerVersion>
+</properties>
+</profile>
+
+<p>添加环境变量：<br>M2_HOME<br>D:\Maven\apache-maven-3.6.0<br>Path<br>%M2_HOME%\bin;</p>
+<h2 id="idea建立maven"><a href="#idea建立maven" class="headerlink" title="idea建立maven"></a>idea建立maven</h2><p>在settings里面：</p>
+<p><a href="https://img-blog.csdn.net/20170818231853882?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHV5YW9xaWFveWFvZ2U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" title="IDEA+MAVEN+GIT项目管理 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://img-blog.csdn.net/20170818231853882?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHV5YW9xaWFveWFvZ2U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="IDEA+MAVEN+GIT项目管理 - 第1张  | 张嘎"></a></p>
+<h2 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h2><p>git下载地址 ：<a href="https://gitforwindows.org/">https://gitforwindows.org/</a><br>安装完成后，在开始菜单里找到“Git”-&gt;“Git Bash”，蹦出一个类似命令行窗口的东西，就说明Git安装成功！<br>安装完成后，还需要最后一步设置，在命令行输入：</p>
+<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#101;&#x6d;&#97;&#x69;&#x6c;&#64;&#101;&#120;&#x61;&#109;&#112;&#x6c;&#101;&#46;&#x63;&#x6f;&#x6d;">&#101;&#x6d;&#97;&#x69;&#x6c;&#64;&#101;&#120;&#x61;&#109;&#112;&#x6c;&#101;&#46;&#x63;&#x6f;&#x6d;</a>”</p>
+<p>具体过程请参见：<br><a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/00137396287703354d8c6c01c904c7d9ff056ae23da865a000">廖雪峰Git安装</a></p>
+<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#121;&#x6f;&#x75;&#114;&#46;&#101;&#x6d;&#97;&#105;&#108;&#x40;&#x65;&#120;&#97;&#x6d;&#112;&#x6c;&#101;&#x2e;&#x63;&#111;&#109;">&#121;&#x6f;&#x75;&#114;&#46;&#101;&#x6d;&#97;&#105;&#108;&#x40;&#x65;&#120;&#97;&#x6d;&#112;&#x6c;&#101;&#x2e;&#x63;&#111;&#109;</a>” -b 4096</p>
+<p>会在本地用户目录下的.ssh文件夹下生成id_rsa和id_rsa.pub文件，</p>
+<p>将id_rsa.pub公钥文件加入到远程git/Setttings/SSH Keys里面。</p>
+<p>右键菜单“Git GUI”</p>
+<h2 id="码云"><a href="#码云" class="headerlink" title="码云"></a>码云</h2><p>码云是目前国内比较好的代码托管平台。<br>码云官方教程如下：<br><a href="http://git.mydoc.io/?t=153739">码云教程</a><br>安装好插件后可以将之前建立的项目托管到码云上。</p>
 </div>]]></content>
       <categories>
         <category>笔记</category>
       </categories>
       <tags>
-        <tag>笔记</tag>
+        <tag>杂乱</tag>
       </tags>
   </entry>
   <entry>
@@ -2813,109 +2992,6 @@
       </tags>
   </entry>
   <entry>
-    <title>IDEA+MAVEN+GIT项目管理</title>
-    <url>/mvn-git/</url>
-    <content><![CDATA[<div class=".article-gallery"><h2 id="安装maven"><a href="#安装maven" class="headerlink" title="安装maven"></a>安装maven</h2><p>下载地址：<a href="http://maven.apache.org/download.cgi#">http://maven.apache.org/download.cgi#</a></p>
-<p>解压到D盘Maven文件夹下：</p>
-<p>在Maven文件夹下新建一个Repository文件夹，用作仓库。</p>
-<p>修改D:\Maven\apache-maven-3.6.0\conf下settings.xml文件：</p>
-<p>添加：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;localRepository&gt;D:\Maven\Repository&lt;/localRepository&gt;</span><br></pre></td></tr></table></figure>
-
-<span id="more"></span>
-
-<p>在mirrors下添加阿里云远程镜像，速度贼快：</p>
-<p>&lt;!– 阿里云仓库 –&gt;<br><mirror><br><id>alimaven</id><br><mirrorOf>central</mirrorOf><br><name>aliyun maven</name><br><url><a href="http://maven.aliyun.com/nexus/content/repositories/central/">http://maven.aliyun.com/nexus/content/repositories/central/</a></url><br></mirror></p>
-<mirror>
-<id>alimaven</id>
-<name>aliyun maven</name>
-<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-<mirrorOf>central</mirrorOf>
-</mirror>
-
-<p>在profiles下添加，修改jdk为11：</p>
-<profile>
-<id>jdk-11</id>
-<activation>
-<activeByDefault>true</activeByDefault>
-<jdk>11</jdk>
-</activation>
-<properties>
-<maven.compiler.source>11</maven.compiler.source>
-<maven.compiler.target>11</maven.compiler.target>
-<maven.compiler.compilerVersion>11</maven.compiler.compilerVersion>
-</properties>
-</profile>
-
-<p>添加环境变量：<br>M2_HOME<br>D:\Maven\apache-maven-3.6.0<br>Path<br>%M2_HOME%\bin;</p>
-<h2 id="idea建立maven"><a href="#idea建立maven" class="headerlink" title="idea建立maven"></a>idea建立maven</h2><p>在settings里面：</p>
-<p><a href="https://img-blog.csdn.net/20170818231853882?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHV5YW9xaWFveWFvZ2U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" title="IDEA+MAVEN+GIT项目管理 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://img-blog.csdn.net/20170818231853882?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHV5YW9xaWFveWFvZ2U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="IDEA+MAVEN+GIT项目管理 - 第1张  | 张嘎"></a></p>
-<h2 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h2><p>git下载地址 ：<a href="https://gitforwindows.org/">https://gitforwindows.org/</a><br>安装完成后，在开始菜单里找到“Git”-&gt;“Git Bash”，蹦出一个类似命令行窗口的东西，就说明Git安装成功！<br>安装完成后，还需要最后一步设置，在命令行输入：</p>
-<p>$ git config –global user.name “Your Name”<br>$ git config –global user.email “<a href="mailto:&#x65;&#109;&#97;&#x69;&#108;&#x40;&#x65;&#x78;&#x61;&#x6d;&#112;&#x6c;&#101;&#x2e;&#99;&#x6f;&#x6d;">&#x65;&#109;&#97;&#x69;&#108;&#x40;&#x65;&#x78;&#x61;&#x6d;&#112;&#x6c;&#101;&#x2e;&#99;&#x6f;&#x6d;</a>”</p>
-<p>具体过程请参见：<br><a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/00137396287703354d8c6c01c904c7d9ff056ae23da865a000">廖雪峰Git安装</a></p>
-<h2 id="git-clone远程项目"><a href="#git-clone远程项目" class="headerlink" title="git clone远程项目"></a>git clone远程项目</h2><p>在“Git Bash”命令行里输入：ssh-keygen -t rsa -C “<a href="mailto:&#x79;&#111;&#x75;&#x72;&#46;&#x65;&#x6d;&#97;&#105;&#x6c;&#x40;&#x65;&#120;&#x61;&#x6d;&#x70;&#x6c;&#x65;&#46;&#x63;&#x6f;&#x6d;">&#x79;&#111;&#x75;&#x72;&#46;&#x65;&#x6d;&#97;&#105;&#x6c;&#x40;&#x65;&#120;&#x61;&#x6d;&#x70;&#x6c;&#x65;&#46;&#x63;&#x6f;&#x6d;</a>” -b 4096</p>
-<p>会在本地用户目录下的.ssh文件夹下生成id_rsa和id_rsa.pub文件，</p>
-<p>将id_rsa.pub公钥文件加入到远程git/Setttings/SSH Keys里面。</p>
-<p>右键菜单“Git GUI”</p>
-<h2 id="码云"><a href="#码云" class="headerlink" title="码云"></a>码云</h2><p>码云是目前国内比较好的代码托管平台。<br>码云官方教程如下：<br><a href="http://git.mydoc.io/?t=153739">码云教程</a><br>安装好插件后可以将之前建立的项目托管到码云上。</p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>杂乱</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>JAVA HTTPS服务</title>
-    <url>/https/</url>
-    <content><![CDATA[<div class=".article-gallery"><h2 id="分自签证书和CA证书两种方式。"><a href="#分自签证书和CA证书两种方式。" class="headerlink" title="分自签证书和CA证书两种方式。"></a>分自签证书和CA证书两种方式。</h2><h1 id="一、制作一张自签证书（jks格式）"><a href="#一、制作一张自签证书（jks格式）" class="headerlink" title="一、制作一张自签证书（jks格式）"></a>一、制作一张自签证书（jks格式）</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#keytool -genkey -keysize 2048 -validity 3650 -keyalg RSA -dname &quot;CN=myyiba.com&quot; -keypass 123456 -storepass 123456 -keystore myyiba.jks</span><br></pre></td></tr></table></figure>
-
-<p>keytool为JDK提供的生成证书工具</p>
-<ul>
-<li>-keysize 2048 密钥长度2048位（这个长度的密钥目前可认为无法被暴力破解）</li>
-<li>-validity 3650 证书有效期3650天</li>
-<li>-keyalg RSA 使用RSA非对称加密算法</li>
-<li>-dname “CN=myyiba.com” 设置Common Name为myyiba.com，这是我的域名</li>
-<li>-keypass 123456 密钥的访问密码为123456</li>
-<li>-storepass 123456 密钥库的访问密码为123456（其实这两个密码也可以设置一样，通常都设置一样，方便记）</li>
-<li>-keystore myyiba.jks 指定生成的密钥库文件为 myyiba .jks</li>
-</ul>
-<p>完了之后就拿到了myyiba.jks这个密钥库文件了，把它放到自己的项目目录下，比如：/usr/local/server/project/resource/myyiba.jks</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">项目示例：github下HttpServerInitializer</span><br></pre></td></tr></table></figure>
-
-<span id="more"></span>
-
-<h1 id="在程序初始化的时候生成SSLContext"><a href="#在程序初始化的时候生成SSLContext" class="headerlink" title="在程序初始化的时候生成SSLContext"></a>在程序初始化的时候生成SSLContext</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">keyStore ks = KeyStore.getInstance(&quot;JKS&quot;);</span><br><span class="line">InputStream ksInputStream = new FileInputStream(&quot;/usr/local/server/project/resource/myyiba.jks&quot;);</span><br><span class="line">ks.load(ksInputStream, &quot;123456&quot;.toCharArray());</span><br><span class="line">keyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());</span><br><span class="line">kmf.init(ks, &quot;123456&quot;.toCharArray());</span><br><span class="line">SSLContext sslContext = SSLContext.getInstance(&quot;TLS&quot;);</span><br><span class="line">sslContext.init(kmf.getKeyManagers(), null, null);</span><br></pre></td></tr></table></figure>
-
-<p>这个过程在整个程序周期只需要做一次，最好try-catch一下，以便检查异常，好了之后保存好sslContext，后面用到。</p>
-<h1 id="在ChannelInitializer的initChannel中"><a href="#在ChannelInitializer的initChannel中" class="headerlink" title="在ChannelInitializer的initChannel中"></a>在ChannelInitializer的initChannel中</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void initChannel(SocketChannel socketChannel) throws Exception &#123;</span><br><span class="line">SSLEngine sslEngine = sslContext.createSSLEngine();</span><br><span class="line">sslEngine.setUseClientMode(false); //服务器端模式</span><br><span class="line">sslEngine.setNeedClientAuth(false); //不需要验证客户端</span><br><span class="line">socketChannel.pipeline().addLast(&quot;ssl&quot;, new SslHandler(sslEngine)); //搞定</span><br><span class="line">//...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h1 id="二、CA证书"><a href="#二、CA证书" class="headerlink" title="二、CA证书"></a>二、CA证书</h1><p>例如微信小程序的服务器，需要CA证书的HTTPS服务，阿里云提供免费的SSL证书，申请证书后，下载tomcat版。解压有后两个文件：xxx.pfx和pfx-password.txt。</p>
-<p><a href="https://imgtu.com/i/hBsD5q"><a href="https://z3.ax1x.com/2021/09/01/hBsD5q.md.png" title="hBsD5q.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/09/01/hBsD5q.md.png" alt="hBsD5q.md.png"></a></a></p>
-<p>pfx文件类似上面的自签证书xxx.jks文件。加载证书的密码在<br>pfx-password.txt文件中。</p>
-<p>同上面自签证书一样的方式加载CA证书SSL。项目地址见同一个GitHub项目。</p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>JAVA</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>notice</title>
-    <url>/notice/</url>
-    <content><![CDATA[<div class=".article-gallery"><h2 id="文章还在迁移中，更多旧文章见主页"><a href="#文章还在迁移中，更多旧文章见主页" class="headerlink" title="文章还在迁移中，更多旧文章见主页"></a>文章还在迁移中，更多旧文章见<a href="https://192.144.167.243/">主页</a></h2><p>主页已停止更新，新文章都在这里。</p>
-</div>]]></content>
-      <categories>
-        <category>公告</category>
-      </categories>
-      <tags>
-        <tag>公告</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Nexus搭建开发组的私有仓库</title>
     <url>/nexus/</url>
     <content><![CDATA[<div class=".article-gallery"><p><strong>目录</strong></p>
@@ -3063,6 +3139,18 @@
       </categories>
       <tags>
         <tag>杂乱</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>notice</title>
+    <url>/notice/</url>
+    <content><![CDATA[<div class=".article-gallery"><h2 id="文章还在迁移中，更多旧文章见主页"><a href="#文章还在迁移中，更多旧文章见主页" class="headerlink" title="文章还在迁移中，更多旧文章见主页"></a>文章还在迁移中，更多旧文章见<a href="https://192.144.167.243/">主页</a></h2><p>主页已停止更新，新文章都在这里。</p>
+</div>]]></content>
+      <categories>
+        <category>公告</category>
+      </categories>
+      <tags>
+        <tag>公告</tag>
       </tags>
   </entry>
   <entry>
@@ -3571,87 +3659,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Weex环境搭建</title>
-    <url>/weex-dev0/</url>
-    <content><![CDATA[<div class=".article-gallery"><h2 id="一、安装node-js"><a href="#一、安装node-js" class="headerlink" title="一、安装node.js"></a>一、安装node.js</h2><p>点击链接 <a href="https://link.jianshu.com/?t=http://nodejs.cn/download/">http://nodejs.cn/download/</a> 选择你需要安装的版本（windows ，mac，linux 3种系统的版本），下载你需要的版本</p>
-<p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-4c3b9f270d217291.png?w=640&ssl=1" title="Weex环境搭建 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-4c3b9f270d217291.png?w=640&ssl=1" alt="Weex环境搭建 - 第1张  | 张嘎"></a></p>
-<span id="more"></span>
-
-<p>点击安装包，下一步，下一步，安装完成即可。<br>执行查看node版本号</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br></pre></td></tr></table></figure>
-
-<p>显示当前node版本号</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">deiMac:~ li$ node -v</span><br><span class="line">v8.1.0</span><br></pre></td></tr></table></figure>
-
-<p>查看npm配置信息</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm config ls</span><br></pre></td></tr></table></figure>
-
-<p>2.修改路径</p>
-<p>这里需要修改两个路径，module路径和cache路径</p>
-<p>module对应prefix</p>
-<p>cache对应cache</p>
-<p>首先在别的盘新建两个目录</p>
-<p>D:\nodejs\node_global</p>
-<p>D:\nodejs\node_cache</p>
-<p>然后依次执行</p>
-<p>修改配置文件（userconfig C:\Users\zhangga.npmrc）中对应的路径</p>
-<p>或者命令行修改</p>
-<p>npm config set prefix”D:\nodejs\node_global”</p>
-<p>npm config set cache”D:\nodejs\node_cache”</p>
-<p>3.修改环境变量</p>
-<p>新增环境变量 NODE_HOME</p>
-<p><a href="https://blog.csdn.net/wkkyo/article/details/52799488" title="Weex环境搭建 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://blog.csdn.net/wkkyo/article/details/52799488" alt="Weex环境搭建 - 第2张  | 张嘎"></a></p>
-<p><a href="https://img-blog.csdn.net/20161013135353107?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" title="Weex环境搭建 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://img-blog.csdn.net/20161013135353107?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="Weex环境搭建 - 第3张  | 张嘎"></a></p>
-<p>修改Path，追加 %NODE_HOME%;%NODE_HOME%\node_global;</p>
-<p>使用淘宝NPM源</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ npm install -g cnpm --registry=https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
-
-<h2 id="二、安装webpack"><a href="#二、安装webpack" class="headerlink" title="二、安装webpack"></a>二、安装webpack</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//全局安装</span><br><span class="line">$ cnpm install -g webpack</span><br></pre></td></tr></table></figure>
-
-<p>或者</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//安装到你的项目目录</span><br><span class="line">$ cd 你的工程目录</span><br><span class="line">$ cnpm install --save-dev webpack</span><br></pre></td></tr></table></figure>
-
-<h2 id="三、安装serve"><a href="#三、安装serve" class="headerlink" title="三、安装serve"></a>三、安装serve</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//全局安装</span><br><span class="line">$ cnpm install -g serve</span><br></pre></td></tr></table></figure>
-
-<p>或者</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//安装到你的项目目录</span><br><span class="line">$ cd 你的工程目录</span><br><span class="line">$ cnpm install  serve</span><br></pre></td></tr></table></figure>
-
-<h2 id="四、安装weexpack"><a href="#四、安装weexpack" class="headerlink" title="四、安装weexpack"></a>四、安装weexpack</h2><p>首先，全局安装 weex-pack 命令：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cnpm install -g weexpack</span><br></pre></td></tr></table></figure>
-
-<p>或者 在 clone 的 weexpack 根目录下执行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cnpm install</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>创建 weexpack 工程</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ weexpack create appName</span><br></pre></td></tr></table></figure>
-
-<p>使用WebStrom打开创建的工程目录如下</p>
-<p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/63643-9f0f43e765b4f787.png?w=640" title="Weex环境搭建 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/63643-9f0f43e765b4f787.png?w=640" alt="Weex环境搭建 - 第4张  | 张嘎"></a></p>
-<p>2.进入创建的工程目录，并且安装相关依赖</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cd appName &amp;&amp; cnpm install</span><br></pre></td></tr></table></figure>
-
-<p>安装完第三方依赖，工程目录添加了node_modules目录</p>
-<p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-ef5d1f547e4d5e25.png?w=640" title="Weex环境搭建 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-ef5d1f547e4d5e25.png?w=640" alt="Weex环境搭建 - 第5张  | 张嘎"></a></p>
-<h3 id="weex-toolkit和weexpack的区别"><a href="#weex-toolkit和weexpack的区别" class="headerlink" title="weex-toolkit和weexpack的区别"></a>weex-toolkit和weexpack的区别</h3><p>weex-toolkit 初始化的项目是针对开发单个 Weex 页面而设计的，也就是说这样的项目只包括单个页面开发需要的东西，比如前端页面源文件、webpack 配置、npm 脚本等。项目产生的输出就是一个 JS Bundle 文件，可以自由的进行部署。<br>weex-pack 是初始化一个完整的 App 工程，包括 Android 和 iOS 的整个 App 起步，前端页面只是其中的一部分。这样的项目最终产出是一个 Android App 和一个 iOS App。</p>
-<h2 id="五、创建-babelrc文件"><a href="#五、创建-babelrc文件" class="headerlink" title="五、创建.babelrc文件"></a>五、创建.babelrc文件</h2><p>将ES6转成ES5代码执行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123; &quot;presets&quot;: [&quot;es2015&quot;] &#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="六、发布安卓"><a href="#六、发布安卓" class="headerlink" title="六、发布安卓"></a>六、发布安卓</h2><p>安装androidSDK，配置环境变量。</p>
-<p>npm run build</p>
-<p>weex platform add android</p>
-<p>weex build android</p>
-<p>坑：</p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>前端</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>TCP/UDP</title>
     <url>/tcp/</url>
     <content><![CDATA[<div class=".article-gallery"><h2 id="TCP常见面试题"><a href="#TCP常见面试题" class="headerlink" title="TCP常见面试题"></a>TCP常见面试题</h2><p><a href="https://zhuanlan.zhihu.com/p/388704023">TCP</a></p>
@@ -3855,6 +3862,98 @@
       </tags>
   </entry>
   <entry>
+    <title>UE DS服管理</title>
+    <url>/ue_ds_manager/</url>
+    <content><![CDATA[<div class=".article-gallery"><h1 id="场景服管理"><a href="#场景服管理" class="headerlink" title="场景服管理"></a>场景服管理</h1></div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>UE</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Weex环境搭建</title>
+    <url>/weex-dev0/</url>
+    <content><![CDATA[<div class=".article-gallery"><h2 id="一、安装node-js"><a href="#一、安装node-js" class="headerlink" title="一、安装node.js"></a>一、安装node.js</h2><p>点击链接 <a href="https://link.jianshu.com/?t=http://nodejs.cn/download/">http://nodejs.cn/download/</a> 选择你需要安装的版本（windows ，mac，linux 3种系统的版本），下载你需要的版本</p>
+<p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-4c3b9f270d217291.png?w=640&ssl=1" title="Weex环境搭建 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-4c3b9f270d217291.png?w=640&ssl=1" alt="Weex环境搭建 - 第1张  | 张嘎"></a></p>
+<span id="more"></span>
+
+<p>点击安装包，下一步，下一步，安装完成即可。<br>执行查看node版本号</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br></pre></td></tr></table></figure>
+
+<p>显示当前node版本号</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">deiMac:~ li$ node -v</span><br><span class="line">v8.1.0</span><br></pre></td></tr></table></figure>
+
+<p>查看npm配置信息</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm config ls</span><br></pre></td></tr></table></figure>
+
+<p>2.修改路径</p>
+<p>这里需要修改两个路径，module路径和cache路径</p>
+<p>module对应prefix</p>
+<p>cache对应cache</p>
+<p>首先在别的盘新建两个目录</p>
+<p>D:\nodejs\node_global</p>
+<p>D:\nodejs\node_cache</p>
+<p>然后依次执行</p>
+<p>修改配置文件（userconfig C:\Users\zhangga.npmrc）中对应的路径</p>
+<p>或者命令行修改</p>
+<p>npm config set prefix”D:\nodejs\node_global”</p>
+<p>npm config set cache”D:\nodejs\node_cache”</p>
+<p>3.修改环境变量</p>
+<p>新增环境变量 NODE_HOME</p>
+<p><a href="https://blog.csdn.net/wkkyo/article/details/52799488" title="Weex环境搭建 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://blog.csdn.net/wkkyo/article/details/52799488" alt="Weex环境搭建 - 第2张  | 张嘎"></a></p>
+<p><a href="https://img-blog.csdn.net/20161013135353107?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" title="Weex环境搭建 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://img-blog.csdn.net/20161013135353107?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="Weex环境搭建 - 第3张  | 张嘎"></a></p>
+<p>修改Path，追加 %NODE_HOME%;%NODE_HOME%\node_global;</p>
+<p>使用淘宝NPM源</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ npm install -g cnpm --registry=https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、安装webpack"><a href="#二、安装webpack" class="headerlink" title="二、安装webpack"></a>二、安装webpack</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//全局安装</span><br><span class="line">$ cnpm install -g webpack</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//安装到你的项目目录</span><br><span class="line">$ cd 你的工程目录</span><br><span class="line">$ cnpm install --save-dev webpack</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、安装serve"><a href="#三、安装serve" class="headerlink" title="三、安装serve"></a>三、安装serve</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//全局安装</span><br><span class="line">$ cnpm install -g serve</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//安装到你的项目目录</span><br><span class="line">$ cd 你的工程目录</span><br><span class="line">$ cnpm install  serve</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、安装weexpack"><a href="#四、安装weexpack" class="headerlink" title="四、安装weexpack"></a>四、安装weexpack</h2><p>首先，全局安装 weex-pack 命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cnpm install -g weexpack</span><br></pre></td></tr></table></figure>
+
+<p>或者 在 clone 的 weexpack 根目录下执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cnpm install</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建 weexpack 工程</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ weexpack create appName</span><br></pre></td></tr></table></figure>
+
+<p>使用WebStrom打开创建的工程目录如下</p>
+<p><a href="https://i2.wp.com/upload-images.jianshu.io/upload_images/63643-9f0f43e765b4f787.png?w=640" title="Weex环境搭建 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/63643-9f0f43e765b4f787.png?w=640" alt="Weex环境搭建 - 第4张  | 张嘎"></a></p>
+<p>2.进入创建的工程目录，并且安装相关依赖</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cd appName &amp;&amp; cnpm install</span><br></pre></td></tr></table></figure>
+
+<p>安装完第三方依赖，工程目录添加了node_modules目录</p>
+<p><a href="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-ef5d1f547e4d5e25.png?w=640" title="Weex环境搭建 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/63643-ef5d1f547e4d5e25.png?w=640" alt="Weex环境搭建 - 第5张  | 张嘎"></a></p>
+<h3 id="weex-toolkit和weexpack的区别"><a href="#weex-toolkit和weexpack的区别" class="headerlink" title="weex-toolkit和weexpack的区别"></a>weex-toolkit和weexpack的区别</h3><p>weex-toolkit 初始化的项目是针对开发单个 Weex 页面而设计的，也就是说这样的项目只包括单个页面开发需要的东西，比如前端页面源文件、webpack 配置、npm 脚本等。项目产生的输出就是一个 JS Bundle 文件，可以自由的进行部署。<br>weex-pack 是初始化一个完整的 App 工程，包括 Android 和 iOS 的整个 App 起步，前端页面只是其中的一部分。这样的项目最终产出是一个 Android App 和一个 iOS App。</p>
+<h2 id="五、创建-babelrc文件"><a href="#五、创建-babelrc文件" class="headerlink" title="五、创建.babelrc文件"></a>五、创建.babelrc文件</h2><p>将ES6转成ES5代码执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123; &quot;presets&quot;: [&quot;es2015&quot;] &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、发布安卓"><a href="#六、发布安卓" class="headerlink" title="六、发布安卓"></a>六、发布安卓</h2><p>安装androidSDK，配置环境变量。</p>
+<p>npm run build</p>
+<p>weex platform add android</p>
+<p>weex build android</p>
+<p>坑：</p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Weex开发</title>
     <url>/weex-dev1/</url>
     <content><![CDATA[<div class=".article-gallery"><h1 id="Weex开发-0-打包"><a href="#Weex开发-0-打包" class="headerlink" title="Weex开发-0.打包"></a>Weex开发-0.打包</h1><h1 id="参考文档："><a href="#参考文档：" class="headerlink" title="参考文档："></a>参考文档：</h1><p><a href="https://segmentfault.com/a/1190000008342533">https://segmentfault.com/a/1190000008342533</a></p>
@@ -3874,6 +3973,43 @@
       </categories>
       <tags>
         <tag>前端</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>搭建WordPress个人站点</title>
+    <url>/wordpress-build/</url>
+    <content><![CDATA[<div class=".article-gallery"><p><a href="https://imgtu.com/i/hZViiq"><a href="https://z3.ax1x.com/2021/08/25/hZViiq.md.png" title="hZViiq.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/08/25/hZViiq.md.png" alt="hZViiq.md.png"></a></a></p>
+<h2 id="LAMPP-WordPress搭建"><a href="#LAMPP-WordPress搭建" class="headerlink" title="LAMPP+WordPress搭建"></a>LAMPP+WordPress搭建</h2><h3 id="官网：https-wordpress-org"><a href="#官网：https-wordpress-org" class="headerlink" title="官网：https://wordpress.org/"></a>官网：<a href="https://wordpress.org/">https://wordpress.org/</a></h3><h3 id="中文网：https-cn-wordpress-org"><a href="#中文网：https-cn-wordpress-org" class="headerlink" title="中文网：https://cn.wordpress.org/"></a>中文网：<a href="https://cn.wordpress.org/">https://cn.wordpress.org/</a></h3><span id="more"></span>
+
+<p>下载tar包，解压到lampp/htdocs文件夹下文件夹，修改成自己喜欢的名。<br>访问站点。如：<a href="http://47.95.10.167/%E7%AB%99%E7%82%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%90%8D">http://47.95.10.167/站点文件夹名</a><br>设置数据库（数据库需要先建库），设置admin等信息。（配置文件存储在站点文件夹/wp-config.php文件）<br>使用域名访问指定博客<br>重定向。在xampp目录下修改文件重定向，我的机器在/opt/lampp/htdocs/目录下。修改index.php如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	if (!empty($_SERVER[&#x27;HTTPS&#x27;]) &amp;&amp; (&#x27;on&#x27; == $_SERVER[&#x27;HTTPS&#x27;])) &#123;</span><br><span class="line">		$uri = &#x27;https://&#x27;;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		$uri = &#x27;http://&#x27;;</span><br><span class="line">	&#125;</span><br><span class="line">	$uri .= $_SERVER[&#x27;HTTP_HOST&#x27;];</span><br><span class="line">	header(&#x27;Location: &#x27;.$uri.&#x27;/blog/&#x27;);</span><br><span class="line">	exit;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>网站</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WordPress上传权限问题及主题</title>
+    <url>/wordpress/</url>
+    <content><![CDATA[<div class=".article-gallery"><p><a href="https://imgtu.com/i/htjgKI"><a href="https://z3.ax1x.com/2021/08/30/htjgKI.md.png" title="htjgKI.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/08/30/htjgKI.md.png" alt="htjgKI.md.png"></a></a></p>
+<span id="more"></span>
+
+<p>打开所有写权限</p>
+<p>chmod 777 /usr/local/lampp/htdocs/zzq/</p>
+<p>修改文件夹所属用户组。查看用户组指令：cat /etc/group   别人都是www:www  我是daemon</p>
+<p>chown -R daemon:daemon zzq</p>
+<p>还原文件夹权限</p>
+<p>chmod 755 /usr/local/lampp/htdocs/zzq/</p>
+<h2 id="主题网站"><a href="#主题网站" class="headerlink" title="主题网站"></a>主题网站</h2><p><a href="http://ztmao.com/">http://ztmao.com/</a></p>
+</div>]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>网站</tag>
       </tags>
   </entry>
   <entry>
@@ -3985,22 +4121,6 @@
       </tags>
   </entry>
   <entry>
-    <title>搭建WordPress个人站点</title>
-    <url>/wordpress-build/</url>
-    <content><![CDATA[<div class=".article-gallery"><p><a href="https://imgtu.com/i/hZViiq"><a href="https://z3.ax1x.com/2021/08/25/hZViiq.md.png" title="hZViiq.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/08/25/hZViiq.md.png" alt="hZViiq.md.png"></a></a></p>
-<h2 id="LAMPP-WordPress搭建"><a href="#LAMPP-WordPress搭建" class="headerlink" title="LAMPP+WordPress搭建"></a>LAMPP+WordPress搭建</h2><h3 id="官网：https-wordpress-org"><a href="#官网：https-wordpress-org" class="headerlink" title="官网：https://wordpress.org/"></a>官网：<a href="https://wordpress.org/">https://wordpress.org/</a></h3><h3 id="中文网：https-cn-wordpress-org"><a href="#中文网：https-cn-wordpress-org" class="headerlink" title="中文网：https://cn.wordpress.org/"></a>中文网：<a href="https://cn.wordpress.org/">https://cn.wordpress.org/</a></h3><span id="more"></span>
-
-<p>下载tar包，解压到lampp/htdocs文件夹下文件夹，修改成自己喜欢的名。<br>访问站点。如：<a href="http://47.95.10.167/%E7%AB%99%E7%82%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%90%8D">http://47.95.10.167/站点文件夹名</a><br>设置数据库（数据库需要先建库），设置admin等信息。（配置文件存储在站点文件夹/wp-config.php文件）<br>使用域名访问指定博客<br>重定向。在xampp目录下修改文件重定向，我的机器在/opt/lampp/htdocs/目录下。修改index.php如下：  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	if (!empty($_SERVER[&#x27;HTTPS&#x27;]) &amp;&amp; (&#x27;on&#x27; == $_SERVER[&#x27;HTTPS&#x27;])) &#123;</span><br><span class="line">		$uri = &#x27;https://&#x27;;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		$uri = &#x27;http://&#x27;;</span><br><span class="line">	&#125;</span><br><span class="line">	$uri .= $_SERVER[&#x27;HTTP_HOST&#x27;];</span><br><span class="line">	header(&#x27;Location: &#x27;.$uri.&#x27;/blog/&#x27;);</span><br><span class="line">	exit;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>网站</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>JAVA版ZSet性能测试</title>
     <url>/zset/</url>
     <content><![CDATA[<div class=".article-gallery"><p>自己实现的JAVA版ZSet的主要功能，源码在github：</p>
@@ -4021,126 +4141,6 @@
       </categories>
       <tags>
         <tag>JAVA</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>WordPress上传权限问题及主题</title>
-    <url>/wordpress/</url>
-    <content><![CDATA[<div class=".article-gallery"><p><a href="https://imgtu.com/i/htjgKI"><a href="https://z3.ax1x.com/2021/08/30/htjgKI.md.png" title="htjgKI.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/08/30/htjgKI.md.png" alt="htjgKI.md.png"></a></a></p>
-<span id="more"></span>
-
-<p>打开所有写权限</p>
-<p>chmod 777 /usr/local/lampp/htdocs/zzq/</p>
-<p>修改文件夹所属用户组。查看用户组指令：cat /etc/group   别人都是www:www  我是daemon</p>
-<p>chown -R daemon:daemon zzq</p>
-<p>还原文件夹权限</p>
-<p>chmod 755 /usr/local/lampp/htdocs/zzq/</p>
-<h2 id="主题网站"><a href="#主题网站" class="headerlink" title="主题网站"></a>主题网站</h2><p><a href="http://ztmao.com/">http://ztmao.com/</a></p>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>网站</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>向优秀团队学习（转载）</title>
-    <url>/good-team/</url>
-    <content><![CDATA[<div class=".article-gallery"><p>价值导向，数据驱动</p>
-<ul>
-<li>用产出和价值说话，推动力和执行力第一</li>
-<li>数据驱动，主动做数据分析，而不是等着别人给数据</li>
-<li>用数据和深入分析结果来讨论，不拍脑袋，通过数据分析跟产品一起找优化方向，不做纯执行者</li>
-<li>承诺必达，关注交付，不延期 - 我们要追求极致，但不要追求完美，必要时需要在按时交付和追求极致间作出权衡，可以在尽最大努力的情况下，先按时交付，同时说明哪些地方还不够极致，交付后会持续、马上去优化 - 按时交付 和 追求极致之间不是妥协，是权衡，判断优先级<br>提倡</li>
-<li>「研发：这个需求解决了用户什么痛点？目标用户是谁？优先级高吗？有运营计划吗？我还可以做点什么，还能再一起推动一下合作方吗？」「产品：😱」</li>
-<li>项目很重要，排期实在太紧，不追求完美，以可行的最小方案保障项目上线，并把权衡考虑因素、影响同步到相关同学</li>
-<li>需求上线后，积极主动关注上线效果；核心项目，长期关注数据波动、一线反馈<br>反对</li>
-<li>「A：我真厉害呀，这个双月上线了 30 个接口」「用户：这些接口有啥用？一点价值没有～」</li>
-<li>「A：这个项目各方资源投入 OK 吗？推进有什么困难吗？」「B：我这里没问题，运营、测试就要问 xxx 了，我也不知道。这个我觉得应该是产品的问题吧」</li>
-<li>延期了也没事，就说有临时有事占用了时间～</li>
-<li>我就要追求完美，就算项目延期我也要抠每一个细节点，延期一个月后，项目终于上线了：大家快来看，我的项目都是精品</li>
-<li>我所有的工作在代码上线的那一刻就结束了，后面就不关我的事了</li>
-</ul>
-<p>成为解决问题的高手</p>
-<ul>
-<li>去解决问题，主动去解决，而不是等着团队分配，不挑容易的、喜欢的事</li>
-<li>技术是为了解决问题，不为了技术而技术，不为了技术而造轮子，避免自嗨</li>
-<li>去成为 owner，不仅仅是 coder - 每个角色要「边界清晰」（PM 出合理需求，RD、FE 高质量代码，QA 质量保障），更要「不设边界」，不要说「我觉得这是 xx 该做的」，可能确实是他该做的，But，我们是 one team，他没有 action，可以提醒他，可以跟他一起推进，我们的价值应该不仅仅是一个执行者 - Owner 感不是说我就是把代码写好了（我的极端看法：把代码写好是本质工作，并不是 owner 感的体现，owner 感体现在代码之外的事上）<br>提倡</li>
-<li>「A：系统中有这么一个 bug，我们一起来配合优化下」「B：我来一起，对这个比较有兴趣」</li>
-<li>主动承担起项目的 owner 角色，提前协调各方资源，同步风险，更大范围去寻找保证项目可以如期交付的办法</li>
-<li>在做一个项目前，充分调研公司内部、开源方案，想清楚要解决的业务问题</li>
-<li>你的方向有这个问题，是不是隔壁方向也可能会有 ？发起横向项目专项，一起系统化解决<br>反对</li>
-<li>「B：我不想碰 A 写的代码，一坨屎。」，一年后，「C：我不想碰 B 写的代码，一坨屎。」</li>
-<li>「A：系统中有这么一个 bug，我们一起来配合优化下」「B：嗨，C，不要跟 A 一起去合作，这个 bug 关我们什么事」</li>
-<li>项目延期又不是我的问题，是 B delay 了，是 C 没有人力呀</li>
-<li>「A：做这个项目是要解决什么业务问题啊？」「B: 不知道啊，我管它呢，我就觉得这个技术牛逼，就要做」</li>
-<li>推动横向项目太麻烦了，累死个人，我就管我自己就好了<br>小故事分享</li>
-<li>2 个小伙子被派去完成一个任务：去集市采购土豆</li>
-<li>老板问小伙子 A：集市上有土豆吗？小伙子跑去集市看了以后回来说：有</li>
-<li>老板又问：有多少家在卖？ 小伙子赶紧又跑回去看，回来说：有 10 家</li>
-<li>老板又问：多少钱一斤？小伙子很委屈，你没有要我问价格呀，只好再跑去问</li>
-<li>小伙子 B：看了市场上有多少土豆货源、价格、品质，市场需求，根据这些情况想好了如果批量采购，如何跟供应商谈价格，形成一个方案</li>
-<li>预定酒店（纯属虚构）</li>
-<li>公司需要预定当天某地酒店的一件朝南海景房，这个任务派给了同事 A</li>
-<li>同事 A 马上打电话去酒店预定，但是发现这个酒店当天的海景房已经没有了，同事 A 向公司汇报了该情况，并询问是否可以换一个酒店或者不是海景房是否可以，在得到否定答案后，继续跟进</li>
-<li>同事 A 向酒店打听了海景房被预定的情况，发现有一间海景房是被一对年轻情侣预定了，马上跟这对情侣联系，提出一个方案：这间海景房的钱由同事 A 补贴给他们，同时给他们定好另外一间非海景房。在成功预定到海景房后，跟公司汇报：海景房预定完成</li>
-</ul>
-<p>深挖本质，积极主动</p>
-<ul>
-<li>多问几个「为什么」，找到最根本的原因</li>
-<li>多问几个「然后呢」，推演最深远的价值</li>
-<li>主动发现问题，形成自己的理解和思考，提出想法，并推动落地<br>提倡<ul>
-<li>「A: 服务有周期性报警，值班同学看下」「B：不需要管，框架的报错，它自己会好的」「A：为什么框架会报错呢？」「B: 服务端关闭链接了」「A：为什么服务端会偶发关闭链接？」</li>
-<li>「产品：这个需求要做一下」「研发：这个需求要解决用户的什么问题啊？用户诉求强吗？需求很紧急吗？」</li>
-<li>问题墙上的问题还没有人去解决，主动认领，钻研解决</li>
-<li>团队安排的工作做完了，主动寻找有哪些优化工作可以做，跟团队沟通有哪些问题可以自己去解决<br>反对</li>
-<li>「A: 服务有周期性报警，值班同学看下」「B：不需要管，瞬间波动，它自己会好的，不需要管」</li>
-<li>有啥需求就做啥需求，管它重要不重要</li>
-<li>又不是我的 bug，管我屁事，我需求做完了要下班的呀</li>
-<li>排期多排一点真是好～</li>
-</ul>
-</li>
-</ul>
-<p>开放合作，持续精进</p>
-<ul>
-<li>多一些善意假设，少一些恶意揣测</li>
-<li>乐观皮实，学习总结<ul>
-<li>乐观：可以拓展为 坚韧的乐观，不会因为遇到一点困难、一点挫折就一蹶不振了。<ul>
-<li>为什么我会遇到这种事 ？ ➡️ 这件事教会了我什么 ？</li>
-</ul>
-</li>
-<li>皮实：不要玻璃心，说不得，不能接受任何建议，只希望听夸赞。 - 我们的工作不可能每件事都做的很成功很到位，不要想着我之前的事都做好了，就这件没做好，为什么要说我？ - 如果都不值得被说了，那是不是期望也不大了～ 最深的不爱，不是争吵，而是懒得吵<br>学习：学习是自己的事，团队只能给引导<br>总结：对某个需求质量的总结、对某次决策的总结、对过去一段时间自己表现的总结。并记录下来～<br>提倡</li>
-<li>有误会，坦诚清晰的沟通，寻求合作和共同利益</li>
-<li>新同事来了主动打招呼，一起吃饭，有困难主动帮助</li>
-<li>善于思考、总结、沉淀，积极自省，并转化为下一步的提升计划</li>
-<li>会对外输出最佳实践和技术积累，赋能团队的同时，也提升影响力<br>反对</li>
-<li>「A 这个人不行，B 啥也不懂，我不想跟他们合作」</li>
-<li>「他在群里这么说，不就是在针对我嘛」</li>
-<li>他是 A 的实习生，关我什么事</li>
-<li>玻璃心，接受不了团队/同事的建议</li>
-<li>只埋头做需求，不总结、不沉淀、不输出、不提升</li>
-<li>「我做的探索，为什么要告诉别人，他要用，自己研究去」</li>
-</ul>
-</li>
-</ul>
-</div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>杂乱</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>UE DS服管理</title>
-    <url>/ue_ds_manager/</url>
-    <content><![CDATA[<div class=".article-gallery"><h1 id="场景服管理"><a href="#场景服管理" class="headerlink" title="场景服管理"></a>场景服管理</h1></div>]]></content>
-      <categories>
-        <category>笔记</category>
-      </categories>
-      <tags>
-        <tag>UE</tag>
       </tags>
   </entry>
 </search>
