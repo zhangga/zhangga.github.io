@@ -99,6 +99,7 @@ ignore:
 ## Themes: https://hexo.io/themes/
 # theme: next
 # theme: butterfly
+# https://github.com/HiNinoJay/hexo-theme-A4?tab=readme-ov-file
 theme: A4
 
 search:

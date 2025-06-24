@@ -16,5 +16,6 @@ master 分支是自动发布的产物。
 
 1. 新建博文：hexo new post $title
 2. 新建草稿：hexo new draft $title
-3. 目录：source_posts
-4. https://typora.io/ 工具
+3. 本地推送发布：hexo g && hexo d
+4. 目录：source_posts
+5. https://typora.io/ 工具
