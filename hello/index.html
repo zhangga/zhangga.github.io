@@ -201,7 +201,7 @@
             <div class="post-head-meta-center">
         
                 
-                    <span>最近更新：2025-02-28</span> 
+                    <span>最近更新：2025-08-15</span> 
                 
                 
                     
@@ -295,6 +295,14 @@
 </ol>
 <p>​ 原因是 node 版本问题，修改项目根目录下的<code>.travis.yml</code>文件中的 node_js 版本，原来是<code>stable</code>改为<code>lts</code></p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">os:</span> <span class="string">linux</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">node_js</span></span><br><span class="line"><span class="attr">node_js:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">lts/*</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>自动发版不生效<br>使用手动发版：</li>
+</ol>
+<ul>
+<li>hexo g // generate</li>
+<li>hexo d // deploy</li>
+</ul>
 </div>
     </div>
 
