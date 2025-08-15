@@ -4,7 +4,7 @@
 # 3. 执行命令：hexo new page index 生成首页；执行命令：hexo new page list 生成列表页面；
 # 4. 执行命令：hexo clean && hexo g && hexo s 直接查看页面效果
 menu:
-  首页: /  #需要hexo new page index,在index/index.md填写的内容将会展现在首页上
+  首页: /index/  #需要hexo new page index,在index/index.md填写的内容将会展现在首页上
   文章: /list/ # 需要hexo new page list
   # 添加其他页面格式举例：
   关于: /about/ # 需要hexo new page about
