@@ -138,3 +138,8 @@ language: node_js
 node_js:
   - lts/*
 ```
+
+2. 自动发版不生效
+  使用手动发版：
+  * hexo g // generate
+  * hexo d // deploy
