@@ -97,12 +97,11 @@ _posts/post_name/image.jpg
 {% asset_img image.jpg This is an image %}
 ```
 
-### CDN 引用
+### 图床
 
-除了在本地存储图片，还可以将图片上传到一些免费的 CDN 服务中。
-比如[Cloudinary](https://cloudinary.com/)（梯子访问）提供的图片 CDN 服务，在 Cloudinary 中上传图片后，会生成对应的 url 地址，将地址直接拿来引用即可。或者上传到[路过图床](https://imgtu.com/)（不用梯子）。
-下面是路过图床上传的图片，引用格式从路过图床复制过来即可。
-[![hVCDOI.png](https://z3.ax1x.com/2021/08/25/hVCDOI.png)](https://imgtu.com/i/hVCDOI)
+[PicX在线](https://picx.xpoet.cn/#/?jump=0)
+Upic(Mac)
+PicGo(Windows)
 
 ### 视频插入
 
