@@ -140,5 +140,5 @@ node_js:
 
 2. 自动发版不生效
   使用手动发版：
-  * hexo g // generate
-  * hexo d // deploy
+  * 命令执行先 `hexo g` 生成
+  * 再执行 `hexo d` 发布
