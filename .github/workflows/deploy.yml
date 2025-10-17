@@ -40,6 +40,6 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./public
         publish_branch: master
-        force_orphan: false
-        keep_history: true
+        force_orphan: true
+        keep_history: false
         fqdn: zhangga.github.io
