@@ -3,6 +3,5 @@ node_modules/
 #themes/
 public/
 .deploy_git/
-/themes/matery
 db.json
 .DS_Store

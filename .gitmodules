@@ -1,0 +1,3 @@
+[submodule "themes/A4"]
+	path = themes/A4
+	url = git@github.com:HiNinoJay/hexo-theme-A4.git
