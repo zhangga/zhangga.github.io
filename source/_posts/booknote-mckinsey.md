@@ -13,3 +13,8 @@ date: 2025-10-17 14:33:21
 
 * 专家思维：“怎么做--实施的细节”
 * 战略思维：“为什么--解决什么问题”
+
+### 1.定义问题
+![pic2](https://github.com/zhangga/picx-images-hosting/raw/master/booknote-mckinsiy2.3yeub8691a.webp)
+
+### 2.结构化分析
