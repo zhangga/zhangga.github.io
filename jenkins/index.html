@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="开发机部署Jenkins记录" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    开发机部署Jenkins记录
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2025-11-17</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：706</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：3分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85"><span class="post-toc-text">安装</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker%E9%83%A8%E7%BD%B2"><span class="post-toc-text">Docker部署</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E6%8B%89%E5%8F%96-Jenkins-%E9%95%9C%E5%83%8F"><span class="post-toc-text">拉取 Jenkins 镜像</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%88%9B%E5%BB%BA%E6%95%B0%E6%8D%AE%E5%8D%B7"><span class="post-toc-text">创建数据卷</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="post-toc-text">虚拟机安装（推荐）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E6%B7%BB%E5%8A%A0Jenkins%E5%AE%98%E6%96%B9%E4%BB%93%E5%BA%93"><span class="post-toc-text">添加Jenkins官方仓库</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85-1"><span class="post-toc-text">安装</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E4%BF%AE%E6%94%B9-Jenkins-systemd-%E9%85%8D%E7%BD%AE"><span class="post-toc-text">修改 Jenkins systemd 配置</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%90%AF%E5%8A%A8%E5%B9%B6%E8%AE%BE%E7%BD%AE%E5%BC%80%E6%9C%BA%E8%87%AA%E5%90%AF"><span class="post-toc-text">启动并设置开机自启</span></a></li></ol></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AEJenkins"><span class="post-toc-text">配置Jenkins</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85%E6%8F%92%E4%BB%B6"><span class="post-toc-text">安装插件</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AELabel"><span class="post-toc-text">配置Label</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#JENKINS-HOME"><span class="post-toc-text">JENKINS_HOME</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Jenkins-%E5%81%9C%E6%AD%A2%E6%9C%8D%E5%8A%A1"><span class="post-toc-text">Jenkins 停止服务</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%88%9B%E5%BB%BA%E6%96%B0%E7%9A%84-JENKINS-HOME-%E7%9B%AE%E5%BD%95"><span class="post-toc-text">创建新的 JENKINS_HOME 目录</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E6%8B%B7%E8%B4%9D%E5%8E%9F%E6%9C%89%E6%95%B0%E6%8D%AE%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%8C%E4%BD%86%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="post-toc-text">拷贝原有数据（可选，但推荐）</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E4%BF%AE%E6%94%B9-systemd-%E9%85%8D%E7%BD%AE"><span class="post-toc-text">修改 systemd 配置</span></a></li></ol></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><p>在平时开发DS(Dedicated Server)时，有时候需要Linux环境，比如进行共享内存(Fork)测试的时候。</p>
+<p>我一般在自己的开发机上进行编译和测试，编译脚本是根据项目的打包脚本(Jenkins/groovy)进行编写的，随着开发环境的增多，比如战场、营地，以及最近开始支持XBox和PS5，项目的打包脚本会增加越来越多的参数控制，同时脚本本身的逻辑可能也会进行迭代，这样就面临得同步维护开发机的编译脚本。正好最近开发机上碰到编译脚本打包时Stage阶段总是出错的问题，终于决定在开发机上也部署下Jenkins，通过Jenkins进行编译工作，统一下开发机和项目打包的流程，省去了多余的维护成本。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/jenkins-1.8z6xsf1j66.webp" title="pic" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/jenkins-1.8z6xsf1j66.webp" alt="pic"></a></p>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="Docker部署"><a href="#Docker部署" class="headerlink" title="Docker部署"></a>Docker部署</h2><h4 id="拉取-Jenkins-镜像"><a href="#拉取-Jenkins-镜像" class="headerlink" title="拉取 Jenkins 镜像"></a>拉取 Jenkins 镜像</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull jenkinsci/blueocean</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建数据卷"><a href="#创建数据卷" class="headerlink" title="创建数据卷"></a>创建数据卷</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 创建挂载目录</span><br><span class="line">sudo mkdir -p /data/jenkins_home</span><br><span class="line">sudo chown -R 1000:1000 /data/jenkins_home</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run \          </span><br><span class="line">  -u root \</span><br><span class="line">  -d \</span><br><span class="line">  -p 8080:8080 \</span><br><span class="line">  -p 50000:50000 \</span><br><span class="line">  -v jenkins-data:/data/jenkins_home \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock \</span><br><span class="line">  jenkinsci/blueocean</span><br></pre></td></tr></table></figure>
+
+<h2 id="虚拟机安装（推荐）"><a href="#虚拟机安装（推荐）" class="headerlink" title="虚拟机安装（推荐）"></a>虚拟机安装（推荐）</h2><h4 id="添加Jenkins官方仓库"><a href="#添加Jenkins官方仓库" class="headerlink" title="添加Jenkins官方仓库"></a>添加Jenkins官方仓库</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">wget -q -O - <span class="attr">https</span>:<span class="comment">//pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee \</span></span><br><span class="line">  <span class="regexp">/usr/</span>share/keyrings/jenkins-keyring.<span class="property">asc</span> &gt; <span class="regexp">/dev/</span><span class="literal">null</span></span><br><span class="line"></span><br><span class="line">echo <span class="string">&quot;deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \</span></span><br><span class="line"><span class="string">  https://pkg.jenkins.io/debian-stable binary/&quot;</span> | sudo tee \</span><br><span class="line">  /etc/apt/sources.<span class="property">list</span>.<span class="property">d</span>/jenkins.<span class="property">list</span> &gt; <span class="regexp">/dev/</span><span class="literal">null</span></span><br><span class="line"></span><br><span class="line">sudo apt update</span><br></pre></td></tr></table></figure>
+
+<h4 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install jenkins -y</span><br></pre></td></tr></table></figure>
+
+<h4 id="修改-Jenkins-systemd-配置"><a href="#修改-Jenkins-systemd-配置" class="headerlink" title="修改 Jenkins systemd 配置"></a>修改 Jenkins systemd 配置</h4><p>编辑 Jenkins 的 systemd 文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl edit jenkins</span><br></pre></td></tr></table></figure>
+
+<p>添加内容（覆盖环境）：</p>
+<p>这里主要是</p>
+<ul>
+<li>单独设置下jdk的版本，因为我本机用的是jdk25，但是Jenkins目前只支持17-21。</li>
+<li>修改 JENKINS_HOME</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /data00/jenkins</span><br><span class="line">sudo chown -R jenkins:jenkins /data00/jenkins</span><br><span class="line">sudo chmod -R 750 /data00/jenkins</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[Service]</span><br><span class="line">Environment=&quot;JENKINS_HOME=/data00/jenkins&quot;</span><br><span class="line">Environment=&quot;JAVA_HOME=/home/java/jdk-17.0.17+10&quot;</span><br><span class="line">Environment=&quot;PATH=/home/java/jdk-17.0.17+10/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin&quot;</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动并设置开机自启"><a href="#启动并设置开机自启" class="headerlink" title="启动并设置开机自启"></a>启动并设置开机自启</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl daemon-reexec</span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl enable jenkins</span><br><span class="line">sudo systemctl start jenkins</span><br><span class="line">sudo systemctl status jenkins</span><br></pre></td></tr></table></figure>
+
+<h1 id="配置Jenkins"><a href="#配置Jenkins" class="headerlink" title="配置Jenkins"></a>配置Jenkins</h1><p>访问Jenkins界面：<code>http://&lt;你的服务器IP&gt;:8080</code></p>
+<h3 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h3><ol>
+<li>Pipeline</li>
+<li><a target="_blank" rel="noopener" href="https://plugins.jenkins.io/subversion">Subversion</a></li>
+<li>Git</li>
+<li>Build Triggers</li>
+</ol>
+<h3 id="配置Label"><a href="#配置Label" class="headerlink" title="配置Label"></a>配置Label</h3><p>如果你的pipeline里指定了agent label的话。</p>
+<ol>
+<li>登录 Jenkins Web UI。</li>
+<li>点击 ​<strong>“Manage Jenkins” → “Nodes” → “Configure” → “Labels”</strong>​。</li>
+</ol>
+<h1 id="JENKINS-HOME"><a href="#JENKINS-HOME" class="headerlink" title="JENKINS_HOME"></a>JENKINS_HOME</h1><p>如果中间想换Jenkins目录的话，建议把原目录整理拷下。</p>
+<ol>
+<li><h4 id="Jenkins-停止服务"><a href="#Jenkins-停止服务" class="headerlink" title="Jenkins 停止服务"></a>Jenkins 停止服务</h4></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl stop jenkins</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><h4 id="创建新的-JENKINS-HOME-目录"><a href="#创建新的-JENKINS-HOME-目录" class="headerlink" title="创建新的 JENKINS_HOME 目录"></a>创建新的 <code>JENKINS_HOME</code> 目录</h4></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /data/jenkins</span><br><span class="line">sudo chown -R jenkins:jenkins /data/jenkins</span><br><span class="line">sudo chmod -R 750 /data/jenkins</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><h4 id="拷贝原有数据（可选，但推荐）"><a href="#拷贝原有数据（可选，但推荐）" class="headerlink" title="拷贝原有数据（可选，但推荐）"></a>拷贝原有数据（可选，但推荐）</h4></li>
+</ol>
+<p>如果希望保留原来的 Jenkins 配置和 job，需要把旧 <code>JENKINS_HOME</code> 内容拷贝过去：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo rsync -av /var/lib/jenkins/ /data/jenkins/</span><br><span class="line">sudo chown -R jenkins:jenkins /data/jenkins</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><h4 id="修改-systemd-配置"><a href="#修改-systemd-配置" class="headerlink" title="修改 systemd 配置"></a>修改 systemd 配置</h4></li>
+</ol>
+<p>通过 systemd 覆盖配置修改 <code>JENKINS_HOME</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl edit jenkins</span><br></pre></td></tr></table></figure>
+
+<p>填入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[Service]</span><br><span class="line">Environment=&quot;JENKINS_HOME=/data/jenkins&quot;</span><br></pre></td></tr></table></figure>
+
+<p>保存退出后，重新加载 systemd：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl start jenkins</span><br></pre></td></tr></table></figure>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2025-11-04</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/log-relay/'>日志中转服</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/uml/">uml类图笔记</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

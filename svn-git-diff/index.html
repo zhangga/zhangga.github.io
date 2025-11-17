@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="SVN/Git 差异比对插件" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    SVN/Git 差异比对插件
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2025-11-17</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：6分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85%E7%8E%AF%E5%A2%83"><span class="post-toc-text">安装环境</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85%E8%AF%B4%E6%98%8E"><span class="post-toc-text">安装说明</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"><span class="post-toc-text">使用说明</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="安装环境"><a href="#安装环境" class="headerlink" title="安装环境"></a>安装环境</h2><p>系统环境：Windows10、Office套件。公司电脑已默认安装。</p>
+<p>必备软件：<a target="_blank" rel="noopener" href="https://osdn.net/projects/tortoisesvn/storage/1.14.1/Application/TortoiseSVN-1.14.1.29085-x64-svn-1.14.1.msi/">TortoiseSVN</a>或<a target="_blank" rel="noopener" href="https://tortoisegit.org/download/">TortoiseGit</a>。大部分人应该已安装。</p>
+<h2 id="安装说明"><a href="#安装说明" class="headerlink" title="安装说明"></a>安装说明</h2><p><strong>方法一</strong>、</p>
+<p>下载bat文件到本地，鼠标右键点击，以管理员身份运行即可。</p>
+<p>diff-xlsx-ssc.bat</p>
+<p>👇👇👇👇👇</p>
+<span id="more"></span>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line"></span><br><span class="line">CHCP 65001</span><br><span class="line"></span><br><span class="line">:: 系统环境变量</span><br><span class="line"><span class="built_in">set</span> ENV_PATH=%PATH%</span><br><span class="line">@<span class="built_in">echo</span> ====current environment：</span><br><span class="line">@<span class="built_in">echo</span> %ENV_PATH%</span><br><span class="line"></span><br><span class="line">:: 启用命令扩展</span><br><span class="line">setlocal enabledelayedexpansion</span><br><span class="line"><span class="built_in">set</span> svnStr=SVN</span><br><span class="line"><span class="built_in">set</span> gitStr=Git</span><br><span class="line">:: 调用这个方法，传入字符串ENV_PATH和要查找的字符串svnStr。lens是它的返回值</span><br><span class="line">call :getSubIndex ENV_PATH svnStr lensSvn</span><br><span class="line"><span class="keyword">if</span> <span class="string">&quot;%lensSvn%&quot;</span>==<span class="string">&quot;&quot;</span> (</span><br><span class="line">	<span class="built_in">echo</span> <span class="string">&quot;没有找到SVN&quot;</span></span><br><span class="line">	goto :notSetSVN</span><br><span class="line">) <span class="keyword">else</span> (</span><br><span class="line">	<span class="built_in">echo</span> <span class="string">&quot;找到TortoiseSVN环境变量&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">:: 替换svn的js文件</span><br><span class="line">call :getLastIndex ENV_PATH lensSvn svnPath</span><br><span class="line"><span class="built_in">set</span> svnDiffPath=<span class="string">&quot;%svnPath%\Diff-Scripts\diff-xls.js&quot;</span></span><br><span class="line"><span class="built_in">echo</span> %svnDiffPath%</span><br><span class="line">call :writeJSFile svnDiffPath</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;成功设置SVN&quot;</span></span><br><span class="line"></span><br><span class="line">:notSetSVN</span><br><span class="line"></span><br><span class="line">call :getSubIndex ENV_PATH gitStr lensGit</span><br><span class="line"><span class="keyword">if</span> <span class="string">&quot;%lensGit%&quot;</span>==<span class="string">&quot;&quot;</span> (</span><br><span class="line">	<span class="built_in">echo</span> <span class="string">&quot;没有找到Git&quot;</span></span><br><span class="line">) <span class="keyword">else</span> (</span><br><span class="line">	<span class="built_in">echo</span> <span class="string">&quot;找到TortoiseGit环境变量&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">:: 替换git的js文件</span><br><span class="line">call :getLastIndex ENV_PATH lensGit gitPath</span><br><span class="line"><span class="built_in">set</span> gitDiffPath=<span class="string">&quot;%gitPath%\Diff-Scripts\diff-xls.js&quot;</span></span><br><span class="line"><span class="built_in">echo</span> %gitDiffPath%</span><br><span class="line">call :writeJSFile gitDiffPath</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;成功设置Git&quot;</span></span><br><span class="line"></span><br><span class="line">:notSetGit</span><br><span class="line"></span><br><span class="line">pause</span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> /b</span><br><span class="line">:getLastIndex</span><br><span class="line">setlocal enabledelayedexpansion</span><br><span class="line"><span class="built_in">set</span> /A len+=%2</span><br><span class="line"><span class="built_in">set</span> value=</span><br><span class="line">:strLen_LoopIndex</span><br><span class="line">	<span class="built_in">set</span> /A num=len-1</span><br><span class="line">	<span class="keyword">if</span> not <span class="string">&quot;!%1:~%num%,1!&quot;</span>==<span class="string">&quot;&quot;</span> (</span><br><span class="line">		<span class="keyword">if</span> <span class="string">&quot;!%1:~%num%,1!&quot;</span>==<span class="string">&quot;;&quot;</span> (</span><br><span class="line">			<span class="built_in">echo</span> <span class="string">&quot;%value%&quot;</span></span><br><span class="line">			endlocal &amp; <span class="built_in">set</span> %3=%value%</span><br><span class="line">		) <span class="keyword">else</span> (</span><br><span class="line">			<span class="built_in">set</span> /A len=len-1</span><br><span class="line">			<span class="built_in">set</span> value=!%1:~%num%,1!%value%</span><br><span class="line">			goto :strLen_LoopIndex</span><br><span class="line">		)</span><br><span class="line">	) <span class="keyword">else</span> (</span><br><span class="line">		endlocal &amp; <span class="built_in">set</span> %3=%value%</span><br><span class="line">	)</span><br><span class="line"><span class="built_in">exit</span> /b</span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> /b</span><br><span class="line">:getSubIndex</span><br><span class="line">setlocal enabledelayedexpansion</span><br><span class="line">:strLen_Loop</span><br><span class="line">    <span class="built_in">set</span> /A len+=1</span><br><span class="line">    <span class="built_in">set</span> /A len1+=0</span><br><span class="line">    <span class="built_in">set</span> /A num=len-1</span><br><span class="line">    ::判断传入第二个参数要查找的字符是否已经遍历到了结尾，如果结尾了就说明匹配到了</span><br><span class="line">    <span class="keyword">if</span> not <span class="string">&quot;!%2:~%len1%!&quot;</span>==<span class="string">&quot;&quot;</span> (</span><br><span class="line">    ::判断第一个传入的字符串是否已经遍历到了结尾</span><br><span class="line">    <span class="keyword">if</span> not <span class="string">&quot;!%1:~%num%!&quot;</span>==<span class="string">&quot;&quot;</span> (</span><br><span class="line">        <span class="keyword">if</span> not <span class="string">&quot;!%2:~%len1%!&quot;</span>==<span class="string">&quot;&quot;</span> (</span><br><span class="line">            <span class="keyword">if</span> <span class="string">&quot;!%1:~%num%,1!&quot;</span>==<span class="string">&quot;!%2:~%len1%,1!&quot;</span> (</span><br><span class="line">				<span class="built_in">set</span> /A len1=len1+1</span><br><span class="line">            ) <span class="keyword">else</span> (</span><br><span class="line">                <span class="built_in">set</span> /A len1=0</span><br><span class="line">            )</span><br><span class="line">            goto :strLen_Loop</span><br><span class="line">        ) <span class="keyword">else</span> (</span><br><span class="line">			endlocal &amp; <span class="built_in">set</span> %3=%num%</span><br><span class="line">          )</span><br><span class="line">        )</span><br><span class="line">    ) <span class="keyword">else</span> (</span><br><span class="line">        endlocal &amp; <span class="built_in">set</span> %3=%num%</span><br><span class="line">    )</span><br><span class="line"><span class="built_in">exit</span> /b</span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> /b</span><br><span class="line">:writeJSFile</span><br><span class="line">setlocal enabledelayedexpansion</span><br><span class="line"></span><br><span class="line">more +109 %~dp0\diff-xlsx-ssc.bat &gt; !%1!</span><br><span class="line"><span class="built_in">exit</span> /b</span><br><span class="line"></span><br><span class="line">:: js比对脚本</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">var objArgs = WScript.Arguments;</span><br><span class="line"><span class="keyword">if</span> (objArgs.length &lt; 2)</span><br><span class="line">&#123;</span><br><span class="line">    Abort(<span class="string">&quot;Usage: [CScript | WScript] diff-xls.js base.xls new.xls&quot;</span>, <span class="string">&quot;Invalid arguments&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var sBaseDoc = objArgs(0);</span><br><span class="line">var sNewDoc = objArgs(1);</span><br><span class="line"></span><br><span class="line">var objScript = new ActiveXObject(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (objScript.GetBaseName(sBaseDoc) === objScript.GetBaseName(sNewDoc))</span><br><span class="line">&#123;</span><br><span class="line">    Abort(<span class="string">&quot;File &#x27;&quot;</span> + sBaseDoc + <span class="string">&quot;&#x27; and &#x27;&quot;</span> + sNewDoc + <span class="string">&quot;&#x27; is same file name.\nCannot compare the documents.&quot;</span>, <span class="string">&quot;Same file name&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!objScript.FileExists(sBaseDoc))</span><br><span class="line">&#123;</span><br><span class="line">    Abort(<span class="string">&quot;File &#x27;&quot;</span> + sBaseDoc + <span class="string">&quot;&#x27; does not exist.\nCannot compare the documents.&quot;</span>, <span class="string">&quot;File not found&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!objScript.FileExists(sNewDoc))</span><br><span class="line">&#123;</span><br><span class="line">    Abort(<span class="string">&quot;File &#x27;&quot;</span> + sNewDoc + <span class="string">&quot;&#x27; does not exist.\nCannot compare the documents.&quot;</span>, <span class="string">&quot;File not found&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">sBaseDoc = objScript.GetAbsolutePathName(sBaseDoc);</span><br><span class="line">sNewDoc = objScript.GetAbsolutePathName(sNewDoc);</span><br><span class="line">var sTempFolder = objScript.GetSpecialFolder(2)</span><br><span class="line">var sTempFile = <span class="string">&quot;D:\\temp.txt&quot;</span></span><br><span class="line">objScript = null;</span><br><span class="line"></span><br><span class="line">var fs = new ActiveXObject(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line">var f = fs.CreateTextFile(sTempFile, 2, <span class="literal">true</span>)</span><br><span class="line">f.WriteLine(sBaseDoc)</span><br><span class="line">f.WriteLine(sNewDoc)</span><br><span class="line">f.close()</span><br><span class="line">fs = null</span><br><span class="line">f = null</span><br><span class="line"></span><br><span class="line">WScript</span><br><span class="line">var objShell = new ActiveXObject(<span class="string">&quot;WScript.Shell&quot;</span>);</span><br><span class="line">objShell.run(<span class="string">&#x27;&quot;C:\\Program Files\\Microsoft Office\\root\\Client\\AppVLP.exe&quot; &quot;C:\\Program Files (x86)\\Microsoft Office\\Office16\\DCF\\SPREADSHEETCOMPARE.EXE&quot; &quot;D:\\temp.txt&quot;&#x27;</span>, 0, <span class="literal">true</span>)</span><br><span class="line">objShell = null</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>方法二</strong>、</p>
+<ol>
+<li><p>下载文件保存到本地磁盘D目录下：</p>
+<p>diff-xlsx-ssc.vbs</p>
+</li>
+</ol>
+<p>👇👇👇👇👇</p>
+<figure class="highlight vbscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">Option</span> <span class="keyword">Explicit</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">Dim</span> objArgs</span><br><span class="line"><span class="keyword">Set</span> objArgs = WScript.Arguments</span><br><span class="line"></span><br><span class="line"><span class="keyword">Dim</span> num</span><br><span class="line">num = objArgs.Count</span><br><span class="line"><span class="keyword">If</span> num &lt; <span class="number">2</span> <span class="keyword">Then</span></span><br><span class="line">    MsgBox <span class="string">&quot;Usage: [CScript | WScript] diff-xlsx.vbs base.xlsx new.xlsx&quot;</span>, vbExclamation, <span class="string">&quot;Invalid arguments&quot;</span></span><br><span class="line">    WScript.Quit <span class="number">1</span></span><br><span class="line"><span class="keyword">End</span> <span class="keyword">If</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">Dim</span> sBaseFile, sNewFile</span><br><span class="line">sBaseFile = objArgs(<span class="number">0</span>)</span><br><span class="line">sNewFile = objArgs(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">Set</span> objArgs = <span class="literal">Nothing</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">Dim</span> objFileSystem</span><br><span class="line"><span class="keyword">Set</span> objFileSystem = <span class="built_in">CreateObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>)</span><br><span class="line"><span class="keyword">If</span> objFileSystem.FileExists(sBaseFile) = <span class="literal">False</span> <span class="keyword">Then</span></span><br><span class="line">    MsgBox <span class="string">&quot;File &quot;</span> + sBaseFile + <span class="string">&quot; does not exist.  Cannot compare the files.&quot;</span>, vbExclamation, <span class="string">&quot;File not found&quot;</span></span><br><span class="line">    WScript.Quit <span class="number">1</span></span><br><span class="line"><span class="keyword">End</span> <span class="keyword">If</span></span><br><span class="line"><span class="keyword">If</span> objFileSystem.FileExists(sNewFile) = <span class="literal">False</span> <span class="keyword">Then</span></span><br><span class="line">    MsgBox <span class="string">&quot;File &quot;</span> + sNewFile + <span class="string">&quot; does not exist.  Cannot compare the files.&quot;</span>, vbExclamation, <span class="string">&quot;File not found&quot;</span></span><br><span class="line">    WScript.Quit <span class="number">1</span></span><br><span class="line"><span class="keyword">End</span> <span class="keyword">If</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&#x27;Compare file size</span></span><br><span class="line"><span class="keyword">Dim</span> fBaseFile, fNewFile, sTempFolder, sTempFile</span><br><span class="line"><span class="keyword">Set</span> fBaseFile = objFileSystem.GetFile(sBaseFile)</span><br><span class="line"><span class="keyword">Set</span> fNewFile = objFileSystem.GetFile(sNewFile)</span><br><span class="line">sTempFolder = objFileSystem.GetSpecialFolder(<span class="number">2</span>)</span><br><span class="line">sTempFile = sTempFolder + <span class="string">&quot;\temp.txt&quot;</span></span><br><span class="line"><span class="keyword">Set</span> objFileSystem = <span class="literal">Nothing</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&#x27;Create temp.txt for save path of 2 xlsx files</span></span><br><span class="line"><span class="keyword">Dim</span> fs, f</span><br><span class="line"><span class="keyword">Set</span> fs = WScript.<span class="built_in">CreateObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>)</span><br><span class="line"><span class="keyword">Set</span> f = fs.CreateTextFile(sTempFile, <span class="number">2</span>, <span class="literal">True</span>)</span><br><span class="line">f.WriteLine sBaseFile</span><br><span class="line">f.WriteLine sNewFile</span><br><span class="line">f.Close()</span><br><span class="line"><span class="keyword">Set</span> fs = <span class="literal">Nothing</span></span><br><span class="line"><span class="keyword">Set</span> f = <span class="literal">Nothing</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&#x27;Compare files using SPREADSHEETCOMPARE.exe</span></span><br><span class="line"><span class="keyword">Dim</span> WshShell, result</span><br><span class="line"><span class="keyword">Set</span> WshShell = WScript.<span class="built_in">CreateObject</span>(<span class="string">&quot;WScript.Shell&quot;</span>)</span><br><span class="line"><span class="comment">&#x27;Old office version 2016?</span></span><br><span class="line"><span class="comment">&#x27;result = WshShell.Run(&quot;&quot;&quot;C:\Program Files (x86)\Microsoft Office\Office16\DCF\SPREADSHEETCOMPARE.exe&quot;&quot; &quot; &amp; sTempFile, 0, True)</span></span><br><span class="line"><span class="comment">&#x27;Office 365</span></span><br><span class="line"><span class="comment">&#x27;Could be this result = WshShell.Run(&quot;&quot;&quot;C:\Program Files\Microsoft Office\root\vfs\ProgramFilesX86\Microsoft Office\Office16\DCF\SPREADSHEETCOMPARE.EXE&quot;&quot; &quot; &amp; sTempFile, 0, True)</span></span><br><span class="line">result = WshShell.Run(<span class="string">&quot;&quot;&quot;C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Microsoft Office Tools\Spreadsheet Compare&quot;&quot; &quot;</span> &amp; sTempFile, <span class="number">0</span>, <span class="literal">True</span>)</span><br><span class="line"><span class="keyword">Set</span> WshShell = <span class="literal">Nothing</span></span><br><span class="line"></span><br><span class="line">WScript.Quit</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<ol start="2">
+<li><p>找个空白地方鼠标右键 -&gt; TortoiseSVN -&gt; Settings -&gt; Diff Viewer -&gt; Advanced</p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/5YUreU"><a target="_blank" rel="noopener" href="https://z3.ax1x.com/2021/10/17/5YUreU.md.png" title="5YUreU.md.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/10/17/5YUreU.md.png" alt="5YUreU.md.png"></a></a></p>
+</li>
+<li><p>修改.xlsx 的值为 <code>wscript.exe &quot;D:\diff-xlsx-ssc.vbs&quot; %base %mine //E:vbscript</code></p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/5YUBLT"><a target="_blank" rel="noopener" href="https://z3.ax1x.com/2021/10/17/5YUBLT.png" title="5YUBLT.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/10/17/5YUBLT.png" alt="5YUBLT.png"></a></a></p>
+</li>
+</ol>
+<h2 id="使用说明"><a href="#使用说明" class="headerlink" title="使用说明"></a>使用说明</h2><p>和SVN/Git工具比对文件的操作一样：</p>
+<blockquote>
+<p>鼠标右键点击文件 -&gt; TortoiseSVN -&gt; Show log</p>
+<p>选择要比对差异的版本</p>
+<p>右键点击要查看的excel文件 -&gt; Show changes</p>
+</blockquote>
+<p>比对结果如下图：</p>
+<p><a target="_blank" rel="noopener" href="https://imgtu.com/i/5YadtH"><a target="_blank" rel="noopener" href="https://z3.ax1x.com/2021/10/17/5YadtH.png" title="5YadtH.png" class="gallery-item" style="box-shadow: none;"> <img src="https://z3.ax1x.com/2021/10/17/5YadtH.png" alt="5YadtH.png"></a></a></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2021-10-17</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/'>
+                            服务器
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/game-server-cloud/'>服务器云基础设施介绍</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/work-flow/">工作流总结</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>
