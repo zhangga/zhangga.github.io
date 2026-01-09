@@ -92,6 +92,12 @@ void UMultiWorldGameEngine::Init(class IEngineLoop* InEngineLoop)
 {
     Super::Init(InEngineLoop);
 
+    // Preload and hold assets for DS.
+    // 按需实现下提前加载资源，注意，加载完资源后要用强引用持有，别被GC。
+    UPreloadSubsystem Preload = GEngine->GetEngineSubsystem<UPreloadSubsystem>();
+    check(Preload);
+    Preload->PreloadAssets();
+
     if (!FParse::Value(FCommandLine::Get(), TEXT("-NumMultiWorld="), NumMultiWorld))
     {
        NumMultiWorld = 1;
@@ -100,12 +106,13 @@ void UMultiWorldGameEngine::Init(class IEngineLoop* InEngineLoop)
 ​    ​if (NumMultiWorld <= 1)
     {
        // The base GameEngine->GameInstance is the only one.
+       ensure(MultiGameInstances.Num() == 0);
        MultiGameInstances.Add(GameInstance);
        return;
     }
 
-    // In MultiWorld mode, the base GameEngine->GameInstance is not included in the TArray<MultiGameInstances> container.
-​    ​// The base GameEngine->GameInstance must always be preserved.
+    // 多实例模式下，基础的 GameEngine->GameInstance 不存放在 TArray<MultiGameInstances> 容器中。
+    // 并且基础GameInstance不要被分配出去使用（被分配出去使用就可能会被销毁释放），要始终保留。 如果它被释放了，所有其他实例共用的它的UWorlds也被释放了。
 ​    ​// Try to create ${NumMultiWorld} game instances.
 ​    ​for (uint16 i = 0; i < NumMultiWorld; ++i)
     {
@@ -163,14 +170,17 @@ bool UMultiWorldGameEngine::LoadMap(FWorldContext& WorldContext, FURL URL, class
 ​       ​return Super::LoadMap(WorldContext, URL, Pending, Error);
     }
 
+    // Note: The base GameEngine->GameInstance Package Prefix is UEMW_0_ , thus the first created instance is UEMW_1_ .
+    uint16 MWPackagePrefixID = MWInstanceID + 1;
+
     // Try to strip prefix from MWPackageName
 ​    ​URL.Map = StripPrefixFromMWPackageName(URL.Map);
 
     // process URL before Browse
-​    ​FString MultiWorldPrefix = BuildMWPackagePrefix(MWInstanceID);
+​    ​FString MultiWorldPrefix = BuildMWPackagePrefix(MWPackagePrefixID);
     FString MWPrefixOp = TEXT("MW_Prefix=") + MultiWorldPrefix;
     URL.AddOption(*MWPrefixOp);
-    FString MultiWorldMapName = ConvertToMWPackageName(URL.Map, MWInstanceID);
+    FString MultiWorldMapName = ConvertToMWPackageName(URL.Map, MWPackagePrefixID);
     FString URLTrueMapNameOp = TEXT("MW_URLTrueMapName=") + URL.Map;
     URL.Map = MultiWorldMapName;
     URL.AddOption(*URLTrueMapNameOp);
