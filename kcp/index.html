@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="TCP/KCP详解，及源码注解" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    TCP/KCP详解，及源码注解
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：4.2k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：14分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#KCP-Netty%E7%9A%84%E4%B8%AD%E6%96%87%E6%B3%A8%E8%A7%A3%E7%89%88%EF%BC%9A"><span class="post-toc-text">KCP-Netty的中文注解版：</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#KCP-UDT%E6%AF%94%E8%BE%83%EF%BC%9A"><span class="post-toc-text">KCP&#x2F;UDT比较：</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#KCP"><span class="post-toc-text">KCP</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#TCP"><span class="post-toc-text">TCP</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%89%B9%E6%80%A7%EF%BC%9A"><span class="post-toc-text">特性：</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#UNA-vs-ACK-UNA%EF%BC%9A"><span class="post-toc-text">UNA vs ACK+UNA：</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95%EF%BC%9A%E7%9B%AE%E6%A0%87%EF%BC%9A%E5%85%AC%E5%B9%B3%E5%8D%A0%E6%9C%89%E5%AE%BD%E5%B8%A6%E7%9A%84%E5%89%8D%E6%8F%90%E4%B8%8B%EF%BC%8C%E6%97%A0%E9%99%90%E5%BA%A6%E6%8F%90%E9%AB%98%E5%AE%BD%E5%B8%A6%E7%9A%84%E5%88%A9%E7%94%A8%E7%8E%87%E3%80%82"><span class="post-toc-text">拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%BF%AB%E9%87%8D%E4%BC%A0%E5%92%8C%E5%BF%AB%E6%81%A2%E5%A4%8D%E7%AE%97%E6%B3%95%EF%BC%9A"><span class="post-toc-text">快重传和快恢复算法：</span></a></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="KCP-Netty的中文注解版："><a href="#KCP-Netty的中文注解版：" class="headerlink" title="KCP-Netty的中文注解版："></a>KCP-Netty的中文注解版：</h1><p><a target="_blank" rel="noopener" href="https://github.com/zhangga/kcp-netty">kcp-netty中文注释</a></p>
+<h1 id="KCP-UDT比较："><a href="#KCP-UDT比较：" class="headerlink" title="KCP/UDT比较："></a>KCP/UDT比较：</h1><p><a target="_blank" rel="noopener" href="https://github.com/libinzhangyuan/asio_kcp">kcp/udt</a></p>
+<h1 id="KCP"><a href="#KCP" class="headerlink" title="KCP"></a>KCP</h1><p>传输层，可靠性，ARQ协议。</p>
+<p>目的：解决在网络拥堵情况下tcp协议的网络速度慢的问题。可靠性，传输速度。</p>
+<p>一般用udp作为下层传输协议，udp报文+控制头。</p>
+<p>传输数据大于mss(最大报文段)时，kcp将数据分片存储在多个kcp包(Segment)中。</p>
+<span id="more"></span>
+
+<ol>
+<li><ol>
+<li><strong>滑动窗口机制：</strong>kcp采用滑动窗口机制来提高发送速度。由于UDP在网络中的传输是不可靠的，因此会出现丢包和包的乱序。kcp是可靠的保证数据有序的协议，所以为了纠正包的乱序。接收方维护一个接收窗口。接收窗口有一个起始序号rcv_nxt以及尾序号rcv_nxt+rcv_wnd。如果接收窗口收到序号为rcv_nxt的分片那么rcv_nxt就加一，形象一点的说法是滑动窗口右移,并把该数据放入接收队列供应用层取用。如果收到的数据在窗口范围内但不是rcv_nxt那么就把数据保存起来,等收到rcv_nxt序号的分片时再一并放入接收队列供应用层取用。</li>
+</ol>
+</li>
+<li><p><strong>快速重传机制：</strong>数据在网络中的传输时间是不固定的，因此超时重传时间比较长。而为了尽早地判断出数据包的丢失，kcp引入了快速重传机制。快速重传机制工作原理是，当发送方发送了n,n+1,n+2…等等包出去后，接收方没有接收到n,而接收到n+1,n+2..等等n号包之后的包，这时因为n号包之后的包都已经接收到了，而n号包还没有接收到，所以可以认为n号包已经丢失了，告知发送方可以进行快速重传。kcp为了支持快速重传，接收方需要告诉发送方，哪些包已经成功收到了，哪些包没有收到。因此接收方返回发送方的确认数据（ack）中包含以下信息：接收窗口左端的序号rcv_nxt,接收到的大于rcv_nxt的包序号sn。rcv_nxt的含义是接收方已经成功按顺序接收了rcv_nxt序号之前的所有包,大于rcv_nxt的序号sn表示的是在接收窗口内的不连续的包。发送方接收到接收方发过来的数据时，首先解析rcv_nxt，把发送缓存中所有小于rcv_nxt序号的包全部移除掉（因为这些包全都都已经正确接收了）。然后再解析sn,遍历发送缓存，找到所有序号小于sn的包，这些包就是可能在网络中已经丢掉了的包,只是可能，因为有可能这些包只是拥堵在了网络中，需要更长的时间到达，所以这里我们设置一个快速重传的门限，对每个分片维护一个快速重传的计数，每收到一个ack解析sn后找到了一个分片，就把该分片的快速重传的计数加一，如果该计数达到了快速重传门限，那么就认为该分片已经丢失，可以触发快速重传，该门限值在kcp中可以设置，tcp中是3。</p>
+</li>
+<li><p><strong>选择重传机制：</strong>选择重传的关键在于接收方要告知发送方哪些包已经收到了，哪些包没有收到，为了最小化数据量，接收方可以告诉发送方哪些包已经按序收到了，哪些包是收到的但是不连续。所以返回的ack中包含rcv_nxt和sn。rcv_nxt代表收到的所有连续的包，sn代表哪些不连续的包收到了，那么根据这两个参数可以计算出来没有收到的包的序号。</p>
+</li>
+<li><p><strong>拥塞控制：</strong>拥塞控制就是告诉发送方，网络太堵了，应该少发一些数据，因此在滑动窗口的机制上引入了拥塞窗口，也就是说发送发发送的数据不得超过拥塞窗口，拥塞窗口的大小会随网络情况而变快，网络快拥塞窗口就大，反之同理。拥塞窗口的大小控制使用慢启动机制，具体参考TCP。</p>
+</li>
+</ol>
+<p>应用：kcp采取一系列措施尽量提高网络传输速率，在网络实时性和可靠性要求比较高的场景下可以考虑kcp协议代替tcp协议。</p>
+<p>名词说明（源码字段）：<br>用户数据：应用层发送的数据，如一张图片2Kb的数据<br>MTU：最大传输单元。即每次发送的最大数据<br>RTO：Retransmission TimeOut，重传超时时间。<br>cwnd:congestion window，拥塞窗口，表示发送方可发送多少个KCP数据包。与接收方窗口有关，与网络状况（拥塞控制）有关，与发送窗口大小有关。<br>rwnd:receiver window,接收方窗口大小，表示接收方还可接收多少个KCP数据包<br>snd_queue:待发送KCP数据包队列<br>snd_nxt:下一个即将发送的kcp数据包序列号<br>snd_una:下一个待确认的序列号</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1.png?resize=640,467" title="TCP/KCP详解，及源码注解 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1.png?resize=640,467" alt="TCP/KCP详解，及源码注解 - 第1张  | 张嘎"></a></p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2.png?resize=640,351" title="TCP/KCP详解，及源码注解 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2.png?resize=640,351" alt="TCP/KCP详解，及源码注解 - 第2张  | 张嘎"></a></p>
+<p>[ KCP 发送过程 ]</p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3.jpg?resize=485,296" title="TCP/KCP详解，及源码注解 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3.jpg?resize=485,296" alt="TCP/KCP详解，及源码注解 - 第3张  | 张嘎"></a></p>
+<p>[ RTO算法对比图 ]</p>
+<p>KCP的接收过程是将UDP收到的数据进行解包，重新组装顺序的、可靠的数据后交付给用户。</p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4.png?resize=365,353" title="TCP/KCP详解，及源码注解 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4.png?resize=365,353" alt="TCP/KCP详解，及源码注解 - 第4张  | 张嘎"></a></p>
+<p><strong>rcv_queue的数据是连续的，rcv_buf可能是间隔的</strong></p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/5.png?resize=355,448" title="TCP/KCP详解，及源码注解 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/5.png?resize=355,448" alt="TCP/KCP详解，及源码注解 - 第5张  | 张嘎"></a></p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/6.png?resize=466,424" title="TCP/KCP详解，及源码注解 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/6.png?resize=466,424" alt="TCP/KCP详解，及源码注解 - 第6张  | 张嘎"></a></p>
+<p>[ 数据确认包处理流程 ]</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/7.png?resize=574,403" title="TCP/KCP详解，及源码注解 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/7.png?resize=574,403" alt="TCP/KCP详解，及源码注解 - 第7张  | 张嘎"></a></p>
+<p>[ KCP快速确认 ]</p>
+<p><strong>总结：TCP可靠简单，但是复杂无私，所以速度慢。KCP尽可能保留UDP快的特点下，保证可靠。</strong></p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/992994-20180616162318524-660296383.jpg?resize=640,323" title="TCP/KCP详解，及源码注解 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/992994-20180616162318524-660296383.jpg?resize=640,323" alt="TCP/KCP详解，及源码注解 - 第8张  | 张嘎"></a></p>
+<p>总结：UDP收到的包，不断通过kcp_input喂给KCP，KCP会对这部分数据（KCP协议数据）进行解包，重新封装成应用层用户数据，应用层通过kcp_recv获取。应用层通过kcp_send发送数据，KCP会把用户数据拆分kcp数据包，通过kcp_output，以UDP（send）的方式发送。</p>
+<p><strong>KCP的配置模式</strong></p>
+<p>\1. 工作模式：</p>
+<blockquote>
+<p>int ikcp_nodelay(ikcpcb *kcp, int nodelay, int interval, int resend, int nc)</p>
+</blockquote>
+<ul>
+<li>nodelay ：是否启用 nodelay模式，0不启用；1启用。</li>
+<li>interval ：协议内部工作的 interval，单位毫秒，比如 10ms或者 20ms</li>
+<li>resend ：快速重传模式，默认0关闭，可以设置2（2次ACK跨越将会直接重传）</li>
+<li>nc ：是否关闭流控，默认是0代表不关闭，1代表关闭。</li>
+</ul>
+<p><strong>普通模式：</strong> ikcp_nodelay(kcp, 0, 40, 0, 0);</p>
+<p><strong>极速模式：</strong> ikcp_nodelay(kcp, 1, 10, 2, 1)</p>
+<p>\1. 最大窗口</p>
+<blockquote>
+<p>int ikcp_wndsize(ikcpcb *kcp, int sndwnd, int rcvwnd);</p>
+</blockquote>
+<p>该调用将会设置协议的最大发送窗口和最大接收窗口大小，默认为32. 这个可以理解为 TCP的 SND_BUF 和 RCV_BUF，只不过单位不一样 SND/RCV_BUF 单位是字节，这个单位是包。</p>
+<p>\2. 最大传输单元：</p>
+<p>纯算法协议并不负责探测 MTU，默认 mtu是1400字节，可以使用ikcp_setmtu来设置该值。该值将会影响数据包归并及分片时候的最大传输单元。</p>
+<p>\3. 最小RTO：</p>
+<p>不管是 TCP还是 KCP计算 RTO时都有最小 RTO的限制，即便计算出来RTO为40ms，由于默认的 RTO是100ms，协议只有在100ms后才能检测到丢包，快速模式下为30ms，可以手动更改该值：<br>kcp-&gt;rx_minrto = 10;</p>
+<p>KCP原理见：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wetest/p/9190786.html">KCP原理</a></p>
+<h1 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h1><h3 id="特性："><a href="#特性：" class="headerlink" title="特性："></a>特性：</h3><p>1.为流量设计（KB数据/秒），充分利用宽带。</p>
+<p>2.安全可靠，丢包全部重传。</p>
+<p>3.超时 = RTO * 2。</p>
+<p>4.延迟ACK，充分利用宽带。</p>
+<h4 id="UNA-vs-ACK-UNA："><a href="#UNA-vs-ACK-UNA：" class="headerlink" title="UNA vs ACK+UNA："></a>UNA vs ACK+UNA：</h4><p>ARQ模型响应有两种，UNA（此编号前所有包已收到，如TCP）和ACK（该编号包已收到  ），光用UNA将导致全部重传，光用ACK则丢失成本太高，以往协议都是二选其一，而  KCP协议中，除去单独的 ACK包外，所有包都有UNA信息。</p>
+<h3 id="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"><a href="#拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。" class="headerlink" title="拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。"></a>拥塞控制算法：目标：公平占有宽带的前提下，无限度提高宽带的利用率。</h3><p><strong>慢开始算法</strong>：当主机开始发送数据时，如果立即所大量数据字节注入到网络，那么就有可能引起网络拥塞，因为现在并不清楚网络的负荷情况。因此，较好的方法是 先探测一下，即由小到大逐渐增大发送窗口，也就是说，由小到大逐渐增大拥塞窗口数值。通常在刚刚开始发送报文段时，先把拥塞窗口 cwnd 设置为一个最大报文段MSS的数值。而在每收到一个对新的报文段的确认后，把拥塞窗口增加至多一个MSS的数值。用这样的方法逐步增大发送方的拥塞窗口 cwnd ，可以使分组注入到网络的速率更加合理。</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120451114.jpg?resize=499,305" title="TCP/KCP详解，及源码注解 - 第9张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120451114.jpg?resize=499,305" alt="TCP/KCP详解，及源码注解 - 第9张  | 张嘎"></a></p>
+<p>每经过一个传输轮次，拥塞窗口 cwnd 就加倍。一个传输轮次所经历的时间其实就是往返时间RTT。不过“传输轮次”更加强调：把拥塞窗口cwnd所允许发送的报文段都连续发送出去，并收到了对已发送的最后一个字节的确认。</p>
+<p>另，慢开始的“慢”并不是指cwnd的增长速率慢，而是指在TCP开始发送报文段时先设置cwnd=1，使得发送方在开始时只发送一个报文段（目的是试探一下网络的拥塞情况），然后再逐渐增大cwnd。</p>
+<p>为了防止拥塞窗口cwnd增长过大引起网络拥塞，还需要设置一个慢开始门限ssthresh状态变量（如何设置ssthresh）。慢开始门限ssthresh的用法如下：</p>
+<p>当 cwnd &lt; ssthresh 时，使用上述的慢开始算法。</p>
+<p>当 cwnd &gt; ssthresh 时，停止使用慢开始算法而改用拥塞避免算法。</p>
+<p>当 cwnd = ssthresh 时，既可使用慢开始算法，也可使用拥塞控制避免算法。</p>
+<p>拥塞避免算法：让拥塞窗口cwnd缓慢地增大，即每经过一个往返时间RTT就把发送方的拥塞窗口cwnd加1，而不是加倍。这样拥塞窗口cwnd按线性规律缓慢增长，比慢开始算法的拥塞窗口增长速率缓慢得多。</p>
+<p>无论在慢开始阶段还是在拥塞避免阶段，只要发送方判断网络出现拥塞（其根据就是没有收到确认），就要把慢开始门限ssthresh设置为出现拥塞时的发送 方窗口值的一半（但不能小于2）。然后把拥塞窗口cwnd重新设置为1，执行慢开始算法。这样做的目的就是要迅速减少主机发送到网络中的分组数，使得发生 拥塞的路由器有足够时间把队列中积压的分组处理完毕。</p>
+<p>如下图，用具体数值说明了上述拥塞控制的过程。现在发送窗口的大小和拥塞窗口一样大。</p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120591634.jpg?resize=570,306" title="TCP/KCP详解，及源码注解 - 第10张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101120591634.jpg?resize=570,306" alt="TCP/KCP详解，及源码注解 - 第10张  | 张嘎"></a></p>
+<p>&lt;1&gt;. 当TCP连接进行初始化时，把拥塞窗口cwnd置为1。前面已说过，为了便于理解，图中的窗口单位不使用字节而使用报文段的个数。慢开始门限的初始值设置为16个报文段，即 cwnd = 16 。</p>
+<p>&lt;2&gt;. 在执行慢开始算法时，拥塞窗口 cwnd 的初始值为1。以后发送方每收到一个对新报文段的确认ACK，就把拥塞窗口值另1，然后开始下一轮的传输（图中横坐标为传输轮次）。因此拥塞窗口cwnd 随着传输轮次按指数规律增长。当拥塞窗口cwnd增长到慢开始门限值ssthresh时（即当cwnd=16时），就改为执行拥塞控制算法，拥塞窗口按线 性规律增长。</p>
+<p>&lt;3&gt;. 假定拥塞窗口的数值增长到24时，网络出现超时（这很可能就是网络发生拥塞了）。更新后的ssthresh值变为12（即变为出现超时时的拥塞窗口数值 24的一半），拥塞窗口再重新设置为1，并执行慢开始算法。当cwnd=ssthresh=12时改为执行拥塞避免算法，拥塞窗口按线性规律增长，每经过 一个往返时间增加一个MSS的大小。</p>
+<p>强调：“拥塞避免”并非指完全能够避免了拥塞。利用以上的措施要完全避免网络拥塞还是不可能的。“拥塞避免”是说在拥塞避免阶段将拥塞窗口控制为按线性规律增长，<strong>使网络比较不容易出现拥塞。</strong></p>
+<h3 id="快重传和快恢复算法："><a href="#快重传和快恢复算法：" class="headerlink" title="快重传和快恢复算法："></a>快重传和快恢复算法：</h3><p>如果发送方设置的超时计时器时限已到但还没有收到确认，那么很可能是网络出现了拥塞，致使报文段在网络中的某处被丢弃。这时，TCP马上把拥塞窗口 cwnd 减小到1，并执行慢开始算法，同时把慢开始门限值ssthresh减半。这是不使用快重传的情况。</p>
+<p>快重传算法首先要求接收方每收到一个失序的报文段后就立即发出重复确认（为的是使发送方及早知道有报文段没有到达对方）而不要等到自己发送数据时才进行捎带确认。</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2010101122524670.jpg?resize=492,276" title="TCP/KCP详解，及源码注解 - 第11张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2010101122524670.jpg?resize=492,276" alt="TCP/KCP详解，及源码注解 - 第11张  | 张嘎"></a></p>
+<p>接收方收到了M1和M2后都分别发出了确认。现在假定接收方没有收到M3但接着收到了M4。显然，接收方不能确认M4，因为M4是收到的失序报文段。根据 可靠传输原理，接收方可以什么都不做，也可以在适当时机发送一次对M2的确认。但按照快重传算法的规定，接收方应及时发送对M2的重复确认，这样做可以让 发送方及早知道报文段M3没有到达接收方。发送方接着发送了M5和M6。接收方收到这两个报文后，也还要再次发出对M2的重复确认。这样，发送方共收到了 接收方的四个对M2的确认，其中后三个都是重复确认。快重传算法还规定，发送方只要一连收到三个重复确认就应当立即重传对方尚未收到的报文段M3，而不必 继续等待M3设置的重传计时器到期。由于发送方尽早重传未被确认的报文段，因此采用快重传后可以使整个网络吞吐量提高约20%。</p>
+<p>与快重传配合使用的还有快恢复算法，其过程有以下两个要点：</p>
+<p>&lt;1&gt;. 当发送方连续收到三个重复确认，就执行“乘法减小”算法，把慢开始门限ssthresh减半。这是为了预防网络发生拥塞。请注意：接下去不执行慢开始算法。</p>
+<p>&lt;2&gt;. 由于发送方现在认为网络很可能没有发生拥塞，因此与慢开始不同之处是现在不执行慢开始算法（即拥塞窗口cwnd现在不设置为1），而是把cwnd值设置为 慢开始门限ssthresh减半后的数值，然后开始执行拥塞避免算法（“加法增大”），使拥塞窗口缓慢地线性增大。</p>
+<p>下图给出了快重传和快恢复的示意图，并标明了“TCP Reno版本”。</p>
+<p>区别：新的 TCP Reno 版本在快重传之后采用快恢复算法而不是采用慢开始算法。</p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101123101842.jpg?resize=621,313" title="TCP/KCP详解，及源码注解 - 第12张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/2010101123101842.jpg?resize=621,313" alt="TCP/KCP详解，及源码注解 - 第12张  | 张嘎"></a></p>
+<p>也有的快重传实现是把开始时的拥塞窗口cwnd值再增大一点，即等于 ssthresh + 3 X MSS 。这样做的理由是：既然发送方收到三个重复的确认，就表明有三个分组已经离开了网络。这三个分组不再消耗网络 的资源而是停留在接收方的缓存中。可见现在网络中并不是堆积了分组而是减少了三个分组。因此可以适当把拥塞窗口扩大了些。</p>
+<p>在采用快恢复算法时，慢开始算法只是在TCP连接建立时和网络出现超时时才使用。</p>
+<p>采用这样的拥塞控制方法使得TCP的性能有明显的改进。</p>
+<p>接收方根据自己的接收能力设定了接收窗口rwnd，并把这个窗口值写入TCP首部中的窗口字段，传送给发送方。因此，接收窗口又称为通知窗口。因此，从接收方对发送方的流量控制的角度考虑，发送方的发送窗口一定不能超过对方给出的接收窗口rwnd 。</p>
+<p>发送方窗口的上限值 = Min [ rwnd, cwnd ]</p>
+<p>当rwnd &lt; cwnd 时，是接收方的接收能力限制发送方窗口的最大值。</p>
+<p>当cwnd &lt; rwnd 时，则是网络的拥塞限制发送方窗口的最大值。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2018-12-08</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%BD%91%E7%BB%9C/'>
+                            网络
+                        </a>
+                    
+                        <a href='/tags/%E9%9D%A2%E8%AF%95/'>
+                            面试
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/zset/'>JAVA版ZSet性能测试</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/flutter-dev/">使用Flutter进行APP开发流程</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

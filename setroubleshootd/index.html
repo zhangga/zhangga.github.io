@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="setroubleshootd引起的CPU高负载问题" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    setroubleshootd引起的CPU高负载问题
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：858</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：4分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%AE%B0%E4%B8%80%E6%AC%A1setroubleshootd%E8%BF%9B%E7%A8%8B%E5%BC%95%E8%B5%B7%E7%9A%84CPU%E9%AB%98%E8%B4%9F%E8%BD%BD%E9%97%AE%E9%A2%98"><span class="post-toc-text">记一次setroubleshootd进程引起的CPU高负载问题</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E8%BF%98%E6%9C%89%E4%B8%80%E7%A7%8D%E6%83%85%E5%86%B5%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F"><span class="post-toc-text">还有一种情况需要注意</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="记一次setroubleshootd进程引起的CPU高负载问题"><a href="#记一次setroubleshootd进程引起的CPU高负载问题" class="headerlink" title="记一次setroubleshootd进程引起的CPU高负载问题"></a>记一次setroubleshootd进程引起的CPU高负载问题</h2><p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2022-08/20220804145148-hCCDzh.jpg" title="20220804145148-hCCDzh" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2022-08/20220804145148-hCCDzh.jpg" alt="20220804145148-hCCDzh"></a></p>
+<p>上图可以看到CPU和内存在机器上都不正常</p>
+<p><code>$ top</code>查看具体进程为<code>setroubleshootd</code></p>
+<p>继续通过指令查看：<code>tail -f  /var/log/audit/audit.log</code></p>
+<p>输出如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">type=SYSCALL msg=audit(1659596208.000:3732435): arch=c000003e syscall=4 success=no exit=-13 a0=7fd01c268280 a1=7fd01c267fc0 a2=7fd01c267fc0 a3=0 items=0 ppid=1 pid=75904 auid=4294967295 uid=986 gid=980 euid=986 suid=986 fsuid=986 egid=980 sgid=980 fsgid=980 tty=(none) ses=4294967295 comm=&quot;ftdc&quot; exe=&quot;/usr/bin/mongod&quot; subj=system_u:system_r:mongod_t:s0 key=(null)</span><br><span class="line">type=PROCTITLE msg=audit(1659596208.000:3732435): proctitle=2F7573722F62696E2F6D6F6E676F64002D66002F6574632F6D6F6E676F642E636F6E66</span><br><span class="line">type=AVC msg=audit(1659596208.000:3732436): avc:  denied  &#123; getattr &#125; for  pid=75904 comm=&quot;ftdc&quot; path=&quot;/sys/fs/fuse/connections&quot; dev=&quot;fusectl&quot; ino=1 scontext=system_u:system_r:mongod_t:s0 tcontext=system_u:object_r:fusefs_t:s0 tclass=dir permissive=0</span><br></pre></td></tr></table></figure>
+
+<p>可以看到pid，并且是mongodb引起的。</p>
+<p>继续查看mongodb的日志：<code>tail -f /var/log/messages</code></p>
+<p>输出如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">**************************#012#012If you believe that mongod should be allowed getattr access on the cgroup directory by default.#012Then you should report this as a bug.#012You can generate a local policy module to allow this access.#012Do#012allow this access for now by executing:#012# ausearch -c &#x27;ftdc&#x27; --raw | audit2allow -M my-ftdc#012# semodule -i my-ftdc.pp#012</span><br><span class="line">Aug  3 23:58:48 localhost setroubleshoot: failed to retrieve rpm info for /sys/fs/cgroup</span><br><span class="line">Aug  3 23:58:48 localhost setroubleshoot: SELinux is preventing /usr/bin/mongod from search access on the directory /sys/fs/cgroup. For complete SELinux messages run: sealert -l 8df77a62-a31a-4213-8d52-f65ae3ffce6f</span><br><span class="line">Aug  3 23:58:48 localhost python: SELinux is preventing /usr/bin/mongod from search access on the directory /sys/fs/cgroup.#012#012*****  Plugin catchall (100. confidence) suggests   </span><br></pre></td></tr></table></figure>
+
+<p>上面日志中可以看到原因是：<code>/usr/bin/mongod from search access on the directory /sys/fs/cgroup</code></p>
+<p>并且提示了可以执行命令：<code>sealert -l 8df77a62-a31a-4213-8d52-f65ae3ffce6f</code> 查看完整信息。</p>
+<p>如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">[root@vmcommon fs]# sealert -l 8df77a62-a31a-4213-8d52-f65ae3ffce6f</span><br><span class="line"></span><br><span class="line">(setroubleshoot:123729): Gtk-WARNING **: 15:02:31.126: Locale not supported by C library.</span><br><span class="line">	Using the fallback &#x27;C&#x27; locale.</span><br><span class="line">SELinux is preventing /usr/bin/mongod from search access on the directory /sys/fs/cgroup.</span><br><span class="line"></span><br><span class="line">*****  Plugin catchall (100. confidence) suggests   **************************</span><br><span class="line"></span><br><span class="line">If you believe that mongod should be allowed search access on the cgroup directory by default.</span><br><span class="line">Then you should report this as a bug.</span><br><span class="line">You can generate a local policy module to allow this access.</span><br><span class="line">Do</span><br><span class="line">allow this access for now by executing:</span><br><span class="line"># ausearch -c &#x27;mongod&#x27; --raw | audit2allow -M my-mongod</span><br><span class="line"># semodule -i my-mongod.pp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Additional Information:</span><br><span class="line">Source Context                system_u:system_r:mongod_t:s0</span><br><span class="line">Target Context                system_u:object_r:cgroup_t:s0</span><br><span class="line">Target Objects                /sys/fs/cgroup [ dir ]</span><br><span class="line">Source                        mongod</span><br><span class="line">Source Path                   /usr/bin/mongod</span><br><span class="line">Port                          &lt;Unknown&gt;</span><br><span class="line">Host                          localhost.localdomain</span><br><span class="line">Source RPM Packages           mongodb-org-server-6.0.0-1.el7.x86_64</span><br><span class="line">Target RPM Packages</span><br><span class="line">Policy RPM                    selinux-policy-3.13.1-268.el7.noarch</span><br><span class="line">Selinux Enabled               True</span><br><span class="line">Policy Type                   targeted</span><br><span class="line">Enforcing Mode                Enforcing</span><br><span class="line">Host Name                     vmcommon</span><br><span class="line">Platform                      Linux vmcommon 3.10.0-1160.el7.x86_64 #1 SMP Mon</span><br><span class="line">                              Oct 19 16:18:59 UTC 2020 x86_64 x86_64</span><br><span class="line">Alert Count                   184449</span><br><span class="line">First Seen                    2022-08-02 11:11:38 CST</span><br><span class="line">Last Seen                     2022-08-04 14:52:59 CST</span><br><span class="line">Local ID                      8df77a62-a31a-4213-8d52-f65ae3ffce6f</span><br><span class="line"></span><br><span class="line">Raw Audit Messages</span><br><span class="line">type=AVC msg=audit(1659595979.0:3727845): avc:  denied  &#123; search &#125; for  pid=75904 comm=&quot;ftdc&quot; name=&quot;/&quot; dev=&quot;tmpfs&quot; ino=1164 scontext=system_u:system_r:mongod_t:s0 tcontext=system_u:object_r:cgroup_t:s0 tclass=dir permissive=0</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">type=SYSCALL msg=audit(1659595979.0:3727845): arch=x86_64 syscall=statfs success=no exit=EACCES a0=5567cc31f9a0 a1=7fd01c267f40 a2=7fd01c2681a0 a3=0 items=0 ppid=1 pid=75904 auid=4294967295 uid=986 gid=980 euid=986 suid=986 fsuid=986 egid=980 sgid=980 fsgid=980 tty=(none) ses=4294967295 comm=ftdc exe=/usr/bin/mongod subj=system_u:system_r:mongod_t:s0 key=(null)</span><br><span class="line"></span><br><span class="line">Hash: mongod,mongod_t,cgroup_t,dir,search</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>具体原因是因为安装的MongoDB 6版本需要的SELinux的问题，具体可以查看官网文档：</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-red-hat/#configure-selinux">configure-selinux</a></p>
+<h3 id="还有一种情况需要注意"><a href="#还有一种情况需要注意" class="headerlink" title="还有一种情况需要注意"></a>还有一种情况需要注意</h3><p>之前mongodb启动进程的文件<code>/tmp/mongodb-27017.sock</code>权限不是用户mongod的，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ll /tmp/</span><br><span class="line">total 824</span><br><span class="line">drwxr-xr-x. 2 root  root      18 Aug  1 21:33 hsperfdata_root</span><br><span class="line">-rwx------. 1 root  root     836 Aug  1 21:36 ks-script-0MAoJL</span><br><span class="line">-rwx------. 1 root  root    1237 Aug  1 21:36 ks-script-EGB51o</span><br><span class="line">srwx------. 1 root  root       0 Aug  4 15:44 mongodb-27017.sock</span><br></pre></td></tr></table></figure>
+
+<p>需要把<code>/tmp/mongodb-27017.sock</code>这个文件删除后再尝试启动mongo</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2022-08-04</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/goebpf/'>使用Go语言开发eBPF程序</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/prometheus/">prometheus+grafana搭建监控服务</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

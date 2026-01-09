@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="Nexus搭建开发组的私有仓库" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    Nexus搭建开发组的私有仓库
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.9k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：8分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="post-toc-text">一、私有仓库的价值</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="post-toc-text">二、准备工作</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-1%E3%80%81%E5%AE%89%E8%A3%85Java%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83"><span class="post-toc-text">2.1、安装Java编译环境</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-1-1%E3%80%81%E5%AE%89%E8%A3%85"><span class="post-toc-text">2.1.1、安装</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-1-2%E3%80%81%E9%AA%8C%E8%AF%81"><span class="post-toc-text">2.1.2、验证</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-1-3%E3%80%81%E8%AE%BE%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="post-toc-text">2.1.3、设置环境变量</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-2%E3%80%81%E8%99%9A%E6%8B%9F%E6%9C%BA%E8%AE%BF%E9%97%AE%E4%BA%92%E8%81%94%E7%BD%91"><span class="post-toc-text">2.2、虚拟机访问互联网</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%89%E8%A3%85Nexus"><span class="post-toc-text">三、安装Nexus</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-1%E3%80%81%E4%B8%8B%E8%BD%BDnexus"><span class="post-toc-text">3.1、下载nexus</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-2%E3%80%81%E9%83%A8%E7%BD%B2"><span class="post-toc-text">3.2、部署</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-3%E3%80%81%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1"><span class="post-toc-text">3.3、系统服务</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-3-1%E3%80%81%E7%BC%96%E8%BE%91%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E6%96%87%E4%BB%B6"><span class="post-toc-text">3.3.1、编辑系统服务文件</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-3-2%E3%80%81%E8%AE%BE%E7%BD%AE%E4%B8%BA%E8%87%AA%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1"><span class="post-toc-text">3.3.2、设置为自启动服务</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E8%AE%BE%E7%BD%AENexus"><span class="post-toc-text">四、设置Nexus</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-1%E3%80%81%E6%B5%8F%E8%A7%88%E5%99%A8%E7%99%BB%E5%BD%95"><span class="post-toc-text">4.1、浏览器登录</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-2%E3%80%81%E8%BF%9B%E5%85%A5%E7%AE%A1%E7%90%86%E7%95%8C%E9%9D%A2"><span class="post-toc-text">4.2、进入管理界面</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-3%E3%80%81%E5%A2%9E%E5%8A%A0%E6%96%B0%E7%9A%84%E4%BB%A3%E7%90%86%E6%BA%90"><span class="post-toc-text">4.3、增加新的代理源</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-3%E3%80%81%E8%AE%BE%E7%BD%AE%E7%A7%81%E7%94%A8%E4%BB%93%E5%BA%93%E5%8F%AF%E9%87%8D%E5%A4%8D%E5%8F%91%E5%B8%83"><span class="post-toc-text">4.3、设置私用仓库可重复发布</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%89%E8%A3%85maven%E5%B9%B6%E8%AE%BE%E7%BD%AE%E7%A7%81%E7%94%A8%E4%BB%93%E5%BA%93"><span class="post-toc-text">五、安装maven并设置私用仓库</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-1%E3%80%81%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85"><span class="post-toc-text">5.1、下载安装</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-2%E3%80%81%E8%AE%BE%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="post-toc-text">5.2、设置环境变量</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-3%E3%80%81%E6%B5%8B%E8%AF%95"><span class="post-toc-text">5.3、测试</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-4%E3%80%81%E9%85%8D%E7%BD%AE"><span class="post-toc-text">5.4、配置</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><p><strong>目录</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label0">一、私有仓库的价值</a></li>
+<li>二、准备工作<ul>
+<li>2.1、安装Java编译环境<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_0">2.1.1、安装</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_0">2.1.2、验证</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_0">2.1.3、设置环境变量</a></li>
+</ul>
+</li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label1_1">2.2、虚拟机访问互联网</a></li>
+</ul>
+</li>
+<li>三、安装Nexus<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_0">3.1、下载nexus</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_1">3.2、部署</a></li>
+<li>3.3、系统服务<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_2">3.3.1、编辑系统服务文件</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label2_2">3.3.2、设置为自启动服务</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>四、设置Nexus<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_0">4.1、浏览器登录</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_1">4.2、进入管理界面</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_2">4.3、增加新的代理源</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label3_3">4.3、设置私用仓库可重复发布</a></li>
+</ul>
+</li>
+<li>五、安装maven并设置私用仓库<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_0">5.1、下载安装</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_1">5.2、设置环境变量</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_2">5.3、测试</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_label4_3">5.4、配置</a></li>
+</ul>
+</li>
+</ul>
+<p><strong>正文</strong><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
+<span id="more"></span>
+
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-1024x495.png?resize=640,309" title="Nexus搭建开发组的私有仓库 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-1024x495.png?resize=640,309" alt="Nexus搭建开发组的私有仓库 - 第1张  | 张嘎"></a></p>
+<h1 id="一、私有仓库的价值"><a href="#一、私有仓库的价值" class="headerlink" title="一、私有仓库的价值"></a>一、私有仓库的价值</h1><p>　　开发Java应用系统，用到Maven、sbt和 Gradle等构建工具，在构建过程中一般需要从互联网下载依赖库，构建私有仓库就是为了在开发组或者部门内共用，从而节省整体的下载成本和构建成本。下面先以Maven为例说明。</p>
+<p>　　Maven是一个强大的构建工具，一般用于Java项目。Maven项目基于对象模型(POM)，可以通过一小段描述信息来管理项目的构建，报告和文档的软件项目管理工具。Maven 除了以程序构建能力为特色之外，还提供高级项目管理工具。由于 Maven 的缺省构建规则有较高的可重用性，所以常常用两三行 Maven 构建脚本就可以构建简单的项目。</p>
+<p>Maven的Java项目一般需要下载第三方组件，下载后构成本地仓库，为了减少网络对构建项目的影响，一般会构建私服仓库，代理第三方库。Nexus就是构建私服仓库的优秀软件。</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220431849-1095286350.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220431849-1095286350.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第2张  | 张嘎"></a></p>
+<p>图 1 三层仓库架构<a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
+<h1 id="二、准备工作"><a href="#二、准备工作" class="headerlink" title="二、准备工作"></a>二、准备工作</h1><h2 id="2-1、安装Java编译环境"><a href="#2-1、安装Java编译环境" class="headerlink" title="2.1、安装Java编译环境"></a>2.1、安装Java编译环境</h2><p>Java编译环境包括核心的JDK和编译工具，因为Java的编译工具有很多种，而开源项目作者的随意性很高，常用的工具有maven，gradle,sbt，ant等等，本文关注Maven。</p>
+<p>因为Oracle不再维护Java1.7，所以采用Java 1.8作为编译核心.</p>
+<h3 id="2-1-1、安装"><a href="#2-1-1、安装" class="headerlink" title="2.1.1、安装"></a>2.1.1、安装</h3><p>操作系统采用Centos7.4</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install java-1.8.0-openjdk-devel java-1.8.0-openjdk java-1.8.0-openjdk-headless -y</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-1-2、验证"><a href="#2-1-2、验证" class="headerlink" title="2.1.2、验证"></a>2.1.2、验证</h3><p>查看jdk版本号</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第3张  | 张嘎"></a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">java -version</span><br><span class="line">Picked up _JAVA_OPTIONS: -Xmx2048m -XX:MaxMetaspaceSize=512m -Djava.awt.headless=true</span><br><span class="line">openjdk version &quot;1.8.0_131&quot;</span><br><span class="line">OpenJDK Runtime Environment (build 1.8.0_131-b12)</span><br><span class="line">OpenJDK 64-Bit Server VM (build 25.131-b12, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第4张  | 张嘎"></a></p>
+<h3 id="2-1-3、设置环境变量"><a href="#2-1-3、设置环境变量" class="headerlink" title="2.1.3、设置环境变量"></a>2.1.3、设置环境变量</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.bashrc</span><br></pre></td></tr></table></figure>
+
+<p>增加</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/usr/lib/jvm/java</span><br><span class="line">export JRE_HOME=$&#123;JAVA_HOME&#125;/jre</span><br><span class="line">export CLASSPATH=.:$JRE_HOME/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line">export PATH=$JAVA_HOME/bin:$PATH</span><br></pre></td></tr></table></figure>
+
+<p>即刻生效</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-2、虚拟机访问互联网"><a href="#2-2、虚拟机访问互联网" class="headerlink" title="2.2、虚拟机访问互联网"></a>2.2、虚拟机访问互联网</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/ifcfg-ens32</span><br></pre></td></tr></table></figure>
+
+<p>注：环境不同网卡名会不同</p>
+<p>增加天津联通的DNS（注：作者在天津，请按个人本地的运行商做相应修改）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DNS1=202.99.96.68</span><br><span class="line">DNS2=202.99.104.68</span><br></pre></td></tr></table></figure>
+
+<p>在实际测试中感觉天津电信的DNS更加靠谱，访问一些特殊网站返回的IP能够顺利访问，大家根据实践选择吧</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DNS1=219.150.32.132</span><br><span class="line">DNS2=219.146.0.130</span><br></pre></td></tr></table></figure>
+
+<p>重新启动网络</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
+
+<p>测试</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ping www.163.com</span><br><span class="line">PING 163.xdwscache.ourglb0.com (42.81.9.47) 56(84) bytes of data.</span><br><span class="line">64 bytes from 42.81.9.47 (42.81.9.47): icmp_seq=1 ttl=128 time=9.66 ms</span><br><span class="line">64 bytes from 42.81.9.47 (42.81.9.47): icmp_seq=2 ttl=128 time=10.4 ms…</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
+<h1 id="三、安装Nexus"><a href="#三、安装Nexus" class="headerlink" title="三、安装Nexus"></a>三、安装Nexus</h1><h2 id="3-1、下载nexus"><a href="#3-1、下载nexus" class="headerlink" title="3.1、下载nexus"></a>3.1、下载nexus</h2><p>从官方网站现在最新3.X版</p>
+<p><a target="_blank" rel="noopener" href="https://www.sonatype.com/download-oss-sonatype">https://www.sonatype.com/download-oss-sonatype</a></p>
+<p>下载（2018年3月）最新版nexus-3.9.0-01-unix.tar.gz （）</p>
+<h2 id="3-2、部署"><a href="#3-2、部署" class="headerlink" title="3.2、部署"></a>3.2、部署</h2><p>先规划存储私有仓库的目录，作者本机的/opt目录空间较多，所以以/opt为例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /opt/scm</span><br><span class="line">tar -xf ~/download/nexus-3.9.0-01-unix.tar.gz -C .</span><br></pre></td></tr></table></figure>
+
+<p>生成两个目录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nexus-3.9.0-01</span><br><span class="line">sonatype-work</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-3、系统服务"><a href="#3-3、系统服务" class="headerlink" title="3.3、系统服务"></a>3.3、系统服务</h2><h3 id="3-3-1、编辑系统服务文件"><a href="#3-3-1、编辑系统服务文件" class="headerlink" title="3.3.1、编辑系统服务文件"></a>3.3.1、编辑系统服务文件</h3><p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第5张  | 张嘎"></a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/systemd/system/nexus.service</span><br><span class="line"></span><br><span class="line">[Unit]</span><br><span class="line">Description=nexus service</span><br><span class="line">After=network.target</span><br><span class="line"></span><br><span class="line">[Service]Type=forking</span><br><span class="line">LimitNOFILE=65536</span><br><span class="line">ExecStart=/opt/scm/nexus-3.9.0-01/bin/nexus start</span><br><span class="line">ExecStop=/opt/scm/nexus-3.9.0-01/bin/nexus stop</span><br><span class="line">User=ansible</span><br><span class="line">Restart=on-abort</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第6张  | 张嘎"></a></p>
+<h3 id="3-3-2、设置为自启动服务"><a href="#3-3-2、设置为自启动服务" class="headerlink" title="3.3.2、设置为自启动服务"></a>3.3.2、设置为自启动服务</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl  daemon-reload</span><br><span class="line">sudo systemctl start nexus.service</span><br><span class="line">sudo systemctl status nexus.service</span><br><span class="line">sudo systemctl enable nexus.service</span><br></pre></td></tr></table></figure>
+
+<p>启动报错：1./etc/systemd/system/nexus.service文件的user不对<br>2.修改/opt/scm/nexus/bin/nexus 启动的JAVA_HOME 如：INSTALL4J_JAVA_HOME_OVERRIDE=/usr/local/java/jdk1.8/</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
+<h1 id="四、设置Nexus"><a href="#四、设置Nexus" class="headerlink" title="四、设置Nexus"></a>四、设置Nexus</h1><h2 id="4-1、浏览器登录"><a href="#4-1、浏览器登录" class="headerlink" title="4.1、浏览器登录"></a>4.1、浏览器登录</h2><p><a target="_blank" rel="noopener" href="http://192.168.154.11:8081/">http://192.168.154.11:8081/</a></p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220256240-534211558.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220256240-534211558.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第7张  | 张嘎"></a></p>
+<p>用户名的密码为：admin admin123</p>
+<h2 id="4-2、进入管理界面"><a href="#4-2、进入管理界面" class="headerlink" title="4.2、进入管理界面"></a>4.2、进入管理界面</h2><p><a target="_blank" rel="noopener" href="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220317318-1530787694.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220317318-1530787694.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第8张  | 张嘎"></a></p>
+<h2 id="4-3、增加新的代理源"><a href="#4-3、增加新的代理源" class="headerlink" title="4.3、增加新的代理源"></a>4.3、增加新的代理源</h2><p><a target="_blank" rel="noopener" href="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220331802-1557956595.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第9张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220331802-1557956595.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第9张  | 张嘎"></a></p>
+<p>设置名称和URL</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220342224-1667350164.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第10张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220342224-1667350164.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第10张  | 张嘎"></a></p>
+<p>Cache统一设置为200天 288000</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220350271-1209294422.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第11张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220350271-1209294422.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第11张  | 张嘎"></a></p>
+<p> 逐个增加常用代理</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第12张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第12张  | 张嘎"></a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">1. aliyun</span><br><span class="line">http://maven.aliyun.com/nexus/content/groups/public</span><br><span class="line">2. apache_snapshot</span><br><span class="line">https://repository.apache.org/content/repositories/snapshots/</span><br><span class="line">3. apache_release</span><br><span class="line">https://repository.apache.org/content/repositories/releases/</span><br><span class="line">4. atlassian</span><br><span class="line">https://maven.atlassian.com/content/repositories/atlassian-public/</span><br><span class="line">5. central.maven.org</span><br><span class="line">http://central.maven.org/maven2/</span><br><span class="line">6. datanucleus</span><br><span class="line">http://www.datanucleus.org/downloads/maven2</span><br><span class="line">7. maven-central （安装后自带，仅需设置Cache有效期即可）</span><br><span class="line">https://repo1.maven.org/maven2/</span><br><span class="line">8. nexus.axiomalaska.com</span><br><span class="line">http://nexus.axiomalaska.com/nexus/content/repositories/public</span><br><span class="line">9. oss.sonatype.org</span><br><span class="line">https://oss.sonatype.org/content/repositories/snapshots</span><br><span class="line">10.pentaho</span><br><span class="line">https://public.nexus.pentaho.org/content/groups/omni/</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第13张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第13张  | 张嘎"></a></p>
+<p>再次强调，在</p>
+<p>How long (in minutes) to cache metadata before rechecking the remote repository.处</p>
+<p>统一设置为</p>
+<p>288000 即200天，当然可以设置为更长的时间</p>
+<p>设置maven-public</p>
+<p>将这些代理加入Group</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220400959-1653481781.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第14张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/images2017.cnblogs.com/blog/1082089/201710/1082089-20171022220400959-1653481781.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第14张  | 张嘎"></a></p>
+<h2 id="4-3、设置私用仓库可重复发布"><a href="#4-3、设置私用仓库可重复发布" class="headerlink" title="4.3、设置私用仓库可重复发布"></a>4.3、设置私用仓库可重复发布</h2><p>　　Nexus安装后自带maven-releases，maven-snapshots两个仓库，用于将生成的jar包发布在这两个仓库中，在实际开发中需要将maven-releases设置为可以重复发布。</p>
+<p>　　maven-releases</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/images2018.cnblogs.com/blog/1082089/201803/1082089-20180317135112096-935379506.png?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第15张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/images2018.cnblogs.com/blog/1082089/201803/1082089-20180317135112096-935379506.png?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第15张  | 张嘎"></a></p>
+<p>　　注：maven-snapshots缺省是可以重新部署的。<a target="_blank" rel="noopener" href="https://www.cnblogs.com/fanzhenyong/p/7709434.html#_labelTop">回到顶部</a></p>
+<h1 id="五、安装maven并设置私用仓库"><a href="#五、安装maven并设置私用仓库" class="headerlink" title="五、安装maven并设置私用仓库"></a>五、安装maven并设置私用仓库</h1><h2 id="5-1、下载安装"><a href="#5-1、下载安装" class="headerlink" title="5.1、下载安装"></a>5.1、下载安装</h2><p>从maven官网下载3.5.0 <a target="_blank" rel="noopener" href="http://maven.apache.org/download.cgi">http://maven.apache.org/download.cgi</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd tools</span><br><span class="line">tar -xf ../download/apache-maven-3.5.0-bin.tar.gz –C .</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-2、设置环境变量"><a href="#5-2、设置环境变量" class="headerlink" title="5.2、设置环境变量"></a>5.2、设置环境变量</h2><p>vi ~/.bashrc</p>
+<p>增加</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=/home/ansible/tools/apache-maven-3.5.0/bin:$PATH</span><br></pre></td></tr></table></figure>
+
+<p>即刻生效</p>
+<p>source ~/.bashrc</p>
+<h2 id="5-3、测试"><a href="#5-3、测试" class="headerlink" title="5.3、测试"></a>5.3、测试</h2><p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第16张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第16张  | 张嘎"></a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mvn -v</span><br><span class="line"></span><br><span class="line">Picked up _JAVA_OPTIONS: -Xmx2048m -XX:MaxMetaspaceSize=512m -Djava.awt.headless=true</span><br><span class="line">Apache Maven 3.5.0 (ff8f5e7444045639af65f6095c62210b5713f426; 2017-04-04T03:39:06+08:00)</span><br><span class="line">Maven home: /home/ansible/tools/apache-maven-3.5.0</span><br><span class="line">Java version: 1.8.0_102, vendor: Oracle Corporation</span><br><span class="line">Java home: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.102-4.b14.el7.x86_64/jre</span><br><span class="line">Default locale: en_US, platform encoding: UTF-8</span><br><span class="line">OS name: &quot;linux&quot;, version: &quot;3.10.0-514.el7.x86_64&quot;, arch: &quot;amd64&quot;, family: &quot;unix&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-4、配置"><a href="#5-4、配置" class="headerlink" title="5.4、配置"></a>5.4、配置</h2><p>vi ~/tools/apache-maven-3.5.0/conf/settings.xml（本地服务器可以使用localhost，开发组其他服务器则修改为对应Nexus服务器的域名或者IP地址）</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" title="Nexus搭建开发组的私有仓库 - 第17张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/common.cnblogs.com/images/copycode.gif?w=640&ssl=1" alt="Nexus搭建开发组的私有仓库 - 第17张  | 张嘎"></a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">&lt;settings&gt;</span><br><span class="line">  &lt;pluginGroups&gt;  </span><br><span class="line">     &lt;pluginGroup&gt;org.sonatype.plugins&lt;/pluginGroup&gt;  </span><br><span class="line">  &lt;/pluginGroups&gt; </span><br><span class="line">  &lt;mirrors&gt;</span><br><span class="line">    &lt;mirror&gt;</span><br><span class="line">      &lt;id&gt;nexus&lt;/id&gt;</span><br><span class="line">      &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;</span><br><span class="line">      &lt;url&gt;http://localhost:8081/repository/maven-public/&lt;/url&gt;</span><br><span class="line">    &lt;/mirror&gt;</span><br><span class="line">  &lt;/mirrors&gt;</span><br><span class="line">  &lt;profiles&gt;</span><br><span class="line">    &lt;profile&gt;</span><br><span class="line">      &lt;id&gt;nexus&lt;/id&gt;</span><br><span class="line">      &lt;!--Enable snapshots for the built in central repo to direct --&gt;</span><br><span class="line">      &lt;!--all requests to nexus via the mirror --&gt;</span><br><span class="line">      &lt;repositories&gt;</span><br><span class="line">        &lt;repository&gt;</span><br><span class="line">          &lt;id&gt;central&lt;/id&gt;</span><br><span class="line">          &lt;url&gt;http://central&lt;/url&gt;</span><br><span class="line">          &lt;releases&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/releases&gt;</span><br><span class="line">          &lt;snapshots&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/snapshots&gt;</span><br><span class="line">        &lt;/repository&gt;</span><br><span class="line">      &lt;/repositories&gt;</span><br><span class="line">     &lt;pluginRepositories&gt;</span><br><span class="line">        &lt;pluginRepository&gt;</span><br><span class="line">          &lt;id&gt;central&lt;/id&gt;</span><br><span class="line">          &lt;url&gt;http://central&lt;/url&gt;</span><br><span class="line">          &lt;releases&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/releases&gt;</span><br><span class="line">          &lt;snapshots&gt;&lt;enabled&gt;true&lt;/enabled&gt;&lt;/snapshots&gt;</span><br><span class="line">        &lt;/pluginRepository&gt;</span><br><span class="line">      &lt;/pluginRepositories&gt;</span><br><span class="line">    &lt;/profile&gt;</span><br><span class="line">  &lt;/profiles&gt;</span><br><span class="line">  &lt;activeProfiles&gt;</span><br><span class="line">    &lt;!--make the profile active all the time --&gt;</span><br><span class="line">    &lt;activeProfile&gt;nexus&lt;/activeProfile&gt;</span><br><span class="line">  &lt;/activeProfiles&gt;</span><br><span class="line">  &lt;servers&gt;</span><br><span class="line">    &lt;server&gt;</span><br><span class="line">      &lt;id&gt;nexus&lt;/id&gt;</span><br><span class="line">      &lt;username&gt;admin&lt;/username&gt;</span><br><span class="line">      &lt;password&gt;admin123&lt;/password&gt;</span><br><span class="line">    &lt;/server&gt;</span><br><span class="line">  &lt;/servers&gt;</span><br><span class="line">&lt;/settings&gt;</span><br></pre></td></tr></table></figure>
+
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2018-11-10</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E6%9D%82%E4%B9%B1/'>
+                            杂乱
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/flutter-dev/'>使用Flutter进行APP开发流程</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/hackathon/">首届hackathon的一些感想</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

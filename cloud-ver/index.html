@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="云服务器被挖矿病毒感染！" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    云服务器被挖矿病毒感染！
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：611</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：2分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E8%AE%B0%E5%BD%95%E4%B8%8B%E7%97%85%E6%AF%92%E6%84%9F%E6%9F%93%E7%9A%84%E5%A7%8B%E6%9C%AB%E3%80%82%E4%BB%8E%E5%8F%91%E7%8E%B0%E5%88%B0%E6%8A%98%E7%A3%A8%EF%BC%8C%E5%86%8D%E5%88%B0%E6%9C%80%E5%90%8E%E8%A7%A3%E5%86%B3%E7%9A%84%E7%97%9B%E8%8B%A6%E8%BF%87%E7%A8%8B%E3%80%82%E6%80%BB%E7%BB%93%E6%95%99%E8%AE%AD%EF%BC%8C%E4%B8%8D%E8%83%BD%E5%A4%A7%E6%84%8F%EF%BC%8C%E8%BF%98%E6%98%AF%E5%BE%97%E5%81%9A%E5%A5%BD%E5%BF%AB%E7%85%A7%E5%A4%87%E4%BB%BD%E3%80%82"><span class="post-toc-text">记录下病毒感染的始末。从发现到折磨，再到最后解决的痛苦过程。总结教训，不能大意，还是得做好快照备份。</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h4 id="记录下病毒感染的始末。从发现到折磨，再到最后解决的痛苦过程。总结教训，不能大意，还是得做好快照备份。"><a href="#记录下病毒感染的始末。从发现到折磨，再到最后解决的痛苦过程。总结教训，不能大意，还是得做好快照备份。" class="headerlink" title="记录下病毒感染的始末。从发现到折磨，再到最后解决的痛苦过程。总结教训，不能大意，还是得做好快照备份。"></a><strong>记录下病毒感染的始末。从发现到折磨，再到最后解决的痛苦过程。总结教训，不能大意，还是得做好快照备份。</strong></h4><p>一、3月13号发现服务器ssh连接困难，连上就掉线，根本无法操作，用top指令查看发现有进程名为：dblaunch高负载，占满cpu。没多想，联系腾讯云处理，最后给出的建议：做好快照，重启机器。腾讯帮忙注释掉了启动脚本中lampp中mysql的bin环境变量，现在来看，这个操作没任务作用。重启完后机器恢复正常，也就没再进一步追踪。</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1-3.png?resize=640,111" title="云服务器被挖矿病毒感染！ - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/192.144.167.243/blog/wp-content/uploads/1-3.png?resize=640,111" alt="云服务器被挖矿病毒感染！ - 第1张  | 张嘎"></a></p>
+<p>二、3月15号，公司下周去美国，需要搭建对外服务器在美国登陆，就部署到我的腾讯云服务器，由于我明天去日本的飞机，赶忙晚上部署服务器完毕，测试无恙，一切正常。</p>
+<p>三、3月16号，在日本凌晨3点钟， 同事反应游戏服务器连不上，登陆ssh后台发现根本连不上， 再次联系腾讯云，最后还是强制重启解决，噩梦开始，由于人在日本，只能通过手机操作，没有别的办法，只能每天早上起床后第一件事就是重启机器，以保障美国方能正常展示游戏。</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2-2.png?resize=640,436" title="云服务器被挖矿病毒感染！ - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/192.144.167.243/blog/wp-content/uploads/2-2.png?resize=640,436" alt="云服务器被挖矿病毒感染！ - 第2张  | 张嘎"></a></p>
+<p>四、回国后开始排查问题，发现进程sustse跑满cpu，网上查看后才知道是被挖矿病毒感染，第一次服务器被病毒感染的经历。随后开始了各种尝试，试图删尽病毒，病毒的urlget地址为：<a target="_blank" rel="noopener" href="http://107.174.47.156/mr.sh%E3%80%82%E5%9C%A8%E7%BB%8F%E8%BF%87%E4%BA%86%E5%90%84%E7%A7%8D%E5%AF%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%8A%A0%E6%9D%83%E9%99%90%EF%BC%8C%E5%88%A0%E9%99%A4%E7%97%85%E6%AF%92%E6%96%87%E4%BB%B6%E5%8F%8A%E5%90%84%E7%A7%8D%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%90%8E%EF%BC%8C%E6%9C%80%E5%90%8E%E5%8F%91%E7%8E%B0%E8%BF%98%E6%98%AF%E5%BE%92%E5%8A%B3%EF%BC%8C%E4%B8%8D%E7%9F%A5%E9%81%93%E4%BB%8E%E4%BB%80%E4%B9%88%E5%9C%B0%E6%96%B9%E7%97%85%E6%AF%92%E8%BF%98%E6%98%AF%E5%86%8D%E6%AC%A1%E5%87%BA%E7%8E%B0%EF%BC%8C%E8%85%BE%E8%AE%AF%E5%AE%98%E6%96%B9%E7%BB%99%E5%87%BA%E7%9A%84%E5%BB%BA%E8%AE%AE%E4%B9%9F%E6%98%AF%E9%87%8D%E8%A3%85%E7%B3%BB%E7%BB%9F%EF%BC%8C%E5%9B%A0%E4%B8%BA%E4%BD%A0%E6%B0%B8%E8%BF%9C%E4%B9%9F%E4%BF%9D%E8%AF%81%E4%B8%8D%E4%BA%86%E7%97%85%E6%AF%92%E8%A2%AB%E5%88%A0%E9%99%A4%E5%B9%B2%E5%87%80%EF%BC%8C%E5%9C%A8%E8%BF%99%E6%A0%B7%E7%9A%84%E6%9C%BA%E5%99%A8%E4%B8%8A%E7%BB%A7%E7%BB%AD%E4%BD%BF%E7%94%A8%E7%9A%84%E8%AF%9D%EF%BC%8C%E8%87%AA%E5%B7%B1%E7%9A%84%E5%86%85%E5%AE%B9%E8%B6%8A%E5%A4%9A%EF%BC%8C%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1%E7%9A%84%E6%88%90%E6%9C%AC%E5%92%8C%E9%A3%8E%E9%99%A9%E8%B6%8A%E5%A4%A7%EF%BC%8C%E6%9C%80%E5%90%8E%E5%8F%AA%E8%83%BD%E9%87%8D%E8%A3%85%E7%B3%BB%E7%BB%9F%EF%BC%8C%E9%87%8D%E6%96%B0%E9%83%A8%E7%BD%B2%E7%8E%AF%E5%A2%83%E3%80%82">http://107.174.47.156/mr.sh。在经过了各种对文件夹加权限，删除病毒文件及各种定时任务后，最后发现还是徒劳，不知道从什么地方病毒还是再次出现，腾讯官方给出的建议也是重装系统，因为你永远也保证不了病毒被删除干净，在这样的机器上继续使用的话，自己的内容越多，文件丢失的成本和风险越大，最后只能重装系统，重新部署环境。</a></p>
+<p>五、经此一役和挖矿病毒的斗争，或者说被虐也好，教训就是，做好服务器的快照备份，数据无价，万一真的丢失了恢复不了，那是真崩了。还好这次没什么重大损失。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2019-03-26</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%BD%91%E7%AB%99/'>
+                            网站
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/redis-pre/'>Redis常见面试题</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/jvm-self/">自己动手写JVM</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

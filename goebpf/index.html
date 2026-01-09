@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="使用Go语言开发eBPF程序" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    使用Go语言开发eBPF程序
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3.6k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：17分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BD%BF%E7%94%A8Go%E8%AF%AD%E8%A8%80%E5%BC%80%E5%8F%91eBPF%E7%A8%8B%E5%BA%8F"><span class="post-toc-text">使用Go语言开发eBPF程序</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%80-%E6%8E%A2%E7%B4%A2cilium-ebpf%E9%A1%B9%E7%9B%AE%E7%A4%BA%E4%BE%8B"><span class="post-toc-text">一. 探索cilium&#x2F;ebpf项目示例</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BA%8C-%E6%9E%84%E5%BB%BAebpf%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="post-toc-text">二. 构建ebpf示例代码</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%89-%E4%BD%BF%E7%94%A8cilium-ebpf%E4%B8%BA%E5%89%8D%E6%96%87%E7%9A%84Hello-World-eBPF%E7%A8%8B%E5%BA%8F%E5%BC%80%E5%8F%91%E7%94%A8%E6%88%B7%E6%80%81%E9%83%A8%E5%88%86"><span class="post-toc-text">三. 使用cilium&#x2F;ebpf为前文的Hello World eBPF程序开发用户态部分</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#1-%E4%BD%BF%E7%94%A8bpf2go%E5%B0%86ebpf%E6%A0%B8%E5%BF%83%E6%80%81%E7%A8%8B%E5%BA%8F%E8%BD%AC%E6%8D%A2%E4%B8%BAGo%E4%BB%A3%E7%A0%81"><span class="post-toc-text">1. 使用bpf2go将ebpf核心态程序转换为Go代码</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#2-%E6%9E%84%E5%BB%BAhelloworld-ebpf%E7%A8%8B%E5%BA%8F%E7%94%A8%E6%88%B7%E6%80%81%E9%83%A8%E5%88%86"><span class="post-toc-text">2. 构建helloworld ebpf程序用户态部分</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#3-%E4%BD%BF%E7%94%A8go-generate%E6%9D%A5%E9%A9%B1%E5%8A%A8bpf2go%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="post-toc-text">3. 使用go generate来驱动bpf2go的转换</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%9B%9B-%E5%B0%8F%E7%BB%93"><span class="post-toc-text">四. 小结</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%97%A0-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="post-toc-text">无. 参考资料</span></a></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><p>原文地址：<a target="_blank" rel="noopener" href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/">https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/</a></p>
+<h1 id="使用Go语言开发eBPF程序"><a href="#使用Go语言开发eBPF程序" class="headerlink" title="使用Go语言开发eBPF程序"></a>使用Go语言开发eBPF程序</h1><ul>
+<li>七月 19, 2022</li>
+<li><a target="_blank" rel="noopener" href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go/#respond">0 条评论</a></li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-1.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-1.png" alt="img"></a></p>
+<p><a target="_blank" rel="noopener" href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go">本文永久链接</a> – <a target="_blank" rel="noopener" href="https://tonybai.com/2022/07/19/develop-ebpf-program-in-go">https://tonybai.com/2022/07/19/develop-ebpf-program-in-go</a></p>
+<p>在前面的<a target="_blank" rel="noopener" href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中，我们详细说明了如何基于C语言和libbpf库从头开发一个eBPF程序(包括其用户态部分)。那篇文章是后续有关eBPF程序开发文章的基础，因为到目前为止，无论eBPF程序的用户态部分用什么语言开发，运行于内核态的eBPF程序内核态部分还是必须由C语言开发的。这样一来，其他编程语言只能拼一下如何让eBPF程序的用户态部分的开发更为简单了，Go语言也不例外。</p>
+<p>在Go社区中，目前最为活跃的用于开发eBPF用户态部分的Go eBPF包莫过于cilium项目开源的<a target="_blank" rel="noopener" href="https://github.com/cilium/ebpf/">cilium/ebpf</a>，cilium项目背后的<a target="_blank" rel="noopener" href="https://isovalent.com/">Isovalent公司</a>也是eBPF技术在云原生领域应用的主要推手之一。</p>
+<p>本文我们就来说说<strong>基于cilium/ebpf开发eBPF程序的套路</strong>！</p>
+<h3 id="一-探索cilium-ebpf项目示例"><a href="#一-探索cilium-ebpf项目示例" class="headerlink" title="一. 探索cilium/ebpf项目示例"></a>一. 探索cilium/ebpf项目示例</h3><p>cilium/ebpf项目借鉴了<a target="_blank" rel="noopener" href="https://github.com/libbpf/libbpf-bootstrap">libbpf-boostrap</a>的思路，通过代码生成与bpf程序内嵌的方式构建eBPF程序用户态部分。为了搞清楚基于cilium/ebpf开发ebpf程序的套路，我们先来探索一下cilium/ebpf项目提供的示例代码。</p>
+<p>我们首先来下载和看看ebpf的示例的结构。</p>
+<ul>
+<li>下载cilium/ebpf项目</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https://github.com/cilium/ebpf.git</span><br><span class="line">Cloning into &#x27;ebpf&#x27;...</span><br><span class="line">remote: Enumerating objects: 7054, done.</span><br><span class="line">remote: Counting objects: 100% (183/183), done.</span><br><span class="line">remote: Compressing objects: 100% (112/112), done.</span><br><span class="line">remote: Total 7054 (delta 91), reused 124 (delta 69), pack-reused 6871</span><br><span class="line">Receiving objects: 100% (7054/7054), 10.91 MiB | 265.00 KiB/s, done.</span><br><span class="line">Resolving deltas: 100% (4871/4871), done.</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>探索ebpf项目示例代码结构</li>
+</ul>
+<p>ebpf示例在examples目录下，我们以tracepoint_in_c为例看看其组织形式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$tree tracepoint_in_c</span><br><span class="line">tracepoint_in_c</span><br><span class="line">├── bpf_bpfeb.go</span><br><span class="line">├── bpf_bpfeb.o</span><br><span class="line">├── bpf_bpfel.go</span><br><span class="line">├── bpf_bpfel.o</span><br><span class="line">├── main.go</span><br><span class="line">└── tracepoint.c</span><br><span class="line"></span><br><span class="line">0 directories, 6 files</span><br></pre></td></tr></table></figure>
+
+<p>根据经验判断，这里面的tracepoint.c对应的是ebpf程序内核态部分，而main.go和bpf_bpfel.go/bpf_bpfeb.go则是ebpf程序用户态部分，至于bpf_bpfeb.o/bpf_bpfel.o应该是某种中间目标文件。通过readelf -a bpf_bpfeb.o查看该中间文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$readelf -a bpf_bpfeb.o</span><br><span class="line">ELF Header:</span><br><span class="line">  Magic:   7f 45 4c 46 02 02 01 00 00 00 00 00 00 00 00 00</span><br><span class="line">  Class:                             ELF64</span><br><span class="line">  Data:                              2&#x27;s complement, big endian</span><br><span class="line">  Version:                           1 (current)</span><br><span class="line">  OS/ABI:                            UNIX - System V</span><br><span class="line">  ABI Version:                       0</span><br><span class="line">  Type:                              REL (Relocatable file)</span><br><span class="line">  Machine:                           Linux BPF</span><br><span class="line">  Version:                           0x1</span><br><span class="line">  Entry point address:               0x0</span><br><span class="line">  Start of program headers:          0 (bytes into file)</span><br><span class="line">  Start of section headers:          1968 (bytes into file)</span><br><span class="line">  Flags:                             0x0</span><br><span class="line">  Size of this header:               64 (bytes)</span><br><span class="line">  Size of program headers:           0 (bytes)</span><br><span class="line">  Number of program headers:         0</span><br><span class="line">  Size of section headers:           64 (bytes)</span><br><span class="line">  Number of section headers:         13</span><br><span class="line">  Section header string table index: 1</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure>
+
+<p>我们看到这是一个内含linux bpf字节码的elf文件(Machine: Linux BPF)。</p>
+<p>阅读了cilium/ebpf的相关文档，我搞明白了这几个文件的关系，用下面示意图呈现给大家：</p>
+<p><a target="_blank" rel="noopener" href="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-2.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://tonybai.com/wp-content/uploads/develop-ebpf-program-in-go-2.png" alt="img"></a></p>
+<p>ebpf程序的源码文件(比如图中tracepoint.c)经过bpf2go(cilium/ebpf提供的一个代码生成工具)被编译(bpf2go调用clang)为ebpf字节码文件bpf_bpfeb.o(大端)和bpf_bpfel.o(小端)，然后bpf2go会基于ebpf字节码文件生成bpf_bpfeb.go或bpf_bpfel.go，ebpf程序的字节码会以二进制数据的形式内嵌到这两个go源文件中，以bpf_bpfel.go为例，我们可以在其代码中找到下面内容(利用<a target="_blank" rel="noopener" href="https://tonybai.com/2021/02/25/some-changes-in-go-1-16">go:embed特性</a>)：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//go:embed bpf_bpfel.o</span><br><span class="line">var _BpfBytes []byte</span><br></pre></td></tr></table></figure>
+
+<p>main.go则是ebpf程序用户态部分的主程序，将main.go与bpf_bpfeb.go或bpf_bpfel.go之一一起编译就形成了ebpf程序。</p>
+<p>有了对cilium/ebpf项目示例的初步探索后，我们来构建ebpf示例代码。</p>
+<h3 id="二-构建ebpf示例代码"><a href="#二-构建ebpf示例代码" class="headerlink" title="二. 构建ebpf示例代码"></a>二. 构建ebpf示例代码</h3><p>cilium/ebpf提供了便利的构建脚本，我们只需在ebpf/examples下面执行”make -C ..”即可进行示例代码的构建。</p>
+<p>make构建过程会基于quay.io/cilium/ebpf-builder镜像启动构建容器，不过在国内的童鞋需要像下面一样对Makefile内容做一丁点修改，增加GOPROXY环境变量，否则wall外的go module无法拉取：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$git diff ../Makefile</span><br><span class="line">diff --git a/Makefile b/Makefile</span><br><span class="line">index 3a1da88..d7b1712 100644</span><br><span class="line">--- a/Makefile</span><br><span class="line">+++ b/Makefile</span><br><span class="line">@@ -48,6 +48,7 @@ container-all:</span><br><span class="line">        $&#123;CONTAINER_ENGINE&#125; run --rm $&#123;CONTAINER_RUN_ARGS&#125; \</span><br><span class="line">                -v &quot;$&#123;REPODIR&#125;&quot;:/ebpf -w /ebpf --env MAKEFLAGS \</span><br><span class="line">                --env CFLAGS=&quot;-fdebug-prefix-map=/ebpf=.&quot; \</span><br><span class="line">+               --env GOPROXY=&quot;https://goproxy.io&quot; \</span><br><span class="line">                --env HOME=&quot;/tmp&quot; \</span><br><span class="line">                &quot;$&#123;IMAGE&#125;:$&#123;VERSION&#125;&quot; \</span><br><span class="line">                $(MAKE) all</span><br></pre></td></tr></table></figure>
+
+<p>这之后再执行构建就会顺利得到我们所要的结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">$ cd examples</span><br><span class="line">$ make -C ..</span><br><span class="line">make: Entering directory &#x27;/root/go/src/github.com/cilium/ebpf&#x27;</span><br><span class="line">docker run --rm  --user &quot;0:0&quot; \</span><br><span class="line">    -v &quot;/root/go/src/github.com/cilium/ebpf&quot;:/ebpf -w /ebpf --env MAKEFLAGS \</span><br><span class="line">    --env CFLAGS=&quot;-fdebug-prefix-map=/ebpf=.&quot; \</span><br><span class="line">    --env GOPROXY=&quot;https://goproxy.io&quot; \</span><br><span class="line">    --env HOME=&quot;/tmp&quot; \</span><br><span class="line">    &quot;quay.io/cilium/ebpf-builder:1648566014&quot; \</span><br><span class="line">    make all</span><br><span class="line">make: Entering directory &#x27;/ebpf&#x27;</span><br><span class="line">find . -type f -name &quot;*.c&quot; | xargs clang-format -i</span><br><span class="line">go generate ./cmd/bpf2go/test</span><br><span class="line">go: downloading golang.org/x/sys v0.0.0-20210906170528-6f6e22806c34</span><br><span class="line">Compiled /ebpf/cmd/bpf2go/test/test_bpfel.o</span><br><span class="line">Stripped /ebpf/cmd/bpf2go/test/test_bpfel.o</span><br><span class="line">Wrote /ebpf/cmd/bpf2go/test/test_bpfel.go</span><br><span class="line">Compiled /ebpf/cmd/bpf2go/test/test_bpfeb.o</span><br><span class="line">Stripped /ebpf/cmd/bpf2go/test/test_bpfeb.o</span><br><span class="line">Wrote /ebpf/cmd/bpf2go/test/test_bpfeb.go</span><br><span class="line">go generate ./internal/sys</span><br><span class="line">enum AdjRoomMode</span><br><span class="line">enum AttachType</span><br><span class="line">enum Cmd</span><br><span class="line">enum FunctionId</span><br><span class="line">enum HdrStartOff</span><br><span class="line">enum LinkType</span><br><span class="line">enum MapType</span><br><span class="line">enum ProgType</span><br><span class="line">enum RetCode</span><br><span class="line">enum SkAction</span><br><span class="line">enum StackBuildIdStatus</span><br><span class="line">enum StatsType</span><br><span class="line">enum XdpAction</span><br><span class="line">struct BtfInfo</span><br><span class="line">... ...</span><br><span class="line">attr ProgRun</span><br><span class="line">attr RawTracepointOpen</span><br><span class="line">cd examples/ &amp;&amp; go generate ./...</span><br><span class="line">go: downloading github.com/cilium/ebpf v0.8.2-0.20220424153111-6da9518107a8</span><br><span class="line">go: downloading golang.org/x/sys v0.0.0-20211001092434-39dca1131b70</span><br><span class="line">Compiled /ebpf/examples/cgroup_skb/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/cgroup_skb/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/cgroup_skb/bpf_bpfel.go</span><br><span class="line">Compiled /ebpf/examples/cgroup_skb/bpf_bpfeb.o</span><br><span class="line">Stripped /ebpf/examples/cgroup_skb/bpf_bpfeb.o</span><br><span class="line">Wrote /ebpf/examples/cgroup_skb/bpf_bpfeb.go</span><br><span class="line">Compiled /ebpf/examples/fentry/bpf_bpfeb.o</span><br><span class="line">Stripped /ebpf/examples/fentry/bpf_bpfeb.o</span><br><span class="line">Wrote /ebpf/examples/fentry/bpf_bpfeb.go</span><br><span class="line">Compiled /ebpf/examples/fentry/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/fentry/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/fentry/bpf_bpfel.go</span><br><span class="line">Compiled /ebpf/examples/kprobe/bpf_bpfel.o</span><br><span class="line">Stripped /ebpf/examples/kprobe/bpf_bpfel.o</span><br><span class="line">Wrote /ebpf/examples/kprobe/bpf_bpfel.go</span><br><span class="line">Stripped /ebpf/examples/uretprobe/bpf_bpfel_x86.o</span><br><span class="line">... ...</span><br><span class="line">Wrote /ebpf/examples/uretprobe/bpf_bpfel_x86.go</span><br><span class="line">ln -srf testdata/loader-clang-14-el.elf testdata/loader-el.elf</span><br><span class="line">ln -srf testdata/loader-clang-14-eb.elf testdata/loader-eb.elf</span><br><span class="line">make: Leaving directory &#x27;/ebpf&#x27;</span><br><span class="line">make: Leaving directory &#x27;/root/go/src/github.com/cilium/ebpf&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>以uretprobe下面的ebpf为例，我们运行一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$go run -exec sudo uretprobe/*.go</span><br><span class="line">2022/06/05 18:23:23 Listening for events..</span><br></pre></td></tr></table></figure>
+
+<p>打开一个新的terminal，然后在用户home目录下执行vi .bashrc。在上面的uretprobe程序的执行窗口我们能看到：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2022/06/05 18:24:34 Listening for events..</span><br><span class="line">2022/06/05 18:24:42 /bin/bash:readline return value: vi .bashrc</span><br></pre></td></tr></table></figure>
+
+<p>这就表明uretprobe下面的ebpf程序如预期地执行了。</p>
+<h3 id="三-使用cilium-ebpf为前文的Hello-World-eBPF程序开发用户态部分"><a href="#三-使用cilium-ebpf为前文的Hello-World-eBPF程序开发用户态部分" class="headerlink" title="三. 使用cilium/ebpf为前文的Hello World eBPF程序开发用户态部分"></a>三. 使用cilium/ebpf为前文的Hello World eBPF程序开发用户态部分</h3><p>有了对cilium/ebpf示例程序的初步了解，下面我们就来为前面的<a target="_blank" rel="noopener" href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中的那个helloworld ebpf程序开发用户态部分。</p>
+<p>回顾一下那个hello world ebpf程序的C源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/tree/master/ebpf-examples/helloworld-go/helloworld.bpf.c</span><br><span class="line">#include &lt;linux/bpf.h&gt;</span><br><span class="line">#include &lt;bpf/bpf_helpers.h&gt;</span><br><span class="line"></span><br><span class="line">SEC(&quot;tracepoint/syscalls/sys_enter_execve&quot;)</span><br><span class="line"></span><br><span class="line">int bpf_prog(void *ctx) &#123;</span><br><span class="line">  char msg[] = &quot;Hello, World!&quot;;</span><br><span class="line">  bpf_printk(&quot;invoke bpf_prog: %s\n&quot;, msg);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">char LICENSE[] SEC(&quot;license&quot;) = &quot;Dual BSD/GPL&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>当这个ebpf程序被加载到内核中后，每当execve这个系统调用被执行，该ebpf程序都会被调用一次，我们就会在/sys/kernel/debug/tracing/trace_pipe中看到对应的日志输出。</p>
+<h4 id="1-使用bpf2go将ebpf核心态程序转换为Go代码"><a href="#1-使用bpf2go将ebpf核心态程序转换为Go代码" class="headerlink" title="1. 使用bpf2go将ebpf核心态程序转换为Go代码"></a>1. 使用bpf2go将ebpf核心态程序转换为Go代码</h4><p>根据我们在前面探索cilium/ebpf示例程序时所得到的“套路”，我们接下来第一个要做的就是将helloworld.bpf.c转换为Go代码文件，这一转换过程不可缺少的工具就是cilium/ebpf提供的bpf2go工具，我们先来安装一下该工具：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$go install github.com/cilium/ebpf/cmd/bpf2go@latest</span><br></pre></td></tr></table></figure>
+
+<p>接下来，我们可以直接使用bpf2go工具将helloworld.ebpf.c转换为对应的go源文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$GOPACKAGE=main bpf2go -cc clang-10 -cflags &#x27;-O2 -g -Wall -Werror&#x27; -target bpfel,bpfeb bpf helloworld.bpf.c -- -I /home/tonybai/test/ebpf/libbpf/include/uapi -I /usr/local/bpf/include -idirafter /usr/local/include -idirafter /usr/lib/llvm-10/lib/clang/10.0.0/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include</span><br><span class="line"></span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
+
+<p>不过这里有一个问题，那就是bpf2go命令行后面的一系列提供给clang编译器的头文件引用路径参考了<a target="_blank" rel="noopener" href="https://tonybai.com/2022/07/05/develop-hello-world-ebpf-program-in-c-from-scratch">《使用C语言从头开发一个Hello World级别的eBPF程序》</a>一文中的Makefile。如果按照这些头文件路径来引用，虽然bpf2go转换可以成功，但是我们需要依赖并安装libbpf这个库，这显然不是我们想要的。</p>
+<p>cilium/ebpf在examples中提供了一个headers目录，这个目录中包含了开发ebpf程序用户态部分所需的所有头文件，我们使用它作为我们的头文件引用路径。不过要想基于这个headers目录构建ebpf，我们需要将helloworld.bpf.c中的原头文件include语句由：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;linux/bpf.h&gt;</span><br><span class="line">#include &lt;bpf/bpf_helpers.h&gt;</span><br></pre></td></tr></table></figure>
+
+<p>改为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;common.h&quot;</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们再来执行bpf2go工具进行转换：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$GOPACKAGE=main bpf2go -cc clang-10 -cflags &#x27;-O2 -g -Wall -Werror&#x27; -target bpfel,bpfeb bpf helloworld.bpf.c -- -I /home/tonybai/go/src/github.com/cilium/ebpf/examples/headers</span><br><span class="line"></span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
+
+<p>我们看到bpf2go顺利生成ebpf字节码与对应的Go源文件。</p>
+<h4 id="2-构建helloworld-ebpf程序用户态部分"><a href="#2-构建helloworld-ebpf程序用户态部分" class="headerlink" title="2. 构建helloworld ebpf程序用户态部分"></a>2. 构建helloworld ebpf程序用户态部分</h4><p>下面是参考cilium/ebpf示例而构建的helloword ebpf程序用户态部分的main.go源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/main.go</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;log&quot;</span><br><span class="line">    &quot;os&quot;</span><br><span class="line">    &quot;os/signal&quot;</span><br><span class="line">    &quot;syscall&quot;</span><br><span class="line"></span><br><span class="line">    &quot;github.com/cilium/ebpf/link&quot;</span><br><span class="line">    &quot;github.com/cilium/ebpf/rlimit&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    stopper := make(chan os.Signal, 1)</span><br><span class="line">    signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)</span><br><span class="line"></span><br><span class="line">    // Allow the current process to lock memory for eBPF resources.</span><br><span class="line">    if err := rlimit.RemoveMemlock(); err != nil &#123;</span><br><span class="line">        log.Fatal(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // Load pre-compiled programs and maps into the kernel.</span><br><span class="line">    objs := bpfObjects&#123;&#125;</span><br><span class="line">    if err := loadBpfObjects(&amp;objs, nil); err != nil &#123;</span><br><span class="line">        log.Fatalf(&quot;loading objects: %s&quot;, err)</span><br><span class="line">    &#125;</span><br><span class="line">    defer objs.Close()</span><br><span class="line"></span><br><span class="line">    //SEC(&quot;tracepoint/syscalls/sys_enter_execve&quot;)</span><br><span class="line">    // attach to xxx</span><br><span class="line">    kp, err := link.Tracepoint(&quot;syscalls&quot;, &quot;sys_enter_execve&quot;, objs.BpfProg, nil)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">        log.Fatalf(&quot;opening tracepoint: %s&quot;, err)</span><br><span class="line">    &#125;</span><br><span class="line">    defer kp.Close()</span><br><span class="line"></span><br><span class="line">    log.Printf(&quot;Successfully started! Please run \&quot;sudo cat /sys/kernel/debug/tracing/trace_pipe\&quot; to see output of the BPF programs\n&quot;)</span><br><span class="line"></span><br><span class="line">    // Wait for a signal and close the perf reader,</span><br><span class="line">    // which will interrupt rd.Read() and make the program exit.</span><br><span class="line">    &lt;-stopper</span><br><span class="line">    log.Println(&quot;Received signal, exiting program..&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们知道一个ebpf程序有几个关键组成：</p>
+<ul>
+<li>ebpf程序数据</li>
+<li>map：用于用户态与内核态的数据交互</li>
+<li>挂接点(attach point)</li>
+</ul>
+<p>根据<a target="_blank" rel="noopener" href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">cilium/ebpf架构</a>的说明，ebpf包将前两部分抽象为了一个数据结构bpfObjects：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line"></span><br><span class="line">// bpfObjects contains all objects after they have been loaded into the kernel.</span><br><span class="line">//</span><br><span class="line">// It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.</span><br><span class="line">type bpfObjects struct &#123;</span><br><span class="line">    bpfPrograms</span><br><span class="line">    bpfMaps</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到，main函数通过生成的loadBpfObjects函数将ebpf程序加载到内核，并填充bpfObjects结构，一旦加载bpf程序成功，后续我们便可以使用bpfObjects结构中的字段来完成其余操作，比如通过link包的函数将bpf程序与目标挂节点对接在一起(如文中的link.Tracepoint函数），这样挂接后，bpf才能在对应的事件发生后被回调执行。</p>
+<p>下面编译执行一下该helloworld示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$go run -exec sudo main.go bpf_bpfel.go</span><br><span class="line">[sudo] password for tonybai:</span><br><span class="line">2022/06/05 14:12:40 Successfully started! Please run &quot;sudo cat /sys/kernel/debug/tracing/trace_pipe&quot; to see output of the BPF programs</span><br></pre></td></tr></table></figure>
+
+<p>之后新打开一个窗口，执行sudo cat /sys/kernel/debug/tracing/trace_pipe，当execve被调用时，我们就能看到类似下面的日志输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;...&gt;-551077  [000] .... 6062226.208943: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551077  [000] .... 6062226.209098: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551079  [007] .... 6062226.215421: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-551079  [007] .... 6062226.215578: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-554756  [007] .... 6063476.785212: 0: invoke bpf_prog: Hello, World!</span><br><span class="line">&lt;...&gt;-554756  [007] .... 6063476.785378: 0: invoke bpf_prog: Hello, World!</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-使用go-generate来驱动bpf2go的转换"><a href="#3-使用go-generate来驱动bpf2go的转换" class="headerlink" title="3. 使用go generate来驱动bpf2go的转换"></a>3. 使用go generate来驱动bpf2go的转换</h4><p>在生成代码方面，Go工具链原生提供了go generate工具，cilium/ebpf的examples中也是利用go generate来驱动bpf2go将bpf程序转换为Go源文件的，这里我们也来做一下改造。</p>
+<p>首先我们在main.go的main函数上面增加一行go:generate指示语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/main.go</span><br><span class="line"></span><br><span class="line">// $BPF_CLANG, $BPF_CFLAGS and $BPF_HEADERS are set by the Makefile.</span><br><span class="line">//go:generate bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS -target bpfel,bpfeb bpf helloworld.bpf.c -- -I $BPF_HEADERS</span><br><span class="line">func main() &#123;</span><br><span class="line">    stopper := make(chan os.Signal,  1)</span><br><span class="line">    ... ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样当我们显式执行go generate语句时，go generate会扫描到该指示语句，并执行后面的命令。这里使用了几个变量，变量是定义在Makefile中的。当然如果你不想使用Makefile，也可以将变量替换为相应的值。这里我们使用Makefile，下面是Makefile的内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">// github.com/bigwhite/experiments/ebpf-examples/helloworld-go/Makefile</span><br><span class="line"></span><br><span class="line">CLANG ?= clang-10</span><br><span class="line">CFLAGS ?= -O2 -g -Wall -Werror</span><br><span class="line"></span><br><span class="line">LIBEBPF_TOP = /home/tonybai/go/src/github.com/cilium/ebpf</span><br><span class="line">EXAMPLES_HEADERS = $(LIBEBPF_TOP)/examples/headers</span><br><span class="line"></span><br><span class="line">all: generate</span><br><span class="line"></span><br><span class="line">generate: export BPF_CLANG=$(CLANG)</span><br><span class="line">generate: export BPF_CFLAGS=$(CFLAGS)</span><br><span class="line">generate: export BPF_HEADERS=$(EXAMPLES_HEADERS)</span><br><span class="line">generate:</span><br><span class="line">    go generate ./...</span><br></pre></td></tr></table></figure>
+
+<p>有了该Makefile后，我们执行make命令便可以执行bpf2go对bpf程序的转换：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$make</span><br><span class="line">go generate ./...</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfel.go</span><br><span class="line">Compiled /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Stripped /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.o</span><br><span class="line">Wrote /home/tonybai/go/src/github.com/bigwhite/experiments/ebpf-examples/helloworld-go/bpf_bpfeb.go</span><br></pre></td></tr></table></figure>
+
+<h3 id="四-小结"><a href="#四-小结" class="headerlink" title="四. 小结"></a>四. 小结</h3><p>本文我们讲解了如何基于cilium/ebpf包来开发ebpf的用户态部分。</p>
+<p>ebpf借鉴了libbpf的思路，通过生成代码与数据内嵌的方式来构建ebpf的用户态部分。</p>
+<p>ebpf提供了bpf2go工具，可以将bpf的C源码转换为相应的go源码。</p>
+<p>ebpf将bpf程序抽象为bpfObjects，通过生成的loadBpfObjects完成bpf程序加载到内核的过程，然后利用ebpf库提供的诸如link之类的包实现ebpf与内核事件的关联。</p>
+<p>ebpf包的玩法还有很多，这一篇仅仅是为了打好基础，在后续文章中，我们还会针对各种类型的bpf程序做进一步学习和说明。</p>
+<p>本文代码可以在<a target="_blank" rel="noopener" href="https://github.com/bigwhite/experiments/tree/master/ebpf-examples/helloworld-go">这里</a>下载。</p>
+<h3 id="无-参考资料"><a href="#无-参考资料" class="headerlink" title="无. 参考资料"></a>无. 参考资料</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://www.ebpf.top/post/ebpf_go/">使用Go语言管理和分发ebpf程序</a> – <a target="_blank" rel="noopener" href="https://www.ebpf.top/post/ebpf_go/">https://www.ebpf.top/post/ebpf_go/</a></li>
+<li><a target="_blank" rel="noopener" href="https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf">A Pure Go eBPF library</a> – <a target="_blank" rel="noopener" href="https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf">https://lpc.events/event/4/contributions/449/attachments/239/529/A_pure_Go_eBPF_library.pdf</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">cilium ebpf library architecture</a> – <a target="_blank" rel="noopener" href="https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md">https://github.com/cilium/ebpf/blob/master/ARCHITECTURE.md</a></li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2023-02-10</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/'>
+                            服务器
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/llvm-clang/'>centos安装LLVM和CLANG</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/setroubleshootd/">setroubleshootd引起的CPU高负载问题</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

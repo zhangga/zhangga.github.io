@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="MongoDB索引详解" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    MongoDB索引详解
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3.3k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：14分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%B4%A2%E5%BC%95%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="post-toc-text">索引基础知识</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%B4%A2%E5%BC%95"><span class="post-toc-text">什么是索引</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#MongoDB%E6%9C%89%E5%93%AA%E4%BA%9B%E7%B1%BB%E5%9E%8B%E7%9A%84%E7%B4%A2%E5%BC%95"><span class="post-toc-text">MongoDB有哪些类型的索引</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%8D%95%E5%AD%97%E6%AE%B5%E7%B4%A2%E5%BC%95-%EF%BC%88Single-Field-Index%EF%BC%89"><span class="post-toc-text">单字段索引 （Single Field Index）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%A4%8D%E5%90%88%E7%B4%A2%E5%BC%95-Compound-Index"><span class="post-toc-text">复合索引 (Compound Index)</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E7%B4%A2%E5%BC%95field%E7%9A%84%E5%85%88%E5%90%8E%E9%A1%BA%E5%BA%8F%E5%BE%88%E5%85%B3%E9%94%AE%EF%BC%8C%E5%BD%B1%E5%93%8D%E6%9C%89%E4%B8%A4%E6%96%B9%E9%9D%A2%EF%BC%9A"><span class="post-toc-text">索引field的先后顺序很关键，影响有两方面：</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E6%8E%92%E5%BA%8F%E9%A1%BA%E5%BA%8F%E4%B8%8D%E5%90%8C"><span class="post-toc-text">索引的排序顺序不同</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%A4%9Akey%E7%B4%A2%E5%BC%95-%EF%BC%88Multikey-Index%EF%BC%89"><span class="post-toc-text">多key索引 （Multikey Index）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%85%B6%E5%AE%83%E7%B1%BB%E5%9E%8B%E7%B4%A2%E5%BC%95"><span class="post-toc-text">其它类型索引</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%B4%A2%E5%BC%95%E5%B1%9E%E6%80%A7"><span class="post-toc-text">索引属性</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%80%9A%E8%BF%87explain%E7%BB%93%E6%9E%9C%E6%9D%A5%E5%88%86%E6%9E%90%E6%80%A7%E8%83%BD"><span class="post-toc-text">通过explain结果来分析性能</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#References"><span class="post-toc-text">References</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="索引基础知识"><a href="#索引基础知识" class="headerlink" title="索引基础知识"></a>索引基础知识</h1><h2 id="什么是索引"><a href="#什么是索引" class="headerlink" title="什么是索引"></a>什么是索引</h2><p>索引最常用的比喻就是书籍的目录，查询索引就像查询一本书的目录。本质上目录是将书中一小部分内容信息（比如题目）和内容的位置信息（页码）共同构成，而由于信息量小（只有题目），所以我们可以很快找到我们想要的信息片段，再根据页码找到相应的内容。同样索引也是只保留某个域的一部分信息（建立了索引的field的信息），以及对应的文档的位置信息。 假设我们有如下文档（每行的数据在MongoDB中是存在于一个Document当中）</p>
+<table>
+<thead>
+<tr>
+<th align="left">姓名</th>
+<th align="left">id</th>
+<th align="left">部门</th>
+<th align="left">city</th>
+<th align="left">score</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">张三</td>
+<td align="left">2</td>
+<td align="left">xxx</td>
+<td align="left">Beijing</td>
+<td align="left">90</td>
+</tr>
+<tr>
+<td align="left">李四</td>
+<td align="left">1</td>
+<td align="left">xxx</td>
+<td align="left">Shanghai</td>
+<td align="left">70</td>
+</tr>
+<tr>
+<td align="left">王五</td>
+<td align="left">3</td>
+<td align="left">xxx</td>
+<td align="left">guangzhou</td>
+<td align="left">60</td>
+</tr>
+</tbody></table>
+<span id="more"></span>
+
+<p>假如我们想找id为2的document(即张三的记录)，如果没有索引，我们就需要扫描整个数据表，然后找出所有为2的document。当数据表中有大量documents的时候，这个时间就会非常长（从磁盘上查找数据还涉及大量的IO操作)。建立索引后会有什么变化呢？MongoDB会将id数据拿出来建立索引数据，如下</p>
+<table>
+<thead>
+<tr>
+<th align="left">索引值</th>
+<th align="left">位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left">pos2</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="left">pos1</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td align="left">pos3</td>
+</tr>
+</tbody></table>
+<p>这样我们就可以通过扫描这个小表找到document对应的位置。</p>
+<p>查找过程示意图如下：<a target="_blank" rel="noopener" href="https://upload-images.jianshu.io/upload_images/3959253-7e2a31d0b5301c9f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" title="图片来源MongoDB官网" class="gallery-item" style="box-shadow: none;"> <img src="https://upload-images.jianshu.io/upload_images/3959253-7e2a31d0b5301c9f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图片来源MongoDB官网"></a></p>
+<p>为什么这样速度会快呢？这主要有几方面的因素</p>
+<ol>
+<li>索引数据通过B+树来存储，从而使得搜索的时间复杂度为O(log<sub>d</sub><sup>N</sup>)级别的(d是B+树的度, 通常d的值比较大，比如大于100)，比原先O(N)的复杂度大幅下降。这个差距是惊人的，以一个实际例子来看，假设d=100，N=1亿，那么O(log<sub>d</sub><sup>N</sup>) = 8, 而O(N)是1亿。是的，这就是算法的威力。</li>
+<li>索引本身是在高速缓存当中，相比磁盘IO操作会有大幅的性能提升。（需要注意的是，有的时候数据量非常大的时候，索引数据也会非常大，当大到超出内存容量的时候，会导致部分索引数据存储在磁盘上，这会导致磁盘IO的开销大幅增加，从而影响性能，所以务必要保证有足够的内存能容下所有的索引数据）</li>
+</ol>
+<p>当然，事物总有其两面性，在提升查询速度的同时，由于要建立索引，所以写入操作时就需要额外的添加索引的操作，这必然会影响写入的性能，所以当有大量写操作而读操作比较少的时候，且对读操作性能不需要考虑的时候，就不适合建立索引。当然，目前大多数互联网应用都是读操作远大于写操作，因此建立索引很多时候是非常划算和必要的操作。</p>
+<p>关于索引原理的详细解释可以参考文章<a target="_blank" rel="noopener" href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html">MySQL索引背后的数据结构及算法原理</a>，虽然讲得是MySQL但是原理相似。</p>
+<h2 id="MongoDB有哪些类型的索引"><a href="#MongoDB有哪些类型的索引" class="headerlink" title="MongoDB有哪些类型的索引"></a>MongoDB有哪些类型的索引</h2><h3 id="单字段索引-（Single-Field-Index）"><a href="#单字段索引-（Single-Field-Index）" class="headerlink" title="单字段索引 （Single Field Index）"></a>单字段索引 （Single Field Index）</h3><p>这个是最简单最常用的索引类型，比如我们上边的例子，为id建立一个单独的索引就是此种类型。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> # 为id field建立索引，1表示升序，-1表示降序，没有差别</span><br><span class="line">db.employee.createIndex(&#123;&#x27;id&#x27;: 1&#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>需要注意的是通常MongoDB会自动为我们的文档插入’_id’ field，且已经按照升序进行索引，如果我们插入的文档中包含有’_id’ field，则MongoDB就不会自动创建’_id’ field，但是需要我们自己来保证唯一性从而唯一标识一个文档</p>
+<h3 id="复合索引-Compound-Index"><a href="#复合索引-Compound-Index" class="headerlink" title="复合索引 (Compound Index)"></a>复合索引 (Compound Index)</h3><p>符合索引的原理如下图所示：<a target="_blank" rel="noopener" href="https://upload-images.jianshu.io/upload_images/3959253-6b00f39c08c49406.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" title="复合索引示意图" class="gallery-item" style="box-shadow: none;"> <img src="https://upload-images.jianshu.io/upload_images/3959253-6b00f39c08c49406.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="复合索引示意图"></a>上图查询索引的时候会先查询userid，再查询score，然后就可以找到对应的文档。 对于复合索引需要注意以下几点：</p>
+<h4 id="索引field的先后顺序很关键，影响有两方面："><a href="#索引field的先后顺序很关键，影响有两方面：" class="headerlink" title="索引field的先后顺序很关键，影响有两方面："></a>索引field的先后顺序很关键，影响有两方面：</h4><ol>
+<li><p>MongoDB在复合索引中是根据prefix排序查询，就是说排在前面的可以单独使用。我们创建一个如下的索引</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;&#x27;id&#x27;: 1, &#x27;city&#x27;: 1, &#x27;score&#x27;: 1&#125;)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>我们如下的查询可以利用索引</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.collection.find(&#123;&#x27;id&#x27;: xxx&#125;)</span><br><span class="line">db.collection.find(&#123;&#x27;id&#x27;: xxx, &#x27;city&#x27;: xxx&#125;)</span><br><span class="line">db.collection.find(&#123;&#x27;id&#x27;: xxx, &#x27;city&#x27;:xxx, &#x27;score&#x27;: xxxx&#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>但是如下的查询无法利用该索引</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db.collection.find(&#123;&#x27;city&#x27;: xxx&#125;)</span><br><span class="line">db.collection.find(&#123;&#x27;city&#x27;:xxx, &#x27;score&#x27;: xxxx&#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>还有一种特殊的情况，就是如下查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.find(&#123;&#x27;id&#x27;: xxx, &#x27;score&#x27;: xxxx&#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这个查询也可以利用索引的前缀’id’来查询，但是却不能针对score进行查询，你可以说是部分利用了索引，因此其效率可能不如如下索引：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;&#x27;id&#x27;: 1, &#x27;score&#x27;: 1&#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>2.过滤出的document越少的field越应该放在前面，比如此例中id如果是唯一的，那么就应该放在最前面，因为这样通过id就可以锁定唯一一个文档。而如果通过city或者score过滤完成后还是会有大量文档，这就会影响最终的性能。</p>
+<h4 id="索引的排序顺序不同"><a href="#索引的排序顺序不同" class="headerlink" title="索引的排序顺序不同"></a>索引的排序顺序不同</h4><p>复合索引最末尾的field，其排序顺序不同对于MongoDB的查询排序操作是有影响的。 比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.events.createIndex( &#123; username: 1, date: -1 &#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这种情况下， 如下的query可以利用索引：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.events.find().sort( &#123; username: 1, date: -1 &#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<p>但是如下query则无法利用index进行排序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.events.find().sort( &#123; username: 1, date: 1 &#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="多key索引-（Multikey-Index）"><a href="#多key索引-（Multikey-Index）" class="headerlink" title="多key索引 （Multikey Index）"></a>多key索引 （Multikey Index）</h3><p>这个主要是针对数据类型为数组的类型，如下示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;name&quot; : &quot;jack&quot;, &quot;age&quot; : 19, habbit: [&quot;football, runnning&quot;]&#125;</span><br><span class="line">db.person.createIndex( &#123;habbit: 1&#125; )  // 自动创建多key索引</span><br><span class="line">db.person.find( &#123;habbit: &quot;football&quot;&#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="其它类型索引"><a href="#其它类型索引" class="headerlink" title="其它类型索引"></a>其它类型索引</h3><p>另外，MongoDB中还有其它如哈希索引，地理位置索引以及文本索引，主要用于一些特定场景，具体可以参考官网，在此不再详解</p>
+<h3 id="索引属性"><a href="#索引属性" class="headerlink" title="索引属性"></a>索引属性</h3><p>索引主要有以下几个属性:</p>
+<ul>
+<li><p>unique：这个非常常用，用于限制索引的field是否具有唯一性属性，即保证该field的值唯一</p>
+</li>
+<li><p>partial：很有用，在索引的时候只针对符合特定条件的文档来建立索引，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">db.restaurants.createIndex(</span><br><span class="line">   &#123; cuisine: 1, name: 1 &#125;,</span><br><span class="line">   &#123; partialFilterExpression: &#123; rating: &#123; $gt: 5 &#125; &#125; &#125; //只有当rating大于5时才会建立索引</span><br><span class="line">)</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>这样做的好处是，我们可以只为部分数据建立索引，从而可以减少索引数据的量，除节省空间外，其检索性能也会因为较少的数据量而得到提升。</p>
+<ul>
+<li>sparse：可以认为是partial索引的一种特殊情况，由于MongoDB3.2之后已经支持partial属性，所以建议直接使用partial属性。</li>
+<li>TTL。 可以用于设定文档有效期，有效期到自动删除对应的文档。</li>
+</ul>
+<h1 id="通过explain结果来分析性能"><a href="#通过explain结果来分析性能" class="headerlink" title="通过explain结果来分析性能"></a>通过explain结果来分析性能</h1><p>我们往往会通过打点数据来分析业务的性能瓶颈，这时，我们会发现很多瓶颈都是出现在数据库相关的操作上，这时由于数据库的查询和存取都涉及大量的IO操作，而且有时由于使用不当，会导致IO操作的大幅度增长，从而导致了产生性能问题。而MongoDB提供了一个explain工具来用于分析数据库的操作。直接拿官网的示例来做说明：</p>
+<p>假设我们在inventory collection中有如下文档：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123; &quot;_id&quot; : 1, &quot;item&quot; : &quot;f1&quot;, type: &quot;food&quot;, quantity: 500 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 2, &quot;item&quot; : &quot;f2&quot;, type: &quot;food&quot;, quantity: 100 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 3, &quot;item&quot; : &quot;p1&quot;, type: &quot;paper&quot;, quantity: 200 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 4, &quot;item&quot; : &quot;p2&quot;, type: &quot;paper&quot;, quantity: 150 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 5, &quot;item&quot; : &quot;f3&quot;, type: &quot;food&quot;, quantity: 300 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 6, &quot;item&quot; : &quot;t1&quot;, type: &quot;toys&quot;, quantity: 500 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 7, &quot;item&quot; : &quot;a1&quot;, type: &quot;apparel&quot;, quantity: 250 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 8, &quot;item&quot; : &quot;a2&quot;, type: &quot;apparel&quot;, quantity: 400 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 9, &quot;item&quot; : &quot;t2&quot;, type: &quot;toys&quot;, quantity: 50 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 10, &quot;item&quot; : &quot;f4&quot;, type: &quot;food&quot;, quantity: 75 &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>假设此时没有建立索引，做如下查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.inventory.find( &#123; quantity: &#123; $gte: 100, $lte: 200 &#125; &#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<p>返回结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123; &quot;_id&quot; : 2, &quot;item&quot; : &quot;f2&quot;, &quot;type&quot; : &quot;food&quot;, &quot;quantity&quot; : 100 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 3, &quot;item&quot; : &quot;p1&quot;, &quot;type&quot; : &quot;paper&quot;, &quot;quantity&quot; : 200 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 4, &quot;item&quot; : &quot;p2&quot;, &quot;type&quot; : &quot;paper&quot;, &quot;quantity&quot; : 150 &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这是我们可以通过explain来分析整个查询的过程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># explain 有三种模式： &quot;queryPlanner&quot;, &quot;executionStats&quot;, and &quot;allPlansExecution&quot;.</span><br><span class="line"># 其中最常用的就是第二种&quot;executionStats&quot;，它会返回具体执行的时候的统计数据</span><br><span class="line">db.inventory.find(</span><br><span class="line">   &#123; quantity: &#123; $gte: 100, $lte: 200 &#125; &#125;</span><br><span class="line">).explain(&quot;executionStats&quot;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>explain的结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   &quot;queryPlanner&quot; : &#123;</span><br><span class="line">         &quot;plannerVersion&quot; : 1,</span><br><span class="line">         ...</span><br><span class="line">         &quot;winningPlan&quot; : &#123;</span><br><span class="line">            &quot;stage&quot; : &quot;COLLSCAN&quot;,</span><br><span class="line">            ...</span><br><span class="line">         &#125;</span><br><span class="line">   &#125;,</span><br><span class="line">   &quot;executionStats&quot; : &#123;</span><br><span class="line">      &quot;executionSuccess&quot; : true,</span><br><span class="line">      &quot;nReturned&quot; : 3,  # 查询返回的document数量</span><br><span class="line">      &quot;executionTimeMillis&quot; : 0, # 执行查询所用的时间</span><br><span class="line">      &quot;totalKeysExamined&quot; : 0, # 总共查询了多少个key，由于没有使用索引，因此这里为0</span><br><span class="line">      &quot;totalDocsExamined&quot; : 10, # 总共在磁盘查询了多少个document，由于是全表扫描，我们总共有10个documents，因此，这里为10</span><br><span class="line">      &quot;executionStages&quot; : &#123;</span><br><span class="line">         &quot;stage&quot; : &quot;COLLSCAN&quot;,  # 注意这里，&quot;COLLSCAN&quot;意味着全表扫描</span><br><span class="line">         ...</span><br><span class="line">      &#125;,</span><br><span class="line">      ...</span><br><span class="line">   &#125;,</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>上面的结果中有一个”stage”字段，上例中stage为”COLLSCAN”，而MongoDB总共有如下几种stage：</p>
+<ul>
+<li>COLLSCAN – Collection scan</li>
+<li>IXSCAN – Scan of data in index keys</li>
+<li>FETCH – Retrieving documents</li>
+<li>SHARD_MERGE – Merging results from shards</li>
+<li>SORT – Explicit sort rather than using index order</li>
+</ul>
+<p>现在我们来创建一个索引：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.inventory.createIndex( &#123; quantity: 1 &#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<p>再来看下explain的结果</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.inventory.find(</span><br><span class="line">   &#123; quantity: &#123; $gte: 100, $lte: 200 &#125; &#125;</span><br><span class="line">).explain(&quot;executionStats&quot;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   &quot;queryPlanner&quot; : &#123;</span><br><span class="line">         &quot;plannerVersion&quot; : 1,</span><br><span class="line">         ...</span><br><span class="line">         &quot;winningPlan&quot; : &#123;</span><br><span class="line">               &quot;stage&quot; : &quot;FETCH&quot;,</span><br><span class="line">               &quot;inputStage&quot; : &#123;</span><br><span class="line">                  &quot;stage&quot; : &quot;IXSCAN&quot;,  # 这里&quot;IXSCAN&quot;意味着索引扫描</span><br><span class="line">                  &quot;keyPattern&quot; : &#123;</span><br><span class="line">                     &quot;quantity&quot; : 1</span><br><span class="line">                  &#125;,</span><br><span class="line">                  ...</span><br><span class="line">               &#125;</span><br><span class="line">         &#125;,</span><br><span class="line">         &quot;rejectedPlans&quot; : [ ]</span><br><span class="line">   &#125;,</span><br><span class="line">   &quot;executionStats&quot; : &#123;</span><br><span class="line">         &quot;executionSuccess&quot; : true,</span><br><span class="line">         &quot;nReturned&quot; : 3,</span><br><span class="line">         &quot;executionTimeMillis&quot; : 0,</span><br><span class="line">         &quot;totalKeysExamined&quot; : 3,  # 这里nReturned、totalKeysExamined和totalDocsExamined相等说明索引没有问题，因为我们通过索引快速查找到了三个文档，且从磁盘上也是去取这三个文档，并返回三个文档。</span><br><span class="line">         &quot;totalDocsExamined&quot; : 3,</span><br><span class="line">         &quot;executionStages&quot; : &#123;</span><br><span class="line">            ...</span><br><span class="line">         &#125;,</span><br><span class="line">         ...</span><br><span class="line">   &#125;,</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>再来看下如何通过explain来比较compound index的性能，之前我们在介绍复合索引的时候已经说过field的顺序会影响查询的效率。有时这种顺序并不太好确定（比如field的值都不是unique的），那么怎么判断哪种顺序的复合索引的效率高呢，这就像需要explain结合hint来进行分析。 比如我们要做如下查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">db.inventory.find( &#123;</span><br><span class="line">   quantity: &#123;</span><br><span class="line">      $gte: 100, $lte: 300</span><br><span class="line">   &#125;,</span><br><span class="line">   type: &quot;food&quot;</span><br><span class="line">&#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<p>会返回如下文档：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123; &quot;_id&quot; : 2, &quot;item&quot; : &quot;f2&quot;, &quot;type&quot; : &quot;food&quot;, &quot;quantity&quot; : 100 &#125;</span><br><span class="line">&#123; &quot;_id&quot; : 5, &quot;item&quot; : &quot;f3&quot;, &quot;type&quot; : &quot;food&quot;, &quot;quantity&quot; : 300 &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>现在我们要比较如下两种复合索引</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db.inventory.createIndex( &#123; quantity: 1, type: 1 &#125; )</span><br><span class="line">db.inventory.createIndex( &#123; type: 1, quantity: 1 &#125; )</span><br></pre></td></tr></table></figure>
+
+
+
+<p>分析索引 { quantity: 1, type: 1 }的情况</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 结合hint和explain来进行分析</span><br><span class="line">db.inventory.find(</span><br><span class="line">   &#123; quantity: &#123; $gte: 100, $lte: 300 &#125;, type: &quot;food&quot; &#125;</span><br><span class="line">).hint(&#123; quantity: 1, type: 1 &#125;).explain(&quot;executionStats&quot;) # 这里使用hint会强制数据库使用索引 &#123; quantity: 1, type: 1 &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>explain结果</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   &quot;queryPlanner&quot; : &#123;</span><br><span class="line">      ...</span><br><span class="line">      &quot;winningPlan&quot; : &#123;</span><br><span class="line">         &quot;stage&quot; : &quot;FETCH&quot;,</span><br><span class="line">         &quot;inputStage&quot; : &#123;</span><br><span class="line">            &quot;stage&quot; : &quot;IXSCAN&quot;,</span><br><span class="line">            &quot;keyPattern&quot; : &#123;</span><br><span class="line">               &quot;quantity&quot; : 1,</span><br><span class="line">               &quot;type&quot; : 1</span><br><span class="line">            &#125;,</span><br><span class="line">            ...</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;rejectedPlans&quot; : [ ]</span><br><span class="line">   &#125;,</span><br><span class="line">   &quot;executionStats&quot; : &#123;</span><br><span class="line">      &quot;executionSuccess&quot; : true,</span><br><span class="line">      &quot;nReturned&quot; : 2,</span><br><span class="line">      &quot;executionTimeMillis&quot; : 0,</span><br><span class="line">      &quot;totalKeysExamined&quot; : 5,  # 这里是5与totalDocsExamined、nReturned都不相等</span><br><span class="line">      &quot;totalDocsExamined&quot; : 2,</span><br><span class="line">      &quot;executionStages&quot; : &#123;</span><br><span class="line">      ...</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;,</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>再来看下索引 { type: 1, quantity: 1 } 的分析</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.inventory.find(</span><br><span class="line">   &#123; quantity: &#123; $gte: 100, $lte: 300 &#125;, type: &quot;food&quot; &#125;</span><br><span class="line">).hint(&#123; type: 1, quantity: 1 &#125;).explain(&quot;executionStats&quot;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   &quot;queryPlanner&quot; : &#123;</span><br><span class="line">      ...</span><br><span class="line">      &quot;winningPlan&quot; : &#123;</span><br><span class="line">         &quot;stage&quot; : &quot;FETCH&quot;,</span><br><span class="line">         &quot;inputStage&quot; : &#123;</span><br><span class="line">            &quot;stage&quot; : &quot;IXSCAN&quot;,</span><br><span class="line">            &quot;keyPattern&quot; : &#123;</span><br><span class="line">               &quot;type&quot; : 1,</span><br><span class="line">               &quot;quantity&quot; : 1</span><br><span class="line">            &#125;,</span><br><span class="line">            ...</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;rejectedPlans&quot; : [ ]</span><br><span class="line">   &#125;,</span><br><span class="line">   &quot;executionStats&quot; : &#123;</span><br><span class="line">      &quot;executionSuccess&quot; : true,</span><br><span class="line">      &quot;nReturned&quot; : 2,</span><br><span class="line">      &quot;executionTimeMillis&quot; : 0,</span><br><span class="line">      &quot;totalKeysExamined&quot; : 2, # 这里是2，与totalDocsExamined、nReturned相同</span><br><span class="line">      &quot;totalDocsExamined&quot; : 2,</span><br><span class="line">      &quot;executionStages&quot; : &#123;</span><br><span class="line">         ...</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;,</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看出后一种索引的totalKeysExamined返回是2，相比前一种索引的5，显然更有效率。</p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.mongodb.com/manual/indexes/">MongoDB Index</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html">MySQL索引背后的数据结构及算法原理</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.mongoing.com/archives/2797">MongoDB索引原理</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.mongodb.com/manual/tutorial/analyze-query-plan/">Analyze Query Performance</a></li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2021-09-14</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E9%9D%A2%E8%AF%95/'>
+                            面试
+                        </a>
+                    
+                        <a href='/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/'>
+                            数据库
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/mac-manual/'>Mac使用手册</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/tcp/">TCP/UDP</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

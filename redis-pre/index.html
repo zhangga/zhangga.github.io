@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="Redis常见面试题" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    Redis常见面试题
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：8k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：28分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Memcached%E7%9B%B8%E6%AF%94%E4%BA%8ERedis%E7%9A%84%E4%B8%BB%E8%A6%81%E7%89%B9%E7%82%B9%E6%9C%89%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="post-toc-text">Memcached相比于Redis的主要特点有如下：</span></a></li></ol></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Redis-Cluster-%E5%8A%9F%E8%83%BD%E9%99%90%E5%88%B6"><span class="post-toc-text">Redis Cluster|功能限制</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Redis-Cluster%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="post-toc-text">Redis Cluster高可用</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BC%95%E8%A8%80"><span class="post-toc-text">引言</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%86%99%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0"><span class="post-toc-text">为什么写这篇文章?</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%A4%8D%E4%B9%A0%E8%A6%81%E7%82%B9"><span class="post-toc-text">复习要点?</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%AD%A3%E6%96%87"><span class="post-toc-text">正文</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%BF%E7%94%A8redis"><span class="post-toc-text">1、为什么使用redis</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2%E3%80%81%E4%BD%BF%E7%94%A8redis%E6%9C%89%E4%BB%80%E4%B9%88%E7%BC%BA%E7%82%B9"><span class="post-toc-text">2、使用redis有什么缺点</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3%E3%80%81%E5%8D%95%E7%BA%BF%E7%A8%8B%E7%9A%84redis%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B9%88%E5%BF%AB"><span class="post-toc-text">3、单线程的redis为什么这么快</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5%E3%80%81redis%E7%9A%84%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%BB%A5%E5%8F%8A%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E6%9C%BA%E5%88%B6"><span class="post-toc-text">5、redis的过期策略以及内存淘汰机制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6%E3%80%81redis%E5%92%8C%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98"><span class="post-toc-text">6、redis和数据库双写一致性问题</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#7%E3%80%81%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%92%8C%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E9%97%AE%E9%A2%98"><span class="post-toc-text">7、如何应对缓存穿透和缓存雪崩问题</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#8%E3%80%81%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3redis%E7%9A%84%E5%B9%B6%E5%8F%91%E7%AB%9E%E4%BA%89key%E9%97%AE%E9%A2%98"><span class="post-toc-text">8、如何解决redis的并发竞争key问题</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E3%80%90%E5%8E%9F%E5%88%9B%E3%80%91%E5%88%86%E5%B8%83%E5%BC%8F%E4%B9%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E7%BC%93%E5%AD%98%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E6%96%B9%E6%A1%88%E8%A7%A3%E6%9E%90"><span class="post-toc-text">【原创】分布式之数据库和缓存双写一致性方案解析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BC%95%E8%A8%80-1"><span class="post-toc-text">引言</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%86%99%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%EF%BC%9F"><span class="post-toc-text">为什么写这篇文章？</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%96%87%E7%AB%A0%E7%BB%93%E6%9E%84"><span class="post-toc-text">文章结构</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%AD%A3%E6%96%87-1"><span class="post-toc-text">正文</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-%E5%85%88%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%8C%E5%86%8D%E6%9B%B4%E6%96%B0%E7%BC%93%E5%AD%98"><span class="post-toc-text">(1)先更新数据库，再更新缓存</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-%E5%85%88%E5%88%A0%E7%BC%93%E5%AD%98%EF%BC%8C%E5%86%8D%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="post-toc-text">(2)先删缓存，再更新数据库</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-%E5%85%88%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%8C%E5%86%8D%E5%88%A0%E7%BC%93%E5%AD%98"><span class="post-toc-text">(3)先更新数据库，再删缓存</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%80%BB%E7%BB%93"><span class="post-toc-text">总结</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="post-toc-text">参考文献</span></a>
+            
+        
+        <div class=".article-gallery"><p>和Redis结缘还是2011年刚开始实习，做的第一款游戏《部落战争》，<br>就是使用的Redis作为持久层和缓存。 当时对Redis的认识还比较浅，但是Redis的好多特性已经开始慢慢了解。</p>
+<p>这里推荐一下大神的Redis公众号。付磊。快手同事，《Redis开发与运维》一书的作者，强烈推荐这本书，偏向实战，另外一本很有名的书《Redis设计与实现》更注重原理。两本书都非常值得好好读下。</p>
+<span id="more"></span>
+
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4-576x1024.jpg?resize=640,1138" title="Redis常见面试题 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/4-576x1024.jpg?resize=640,1138" alt="Redis常见面试题 - 第1张  | 张嘎"></a></p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-576x1024.jpg?resize=576,1024" title="Redis常见面试题 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/192.144.167.243/blog/wp-content/uploads/3-1-576x1024.jpg?resize=576,1024" alt="Redis常见面试题 - 第2张  | 张嘎"></a></p>
+<h4 id="Memcached相比于Redis的主要特点有如下："><a href="#Memcached相比于Redis的主要特点有如下：" class="headerlink" title="Memcached相比于Redis的主要特点有如下："></a>Memcached相比于Redis的主要特点有如下：</h4><p>\1. 超高OPS：例如千万级别以上（线上千万OPS以上的Redis也存在）<br>\2. 多线程：抗热点能力强。<br>\3. 支持大value：例如Memcached 5支持100MB以上的value</p>
+<p>但Memcached相比于Redis维护成本会更高，而且对于很多基础设施支持也不好（双机房、键值分析、内存优化、服务端高可用）。</p>
+<p>最近发现KCC上出现Memcached滥用的情况</p>
+<p>为防止滥用，必须满足如下规则才会开通：</p>
+<p>\1. OPS: 超过100万<br>\2. big value：10MB+<br>\3. 明显热点<br>\4. CAS需求</p>
+<p><strong>一、Redis常见的数据结构和使用场景</strong></p>
+<p>(一)String 这个其实没啥好说的，最常规的set/get操作，value可以是String也可以是数字。一般做<strong>一些复杂的计数功能的缓存。</strong></p>
+<p>(二)hash 这里value存放的是结构化的对象，比较方便的就是操作其中的某个字段。博主在做<strong>单点登录</strong>的时候，就是用这种数据结构存储用户信息，以cookieId作为key，设置30分钟为缓存过期时间，能很好的模拟出类似session的效果。</p>
+<p>(三)list 使用List的数据结构，可以<strong>做简单的消息队列的功能</strong>。另外还有一个就是，可以利用lrange命令，<strong>做基于redis的分页功能</strong>，性能极佳，用户体验好。</p>
+<p>(四)set 因为set堆放的是一堆不重复值的集合。所以可以做<strong>全局去重的功能</strong>。为什么不用JVM自带的Set进行去重？因为我们的系统一般都是集群部署，使用JVM自带的Set，比较麻烦，难道为了一个做一个全局去重，再起一个公共服务，太麻烦了。 另外，就是利用交集、并集、差集等操作，可以<strong>计算共同喜好，全部的喜好，自己独有的喜好等功能</strong>。</p>
+<p>(五)sorted set sorted set多了一个权重参数score,集合中的元素能够按score进行排列。可以做<strong>排行榜应用，取TOP N操作</strong>。另外，参照另一篇<a href="http://link.zhihu.com/?target=https://www.cnblogs.com/rjzheng/p/8972725.html">《分布式之延时任务方案解析》</a>，该文指出了sorted set可以用来做<strong>延时任务</strong>。最后一个应用就是可以做<strong>范围查找</strong>。</p>
+<p><strong>二、Redis的hash怎么实现的</strong><br>满足以下两条件时：<br>1、键和值的长度都小于64字节<br>2、键值对数量小于512个<br>使用ziplist编码。不满足时转化为hashtable编码，并且这个转化过程是不可逆的。<br>hashtable的实现方式和Java的hashmap类似，数组上散列，散列冲突的使用链表，不同的是redis采用渐进式的rehash策略。<br>何为<strong>渐进式rehash</strong>？就是把拷贝节点数据的过程平摊到后续的操作中，而不是一次性拷贝。维护两张哈希表，1个索引来指示当前的rehash进度。<br>rehash是以bucket(桶)为基本单位进行渐进式的数据迁移的，每步完成一个bucket的迁移，直至所有数据迁移完毕。一个bucket对应哈希表数组中的一条entry链表。<br><strong>Java HashMap</strong>的rehash，每次创建一个数组（哈希表），一次性将old表rehash过去。</p>
+<p><strong>三、为什么不能用Redis做专门的持久化</strong><br>性价比：内存吃紧 ，海量数据在重启后加载耗时。RDB加载快。<br>权限控制。<br>数据完整：MySQL 在崩溃处理，数据恢复方面比reids好。<br>redis作为数据库查询功能太弱。数据KV弱于结构化。<br>数据隔离。</p>
+<h1 id="Redis-Cluster-功能限制"><a href="#Redis-Cluster-功能限制" class="headerlink" title="Redis Cluster|功能限制"></a>Redis Cluster|功能限制</h1><p>1.Key批量操作支持有限。目前只支持同slot内的key执行批量操作（如mget,mset）。</p>
+<p>2.Key事务操作支持有限。只支持多key在同一个节点上的事务操作，多个key分布在不同节点上时无法使用事务功能。</p>
+<p>3.Key作为数据分区的最小粒度，因此不能将一个大的键值对象如hash，list等映射到不同节点。</p>
+<p>4.不支持多数据库空间，集群模式下只能使用db0空间。</p>
+<p>5.复制结构只支持一层，从节点只能复制主节点，不支持嵌套树状复制结构。</p>
+<h1 id="Redis-Cluster高可用"><a href="#Redis-Cluster高可用" class="headerlink" title="Redis Cluster高可用"></a>Redis Cluster高可用</h1><p>提供了灵活的节点扩容和收缩方案，在不影响集群对外服务的情况下进行。<br>自动故障转移保证集群可以正常对外提供服务。主观下线，客观下线，投票选举策略。选出从节点替换主节点，保证集群高可用。</p>
+<p><strong>下面是两篇引用的文章。<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/59168140">https://zhuanlan.zhihu.com/p/59168140</a></strong></p>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><h2 id="为什么写这篇文章"><a href="#为什么写这篇文章" class="headerlink" title="为什么写这篇文章?"></a>为什么写这篇文章?</h2><p>博主的<a href="http://link.zhihu.com/?target=http://www.cnblogs.com/rjzheng/p/8994962.html">《分布式之消息队列复习精讲》</a>得到了大家的好评，内心诚惶诚恐，想着再出一篇关于复习精讲的文章。但是还是要说明一下，复习精讲的文章偏面试准备，真正在开发过程中，还是脚踏实地，一步一个脚印，不要投机取巧。 考虑到绝大部分写业务的程序员，在实际开发中使用redis的时候，只会setvalue和getvalue两个操作，对redis整体缺乏一个认知。又恰逢博主某个同事下周要去培训redis，所以博主斗胆以redis为题材，对redis常见问题做一个总结，希望能够弥补大家的知识盲点。</p>
+<h2 id="复习要点"><a href="#复习要点" class="headerlink" title="复习要点?"></a>复习要点?</h2><p>本文围绕以下几点进行阐述</p>
+<ul>
+<li>1、为什么使用redis</li>
+<li>2、使用redis有什么缺点</li>
+<li>3、单线程的redis为什么这么快</li>
+<li>4、redis的数据类型，以及每种数据类型的使用场景</li>
+<li>5、redis的过期策略以及内存淘汰机制</li>
+<li>6、redis和数据库双写一致性问题</li>
+<li>7、如何应对缓存穿透和缓存雪崩问题</li>
+<li>8、如何解决redis的并发竞争问题</li>
+</ul>
+<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><h2 id="1、为什么使用redis"><a href="#1、为什么使用redis" class="headerlink" title="1、为什么使用redis"></a>1、为什么使用redis</h2><p><strong>分析</strong>:博主觉得在项目中使用redis，主要是从两个角度去考虑:<strong>性能</strong>和<strong>并发</strong>。当然，redis还具备可以做分布式锁等其他功能，但是如果只是为了分布式锁这些其他功能，完全还有其他中间件(如zookpeer等)代替，并不是非要使用redis。因此，这个问题主要从性能和并发两个角度去答。</p>
+<p><strong>回答</strong>:如下所示，分为两点</p>
+<p><strong>（一）性能</strong> 如下图所示，我们在碰到需要执行耗时特别久，且结果不频繁变动的SQL，就特别适合将运行结果放入缓存。这样，后面的请求就去缓存中读取，使得请求能够<strong>迅速响应</strong>。</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/pic4.zhimg.com/80/v2-8200a2192b95b1596dc8d02c71b9abcf_hd.jpg?w=640&ssl=1" title="Redis常见面试题 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/pic4.zhimg.com/80/v2-8200a2192b95b1596dc8d02c71b9abcf_hd.jpg?w=640&ssl=1" alt="Redis常见面试题 - 第3张  | 张嘎"></a></p>
+<p><strong>题外话：</strong>忽然想聊一下这个<strong>迅速响应</strong>的标准。其实根据交互效果的不同，这个响应时间没有固定标准。不过曾经有人这么告诉我:”在理想状态下，我们的页面跳转需要在<strong>瞬间</strong>解决，对于页内操作则需要在<strong>刹那</strong>间解决。另外，超过<strong>一弹指</strong>的耗时操作要有进度提示，并且可以随时中止或取消，这样才能给用户最好的体验。” 那么<strong>瞬间、刹那、一弹指</strong>具体是多少时间呢？ 根据《摩诃僧祗律》记载</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">一刹那者为一念，二十念为一瞬，二十瞬为一弹指，二十弹指为一罗预，二十罗预为一须臾，一日一夜有三十须臾。</span><br></pre></td></tr></table></figure>
+
+<p>那么，经过周密的计算，一<strong>瞬间</strong>为0.36 秒,一<strong>刹那</strong>有 0.018 秒.一<strong>弹指</strong>长达 7.2 秒。</p>
+<p><strong>（二）并发</strong> 如下图所示，在大并发的情况下，所有的请求直接访问数据库，数据库会出现连接异常。这个时候，就需要使用redis做一个缓冲操作，让请求先访问到redis，而不是直接访问数据库。</p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/pic3.zhimg.com/80/v2-ee0f4577491f13d82e185e7ef6aa8eae_hd.jpg?w=640&ssl=1" title="Redis常见面试题 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/pic3.zhimg.com/80/v2-ee0f4577491f13d82e185e7ef6aa8eae_hd.jpg?w=640&ssl=1" alt="Redis常见面试题 - 第4张  | 张嘎"></a></p>
+<h2 id="2、使用redis有什么缺点"><a href="#2、使用redis有什么缺点" class="headerlink" title="2、使用redis有什么缺点"></a>2、使用redis有什么缺点</h2><p><strong>分析</strong>:大家用redis这么久，这个问题是必须要了解的，基本上使用redis都会碰到一些问题，常见的也就几个。</p>
+<p><strong>回答</strong>:主要是四个问题</p>
+<ul>
+<li>(一)缓存和数据库双写一致性问题</li>
+<li>(二)缓存雪崩问题</li>
+<li>(三)缓存击穿问题</li>
+<li>(四)缓存的并发竞争问题</li>
+</ul>
+<p>这四个问题，我个人是觉得在项目中，比较常遇见的，具体解决方案，后文给出。</p>
+<h2 id="3、单线程的redis为什么这么快"><a href="#3、单线程的redis为什么这么快" class="headerlink" title="3、单线程的redis为什么这么快"></a>3、单线程的redis为什么这么快</h2><p><strong>分析</strong>:这个问题其实是对redis内部机制的一个考察。其实根据博主的面试经验，很多人其实都不知道redis是单线程工作模型。所以，这个问题还是应该要复习一下的。</p>
+<p><strong>回答</strong>:主要是以下三点 (一)纯内存操作 (二)单线程操作，避免了频繁的上下文切换 (三)采用了非阻塞<strong>I/O多路复用机制</strong></p>
+<p><strong>题外话：</strong>我们现在要仔细的说一说I/O多路复用机制，因为这个说法实在是太通俗了，通俗到一般人都不懂是什么意思。博主打一个比方：小曲在S城开了一家快递店，负责同城快送服务。小曲因为资金限制，雇佣了<strong>一批</strong>快递员，然后小曲发现资金不够了，只够买<strong>一辆</strong>车送快递。</p>
+<p><strong>经营方式一</strong> 客户每送来一份快递，小曲就让一个快递员盯着，然后快递员开车去送快递。慢慢的小曲就发现了这种经营方式存在下述问题 – 几十个快递员基本上时间都花在了抢车上了，大部分快递员都处在闲置状态，谁抢到了车，谁就能去送快递 – 随着快递的增多，快递员也越来越多，小曲发现快递店里越来越挤，没办法雇佣新的快递员了 – 快递员之间的协调很花时间</p>
+<p>综合上述缺点，小曲痛定思痛，提出了下面的经营方式</p>
+<p><strong>经营方式二</strong> 小曲只雇佣一个快递员。然后呢，客户送来的快递，小曲按<strong>送达地点</strong>标注好，然后<strong>依次</strong>放在一个地方。最后，那个快递员<strong>依次</strong>的去取快递，一次拿一个，然后开着车去送快递，送好了就回来拿下一个快递。</p>
+<p><strong>对比</strong> 上述两种经营方式对比，是不是明显觉得第二种，效率更高，更好呢。</p>
+<p>在上述比喻中:</p>
+<ul>
+<li>每个快递员——————&gt;每个线程</li>
+<li>每个快递——————–&gt;每个socket(I/O流)</li>
+<li>快递的送达地点————–&gt;socket的不同状态</li>
+<li>客户送快递请求————–&gt;来自客户端的请求</li>
+<li>小曲的经营方式————–&gt;服务端运行的代码</li>
+<li>一辆车———————-&gt;CPU的核数</li>
+</ul>
+<p>于是我们有如下结论</p>
+<ol>
+<li>经营方式一就是传统的并发模型，每个I/O流(快递)都有一个新的线程(快递员)管理。</li>
+<li>经营方式二就是I/O多路复用。只有单个线程(一个快递员)，通过跟踪每个I/O流的状态(每个快递的送达地点)，来管理多个I/O流。</li>
+</ol>
+<p>下面类比到真实的redis线程模型，如图所示</p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/pic1.zhimg.com/80/v2-fa81e4bb9560b8ac6470bfa322f36a98_hd.jpg?w=640&ssl=1" title="Redis常见面试题 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/pic1.zhimg.com/80/v2-fa81e4bb9560b8ac6470bfa322f36a98_hd.jpg?w=640&ssl=1" alt="Redis常见面试题 - 第5张  | 张嘎"></a></p>
+<p>参照上图，简单来说，就是。我们的redis-client在操作的时候，会产生具有不同事件类型的socket。在服务端，有一段I/0多路复用程序，将其置入队列之中。然后，文件事件分派器，依次去队列中取，转发到不同的事件处理器中。 需要说明的是，这个I/O多路复用机制，redis还提供了select、epoll、evport、kqueue等多路复用函数库，大家可以自行去了解。</p>
+<h2 id="5、redis的过期策略以及内存淘汰机制"><a href="#5、redis的过期策略以及内存淘汰机制" class="headerlink" title="5、redis的过期策略以及内存淘汰机制"></a>5、redis的过期策略以及内存淘汰机制</h2><p><strong>分析</strong>:这个问题其实相当重要，到底redis有没用到家，这个问题就可以看出来。比如你redis只能存5G数据，可是你写了10G，那会删5G的数据。怎么删的，这个问题思考过么？还有，你的数据已经设置了过期时间，但是时间到了，内存占用率还是比较高，有思考过原因么?</p>
+<p><strong>回答</strong>: redis采用的是定期删除+惰性删除策略。</p>
+<p><strong>为什么不用定时删除策略?</strong> 定时删除,用一个定时器来负责监视key,过期则自动删除。虽然内存及时释放，但是十分消耗CPU资源。在大并发请求下，CPU要将时间应用在处理请求，而不是删除key,因此没有采用这一策略.</p>
+<p><strong>定期删除+惰性删除是如何工作的呢?</strong></p>
+<p>定期删除，redis默认每个100ms检查，是否有过期的key,有过期key则删除。需要说明的是，redis不是每个100ms将所有的key检查一次，而是随机抽取进行检查(如果每隔100ms,全部key进行检查，redis岂不是卡死)。因此，如果只采用定期删除策略，会导致很多key到时间没有删除。 于是，惰性删除派上用场。也就是说在你获取某个key的时候，redis会检查一下，这个key如果设置了过期时间那么是否过期了？如果过期了此时就会删除。</p>
+<p><strong>采用定期删除+惰性删除就没其他问题了么?</strong></p>
+<p>不是的，如果定期删除没删除key。然后你也没即时去请求key，也就是说惰性删除也没生效。这样，redis的内存会越来越高。那么就应该采用<strong>内存淘汰机制</strong>。 在redis.conf中有一行配置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># maxmemory-policy volatile-lru</span><br></pre></td></tr></table></figure>
+
+<p>该配置就是配内存淘汰策略的(什么，你没配过？好好反省一下自己)</p>
+<p>1）noeviction：当内存不足以容纳新写入数据时，新写入操作会报错。<strong>应该没人用吧。</strong></p>
+<p>2）allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key。<strong>推荐使用，目前项目在用这种。</strong></p>
+<p>3）allkeys-random：当内存不足以容纳新写入数据时，在键空间中，随机移除某个key。<strong>应该也没人用吧，你不删最少使用Key,去随机删。</strong></p>
+<p>4）volatile-lru：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，移除最近最少使用的key。<strong>这种情况一般是把redis既当缓存，又做持久化存储的时候才用。不推荐</strong></p>
+<p>5）volatile-random：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，随机移除某个key。<strong>依然不推荐</strong> 6）volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的键空间中，有更早过期时间的key优先移除。<strong>不推荐</strong> ps：如果没有设置 expire 的key, 不满足先决条件(prerequisites); 那么 volatile-lru, volatile-random 和 volatile-ttl 策略的行为, 和 noeviction(不删除) 基本上一致。</p>
+<h2 id="6、redis和数据库双写一致性问题"><a href="#6、redis和数据库双写一致性问题" class="headerlink" title="6、redis和数据库双写一致性问题"></a>6、redis和数据库双写一致性问题</h2><p><strong>分析</strong>:一致性问题是分布式常见问题，还可以再分为最终一致性和强一致性。数据库和缓存双写，就必然会存在不一致的问题。答这个问题，先明白一个前提。就是<strong>如果对数据有强一致性要求，不能放缓存。</strong>我们所做的一切，只能保证最终一致性。另外，我们所做的方案其实从根本上来说，只能说<strong>降低不一致发生的概率</strong>，无法完全避免。因此，有强一致性要求的数据，不能放缓存。</p>
+<p><strong>回答</strong>:<a href="http://link.zhihu.com/?target=https://www.cnblogs.com/rjzheng/p/9041659.html">《分布式之数据库和缓存双写一致性方案解析》</a>给出了详细的分析，在这里简单的说一说。首先，采取正确更新策略，先更新数据库，再删缓存。其次，因为可能存在删除缓存失败的问题，提供一个补偿措施即可，例如利用消息队列。</p>
+<h2 id="7、如何应对缓存穿透和缓存雪崩问题"><a href="#7、如何应对缓存穿透和缓存雪崩问题" class="headerlink" title="7、如何应对缓存穿透和缓存雪崩问题"></a>7、如何应对缓存穿透和缓存雪崩问题</h2><p><strong>分析</strong>:这两个问题，说句实在话，一般中小型传统软件企业，很难碰到这个问题。如果有大并发的项目，流量有几百万左右。这两个问题一定要深刻考虑。</p>
+<p><strong>回答</strong>:如下所示</p>
+<p><strong>缓存穿透</strong>，即黑客故意去请求缓存中不存在的数据，导致所有的请求都怼到数据库上，从而数据库连接异常。</p>
+<p><strong>解决方案</strong>: (一)利用互斥锁，缓存失效的时候，先去获得锁，得到锁了，再去请求数据库。没得到锁，则休眠一段时间重试 (二)采用异步更新策略，无论key是否取到值，都直接返回。value值中维护一个缓存失效时间，缓存如果过期，异步起一个线程去读数据库，更新缓存。需要做<strong>缓存预热</strong>(项目启动前，先加载缓存)操作。 (三)提供一个能迅速判断请求是否有效的拦截机制，比如，利用布隆过滤器，内部维护一系列合法有效的key。迅速判断出，请求所携带的Key是否合法有效。如果不合法，则直接返回。</p>
+<p><strong>缓存雪崩</strong>，即缓存同一时间大面积的失效，这个时候又来了一波请求，结果请求都怼到数据库上，从而导致数据库连接异常。</p>
+<p><strong>解决方案</strong>: (一)给缓存的失效时间，加上一个随机值，避免集体失效。 (二)使用互斥锁，但是该方案吞吐量明显下降了。 (三)双缓存。我们有两个缓存，缓存A和缓存B。缓存A的失效时间为20分钟，缓存B不设失效时间。自己做缓存预热操作。然后细分以下几个小点 – I 从缓存A读数据库，有则直接返回 – II A没有数据，直接从B读数据，直接返回，并且异步启动一个更新线程。 – III 更新线程同时更新缓存A和缓存B。</p>
+<h2 id="8、如何解决redis的并发竞争key问题"><a href="#8、如何解决redis的并发竞争key问题" class="headerlink" title="8、如何解决redis的并发竞争key问题"></a>8、如何解决redis的并发竞争key问题</h2><p><strong>分析</strong>:这个问题大致就是，同时有多个子系统去set一个key。这个时候要注意什么呢？大家思考过么。需要说明一下，博主提前百度了一下，发现答案基本都是推荐用redis事务机制。博主<strong>不推荐使用redis的事务机制。</strong>因为我们的生产环境，基本都是redis集群环境，做了数据分片操作。你一个事务中有涉及到多个key操作的时候，这多个key不一定都存储在同一个redis-server上。因此，<strong>redis的事务机制，十分鸡肋。</strong></p>
+<p>**回答:**如下所示</p>
+<p>(1)如果对这个key操作，<strong>不要求顺序</strong> 这种情况下，准备一个分布式锁，大家去抢锁，抢到锁就做set操作即可，比较简单。</p>
+<p>(2)如果对这个key操作，<strong>要求顺序</strong> 假设有一个key1,系统A需要将key1设置为valueA,系统B需要将key1设置为valueB,系统C需要将key1设置为valueC. 期望按照key1的value值按照 valueA–&gt;valueB–&gt;valueC的顺序变化。这种时候我们在数据写入数据库的时候，需要保存一个时间戳。假设时间戳如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">系统A key 1 &#123;valueA  3:00&#125;</span><br><span class="line">系统B key 1 &#123;valueB  3:05&#125;</span><br><span class="line">系统C key 1 &#123;valueC  3:10&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么，假设这会系统B先抢到锁，将key1设置为{valueB 3:05}。接下来系统A抢到锁，发现自己的valueA的时间戳早于缓存中的时间戳，那就不做set操作了。以此类推。</p>
+<p>其他方法，比如利用队列，将set方法变成串行访问也可以。总之，灵活变通。</p>
+<h1 id="【原创】分布式之数据库和缓存双写一致性方案解析"><a href="#【原创】分布式之数据库和缓存双写一致性方案解析" class="headerlink" title="【原创】分布式之数据库和缓存双写一致性方案解析"></a><a target="_blank" rel="noopener" href="https://www.cnblogs.com/rjzheng/p/9041659.html">【原创】分布式之数据库和缓存双写一致性方案解析</a></h1><h2 id="引言-1"><a href="#引言-1" class="headerlink" title="引言"></a>引言</h2><h3 id="为什么写这篇文章？"><a href="#为什么写这篇文章？" class="headerlink" title="为什么写这篇文章？"></a>为什么写这篇文章？</h3><p><a target="_blank" rel="noopener" href="https://i0.wp.com/images.cnblogs.com/cnblogs_com/rjzheng/1202350/o_getkeyflow.png?w=640&ssl=1" title="Redis常见面试题 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/images.cnblogs.com/cnblogs_com/rjzheng/1202350/o_getkeyflow.png?w=640&ssl=1" alt="Redis常见面试题 - 第6张  | 张嘎"></a></p>
+<p>首先，缓存由于其高并发和高性能的特性，已经在项目中被广泛使用。在读取缓存方面，大家没啥疑问，都是按照下图的流程来进行业务操作。</p>
+<p>但是在更新缓存方面，对于更新完数据库，是更新缓存呢，还是删除缓存。又或者是先删除缓存，再更新数据库，其实大家存在很大的争议。目前没有一篇全面的博客，对这几种方案进行解析。于是博主战战兢兢，顶着被大家喷的风险，写了这篇文章。</p>
+<h3 id="文章结构"><a href="#文章结构" class="headerlink" title="文章结构"></a>文章结构</h3><p>本文由以下三个部分组成<br>1、讲解缓存更新策略<br>2、对每种策略进行缺点分析<br>3、针对缺点给出改进方案</p>
+<h2 id="正文-1"><a href="#正文-1" class="headerlink" title="正文"></a>正文</h2><p>先做一个说明，从理论上来说，给缓存设置过期时间，是保证最终一致性的解决方案。这种方案下，我们可以对存入缓存的数据设置过期时间，所有的写操作以数据库为准，对缓存操作只是尽最大努力即可。也就是说如果数据库写成功，缓存更新失败，那么只要到达过期时间，则后面的读请求自然会从数据库中读取新值然后回填缓存。因此，接下来讨论的思路不依赖于给缓存设置过期时间这个方案。<br>在这里，我们讨论<strong>三种</strong>更新策略：</p>
+<ol>
+<li>先更新数据库，再更新缓存</li>
+<li>先删除缓存，再更新数据库</li>
+<li>先更新数据库，再删除缓存</li>
+</ol>
+<p>应该没人问我，为什么没有先更新缓存，再更新数据库这种策略。</p>
+<h3 id="1-先更新数据库，再更新缓存"><a href="#1-先更新数据库，再更新缓存" class="headerlink" title="(1)先更新数据库，再更新缓存"></a>(1)先更新数据库，再更新缓存</h3><p>这套方案，大家是普遍反对的。为什么呢？有如下两点原因。<br><strong>原因一（线程安全角度）</strong><br>同时有请求A和请求B进行更新操作，那么会出现<br>（1）线程A更新了数据库<br>（2）线程B更新了数据库<br>（3）线程B更新了缓存<br>（4）线程A更新了缓存<br>这就出现请求A更新缓存应该比请求B更新缓存早才对，但是因为网络等原因，B却比A更早更新了缓存。这就导致了脏数据，因此不考虑。<br><strong>原因二（业务场景角度）</strong><br>有如下两点：<br>（1）如果你是一个写数据库场景比较多，而读数据场景比较少的业务需求，采用这种方案就会导致，数据压根还没读到，缓存就被频繁的更新，浪费性能。<br>（2）如果你写入数据库的值，并不是直接写入缓存的，而是要经过一系列复杂的计算再写入缓存。那么，每次写入数据库后，都再次计算写入缓存的值，无疑是浪费性能的。显然，删除缓存更为适合。</p>
+<p>接下来讨论的就是争议最大的，先删缓存，再更新数据库。还是先更新数据库，再删缓存的问题。</p>
+<h3 id="2-先删缓存，再更新数据库"><a href="#2-先删缓存，再更新数据库" class="headerlink" title="(2)先删缓存，再更新数据库"></a>(2)先删缓存，再更新数据库</h3><p>该方案会导致不一致的原因是。同时有一个请求A进行更新操作，另一个请求B进行查询操作。那么会出现如下情形:<br>（1）请求A进行写操作，删除缓存<br>（2）请求B查询发现缓存不存在<br>（3）请求B去数据库查询得到旧值<br>（4）请求B将旧值写入缓存<br>（5）请求A将新值写入数据库<br>上述情况就会导致不一致的情形出现。而且，如果不采用给缓存设置过期时间策略，该数据永远都是脏数据。<br>那么，<strong>如何解决呢？采用延时双删策略</strong><br>伪代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public void write(String key,Object data)&#123;</span><br><span class="line">        redis.delKey(key);</span><br><span class="line">        db.updateData(data);</span><br><span class="line">        Thread.sleep(1000);</span><br><span class="line">        redis.delKey(key);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>转化为中文描述就是<br>（1）先淘汰缓存<br>（2）再写数据库（这两步和原来一样）<br>（3）休眠1秒，再次淘汰缓存<br>这么做，可以将1秒内所造成的缓存脏数据，再次删除。<br><strong>那么，这个1秒怎么确定的，具体该休眠多久呢？</strong><br>针对上面的情形，读者应该自行评估自己的项目的读数据业务逻辑的耗时。然后写数据的休眠时间则在读数据业务逻辑的耗时基础上，加几百ms即可。这么做的目的，就是确保读请求结束，写请求可以删除读请求造成的缓存脏数据。<br><strong>如果你用了mysql的读写分离架构怎么办？</strong><br>ok，在这种情况下，造成数据不一致的原因如下，还是两个请求，一个请求A进行更新操作，另一个请求B进行查询操作。<br>（1）请求A进行写操作，删除缓存<br>（2）请求A将数据写入数据库了，<br>（3）请求B查询缓存发现，缓存没有值<br>（4）请求B去从库查询，这时，还没有完成主从同步，因此查询到的是旧值<br>（5）请求B将旧值写入缓存<br>（6）数据库完成主从同步，从库变为新值<br>上述情形，就是数据不一致的原因。还是使用双删延时策略。只是，睡眠时间修改为在主从同步的延时时间基础上，加几百ms。<br><strong>采用这种同步淘汰策略，吞吐量降低怎么办？</strong><br>ok，那就将第二次删除作为异步的。自己起一个线程，异步删除。这样，写的请求就不用沉睡一段时间后了，再返回。这么做，加大吞吐量。<br><strong>第二次删除,如果删除失败怎么办？</strong><br>这是个非常好的问题，因为第二次删除失败，就会出现如下情形。还是有两个请求，一个请求A进行更新操作，另一个请求B进行查询操作，为了方便，假设是单库：<br>（1）请求A进行写操作，删除缓存<br>（2）请求B查询发现缓存不存在<br>（3）请求B去数据库查询得到旧值<br>（4）请求B将旧值写入缓存<br>（5）请求A将新值写入数据库<br>（6）请求A试图去删除请求B写入对缓存值，结果失败了。<br>ok,这也就是说。如果第二次删除缓存失败，会再次出现缓存和数据库不一致的问题。<br><strong>如何解决呢？</strong><br>具体解决方案，且看博主对第(3)种更新策略的解析。</p>
+<h3 id="3-先更新数据库，再删缓存"><a href="#3-先更新数据库，再删缓存" class="headerlink" title="(3)先更新数据库，再删缓存"></a>(3)先更新数据库，再删缓存</h3><p>首先，先说一下。老外提出了一个缓存更新套路，名为<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/azure/architecture/patterns/cache-aside">《Cache-Aside pattern》</a>。其中就指出</p>
+<ul>
+<li><strong>失效</strong>：应用程序先从cache取数据，没有得到，则从数据库中取数据，成功后，放到缓存中。</li>
+<li><strong>命中</strong>：应用程序从cache中取数据，取到后返回。</li>
+<li><strong>更新</strong>：先把数据存到数据库中，成功后，再让缓存失效。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/images.cnblogs.com/cnblogs_com/rjzheng/1202350/o_update1.png?w=640&ssl=1" title="Redis常见面试题 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/images.cnblogs.com/cnblogs_com/rjzheng/1202350/o_update1.png?w=640&ssl=1" alt="Redis常见面试题 - 第7张  | 张嘎"></a></p>
+<p><a target="_blank" rel="noopener" href="https://i0.wp.com/images.cnblogs.com/cnblogs_com/rjzheng/1202350/o_update2.png?w=640&ssl=1" title="Redis常见面试题 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/images.cnblogs.com/cnblogs_com/rjzheng/1202350/o_update2.png?w=640&ssl=1" alt="Redis常见面试题 - 第8张  | 张嘎"></a></p>
+<p>另外，知名社交网站facebook也在论文<a target="_blank" rel="noopener" href="https://www.usenix.org/system/files/conference/nsdi13/nsdi13-final170_update.pdf">《Scaling Memcache at Facebook》</a>中提出，他们用的也是先更新数据库，再删缓存的策略。<br><strong>这种情况不存在并发问题么？</strong><br>不是的。假设这会有两个请求，一个请求A做查询操作，一个请求B做更新操作，那么会有如下情形产生<br>（1）缓存刚好失效<br>（2）请求A查询数据库，得一个旧值<br>（3）请求B将新值写入数据库<br>（4）请求B删除缓存<br>（5）请求A将查到的旧值写入缓存<br>ok，如果发生上述情况，确实是会发生脏数据。<br><strong>然而，发生这种情况的概率又有多少呢？</strong><br>发生上述情况有一个先天性条件，就是步骤（3）的写数据库操作比步骤（2）的读数据库操作耗时更短，才有可能使得步骤（4）先于步骤（5）。可是，大家想想，数据库的读操作的速度远快于写操作的（不然做读写分离干嘛，做读写分离的意义就是因为读操作比较快，耗资源少），因此步骤（3）耗时比步骤（2）更短，这一情形很难出现。<br>假设，有人非要抬杠，有强迫症，一定要解决怎么办？<br><strong>如何解决上述并发问题？</strong><br>首先，给缓存设有效时间是一种方案。其次，采用策略（2）里给出的异步延时删除策略，保证读请求完成以后，再进行删除操作。<br><strong>还有其他造成不一致的原因么？</strong><br>有的，这也是缓存更新策略（2）和缓存更新策略（3）都存在的一个问题，如果删缓存失败了怎么办，那不是会有不一致的情况出现么。比如一个写数据请求，然后写入数据库了，删缓存失败了，这会就出现不一致的情况了。这也是缓存更新策略（2）里留下的最后一个疑问。<br><strong>如何解决？</strong><br>提供一个保障的重试机制即可，这里给出两套方案。<br><strong>方案一</strong>：<br>如下图所示</p>
+<p>流程如下所示<br>（1）更新数据库数据；<br>（2）缓存因为种种问题删除失败<br>（3）将需要删除的key发送至消息队列<br>（4）自己消费消息，获得需要删除的key<br>（5）继续重试删除操作，直到成功<br>然而，该方案有一个缺点，对业务线代码造成大量的侵入。于是有了方案二，在方案二中，启动一个订阅程序去订阅数据库的binlog，获得需要操作的数据。在应用程序中，另起一段程序，获得这个订阅程序传来的信息，进行删除缓存操作。<br><strong>方案二</strong>：</p>
+<p>流程如下图所示：<br>（1）更新数据库数据<br>（2）数据库会将操作信息写入binlog日志当中<br>（3）订阅程序提取出所需要的数据以及key<br>（4）另起一段非业务代码，获得该信息<br>（5）尝试删除缓存操作，发现删除失败<br>（6）将这些信息发送至消息队列<br>（7）重新从消息队列中获得该数据，重试操作。</p>
+<p><strong>备注说明：</strong>上述的订阅binlog程序在mysql中有现成的中间件叫canal，可以完成订阅binlog日志的功能。至于oracle中，博主目前不知道有没有现成中间件可以使用。另外，重试机制，博主是采用的是消息队列的方式。如果对一致性要求不是很高，直接在程序中另起一个线程，每隔一段时间去重试即可，这些大家可以灵活自由发挥，只是提供一个思路。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文其实是对目前互联网中已有的一致性方案，进行了一个总结。对于先删缓存，再更新数据库的更新策略，还有方案提出维护一个内存队列的方式，博主看了一下，觉得实现异常复杂，没有必要，因此没有必要在文中给出。最后，希望大家有所收获。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>1、<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MjM5ODYxMDA5OQ==&mid=404308725&idx=1&sn=1a25ce76dd1956014ceb8a011855268e&scene=21#wechat_redirect">主从DB与cache一致性</a><br>2、<a target="_blank" rel="noopener" href="https://coolshell.cn/articles/17416.html">缓存更新的套路</a></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2019-03-27</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E9%9D%A2%E8%AF%95/'>
+                            面试
+                        </a>
+                    
+                        <a href='/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/'>
+                            数据库
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/gc-charator/'>常见垃圾收集器的特点</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/cloud-ver/">云服务器被挖矿病毒感染！</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

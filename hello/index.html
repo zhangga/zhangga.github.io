@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="WordPress迁移Hexo" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    WordPress迁移Hexo
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：927</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：3分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%90%AC%E6%96%B0%E5%AE%B6%E4%BA%86%EF%BC%81"><span class="post-toc-text">搬新家了！</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%B8%B8%E7%94%A8%E7%AC%94%E8%AE%B0"><span class="post-toc-text">常用笔记</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#hexo-%E5%8D%9A%E5%AE%A2%E6%8F%92%E5%85%A5%E5%9B%BE%E7%89%87%E4%B8%8E%E8%A7%86%E9%A2%91%E6%96%B9%E6%B3%95"><span class="post-toc-text">hexo 博客插入图片与视频方法</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%9B%BE%E7%89%87%E6%8F%92%E5%85%A5"><span class="post-toc-text">图片插入</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%9C%AC%E5%9C%B0%E5%BC%95%E7%94%A8%E2%80%93%E7%BB%9D%E5%AF%B9%E8%B7%AF%E5%BE%84"><span class="post-toc-text">本地引用–绝对路径</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%9C%AC%E5%9C%B0%E5%BC%95%E7%94%A8%E2%80%93%E7%9B%B8%E5%AF%B9%E8%B7%AF%E5%BE%84"><span class="post-toc-text">本地引用–相对路径</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%9B%BE%E5%BA%8A"><span class="post-toc-text">图床</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E8%A7%86%E9%A2%91%E6%8F%92%E5%85%A5"><span class="post-toc-text">视频插入</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="post-toc-text">常见问题</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="搬新家了！"><a href="#搬新家了！" class="headerlink" title="搬新家了！"></a>搬<a target="_blank" rel="noopener" href="http://kwaibook.com/">新家</a>了！</h1><p>在用了三年多 WordPress 后还是决定尝试下使用一些轻量的框架来搭建站点，比如 Hexo。<br>放弃 WordPress 主要出于以下几个方面的考虑吧：</p>
+<ol>
+<li>成本：需要单独的服务器部署。</li>
+<li>效率：功能大而全，便利性方面还是很好的，但是敏捷性方面就稍显欠缺了，而 Hexo 支持 MD 语法，大大激活创作效率。</li>
+<li>性能：网页加载图片的速度较慢。</li>
+<li>美观：简洁才是王道</li>
+<li>杀鸡用牛刀：在个人站点方面，静态的 Hexo 完全够了。</li>
+</ol>
+<span id="more"></span>
+
+<p>站点搭建完了，现在的方案是，本地编写 MD 文件，提交 Github，Travis 自动发布。<br>皮肤：<a target="_blank" rel="noopener" href="http://theme-next.iissnan.com/getting-started.html">next</a></p>
+<p>皮肤: <a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">hexo-theme-A4</a></p>
+<p>皮肤：<a target="_blank" rel="noopener" href="https://butterfly.js.org/posts/ceeb73f/">butterfly</a></p>
+<p>域名：</p>
+<ul>
+<li>github.io 在 DNS 中添加解析，见<a target="_blank" rel="noopener" href="https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site">https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site</a></li>
+</ul>
+<p>后续需要的插件陆续添加吧。<br>主要参考的文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000021987832">Travis CI</a></li>
+<li><del><a target="_blank" rel="noopener" href="https://kchen.cc/2016/11/12/hexo-instructions/">Hexo 部署</a></del> (已经不免费)</li>
+<li><a target="_blank" rel="noopener" href="https://hexo.io/docs/github-pages">GithubActions CI</a></li>
+</ul>
+<h1 id="常用笔记"><a href="#常用笔记" class="headerlink" title="常用笔记"></a>常用笔记</h1><ol>
+<li>新建博文：hexo new post $title</li>
+<li>新建草稿：hexo new draft $title</li>
+<li>文章目录：source_posts</li>
+<li>图片目录：source\images</li>
+<li><a target="_blank" rel="noopener" href="https://typora.io/">https://typora.io/</a> markdown 工具</li>
+<li><a target="_blank" rel="noopener" href="https://markdown.com.cn/basic-syntax/links.html">Markdown 语法</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.smallerpig.com/set-hexo-show-more-button-on-indexpage.html">参考链接</a></li>
+<li><a target="_blank" rel="noopener" href="https://tohugo.com/2021/01/26/%E5%B7%A5%E5%85%B7%E9%85%8D%E7%BD%AE/Hexo%E6%B7%BB%E5%8A%A0%E5%88%86%E7%B1%BB%E5%8F%8A%E6%A0%87%E7%AD%BE%EF%BC%88%E5%9C%A8Next%E4%B8%BB%E9%A2%98%E4%B8%8B%EF%BC%89/">参考链接</a></li>
+<li><a target="_blank" rel="noopener" href="https://huyongfei.com/posts/2324b80c.html">met 皮肤</a></li>
+</ol>
+<h1 id="hexo-博客插入图片与视频方法"><a href="#hexo-博客插入图片与视频方法" class="headerlink" title="hexo 博客插入图片与视频方法"></a>hexo 博客插入图片与视频方法</h1><h3 id="图片插入"><a href="#图片插入" class="headerlink" title="图片插入"></a>图片插入</h3><p>Hexo 有多种图片插入方式，可以将图片存放在本地引用或者将图片放在 CDN 上引用。</p>
+<h3 id="本地引用–绝对路径"><a href="#本地引用–绝对路径" class="headerlink" title="本地引用–绝对路径"></a>本地引用–绝对路径</h3><p>当 Hexo 项目中只用到少量图片时，可以将图片统一放在 source/images 文件夹中，通过 markdown 语法访问它们。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">source/images/image.jpg</span><br><span class="line"></span><br><span class="line">![(可以写关于图片的描述)](/images/image.jpg)</span><br></pre></td></tr></table></figure>
+
+<p>图片既可以在首页内容中访问到，也可以在文章正文中访问到。</p>
+<h3 id="本地引用–相对路径"><a href="#本地引用–相对路径" class="headerlink" title="本地引用–相对路径"></a>本地引用–相对路径</h3><p>图片除了可以放在统一的 images 文件夹中，还可以放在文章自己的目录中。文章的目录可以通过配置_config.yml 来生成。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_config.yml</span><br><span class="line"></span><br><span class="line">post_asset_folder: true</span><br></pre></td></tr></table></figure>
+
+<p>将_config.yml 文件中的配置项 post_asset_folder 设为 true 后，执行命令$ hexo new post_name，在 source/_posts 中会生成<br>文章 post_name.md 和同名文件夹 post_name。将图片资源放在 post_name 中，文章就可以使用相对路径引用图片资源了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_posts/post_name/image.jpg</span><br><span class="line"></span><br><span class="line">![](image.jpg)</span><br></pre></td></tr></table></figure>
+
+<p>上述是 markdown 的引用方式，图片只能在文章中显示，但无法在首页中正常显示。<br>如果希望图片在文章和首页中同时显示，可以使用标签插件语法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">_posts/post_name/image.jpg</span><br><span class="line"></span><br><span class="line">&#123;% asset_img image.jpg This is an image %&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="图床"><a href="#图床" class="headerlink" title="图床"></a>图床</h3><p><a target="_blank" rel="noopener" href="https://picx.xpoet.cn/#/?jump=0">PicX在线</a><br>Upic(Mac)<br>PicGo(Windows)</p>
+<h3 id="视频插入"><a href="#视频插入" class="headerlink" title="视频插入"></a>视频插入</h3><p>插入视频与图片不同，这里以 b 站的视频为例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;iframe src=&quot;（视频网址）&quot; scrolling=&quot;no&quot; border=&quot;0&quot; frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; width=&quot;100%&quot;  height=&quot;580&quot; quality=&quot;high&quot; &gt; &lt;/iframe&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这样直接插入的代码手机端不能自适应，效果不完美。<br><strong>最好这样</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;div style=&quot;position: relative; width: 100%; height: 0; padding-bottom: 75%;&quot;&gt;&lt;iframe</span><br><span class="line">src=&quot;//player.bilibili.com/player.html?aid=39807850&amp;cid=69927212&amp;page=1&quot; scrolling=&quot;no&quot; border=&quot;0&quot;</span><br><span class="line">frameborder=&quot;no&quot; framespacing=&quot;0&quot; allowfullscreen=&quot;true&quot; style=&quot;position: absolute; width: 100%;</span><br><span class="line">height: 100%; left: 0; top: 0;&quot;&gt; &lt;/iframe&gt;&lt;/div&gt;</span><br></pre></td></tr></table></figure>
+
+<h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><ol>
+<li><p>Travis CI 发布失败</p>
+<p>2022 年 07 月发现 github 提交后，网站没有自动更新成功。登录 Travis CI 后发现 CI 失败，如下图：</p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2022-07/20220727124915-rDXndx.jpg" title="20220727124915-rDXndx" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2022-07/20220727124915-rDXndx.jpg" alt="20220727124915-rDXndx"></a></p>
+</li>
+</ol>
+<p>​ 原因是 node 版本问题，修改项目根目录下的<code>.travis.yml</code>文件中的 node_js 版本，原来是<code>stable</code>改为<code>lts</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">os:</span> <span class="string">linux</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">node_js</span></span><br><span class="line"><span class="attr">node_js:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">lts/*</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>自动发版不生效<br>使用手动发版：</li>
+</ol>
+<ul>
+<li>命令执行先 <code>hexo g</code> 生成</li>
+<li>再执行 <code>hexo d</code> 发布</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2021-06-10</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%BD%91%E7%AB%99/'>
+                            网站
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/srv-optimize/'>服务器性能优化</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/limiter/">服务流控方案总结</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

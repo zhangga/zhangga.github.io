@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="查看Linux下进程占用内存" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    查看Linux下进程占用内存
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.7k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：6分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="post-toc-text">遇到的问题</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%8F%82%E6%95%B0%E7%9A%84%E5%AE%9E%E9%99%85%E5%90%AB%E4%B9%89"><span class="post-toc-text">参数的实际含义</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%B3%BB%E7%BB%9F%E6%80%BB%E4%BD%93%E4%BF%A1%E6%81%AF%E5%8C%BA"><span class="post-toc-text">系统总体信息区</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%80%E8%A1%8C%EF%BC%88%E7%B3%BB%E7%BB%9F%E7%8A%B6%E6%80%81%EF%BC%89"><span class="post-toc-text">第一行（系统状态）</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E7%AC%AC%E4%BA%8C%E8%A1%8C%EF%BC%88%E4%BB%BB%E5%8A%A1%E7%BB%9F%E8%AE%A1%EF%BC%89"><span class="post-toc-text">第二行（任务统计）</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%89%E8%A1%8C%EF%BC%88CPU-%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5%EF%BC%89"><span class="post-toc-text">第三行（CPU 使用情况）</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E7%AC%AC%E5%9B%9B%E3%80%81%E4%BA%94%E8%A1%8C%EF%BC%88%E5%86%85%E5%AD%98%E7%BB%9F%E8%AE%A1%EF%BC%89"><span class="post-toc-text">第四、五行（内存统计）</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%BF%9B%E7%A8%8B%E4%BF%A1%E6%81%AF%E5%8C%BA"><span class="post-toc-text">进程信息区</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#RES"><span class="post-toc-text">RES</span></a></li></ol></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%9F%A5%E7%9C%8B%E8%BF%9B%E7%A8%8B%E7%A7%81%E6%9C%89%E5%86%85%E5%AD%98"><span class="post-toc-text">查看进程私有内存</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BB%A5%E4%B8%8A%E9%9D%A2%E8%BF%9B%E7%A8%8B%E4%B8%BA%E4%BE%8B%E5%AE%9E%E9%99%85%E8%AE%A1%E7%AE%97%E4%B8%8B"><span class="post-toc-text">以上面进程为例实际计算下</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#PID-17%EF%BC%88%E7%88%B6%EF%BC%89"><span class="post-toc-text">PID 17（父）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#PID-20%EF%BC%88%E5%AD%90%EF%BC%89"><span class="post-toc-text">PID 20（子）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%9D%9EFork%E4%B8%8B"><span class="post-toc-text">非Fork下</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="post-toc-text">结论</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#COW-%E5%90%8E%E7%9A%84%E5%8F%98%E5%8C%96%E8%B6%8B%E5%8A%BF"><span class="post-toc-text">COW 后的变化趋势</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>近期计划针对 Linux 环境下DS（Dedicated Server）的性能展开测试，重点对比下面两种运行模式的表现：</p>
+<ul>
+<li>共享内存模式（基于Fork实现）</li>
+<li>单进程多GameInstance模式</li>
+</ul>
+<p>在查看共享内存模式下进程占用的内存时，碰到一些疑问，这里整理记录下。</p>
+<h1 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h1><p>下面是使用top查看内存占用的情况<br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/lm-top.1hslrostgu.webp" title="top" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/lm-top.1hslrostgu.webp" alt="top"></a><br>发现父进程(st_seed_Camp)占用<strong>931m</strong>内存，同时各个子进程(st_Camp_2xxxx)占用<strong>771m</strong>内存。</p>
+<p>上图还是Camp服务在启动后，没有玩家登入的情况下，内存占用的情况。很明显，771m不是子进程真正占用的情况。<br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/lm-freem.45i221myz0.webp" title="freem" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/lm-freem.45i221myz0.webp" alt="freem"></a><br>要做性能测试，必须先能正确查看到各进程实际占用的内存才行。</p>
+<h1 id="参数的实际含义"><a href="#参数的实际含义" class="headerlink" title="参数的实际含义"></a>参数的实际含义</h1><p>那top命令下看到的各值实际含义是什么呢？</p>
+<h2 id="系统总体信息区"><a href="#系统总体信息区" class="headerlink" title="系统总体信息区"></a>系统总体信息区</h2><h4 id="第一行（系统状态）"><a href="#第一行（系统状态）" class="headerlink" title="第一行（系统状态）"></a>第一行（系统状态）</h4><p><code>top - 16:33:58 up 19 days,  1:41,  0 users,  load average: 0.02, 0.07, 0.08</code></p>
+<ul>
+<li><code>16:33:58</code> → 当前时间</li>
+<li><code>up 19 days,  1:41</code> → 系统已运行时间</li>
+<li><code>0 users</code> → 当前登录用户数量</li>
+<li><code>load average</code> → 1分钟、5分钟、15分钟平均负载（接近或大于CPU核心数表示忙）</li>
+</ul>
+<h4 id="第二行（任务统计）"><a href="#第二行（任务统计）" class="headerlink" title="第二行（任务统计）"></a>第二行（任务统计）</h4><p><code>Tasks:  26 total,   1 running,  25 sleeping,   0 stopped,   0 zombie</code></p>
+<ul>
+<li>​<strong>total</strong>​：总进程数</li>
+<li>​<strong>running</strong>​：正在运行（使用CPU）的进程数</li>
+<li>​<strong>sleeping</strong>​：休眠中的进程</li>
+<li>​<strong>stopped</strong>​：被停止（信号暂停）的进程</li>
+<li>​<strong>zombie</strong>​：僵尸进程（已退出但父进程未回收）</li>
+</ul>
+<h4 id="第三行（CPU-使用情况）"><a href="#第三行（CPU-使用情况）" class="headerlink" title="第三行（CPU 使用情况）"></a>第三行（CPU 使用情况）</h4><p><code>%Cpu(s):  0.6 us,  0.6 sy,  0.0 ni, 98.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</code></p>
+<p>👉 通常关注：</p>
+<ul>
+<li><strong>us</strong>​<strong>​ + sy ≈ 系统总 CPU 使用率</strong></li>
+<li><strong>wa</strong> 高说明 I/O 瓶颈</li>
+<li><strong>id</strong> 低说明 CPU 忙碌</li>
+</ul>
+<h4 id="第四、五行（内存统计）"><a href="#第四、五行（内存统计）" class="headerlink" title="第四、五行（内存统计）"></a>第四、五行（内存统计）</h4><p><code>MiB Mem :  15492.0 total,    414.3 free,   2578.1 used,  12499.6 buff/cache</code></p>
+<p><code>MiB Swap:      0.0 total,      0.0 free,      0.0 used.  12502.4 avail Mem</code></p>
+<table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>total</strong></td>
+<td>内存总量</td>
+</tr>
+<tr>
+<td><strong>free</strong></td>
+<td>完全未分配的</td>
+</tr>
+<tr>
+<td><strong>used</strong></td>
+<td>已使用的（包含 cache）</td>
+</tr>
+<tr>
+<td><strong>buff/cache</strong></td>
+<td>系统缓存与文件缓冲区</td>
+</tr>
+<tr>
+<td><strong>shared</strong></td>
+<td>共享内存（tmpfs、shm）使用</td>
+</tr>
+<tr>
+<td><strong>available</strong></td>
+<td>实际可用内存（free + 可回收 cache），更准确</td>
+</tr>
+</tbody></table>
+<p>如果 Swap 使用很多（used 很大），说明内存紧张。</p>
+<p>⚠️ 常见误区：</p>
+<blockquote>
+<p>“free 很小是不是内存不够用了？”</p>
+<p>❌ 错。Linux 会尽量利用空闲内存做缓存，提高性能。  真正可用内存是 ​<strong>available</strong>​。</p>
+</blockquote>
+<h2 id="进程信息区"><a href="#进程信息区" class="headerlink" title="进程信息区"></a>进程信息区</h2><p><code>PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND</code></p>
+<table>
+<thead>
+<tr>
+<th><strong>列名</strong></th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>PID</strong></td>
+<td>进程号（Process ID）</td>
+</tr>
+<tr>
+<td><strong>USER</strong></td>
+<td>启动该进程的用户</td>
+</tr>
+<tr>
+<td><strong>PR</strong></td>
+<td>优先级（Priority）数值越小优先级越高</td>
+</tr>
+<tr>
+<td><strong>NI</strong></td>
+<td>nice值（影响调度优先级，默认0）</td>
+</tr>
+<tr>
+<td><strong>VIRT</strong></td>
+<td>进程使用的虚拟内存总量（包含共享库、未实际分配的内存）</td>
+</tr>
+<tr>
+<td><strong>RES</strong></td>
+<td>常驻内存（Resident Set Size），即实际占用的物理内存，不含 swap</td>
+</tr>
+<tr>
+<td><strong>SHR</strong></td>
+<td>共享内存大小（共享库等）</td>
+</tr>
+<tr>
+<td><strong>S</strong></td>
+<td>进程状态：<code>R</code>=运行、<code>S</code>=睡眠、<code>D</code>=不可中断睡眠、<code>T</code>=停止、<code>Z</code>=僵尸</td>
+</tr>
+<tr>
+<td><strong>%CPU</strong></td>
+<td>CPU 占用百分比（多核系统可超过100）</td>
+</tr>
+<tr>
+<td><strong>%MEM</strong></td>
+<td>占物理内存百分比</td>
+</tr>
+<tr>
+<td>​<strong>TIME</strong>​**+**</td>
+<td>进程累计占用 CPU 的时间（user + sys）</td>
+</tr>
+<tr>
+<td><strong>COMMAND</strong></td>
+<td>可执行文件或命令名称</td>
+</tr>
+</tbody></table>
+<h4 id="RES"><a href="#RES" class="headerlink" title="RES"></a>RES</h4><blockquote>
+<p><strong>​RES 是进程当前驻留在物理内存（​</strong>​​<strong>RAM</strong>​​<strong>）中的总字节数</strong>​。 它表示该进程的页表中，有多少页真正加载在内存中（没有被 swap 出去）。</p>
+</blockquote>
+<p><strong>RES</strong> 实际上是这三类内存的总和：</p>
+<table>
+<thead>
+<tr>
+<th><strong>内存类型</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>私有匿名页（Private Anonymous）</strong></td>
+<td>比如堆（malloc/new）、栈、临时分配内存</td>
+</tr>
+<tr>
+<td><strong>私有文件映射页（Private File）</strong></td>
+<td>比如只被该进程使用的 mmap 文件</td>
+</tr>
+<tr>
+<td><strong>共享页（Shared Pages）</strong></td>
+<td>比如共享库、fork 后 copy-on-write 未触发的页、shm/tmpfs</td>
+</tr>
+</tbody></table>
+<p>即：</p>
+<p><strong><code>RES = 私有内存 + 共享内存</code></strong></p>
+<h1 id="查看进程私有内存"><a href="#查看进程私有内存" class="headerlink" title="查看进程私有内存"></a>查看进程私有内存</h1><p>使用下面命令，可以查看更详细的内存占用</p>
+<p><code>cat /proc/&lt;pid&gt;/smaps_rollup</code></p>
+<table>
+<thead>
+<tr>
+<th><strong>列名</strong></th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Rss</strong></td>
+<td>Resident Set Size，进程实际驻留在物理内存中的总大小（包括共享内存）</td>
+</tr>
+<tr>
+<td><strong>Pss</strong></td>
+<td>Proportional Set Size，分摊共享页后的真实占用</td>
+</tr>
+<tr>
+<td><strong>Shared_Clean</strong></td>
+<td>被多个进程共享、且未被修改的页面（通常是映射的可执行文件、动态库（如<code>.so</code>文件）、或只读共享内存）</td>
+</tr>
+<tr>
+<td><strong>Shared_Dirty</strong></td>
+<td>被多个进程共享、且已修改的页面（通常是共享内存（<code>shm</code>）、<code>mmap</code>写映射文件、或 copy-on-write 前的父子共享页）</td>
+</tr>
+<tr>
+<td><strong>Private_Clean</strong></td>
+<td>当前进程独占、但未修改（clean）的页面</td>
+</tr>
+<tr>
+<td><strong>Private_Dirty</strong></td>
+<td>当前进程独占、且被修改过（dirty）的页面（堆、栈、写时复制 (COW) 页、mmap 写映射）</td>
+</tr>
+</tbody></table>
+<ul>
+<li>几个关键指标的关系</li>
+</ul>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Rss</span> = <span class="title class_">Private</span>_Clean + <span class="title class_">Private</span>_Dirty + <span class="title class_">Shared</span>_Clean + <span class="title class_">Shared</span>_Dirty</span><br><span class="line"><span class="title class_">Private</span> = <span class="title class_">Private</span>_Clean + <span class="title class_">Private</span>_Dirty</span><br><span class="line"><span class="title class_">Shared</span>  = <span class="title class_">Shared</span>_Clean + <span class="title class_">Shared</span>_Dirty</span><br></pre></td></tr></table></figure>
+
+<p>所以：</p>
+<ul>
+<li>​<strong>USS</strong>​<strong>（独占内存） = Private = Private_Clean + Private_Dirty</strong></li>
+<li><strong>PSS</strong>​<strong>​ = Private + (Shared / N)</strong> （N = 共享者数量）</li>
+<li><strong>RSS = Private + Shared</strong></li>
+</ul>
+<h2 id="以上面进程为例实际计算下"><a href="#以上面进程为例实际计算下" class="headerlink" title="以上面进程为例实际计算下"></a>以上面进程为例实际计算下</h2><h3 id="PID-17（父）"><a href="#PID-17（父）" class="headerlink" title="PID 17（父）"></a>PID 17（父）</h3><p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/lm-parent.9ddcp1w7po.webp" title="parent" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/lm-parent.9ddcp1w7po.webp" alt="parent"></a></p>
+<ul>
+<li><strong>RSS</strong> = 954,200 kB ≈ <strong>932.6 ​</strong>​<strong>MB</strong></li>
+<li><strong>PSS</strong> = 249,097 kB ≈ <strong>243.4 ​</strong>​<strong>MB</strong>  ← 每个映射到的进程分摊后的“真实占用”</li>
+<li><strong>​Private (​</strong>​​<strong>USS</strong>​**)** = Private_Clean + Private_Dirty = 88,256 + 125,528 = <strong>213,784 kB ≈ 208.8 ​</strong>​<strong>MB</strong> ← 父进程独占的内存</li>
+<li><strong>Shared total</strong> = Shared_Clean + Shared_Dirty = 70,124 + 670,292 = <strong>740,416 kB ≈ 722.9 MB</strong></li>
+<li><strong>分摊的共享内存</strong> = 722.9 MB / 21（父进程+20个子进程） = <strong>34.4 MB</strong></li>
+<li>​<strong>验证</strong>​：PSS(243.4) = Private(208.8) + 分摊的共享内存(34.4)</li>
+</ul>
+<h3 id="PID-20（子）"><a href="#PID-20（子）" class="headerlink" title="PID 20（子）"></a>PID 20（子）</h3><p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/lm-child.8l0h7bfh3k.webp" title="child" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/lm-child.8l0h7bfh3k.webp" alt="child"></a></p>
+<ul>
+<li><strong>RSS</strong> = 790,216 kB ≈ <strong>771.8 ​</strong>​<strong>MB</strong></li>
+<li><strong>PSS</strong> = 85,198 kB ≈ <strong>83.2 ​</strong>​<strong>MB</strong></li>
+<li><strong>​Private (​</strong>​​<strong>USS</strong>​**)** = 0 + 49,952 = <strong>49,952 kB ≈ 48.8 ​</strong>​<strong>MB</strong></li>
+<li><strong>Shared total</strong> = 69,976 + 670,288 = <strong>740,264 kB ≈ 722.8 MB</strong></li>
+</ul>
+<h3 id="非Fork下"><a href="#非Fork下" class="headerlink" title="非Fork下"></a>非Fork下</h3><p>Private的值占比会非常高（共享很少）<br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/lm-nofork.175ryjadc1.webp" title="nonfork" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/lm-nofork.175ryjadc1.webp" alt="nonfork"></a></p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>父进程 fork 子进程时，Linux 不会立即复制内存页，而是：</p>
+<ul>
+<li>父子共享同一份物理页；</li>
+<li>这些页都标记为只读；</li>
+<li>当任意一方写入时，触发 Copy-on-Write (​<strong>COW</strong>​)，内核才复制出新的页。</li>
+</ul>
+<p>因此刚 fork 完时：</p>
+<ul>
+<li>父子几乎完全共享；</li>
+<li>Private 很小，Shared 很大；</li>
+<li>RSS 大但 PSS 较小（因为共享页分摊了）。</li>
+</ul>
+<h1 id="COW-后的变化趋势"><a href="#COW-后的变化趋势" class="headerlink" title="COW 后的变化趋势"></a>COW 后的变化趋势</h1><p>随着运行时间增加、数据写入增多，各进程会对内存页发生 COW。来看几个指标的变化趋势：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+<th>COW 后变化趋势</th>
+<th>原因解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Private_Dirty</td>
+<td>私有的、已被修改的匿名页</td>
+<td>🔺 上升</td>
+<td>写操作导致复制页，新页标记为 dirty。</td>
+</tr>
+<tr>
+<td>Shared_Clean / Shared_Dirty</td>
+<td>可共享的页（未写入）</td>
+<td>🔻 下降</td>
+<td>原本共享的页被分裂成私有副本后不再共享。</td>
+</tr>
+<tr>
+<td>RSS</td>
+<td>实际驻留物理内存总量（Shared + Private）</td>
+<td>🔺 上升</td>
+<td>每个进程都多了自己独有的副本，物理占用上升。</td>
+</tr>
+<tr>
+<td>USS (Private_Clean + Private_Dirty)</td>
+<td>独占的页（别的进程不共享）</td>
+<td>🔺 上升</td>
+<td>表示每个进程独占的内存越来越多。</td>
+</tr>
+<tr>
+<td>PSS</td>
+<td>平均分摊的真实占用</td>
+<td>🔺 上升缓慢</td>
+<td>因为每个进程获得更多独占页（PSS≈USS+共享页/N），共享比例减少。</td>
+</tr>
+<tr>
+<td>共享总量 (Shared_Clean + Shared_Dirty)</td>
+<td>各进程共同映射的物理页</td>
+<td>🔻 下降明显</td>
+<td>页逐渐不再被多个进程共享。</td>
+</tr>
+<tr>
+<td>总系统内存使用量</td>
+<td>所有进程 RSS 的并集</td>
+<td>🔺 显著上升</td>
+<td>因为同一页被多次复制后，物理上变成多份。</td>
+</tr>
+</tbody></table>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2025-10-13</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ue-multiworld/'>UE5单进程多GameInstance方案</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/etcd_go_proxy/">etcd go客户端无法正常连接</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

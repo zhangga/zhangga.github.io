@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="模型微调" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    模型微调
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：748</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：2分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%AE%AD%E7%BB%83%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%B8%89%E4%B8%AA%E9%98%B6%E6%AE%B5"><span class="post-toc-text">训练大模型的三个阶段</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%A2%9E%E9%87%8F%E9%A2%84%E8%AE%AD%E7%BB%83"><span class="post-toc-text">增量预训练</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BD%9C%E7%94%A8"><span class="post-toc-text">作用</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%9C%BA%E6%99%AF"><span class="post-toc-text">场景</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BE%AE%E8%B0%83"><span class="post-toc-text">微调</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BD%9C%E7%94%A8-1"><span class="post-toc-text">作用</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%9C%BA%E6%99%AF-1"><span class="post-toc-text">场景</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BE%AE%E8%B0%83%E7%9B%AE%E6%A0%87%E5%88%86%E7%B1%BB"><span class="post-toc-text">微调目标分类</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BE%AE%E8%B0%83%E7%9A%84%E4%B8%A4%E4%B8%AA%E4%B8%BB%E8%A6%81%E7%B1%BB%E5%9E%8B"><span class="post-toc-text">微调的两个主要类型</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BE%AE%E8%B0%83%E6%96%B9%E6%B3%95"><span class="post-toc-text">微调方法</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Lora%E5%BE%AE%E8%B0%83"><span class="post-toc-text">Lora微调</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFLora"><span class="post-toc-text">什么是Lora</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Lora%E5%BE%AE%E8%B0%83%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="post-toc-text">Lora微调的优势</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83%E8%BF%87%E7%A8%8B"><span class="post-toc-text">语言模型微调过程</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%83%A8%E7%BD%B2%E6%8E%A8%E7%90%86%E6%9C%8D%E5%8A%A1"><span class="post-toc-text">部署推理服务</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="训练大模型的三个阶段"><a href="#训练大模型的三个阶段" class="headerlink" title="训练大模型的三个阶段"></a>训练大模型的三个阶段</h2><ul>
+<li>预训练：学说话</li>
+<li>微调：学根据指令回答</li>
+<li>偏好对齐：学会按照人类偏好回答</li>
+</ul>
+<h2 id="增量预训练"><a href="#增量预训练" class="headerlink" title="增量预训练"></a>增量预训练</h2><h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><ul>
+<li>更新知识</li>
+<li>修改常识性错误</li>
+<li>扩充领域知识</li>
+<li>……</li>
+</ul>
+<h3 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h3><ul>
+<li>比如把知识从去年扩充到今年</li>
+<li>比如训练一个小说家小说家</li>
+<li>比如他对某个历史人物记忆有错误</li>
+</ul>
+<h2 id="微调"><a href="#微调" class="headerlink" title="微调"></a>微调</h2><h3 id="作用-1"><a href="#作用-1" class="headerlink" title="作用"></a>作用</h3><ul>
+<li>回答特定领域问题</li>
+<li>完成特定任务</li>
+<li>个性化需求，比方当我让他用某种特殊方式回答某个特定问题</li>
+<li>……</li>
+</ul>
+<h3 id="场景-1"><a href="#场景-1" class="headerlink" title="场景"></a>场景</h3><ul>
+<li>医疗客服</li>
+<li>金融咨询</li>
+<li>角色扮演</li>
+</ul>
+<h2 id="微调目标分类"><a href="#微调目标分类" class="headerlink" title="微调目标分类"></a>微调目标分类</h2><ul>
+<li>指令微调 （总结、情感分析）</li>
+<li>领域微调( 金融类问题回答、医疗类问题回答)</li>
+<li>多任务微调</li>
+<li>知识蒸馏（老师模型微调学生模型）</li>
+<li>工具调用</li>
+<li>……</li>
+</ul>
+<h2 id="微调的两个主要类型"><a href="#微调的两个主要类型" class="headerlink" title="微调的两个主要类型"></a>微调的两个主要类型</h2><ol>
+<li>监督微调（Supervised Fine-tuning）：监督微调是指在进行微调时使用有标签的训练数据集。这些标签提供了模型在微调过程中的目标输出。在监督微调中，通常使用带有标签的任务特定数据集，例如分类任务的数据集，其中每个样本都有一个与之关联的标签。通过使用这些标签来指导模型的微调，可以使模型更好地适应特定任务。</li>
+<li>无监督微调（Unsupervised Fine-tuning）：无监督微调是指在进行微调时使用无标签的训练数据集。这意味着在微调过程中，模型只能利用输入数据本身的信息，而没有明确的目标输出。这些方法通过学习数据的内在结构或生成数据来进行微调，以提取有用的特征或改进模型的表示能力。</li>
+</ol>
+<h2 id="微调方法"><a href="#微调方法" class="headerlink" title="微调方法"></a>微调方法</h2><ul>
+<li>Lora微调</li>
+<li>全参数微调</li>
+<li>冻结部分参数微调</li>
+</ul>
+<h2 id="Lora微调"><a href="#Lora微调" class="headerlink" title="Lora微调"></a>Lora微调</h2><h3 id="什么是Lora"><a href="#什么是Lora" class="headerlink" title="什么是Lora"></a>什么是Lora</h3><p>Low Rank Adapter</p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora1-6ZPzRm.png" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora1-6ZPzRm.png" alt="img"></a></p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora2-AxMP25.png" title="lora2-AxMP25" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2024-11/lora2-AxMP25.png" alt="lora2-AxMP25"></a></p>
+<h3 id="Lora微调的优势"><a href="#Lora微调的优势" class="headerlink" title="Lora微调的优势"></a>Lora微调的优势</h3><ol>
+<li><strong>效率高</strong>：只需更新低秩适应层，而不是整个模型，更快、更高效地对大型语言模型进行微调。</li>
+<li><strong>节省资源</strong>：降低微调过程的复杂性，节省计算资源、能源和时间。</li>
+<li><strong><a target="_blank" rel="noopener" href="https://ai-bot.cn/what-is-lora/">灵活性：适用于各种大规模语言模型，易于适应不同的任务或领域</a></strong></li>
+</ol>
+<h2 id="语言模型微调过程"><a href="#语言模型微调过程" class="headerlink" title="语言模型微调过程"></a>语言模型微调过程</h2><ol>
+<li>确定训练目标</li>
+<li>选择合适的基座模型 (Base、Instrcution、Chat、Code、MOE、Toolcall、VLM)，参数量</li>
+<li>选择微调框架 推荐用 <a target="_blank" rel="noopener" href="https://github.com/hiyouga/LLaMA-Factory">https://github.com/hiyouga/LLaMA-Factory</a></li>
+<li>准备微调数据<ol>
+<li>找合适的数据源（自有数据\爬虫\huggingface\github\wiki\kaggle\modelscope）</li>
+<li>数据清洗（过滤、去重、脱敏）</li>
+<li>数据处理<ul>
+<li>数据增强</li>
+<li>合成数据</li>
+<li>数据格式（text，instrcution，conversation）</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>确定微调参数，开始微调</li>
+<li>观察loss变化</li>
+<li>模型评估</li>
+<li>合并模型，将Lora参数和Base模型参数合并导出</li>
+<li>模型量化（可选）</li>
+</ol>
+<h2 id="部署推理服务"><a href="#部署推理服务" class="headerlink" title="部署推理服务"></a>部署推理服务</h2><p>推理框架</p>
+<ol>
+<li>Transformers</li>
+<li>vllm </li>
+<li>Ollama</li>
+<li>Xinference</li>
+<li>onnx</li>
+</ol>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2024-08-27</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E5%AD%A6%E4%B9%A0/'>
+                            学习
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/good-team/'>向优秀团队学习（转载）</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/dotnet-env/">mac下.net环境问题</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

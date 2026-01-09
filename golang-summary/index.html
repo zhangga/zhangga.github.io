@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="golang笔记" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    golang笔记
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：11分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#go-gc"><span class="post-toc-text">go gc</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#mutex"><span class="post-toc-text">mutex</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#kitex"><span class="post-toc-text">kitex</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#java-gc"><span class="post-toc-text">java gc</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%B0%83%E4%BC%98"><span class="post-toc-text">调优</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#pprof"><span class="post-toc-text">pprof</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%BC%93%E5%AD%98"><span class="post-toc-text">缓存</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#java%E6%80%A7%E8%83%BD"><span class="post-toc-text">java性能</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%8C%B9%E9%85%8D"><span class="post-toc-text">匹配</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Redis"><span class="post-toc-text">Redis</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Limiter"><span class="post-toc-text">Limiter</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-5"><a class="post-toc-link" href="#redis%EF%BC%9A"><span class="post-toc-text">redis：</span></a></li></ol></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="go-gc"><a href="#go-gc" class="headerlink" title="go gc"></a>go gc</h2><ul>
+<li>开始标记：STW，开启写屏障，统计root对象。</li>
+<li>三色标记：扫描root对象，包括全局指针和G栈上的，扫描G栈时G栈需要暂停。root标记灰色，没引用标记黑色，有引用标记黑色并把引用标记灰色，直到灰色队列为空。与用户程序并行。</li>
+<li>重新扫描：STW，因为上一步并行，可能重新分配对象和赋值，通过写屏障记录下来。</li>
+<li>回收白色对象</li>
+<li>写屏障：记录第一次扫描时对象的状态，和第二次比对，引用状态变化的对象标记灰色，继续处理。</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="mutex"><a href="#mutex" class="headerlink" title="mutex"></a>mutex</h2><ul>
+<li>CAS获取锁，成功则返回</li>
+<li>判断是否可进入自旋，1当前锁非饥饿且已锁定，2次数小于4，3cpu&gt;1，4正在执行中，且队列空闲的P大于0。进入自旋会执行30次PAUSE指令。</li>
+<li>自旋结束后判断当前锁的状态，饥饿模式下不会去请求锁，而会将goroutine加入队列末端。</li>
+<li>自旋后CAS获取锁，成功则返回。失败则休眠当前goroutine，等待信号量唤醒。</li>
+<li>goroutine被唤醒后会判断是否饥饿模式（锁等待超过1ms就会进入饥饿状态），饥饿状态下获得互斥锁，如果锁等待队列中只有当前goroutine则取消饥饿状态，如果判断是正常模式，设置唤醒，重置迭代次数并重新获取锁。</li>
+<li>解锁没有绑定关系，可以一个goroutine锁定，另一个goroutine解锁。</li>
+<li>解锁，atomic修改锁状态，如果设置后等待锁的goroutine为0则返回，不为0说明还有其他goroutine在等待锁。</li>
+<li>饥饿模式下，直接将锁交给下一个等待的goroutine，不会退出饥饿模式。</li>
+<li>正常模式下，判断有没有等待者，或者goroutine已被唤醒或处于锁定。唤醒等待者并移交锁。</li>
+<li>读锁：<ul>
+<li>加锁：原子方法将正在读的加1，返回负数，说明有其他写锁，等待。</li>
+<li>解锁：正在读的减1，返回负数，说明有在等待的写操作，唤醒写操作</li>
+</ul>
+</li>
+<li>写锁：<ul>
+<li>加锁：调用互斥锁lock，获得互斥锁，将在读goroutine数设置为负值，阻塞后续读操作，如果仍然有在读的锁持有，等待读锁完成后唤醒。</li>
+<li>解锁：恢复之前写入的负数，循环唤醒当前等待的读操作。</li>
+</ul>
+</li>
+<li>sync.Once实现原理，用一个atomic变量判断函数是否已执行，如果执行过则不执行，如果未执行则尝试执行，可能多个goroutine同时尝试，加锁操作，获取锁后再检测上面的变量是否已执行，这里采用双重检测机制，执行完方法后，设置atomic变量。基本就是单例的原理。</li>
+</ul>
+<h2 id="kitex"><a href="#kitex" class="headerlink" title="kitex"></a>kitex</h2><ul>
+<li>公司开源的RPC框架，<a target="_blank" rel="noopener" href="https://github.com/cloudwego/kitex">github</a></li>
+<li>底层网络基于Netpoll实现，kite基于golang的net实现，BIO，每个连接都需要一个goroutine，大量连接时，上下文切换开销。</li>
+<li>Netpoll基于epoll实现，epoll是linux提供的多路复用网络IO模型，TCP读写都是通过缓冲区来实现的，操作系统为每个tcp连接维护读、写缓冲区。epoll基于监听读写缓冲区事件来实现对网络连接的读写和管理。epoll通过红黑树实现对fd(文件描述符)的高效查找，为每个监听的网络io向操作系统注册回调函数，有网络io发送的时候回调函数将对应的事件加入rdlist中，epoll只需要判断rdlist是不是空即可。<ul>
+<li>自建epoll管理连接状态</li>
+<li>自建内存池，提高buffer性能</li>
+<li>支持批量系统命令调用</li>
+<li>协程池</li>
+<li>多种交互模式（双向streaming，Oneway）</li>
+<li>协议扩展</li>
+</ul>
+</li>
+<li>通过netpoll模型，实现G1在M上进行IO操作时，将G1移到epoll监听中，M继续执行P上其他可执行的G2，刚才那个阻塞G1IO调用结束后，再加回到P的队列中或Global队列中。实现以同步的模式写异步逻辑。</li>
+</ul>
+<h2 id="java-gc"><a href="#java-gc" class="headerlink" title="java gc"></a>java gc</h2><ul>
+<li>将内存划分成region，每个region表示eden，survivor，old，huge。跟踪各个region垃圾回收价值，维护优先级列表，避免在整个堆中进行垃圾回收。</li>
+<li>region间是复制算法</li>
+<li>可预测停顿时间的模型</li>
+<li>Eden younggc stw, 45%, 并发标记，混合回收，fullgc。</li>
+</ul>
+<h2 id="调优"><a href="#调优" class="headerlink" title="调优"></a>调优</h2><ul>
+<li>减少string与byte[]转换。</li>
+<li>文本连接用strings.Builder，和bytes.Buffer比起来底层没有内存分配和拷贝，是byte slice结构到string结构的转换。</li>
+<li>同java一样，slice和map预分配空间，减少内存拷贝，map还可减少rehash。</li>
+<li>函数中尽可能使用值而不是指针，这可能会和大家常听到的用指针避免对象的拷贝矛盾，主要是因为指针会使逃逸分析将变量分配在堆上。这个规则同样适用于函数的recv，指针仅仅应该表示可修改权。slice类型如非必要不要包含指针。但是channel传递的对象，无论指针还是值都会把对象分配到堆上，直接传指针就行。</li>
+<li>map尽量存值而不是指针。</li>
+<li>使用sync.Pool优化内存，适用短周期小内存对象，必须清楚对象的生命周期。放入pool前先置0。</li>
+<li>不带缓冲区的channel不发生内存拷贝。</li>
+<li>atomic优化。</li>
+</ul>
+<h2 id="pprof"><a href="#pprof" class="headerlink" title="pprof"></a>pprof</h2><ul>
+<li>Cpu/heap/goroutine/mutex/block/thread</li>
+<li>top/source/flame graph</li>
+<li>trace，mmu可以查看用户程序cpu时间占比，确定gc是否耗时过长。</li>
+<li>Cpu top视图和web视图<ul>
+<li>flat函数自身耗时和占比</li>
+<li>cum函数自身及其调用其他总耗时及占比</li>
+<li>list根据制定的正则查找代码，显示每行时间占比</li>
+</ul>
+</li>
+<li>heap<ul>
+<li>同上类似 source视图查看每行代码内存情况</li>
+<li>累计和当前持有的对象数和大小</li>
+</ul>
+</li>
+<li>goroutine<ul>
+<li>火焰图查看</li>
+</ul>
+</li>
+<li>mutex<ul>
+<li>可查看锁耗时的具体情况，以及代码</li>
+</ul>
+</li>
+<li>block<ul>
+<li>pprof中一些过小的调用节点可能不会展示，block中可能能看到的具体信息小于count计数</li>
+</ul>
+</li>
+<li>采样原理<ul>
+<li>cpu。进程开始采样，向操作系统启动定时器，操作系统每隔10ms向进程发送一次信号，进程收到信号，记录调用堆栈。进程会启动写缓冲的goroutine，每隔100ms将堆栈信息写入输出流，采样停止时，停止计时器，写缓冲结束输出。</li>
+<li>goroutine和threadcreate。StopTheWorld-&gt;遍历用户发起的goroutine/m列表-&gt;输出创建g/m的堆栈-&gt;StartTheWorld。</li>
+<li>heap。只能采样堆内存，每分配512K记录一次，记录分配情况和释放情况，可以算出当前使用情况。</li>
+<li>metux/block。采样抢锁/阻塞操作次数和耗时，超过阈值才会记录。发生的时候上报时间和堆栈信息上报profiler，profiler根据策略进行一些丢弃和统计。</li>
+</ul>
+</li>
+</ul>
+<h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><ul>
+<li>Fetcher,BatchFetcher,Loader,BatchLoader.</li>
+<li>回源(Loader)要保证安全，避免缓存击穿时引发雪崩。<ul>
+<li>singleflight：锁加共享。</li>
+<li>多级缓存。</li>
+</ul>
+</li>
+<li>缓存穿透：不存在的数据要缓存。</li>
+<li>缓存击穿：某一瞬间缓存失效，大量请求落到db上。</li>
+<li>缓存策略：<ul>
+<li>缓存优先：缓存命中返回。miss-&gt;回源-&gt;更新缓存-&gt;返回。</li>
+<li>回源优先（兜底）：回源成功-&gt;更新缓存-&gt;返回结果。回源失败-&gt;缓存-&gt;命中返回，未命中返回失败。</li>
+<li>缓存优先，同步回源，回源失败逻辑过期数据兜底：缓存命中返回。缓存miss-&gt;回源成功-&gt;更新缓存-&gt;返回，回源失败-&gt;逻辑过期数据返回，逻辑数据失败-&gt;返回失败。</li>
+<li>缓存优先，过期数据兜底，异步回源：缓存命中返回。缓存miss-&gt;逻辑过期数据-&gt;返回-&gt;异步回源-&gt;更新缓存。缓存miss-&gt;逻辑过期数据失败-&gt;同步回源-&gt;更新缓存-&gt;返回结果。</li>
+<li>只读缓存：只从缓存中读数据，有其他方式更新缓存，一般是全量缓存。</li>
+<li>只回源：缓存降级。</li>
+</ul>
+</li>
+<li>字节缓存：map&lt;int64, []byte&gt; 不包含指针，加速GC。对象缓存：map&lt;string, interface{}&gt;包含指针。</li>
+<li>大key，10K或5000个元素。</li>
+</ul>
+<h2 id="java性能"><a href="#java性能" class="headerlink" title="java性能"></a>java性能</h2><ul>
+<li><p>堆外内存</p>
+</li>
+<li><p>kwaibook春节笔记</p>
+</li>
+<li><p>缓存击穿：json反序列化和序列化性能，缓存失效后，读db前先加锁，本地缓存，拆除大key</p>
+</li>
+<li><p>sandbox笔记</p>
+</li>
+</ul>
+<h2 id="匹配"><a href="#匹配" class="headerlink" title="匹配"></a>匹配</h2><ul>
+<li>open match有三个微服务，frontend，director，MMF。</li>
+<li>简化了微服务的数量，可以在单个服务器运行，也可以在集群运行。</li>
+<li>通过动态配置，方便不同项目组动态接入匹配模式。</li>
+<li>支持一个游戏运行多个匹配模式，同一玩家可以同时匹配多个模式。</li>
+<li>每个匹配模式对应一个匹配算法，如先来先匹配-斗地主，同城匹配。</li>
+<li>支持了RPC和RMQ返回匹配结果。</li>
+<li>匹配流程，gameserver创建ticket，发送给匹配服放入ticketpool中。匹配服务会定时从池中取出ticket，mmf算法会选取合适的ticket匹配，创建match。match创建进一步进行过滤，去除重复匹配的票，删除异常的match，最后将结果通知gameserver，删除ticket。</li>
+<li>按elo分数组队，</li>
+</ul>
+<h2 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/125bba448cdd">https://www.jianshu.com/p/125bba448cdd</a></li>
+<li><a target="_blank" rel="noopener" href="https://cbsheng.github.io/posts/redis%E9%87%8C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E8%A2%AB%E5%A4%84%E7%90%86/">一个简单请求如何被处理</a></li>
+<li>IO多路复用，监听端口6379，socket封装成事件，注册到事件循环器里，还有回调函数。client新连接建立时，回调函数accept，返回一个FD，也注册进事件循环器里。这样之后client发送请求时，FD可读，事件循环器捕获到事件并调用对应的函数。</li>
+<li>每个连接都是client对象，存储命令，输入/出缓冲区。</li>
+<li>事件循环器拿到就绪事件的文件描述符后，判断可读还是可写，调用对应的回调函数。</li>
+<li>数据结构<ul>
+<li>stirng： int、embstr、raw。不能用c++string来代替，c++string不支持预分配</li>
+<li>List：ziplist、linkedlist</li>
+<li>hash：ziplist、hashtable</li>
+<li>set：intset、hashtable</li>
+<li>zset：ziplist、skiplist+table</li>
+<li>hash实现：sizemask=size-1，链地址头插法，rehash</li>
+</ul>
+</li>
+</ul>
+<h2 id="Limiter"><a href="#Limiter" class="headerlink" title="Limiter"></a>Limiter</h2><ul>
+<li>滑动窗口：redis指令，ZREMRANGEBYSCORE上个窗口前的值，ZCARD查看当前值，判断和want是否限流，不限流的话，ZADD(timestamp, timestamp+i)，设置过期时间，返回当前ZCARD数。</li>
+<li>固定窗口：根据时间封装key，可以是一些多维的参数key，incr方法返回判断是否限流，设置过期时间。</li>
+</ul>
+<p><del>性能分析 golang课程</del></p>
+<p><del>匹配 p5 elo</del></p>
+<p><del>网关</del></p>
+<p>tcp、kcp</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/388704023">https://zhuanlan.zhihu.com/p/388704023</a></p>
+<h5 id="redis："><a href="#redis：" class="headerlink" title="redis："></a>redis：</h5><p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000040206818">https://segmentfault.com/a/1190000040206818</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/148562122">https://zhuanlan.zhihu.com/p/148562122</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/125bba448cdd">https://www.jianshu.com/p/125bba448cdd</a></p>
+<p><a target="_blank" rel="noopener" href="https://cbsheng.github.io/posts/redis%E9%87%8C%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E8%A2%AB%E5%A4%84%E7%90%86/">https://cbsheng.github.io/posts/redis%e9%87%8c%e4%b8%80%e4%b8%aa%e7%ae%80%e5%8d%95%e8%af%b7%e6%b1%82%e5%a6%82%e4%bd%95%e8%a2%ab%e5%a4%84%e7%90%86/</a></p>
+<p>java锁流程，读写锁，延迟队列。</p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000022904663">https://segmentfault.com/a/1190000022904663</a></p>
+<p>java自带排序，blog</p>
+<p>mysql，blog</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/48327345">https://zhuanlan.zhihu.com/p/48327345</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.w3school.com.cn/sql/sql_datatypes.asp">https://www.w3school.com.cn/sql/sql_datatypes.asp</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903668571963406">https://juejin.cn/post/6844903668571963406</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzUxNTQyOTIxNA==&amp;mid=2247484041&amp;idx=1&amp;sn=76d3bf1772f9e3c796ad3d8a089220fa&amp;chksm=f9b784b8cec00dae3d52318f6cb2bdee39ad975bf79469b72a499ceca1c5d57db5cbbef914ea&amp;token=2025456560&amp;lang=zh_CN#rd">https://mp.weixin.qq.com/s?__biz=MzUxNTQyOTIxNA==&amp;mid=2247484041&amp;idx=1&amp;sn=76d3bf1772f9e3c796ad3d8a089220fa&amp;chksm=f9b784b8cec00dae3d52318f6cb2bdee39ad975bf79469b72a499ceca1c5d57db5cbbef914ea&amp;token=2025456560&amp;lang=zh_CN#rd</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ibigboy/article/details/104571930?depth_1-">https://blog.csdn.net/ibigboy/article/details/104571930?depth_1-</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html">http://blog.codinglabs.org/articles/theory-of-mysql-index.html</a></p>
+<p>mongo</p>
+<p><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges">https://www.infoq.cn/article/tencent-ranking-system-practice-and-challenges</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.atzlinux.com/atzlinux/doc/os2atc2019/SPDK-bytedance-miaoyu.pdf">https://www.atzlinux.com/atzlinux/doc/os2atc2019/SPDK-bytedance-miaoyu.pdf</a></p>
+<p><a target="_blank" rel="noopener" href="http://point-blank-games.com/theses/Sara_Budde_Thesis.pdf">http://point-blank-games.com/theses/Sara_Budde_Thesis.pdf</a></p>
+<p>byted open：</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d7284007f883">https://www.jianshu.com/p/d7284007f883</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dd5fb725331b">https://www.jianshu.com/p/dd5fb725331b</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.google.com/presentation/d/1k7ZlumJKxykn6CXWqdqsx1XcKMxt7HvWgYz1oxgN66E/edit#slide=id.g56a70cb717_0_263">https://docs.google.com/presentation/d/1k7ZlumJKxykn6CXWqdqsx1XcKMxt7HvWgYz1oxgN66E/edit#slide=id.g56a70cb717_0_263</a></p>
+<p><a target="_blank" rel="noopener" href="https://app.diandian.com/rank/ios/1-2-172-75-4?time=1620835200000&amp;device=1&amp;timetype=today">https://app.diandian.com/rank/ios/1-2-172-75-4?time=1620835200000&amp;device=1&amp;timetype=today</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.appannie.com/en/apps/ios/top/japan/overall/iphone/">https://www.appannie.com/en/apps/ios/top/japan/overall/iphone/</a></p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000022678327">https://segmentfault.com/a/1190000022678327</a></p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000022731367">https://segmentfault.com/a/1190000022731367</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/goyirzr19vqvtupois92">https://www.infoq.cn/article/goyirzr19vqvtupois92</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/_LovnIqJYAuDpTm2QmUgrA">https://mp.weixin.qq.com/s/_LovnIqJYAuDpTm2QmUgrA</a></p>
+<p><a target="_blank" rel="noopener" href="https://pandaychen.github.io/2020/03/03/BIGCACHE-ANALYSIS/">https://pandaychen.github.io/2020/03/03/BIGCACHE-ANALYSIS/</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/91136759">https://zhuanlan.zhihu.com/p/91136759</a></p>
+<p><a target="_blank" rel="noopener" href="https://lailin.xyz/post/go-training-03.html">https://lailin.xyz/post/go-training-03.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.wolfogre.com/posts/go-ppof-practice/">https://blog.wolfogre.com/posts/go-ppof-practice/</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903887757901831">https://juejin.cn/post/6844903887757901831</a></p>
+<p><a target="_blank" rel="noopener" href="https://coolshell.cn/articles/17416.html">https://coolshell.cn/articles/17416.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/abcjennifer/article/details/47110991">https://blog.csdn.net/abcjennifer/article/details/47110991</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/gogap/aop">https://github.com/gogap/aop</a></p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1165876">https://cloud.tencent.com/developer/article/1165876</a></p>
+<p>unity：</p>
+<p><a target="_blank" rel="noopener" href="https://developer.unity.cn/projects/openday-hangzhou-unity-probe">https://developer.unity.cn/projects/openday-hangzhou-unity-probe</a></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2021-09-01</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E9%9D%A2%E8%AF%95/'>
+                            面试
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/tcp/'>TCP/UDP</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/garbage-first/">垃圾回收器G1详解</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

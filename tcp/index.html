@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="TCP/UDP" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    TCP/UDP
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.3k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：5分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#TCP%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="post-toc-text">TCP常见面试题</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#TCP%E5%8D%8F%E8%AE%AE%E9%97%AE%E9%A2%98"><span class="post-toc-text">TCP协议问题</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#TCP-%E5%8D%8F%E8%AE%AE%E8%B0%83%E4%BC%98"><span class="post-toc-text">TCP 协议调优</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#UDP"><span class="post-toc-text">UDP</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-5"><a class="post-toc-link" href="#%E4%BC%98%E7%82%B9"><span class="post-toc-text">优点</span></a></li><li class="post-toc-item post-toc-level-5"><a class="post-toc-link" href="#%E7%BC%BA%E7%82%B9"><span class="post-toc-text">缺点</span></a></li></ol></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="TCP常见面试题"><a href="#TCP常见面试题" class="headerlink" title="TCP常见面试题"></a>TCP常见面试题</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/388704023">TCP</a></p>
+<h4 id="TCP协议问题"><a href="#TCP协议问题" class="headerlink" title="TCP协议问题"></a>TCP协议问题</h4><ul>
+<li>连接<ul>
+<li>三次握手<ul>
+<li>费时：4G网络(3*100ms)</li>
+<li>费力：3个数据包</li>
+<li>优化：<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh/TCP%E5%BF%AB%E9%80%9F%E6%89%93%E5%BC%80">TCP Fast Open</a></li>
+</ul>
+</li>
+<li>半连接(初始化连接SYN超时)<ul>
+<li>耗费网络资源：5次重发SYN-ACK包</li>
+<li>耗费服务器资源：63秒后断开连接(TIME_WAIT = 2*MSL)</li>
+<li>易被攻击：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/6eae45826754">SYN flood拒绝服务攻击</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+<ul>
+<li><p>断开</p>
+<ul>
+<li>TIME_WAIT状态<ul>
+<li>2*MSL：sudo sysctl -a | grep time_wait</li>
+<li>服务器：TIME_WAIT连接，占用机器的内存资源</li>
+<li>客户端：TIME_WAIT连接，占用TCP协议的端口</li>
+</ul>
+</li>
+<li>优化<ul>
+<li>连接本机服务，首选UNIX域套接字，<a target="_blank" rel="noopener" href="https://jaminzhang.github.io/network/the-difference-between-unix-domain-socket-and-tcp-ip-socket/">提高通信效率</a>，也避免浪费TCP端口</li>
+<li>加快回收：sudo sysctl -w net.ipv4.tcp_tw_recycle = 1</li>
+<li>连接复用：sudo sysctl -w net.ipv4.tcp_tw_reuse = 1</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>传输</p>
+<ul>
+<li>保序机制：流式交付，前序包阻塞</li>
+<li>确认机制：<ul>
+<li>延迟确认：滑动窗口停等，降低吞吐率</li>
+<li>快速确认：消耗带宽</li>
+<li>优化：快速确认和延迟确认两种模式自动切换</li>
+</ul>
+</li>
+<li>超时重传：<ul>
+<li>默认：必须等待RTO(Retransmission TimeOut )超时，不能快速响应当前网络状况</li>
+<li>每次RTO超时导致重传后，RTO值翻倍，一直尝试tcp_retries2次重传</li>
+<li>优化：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25596865">快速重传</a>（收到3个重复的ACK即开始重传）</li>
+</ul>
+</li>
+<li>重传数量：<ul>
+<li>默认：发送方重传收到的ACK之后所有已发送的数据包，浪费带宽</li>
+<li>优化：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25596865">选择确认</a>（只重传SACK中缺少的数据包）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>流量控制：</p>
+<ul>
+<li><p>糊涂窗口综合症</p>
+<p>：接收方每次只处理小包，或者发送方一直发送小包</p>
+<ul>
+<li>优化：<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AE">David D Clark算法（接收端）；Nagle算法（发送端）</a>（默认打开）</li>
+</ul>
+</li>
+<li><p>Nagle算法 + 延迟确认</p>
+<p>：Http Server中Write-Write-Read模式下的40ms延迟</p>
+<ul>
+<li>优化：设置TCP_NODELAY选项，禁用Nagle算法</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>拥塞控制（Reno算法）：</p>
+<ul>
+<li>概念：<ul>
+<li>RTT（Round Trip Time）：往返时间（从数据包发出到收到ACK的时间）</li>
+<li>RTO（Retransmission Time）：重传时间（根据RTT动态调整，作为重传定时器的超时时间，收到ACK后重置连接的重传定时器）</li>
+</ul>
+</li>
+<li>慢启动（指数增长）<ul>
+<li>每个RTT内，cwnd随收到的ACK线性自增；每个RTT后，cwnd翻倍增长</li>
+<li>丢包，或者cwnd超过慢启动门限ssthresh：进入拥塞避免阶段</li>
+</ul>
+</li>
+<li>拥塞避免（退半避让，线性增长）<ul>
+<li>丢包<ul>
+<li>RTO超时：ssthresh降为cwnd/2，cwnd降为1，重新进入慢启动过程</li>
+<li>3个重复ACK：进入快速重传阶段</li>
+</ul>
+</li>
+<li>cwnd超过ssthresh：<ul>
+<li>每个RTT内，cwnd随收到的ACK增长1/cwnd个MSS；每个RTT后，cwnd增长1个MSS</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>快速重传<ul>
+<li>ssthresh降为cwnd/2，cwnd降为ssthresh，进入快速恢复阶段</li>
+</ul>
+</li>
+<li>快速恢复<ul>
+<li>cwnd设置为ssthresh+3，重传重复ACK指定的数据包</li>
+<li>收到重复ACK：cwnd自增</li>
+<li>收到新的非重复ACK：cwnd置为快速重传阶段的初始ssthresh，进入拥塞避免阶段</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="TCP-协议调优"><a href="#TCP-协议调优" class="headerlink" title="TCP 协议调优"></a>TCP 协议调优</h4><ul>
+<li><p>setsockopt</p>
+<ul>
+<li>SOL_SOCKET</li>
+</ul>
+</li>
+<li><p>```<br>SO_KEEPALIVE：TCP心跳（生效与否还取决于tcp_keepalive_xxx）</p>
+<p>SO_LINGER：设置close行为（FIN or RST，TIME_WAIT or not）</p>
+<p>SO_RCVBUF：设置接收缓存，覆盖tcp_rmem</p>
+<p>SO_SNDBUF：设置发送缓存，覆盖tcp_wmem</p>
+<p>SO_REUSERADDR：设置地址重用</p>
+<pre><code>1. 多块网卡多个地址，通配符bind
+
+2. 重用处于TIME_WAIT状态的socket地址
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  IPPROTO_TCP</span><br><span class="line"></span><br><span class="line">- ```</span><br><span class="line">  TCP_NODELAY：禁用Nagle算法，减少发送延时</span><br><span class="line">  </span><br><span class="line">  TCP_DEFER_ACCEPT：减少一次握手（仅限于Linux系统之间）</span><br></pre></td></tr></table></figure>
+
+<p>握手</p>
+<ul>
+<li><p>```<br>net.ipv4.tcp_syn_retries：客户端请求连接syn重试次数</p>
+<p>net.ipv4.tcp_synack_retries：服务器回复syn+ack重试次数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  半连接队列</span><br><span class="line"></span><br><span class="line">- ```</span><br><span class="line">  半连接队列溢出：</span><br><span class="line">  </span><br><span class="line">  netstat -s | grep LISTEN</span><br><span class="line">  </span><br><span class="line">  4375 SYNs to LISTEN sockets dropped</span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">  半连接队列调优：</span><br><span class="line">  </span><br><span class="line">  net.ipv4.tcp_max_syn_backlog：SYN队列长度</span><br><span class="line">  </span><br><span class="line">  net.ipv4.tcp_syncookies：SYN队列溢出时向对方发送syncookies，防范SYNFlood攻击</span><br></pre></td></tr></table></figure>
+
+<p>全连接队列</p>
+</li>
+</ul>
+</li>
+<li><p>```<br>全连接队列溢出：</p>
+<p>netstat -s | grep listen</p>
+<p>22438 times the listen queue of a socket overflowed</p>
+<p>全连接队列调优：</p>
+<p>net.core.somaxcon：同listen()的backlog共同决定accept队列长度:min(backlog,somaxconn) </p>
+<p>net.ipv4.tcp_abort_on_overflow：accept队列溢出的处理方式</p>
+<pre><code>默认关闭：服务器accept队列溢出后，直接丢弃客户端的ACK。待RTO超时后，重发SYN+ACK给客户端（不超过net.ipv4.tcp_synack_retries次）。
+
+打开该选项：服务器accept队列溢出后，直接发送RST给客户端（connection reset by peer）。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  缓存</span><br><span class="line"></span><br><span class="line">- ```</span><br><span class="line">  net.ipv4.tcp_wmem：发送缓存</span><br><span class="line">  </span><br><span class="line">  net.ipv4.tcp_rmem：接收缓存</span><br><span class="line">  </span><br><span class="line">  net.ipv4.tcp_moderate_rcvbuf：接收缓存自动伸缩</span><br></pre></td></tr></table></figure>
+
+<p>心跳</p>
+</li>
+<li><p>```<br>net.ipv4.tcp_keepalive_time：正常心跳间隔</p>
+<p>net.ipv4.tcp_keepalive_intvl：失败重试间隔</p>
+<p>net.ipv4.tcp_keepalive_probes：失败重试次数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  TIME_WAIT</span><br><span class="line"></span><br><span class="line">- ```</span><br><span class="line">  net.ipv4.tcp_max_tw_buckets：处于TIME_WAIT状态的socket数上限</span><br><span class="line">  </span><br><span class="line">  net.ipv4.tcp_tw_recycle：是否尽快回收TIME_WAIT状态的socket</span><br><span class="line">  </span><br><span class="line">  net.ipv4.tcp_tw_reuse：是否尽量重用TIME_WAIT状态的socket</span><br><span class="line">  </span><br><span class="line">  net.netfilter.nf_conntrack_tcp_timeout_time_wait：socket处于TIME_WAIT状态的时间</span><br></pre></td></tr></table></figure>
+
+<p>其他</p>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">net.ipv4.tcp_fin_timeout：连接主动断开方等待对端FIN包的最大时间</span><br><span class="line"></span><br><span class="line">net.ipv4.tcp_sack：选择ACK开关</span><br><span class="line"></span><br><span class="line">net.ipv4.tcp_timestamps：TCP时间戳开关（在TCP包头增加12个字节，能够识别超时重发包，计算RTT更精确）</span><br></pre></td></tr></table></figure>
+
+<h4 id="UDP"><a href="#UDP" class="headerlink" title="UDP"></a>UDP</h4><h5 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h5><ul>
+<li>速度快<ul>
+<li>跨运营商网络的情况下，UDP有可能比TCP块120倍</li>
+</ul>
+</li>
+<li>穿越强<ul>
+<li><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/UDP%E6%89%93%E6%B4%9E">UDP 打洞</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h5><ul>
+<li>传输不可靠<ul>
+<li>应用层要设计<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%87%AA%E5%8A%A8%E9%87%8D%E4%BC%A0%E8%AF%B7%E6%B1%82">ARQ协议</a>，应对丢包</li>
+</ul>
+</li>
+<li>需要考虑数据包大小<ul>
+<li>应用层要规划数据包大小，避免IP层分片影响传输效率</li>
+<li>应用层MTU多大合适？<ul>
+<li>UDP包数据段：2^16-1-8-20=65507</li>
+<li>局域网（Ethernet）：1500-8-20=1472</li>
+<li>广域网（Internet）：576-8-20=548</li>
+<li>游戏常用，便于记忆：500</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>简单模型低效，高性能编程复杂</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2021-09-08</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%BD%91%E7%BB%9C/'>
+                            网络
+                        </a>
+                    
+                        <a href='/tags/%E9%9D%A2%E8%AF%95/'>
+                            面试
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/mongodb-index/'>MongoDB索引详解</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/golang-summary/">golang笔记</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="UE5单进程多GameInstance方案" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    UE5单进程多GameInstance方案
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：5分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%A6%82%E4%BD%95%E5%BC%80%E5%90%AF%E5%A4%9A%E5%AE%9E%E4%BE%8B"><span class="post-toc-text">如何开启多实例</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BF%AE%E6%94%B9%E6%80%9D%E8%B7%AF"><span class="post-toc-text">修改思路</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="post-toc-text">实现细节</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%BC%95%E6%93%8E%E9%83%A8%E5%88%86"><span class="post-toc-text">引擎部分</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%A1%B9%E7%9B%AE%E9%83%A8%E5%88%86"><span class="post-toc-text">项目部分</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE"><span class="post-toc-text">修改配置</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%B3%A8%E6%84%8F%E7%BB%86%E8%8A%82"><span class="post-toc-text">注意细节</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="post-toc-text">适用场景</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="如何开启多实例"><a href="#如何开启多实例" class="headerlink" title="如何开启多实例"></a>如何开启多实例</h1><p>使用<code>-NumMultiWorld=num</code>来开启指定数量(num)的GameInstance实例</p>
+<h1 id="修改思路"><a href="#修改思路" class="headerlink" title="修改思路"></a>修改思路</h1><p>为了降低和官方引擎的差异，通过引入新的<code>UMultiWorldGameEngine</code>继承自<code>UGameEngine</code>重写必要的方法，来实现单进程多实例的方案。</p>
+<p>参照PIE复制World的方案，将同一份资源加载出多个UPackage，每一个UPackage对应一个World。在对象的命名上参考PIE模式，增加前缀UEMW_$id$_以作区分。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[2025.06.17-16.31.25:853][  0]LogGlobalStatus: UEngine::LoadMap Load map complete /Game/Project/Maps/MyMap/UEMW_1_MyMap</span><br></pre></td></tr></table></figure>
+
+<h1 id="实现细节"><a href="#实现细节" class="headerlink" title="实现细节"></a>实现细节</h1><h3 id="引擎部分"><a href="#引擎部分" class="headerlink" title="引擎部分"></a>引擎部分</h3><ul>
+<li><code>UEngine::LoadMap()</code>时增加<code>MW_URLTrueMapName</code>选项参数来指定真正的地图资源，比如上面log中的<code>/Game/Project/Maps/MyMap/MyMap</code>。原有的URL.Map通过增加<code>UEMW_$id$_</code>前缀来实现同一份资源加载出不同的WorldPackage。</li>
+</ul>
+<p>UnrealEngine.cpp<br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/ue-multiworld-1.8ok36kfpzv.webp" title="code1" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/ue-multiworld-1.8ok36kfpzv.webp" alt="code1"></a><br>World.cpp<br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/ue-multiworld-2.8s3p4aamxp.webp" title="code2" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/ue-multiworld-2.8s3p4aamxp.webp" alt="code2"></a></p>
+<ul>
+<li>对 <em>streaming levels ​</em>进行重命名（这里趟过坑）。参考PIE对World的完整处理流程<code>UEngine::CreatePIEWorldByLoadingFromPackage()</code></li>
+</ul>
+<p>UnrealEngine.cpp<br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/ue-multiworld-3.5j4l7qadwz.webp" title="code3" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/ue-multiworld-3.5j4l7qadwz.webp" alt="code3"></a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// This method refers to the above CreatePIEWorldByLoadingFromPackage().</span></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">RenameForMultiWorld</span><span class="params">(UWorld* InWorld, <span class="type">const</span> FString&amp; SourceWorldPackage, <span class="type">const</span> FString&amp; InMWPrefix)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="built_in">check</span>(InWorld);</span><br><span class="line">		</span><br><span class="line">		<span class="comment">// Rename streaming levels to MultiWorld. refers to StreamingLevel::RenameForPIE</span></span><br><span class="line">		<span class="keyword">for</span> (ULevelStreaming* StreamingLevel : InWorld-&gt;<span class="built_in">GetStreamingLevels</span>())</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">// Apply the MultiWorld prefix so this level references</span></span><br><span class="line">			<span class="keyword">if</span> (!StreamingLevel-&gt;<span class="built_in">GetWorldAsset</span>().<span class="built_in">IsNull</span>())</span><br><span class="line">			&#123;</span><br><span class="line">				FName NonPrefixedName = <span class="built_in">FName</span>(<span class="built_in">StripMWPrefixFromPackageName</span>(StreamingLevel-&gt;<span class="built_in">GetWorldAssetPackageName</span>(), InMWPrefix));</span><br><span class="line">				</span><br><span class="line">				<span class="comment">// Store original name</span></span><br><span class="line">				<span class="keyword">if</span> (StreamingLevel-&gt;PackageNameToLoad == NAME_None)</span><br><span class="line">				&#123;</span><br><span class="line">					StreamingLevel-&gt;PackageNameToLoad = NonPrefixedName;</span><br><span class="line">				&#125;</span><br><span class="line">				FName CurrWorldStreamingPackageName = <span class="built_in">FName</span>(<span class="built_in">ConvertToMWPackageName</span>(StreamingLevel-&gt;<span class="built_in">GetWorldAssetPackageName</span>(), InMWPrefix));</span><br><span class="line">				FSoftObjectPath::<span class="built_in">AddPIEPackageName</span>(CurrWorldStreamingPackageName);</span><br><span class="line">				StreamingLevel-&gt;<span class="built_in">SetWorldAssetByPackageName</span>(CurrWorldStreamingPackageName);</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			<span class="comment">// Rename LOD levels if any</span></span><br><span class="line">			<span class="keyword">if</span> (StreamingLevel-&gt;LODPackageNames.<span class="built_in">Num</span>() &gt; <span class="number">0</span>)</span><br><span class="line">			&#123;</span><br><span class="line">				StreamingLevel-&gt;LODPackageNamesToLoad.<span class="built_in">Reset</span>(StreamingLevel-&gt;LODPackageNames.<span class="built_in">Num</span>());</span><br><span class="line">				<span class="keyword">for</span> (FName&amp; LODPackageName : StreamingLevel-&gt;LODPackageNames)</span><br><span class="line">				&#123;</span><br><span class="line">					<span class="comment">// Store LOD level original package name</span></span><br><span class="line">					StreamingLevel-&gt;LODPackageNamesToLoad.<span class="built_in">Add</span>(LODPackageName);</span><br><span class="line">					<span class="comment">// Apply MultiWorld prefix to package name</span></span><br><span class="line">					<span class="type">const</span> FName NonPrefixedLODPackageName = LODPackageName;</span><br><span class="line">					LODPackageName = <span class="built_in">FName</span>(<span class="built_in">ConvertToMWPackageName</span>(LODPackageName.<span class="built_in">ToString</span>(), InMWPrefix));</span><br><span class="line">					FSoftObjectPath::<span class="built_in">AddPIEPackageName</span>(LODPackageName);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="项目部分"><a href="#项目部分" class="headerlink" title="项目部分"></a>项目部分</h3><p>主要部分</p>
+<p>UMultiWorldGameEngine.cpp</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> USE_MWGAMEENGINE</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">UMultiWorldGameEngine::Init</span><span class="params">(<span class="keyword">class</span> IEngineLoop* InEngineLoop)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::<span class="built_in">Init</span>(InEngineLoop);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Preload and hold assets for DS.</span></span><br><span class="line">    <span class="comment">// 按需实现下提前加载资源，注意，加载完资源后要用强引用持有，别被GC。</span></span><br><span class="line">    UPreloadSubsystem Preload = GEngine-&gt;<span class="built_in">GetEngineSubsystem</span>&lt;UPreloadSubsystem&gt;();</span><br><span class="line">    <span class="built_in">check</span>(Preload);</span><br><span class="line">    Preload-&gt;<span class="built_in">PreloadAssets</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!FParse::<span class="built_in">Value</span>(FCommandLine::<span class="built_in">Get</span>(), <span class="built_in">TEXT</span>(<span class="string">&quot;-NumMultiWorld=&quot;</span>), NumMultiWorld))</span><br><span class="line">    &#123;</span><br><span class="line">       NumMultiWorld = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Single game instance.</span></span><br><span class="line">​    ​<span class="keyword">if</span> (NumMultiWorld &lt;= <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="comment">// The base GameEngine-&gt;GameInstance is the only one.</span></span><br><span class="line">       <span class="built_in">ensure</span>(MultiGameInstances.<span class="built_in">Num</span>() == <span class="number">0</span>);</span><br><span class="line">       MultiGameInstances.<span class="built_in">Add</span>(GameInstance);</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 多实例模式下，基础的 GameEngine-&gt;GameInstance 不存放在 TArray&lt;MultiGameInstances&gt; 容器中。</span></span><br><span class="line">    <span class="comment">// 并且基础GameInstance不要被分配出去使用（被分配出去使用就可能会被销毁释放），要始终保留。 如果它被释放了，所有其他实例共用的它的UWorlds也被释放了。</span></span><br><span class="line">​    ​<span class="comment">// Try to create $&#123;NumMultiWorld&#125; game instances.</span></span><br><span class="line">​    ​<span class="keyword">for</span> (uint16 i = <span class="number">0</span>; i &lt; NumMultiWorld; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">       uint16 InstanceID = i;</span><br><span class="line">       <span class="built_in">ensure</span>(MultiGameInstances.<span class="built_in">Num</span>() == InstanceID);</span><br><span class="line">       FSoftClassPath GameInstanceClassName = <span class="built_in">GetDefault</span>&lt;UGameMapsSettings&gt;()-&gt;GameInstanceClass;</span><br><span class="line">       UClass* GameInstanceClass = (GameInstanceClassName.<span class="built_in">IsValid</span>() ? <span class="built_in">LoadObject</span>&lt;UClass&gt;(<span class="literal">NULL</span>, *GameInstanceClassName.<span class="built_in">ToString</span>()) : UGameInstance::<span class="built_in">StaticClass</span>());</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (GameInstanceClass == <span class="literal">nullptr</span>)</span><br><span class="line">       &#123;</span><br><span class="line">          <span class="built_in">UE_LOG</span>(LogEngine, Error, <span class="built_in">TEXT</span>(<span class="string">&quot;UMultiWorldGameEngine: Unable to load GameInstance Class &#x27;%s&#x27;. Falling back to generic UGameInstance.&quot;</span>), *GameInstanceClassName.<span class="built_in">ToString</span>());</span><br><span class="line">          GameInstanceClass = UGameInstance::<span class="built_in">StaticClass</span>();</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       UGameInstance* OtherGameInstance = <span class="built_in">NewObject</span>&lt;UGameInstance&gt;(<span class="keyword">this</span>, GameInstanceClass);</span><br><span class="line">       MultiGameInstances.<span class="built_in">Add</span>(OtherGameInstance);</span><br><span class="line">       OtherGameInstance-&gt;<span class="built_in">InitializeStandalone</span>();</span><br><span class="line">       <span class="built_in">UE_LOG</span>(LogEngine, Display, <span class="built_in">TEXT</span>(<span class="string">&quot;UMultiWorldGameEngine: GameInstance %d Initialized.&quot;</span>), InstanceID);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">UMultiWorldGameEngine::Start</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Super::<span class="built_in">Start</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Single game instance.</span></span><br><span class="line">​    ​<span class="keyword">if</span> (NumMultiWorld &lt;= <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// MultiWorld mode</span></span><br><span class="line">​    ​<span class="keyword">for</span> (int32 i = <span class="number">0</span>; i &lt; MultiGameInstances.<span class="built_in">Num</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">       MultiGameInstances[i]-&gt;<span class="built_in">StartGameInstance</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">UMultiWorldGameEngine::LoadMap</span><span class="params">(FWorldContext&amp; WorldContext, FURL URL, <span class="keyword">class</span> UPendingNetGame* Pending, FString&amp; Error)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// Single game instance.</span></span><br><span class="line">​    ​<span class="keyword">if</span> (NumMultiWorld &lt;= <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="comment">// normal UE behavior</span></span><br><span class="line">​       ​<span class="keyword">return</span> Super::<span class="built_in">LoadMap</span>(WorldContext, URL, Pending, Error);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// MultiWorld mode</span></span><br><span class="line">​    ​uint16 MWInstanceID = <span class="built_in">GetMWIDByGameInstance</span>(WorldContext.OwningGameInstance);</span><br><span class="line">    <span class="keyword">if</span> (MWInstanceID == INSTANCE_ID_NONE)</span><br><span class="line">    &#123;</span><br><span class="line">       <span class="comment">// set the base GameEngine-&gt;GameInstance port=1, ​dont​ start network.</span></span><br><span class="line">​       ​URL.Port = <span class="number">1</span>;</span><br><span class="line">       <span class="comment">// normal UE behavior</span></span><br><span class="line">​       ​<span class="keyword">return</span> Super::<span class="built_in">LoadMap</span>(WorldContext, URL, Pending, Error);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Note: The base GameEngine-&gt;GameInstance Package Prefix is UEMW_0_ , thus the first created instance is UEMW_1_ .</span></span><br><span class="line">    uint16 MWPackagePrefixID = MWInstanceID + <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try to strip prefix from MWPackageName</span></span><br><span class="line">​    ​URL.Map = <span class="built_in">StripPrefixFromMWPackageName</span>(URL.Map);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// process URL before Browse</span></span><br><span class="line">​    ​FString MultiWorldPrefix = <span class="built_in">BuildMWPackagePrefix</span>(MWPackagePrefixID);</span><br><span class="line">    FString MWPrefixOp = <span class="built_in">TEXT</span>(<span class="string">&quot;MW_Prefix=&quot;</span>) + MultiWorldPrefix;</span><br><span class="line">    URL.<span class="built_in">AddOption</span>(*MWPrefixOp);</span><br><span class="line">    FString MultiWorldMapName = <span class="built_in">ConvertToMWPackageName</span>(URL.Map, MWPackagePrefixID);</span><br><span class="line">    FString URLTrueMapNameOp = <span class="built_in">TEXT</span>(<span class="string">&quot;MW_URLTrueMapName=&quot;</span>) + URL.Map;</span><br><span class="line">    URL.Map = MultiWorldMapName;</span><br><span class="line">    URL.<span class="built_in">AddOption</span>(*URLTrueMapNameOp);</span><br><span class="line">    <span class="keyword">if</span> (URL.Port == FURL::UrlConfig.DefaultPort)</span><br><span class="line">    &#123;</span><br><span class="line">       URL.Port += MWInstanceID;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Super::<span class="built_in">LoadMap</span>(WorldContext, URL, Pending, Error);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">UMultiWorldGameEngine::NetworkRemapPath</span><span class="params">(UNetConnection* Connection, FString&amp; Str, <span class="type">bool</span> bReading <span class="comment">/*= true*/</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        Str = <span class="built_in">StripPrefixFromMWPackageName</span>(Str);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="修改配置"><a href="#修改配置" class="headerlink" title="修改配置"></a>修改配置</h3><ol>
+<li>MyProjectServer.Target.cs</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// use MWGameEngine</span><br><span class="line">GlobalDefinitions.Add(&quot;USE_MWGAMEENGINE=1&quot;);</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>DefaultEngine.ini</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[/Script/Engine.Engine]</span><br><span class="line">GameEngine=/Script/MyProject.MultiWorldGameEngine</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>启动参数</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-NumMultiWorld=$num</span><br></pre></td></tr></table></figure>
+
+<h3 id="注意细节"><a href="#注意细节" class="headerlink" title="注意细节"></a>注意细节</h3><ol>
+<li>原来GameInstance退出的时候就退出Engine，现在需要判断所有GameInstance退出后才能退出Engine。</li>
+<li>原来游戏中是单例的数据结构，现在需要视情况跟着GameInstance走。</li>
+</ol>
+<h1 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h1><p>在 CPU 资源占用较低的地图场景中，可通过单进程多开 GameInstance 的方式，直接复用进程内已加载的资源内存（如地图配置、静态模型）。相比共享内存（Fork）模式，该方案能进一步优化 CPU 与内存的资源配比，最终在承载相同数量场景实例的前提下，显著降低整体内存占用。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2025-10-15</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ue-multiworld-fork/'>DS共享内存和多GameInstance性能对比</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/linux-memory/">查看Linux下进程占用内存</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

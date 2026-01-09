@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="APP开发选型" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    APP开发选型
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.4k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：8分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%BF%99%E6%AC%A1%E7%9C%9F%E7%9A%84%E6%98%AF%E4%BB%8E%E5%85%A5%E5%9D%91%E5%88%B0%E5%BC%83%E5%9D%91%E3%80%82%E6%9C%80%E5%90%8E%E8%BF%98%E6%98%AF%E8%A7%89%E5%BE%97%E4%BD%BF%E7%94%A8flutter"><span class="post-toc-text">这次真的是从入坑到弃坑。最后还是觉得使用flutter</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%8E%9F%E6%96%87%EF%BC%9A"><span class="post-toc-text">原文：</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%B5%85%E8%B0%88Native%E3%80%81Web-App%E3%80%81Hybrid%E3%80%81ReactNative%E5%92%8CWEEX%E7%9A%84%E4%BC%98%E5%8A%A3"><span class="post-toc-text">浅谈Native、Web App、Hybrid、ReactNative和WEEX的优劣</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%A6%82%E8%A6%81"><span class="post-toc-text">一句话概要</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#APP%E5%B8%B8%E7%94%A8%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F%E3%80%90%E7%AE%80%E4%BB%8B%E3%80%91"><span class="post-toc-text">APP常用开发模式【简介】</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Native-App"><span class="post-toc-text">Native App</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#WebApp"><span class="post-toc-text">WebApp</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Hybrid-App"><span class="post-toc-text">Hybrid App</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#React-Native-App"><span class="post-toc-text">React Native App</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#WEEX-App"><span class="post-toc-text">WEEX App</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%BB%A7%E7%BB%AD%E5%89%96%E6%9E%90"><span class="post-toc-text">继续剖析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Native-App-1"><span class="post-toc-text">Native App</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="post-toc-text">优势</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%8A%A3%E5%8A%BF"><span class="post-toc-text">劣势</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#WebApp-1"><span class="post-toc-text">WebApp</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BC%98%E5%8A%BF-1"><span class="post-toc-text">优势</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%8A%A3%E5%8A%BF-1"><span class="post-toc-text">劣势</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Hybird-App"><span class="post-toc-text">Hybird App</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#React-Native-App-1"><span class="post-toc-text">React Native App</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Weex-App"><span class="post-toc-text">Weex App</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="这次真的是从入坑到弃坑。最后还是觉得使用flutter"><a href="#这次真的是从入坑到弃坑。最后还是觉得使用flutter" class="headerlink" title="这次真的是从入坑到弃坑。最后还是觉得使用flutter"></a>这次真的是从入坑到弃坑。最后还是觉得使用flutter</h2><p>在使用weex做了一个简单的应用，调通通信和资源加载后，发现坑还是很多的。</p>
+<p>主要weex适合用来做单页面的开发，开发完整的APP还是有一些局限性，在浏览器端调试也存在问题。</p>
+<p>主要还是社区和文档很不齐全。</p>
+<p>为什么选择flutter呢？</p>
+<span id="more"></span>
+
+<p>1.google爸爸背书。</p>
+<p>2.dart开发。（自己对JS不熟悉。常年使用JAVA）</p>
+<p>3.idea，和服务器端统一IDE。</p>
+<p>4.flutter的理念才是跨平台的最终解决方案。</p>
+<p>5.感觉不能再好了、</p>
+<p>ps：就在前几天（2018.12.5）出正式1.0版本了</p>
+<h2 id="原文："><a href="#原文：" class="headerlink" title="原文："></a>原文：</h2><p>最近有做一款APP的想法，调研下开发工具链。一直做游戏开发，引擎用过u3d，cocos，egret。</p>
+<p>最终决定使用weex。</p>
+<p>学习整理：</p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000011027225">https://segmentfault.com/a/1190000011027225</a></p>
+<p>html，css的基础知识；</p>
+<p>Node：<a target="_blank" rel="noopener" href="http://www.runoob.com/nodejs/nodejs-tutorial.html">《Node.js 教程》</a><br>Vue：<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/guide/">《Vue.js官方教程》</a><br>ES6：<a target="_blank" rel="noopener" href="http://es6.ruanyifeng.com/">《ECMAScript 6 入门》</a></p>
+<p>转载：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/33246251cfae">https://www.jianshu.com/p/33246251cfae</a></p>
+<h1 id="浅谈Native、Web-App、Hybrid、ReactNative和WEEX的优劣"><a href="#浅谈Native、Web-App、Hybrid、ReactNative和WEEX的优劣" class="headerlink" title="浅谈Native、Web App、Hybrid、ReactNative和WEEX的优劣"></a>浅谈Native、Web App、Hybrid、ReactNative和WEEX的优劣</h1><h1 id="一句话概要"><a href="#一句话概要" class="headerlink" title="一句话概要"></a>一句话概要</h1><blockquote>
+<p>Native、Web App、Hybrid、ReactNative（后面以RN简称）、WEEX间的异同点</p>
+</blockquote>
+<h1 id="APP常用开发模式【简介】"><a href="#APP常用开发模式【简介】" class="headerlink" title="APP常用开发模式【简介】"></a>APP常用开发模式【简介】</h1><p>此处APP为应用，application，并非我们通常讲的手机App<br><a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=http://naotu.baidu.com/file/6af15fcbb72f89926043779811b1ea44?token=df0378691ecdcef2">常用的几种APP开发模式-脑图</a></p>
+<h2 id="Native-App"><a href="#Native-App" class="headerlink" title="Native App"></a>Native App</h2><p>传统的原生APP开发模式，有IOS和AOS两大系统，需要各自语言开发各自APP。</p>
+<p><strong>优点</strong>：性能和体验都是最好的<br><strong>缺点</strong>：开发和发布成本高<br><strong>举个栗子</strong>：<a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=https://id.163.com/gj/">网易管家APP</a> （Tab1，Tab2）<br><strong>应用技术</strong>：Swift，OC，JAVA</p>
+<h2 id="WebApp"><a href="#WebApp" class="headerlink" title="WebApp"></a>WebApp</h2><p>移动端的网站，常被称为H5应用，说白了就是特定运行在移动端浏览器上的网站应用。一般泛指 SPA(Single Page Application)模式开发出的网站，与MPA（Multi-page Application，再后面做介绍）对应。</p>
+<p><strong>优点</strong>：开发和发布成本最低<br><strong>缺点</strong>：性能和体验不能讲是最差的，但也受到浏览器处理能力的限制，多次下载同样会占用用户一定的流量<br><strong>举个栗子</strong>：<a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=https://id.163.com/gj/">网易管家APP</a>（Tab3）<br><strong>应用技术</strong>：ReactJS，RegularJS等</p>
+<h2 id="Hybrid-App"><a href="#Hybrid-App" class="headerlink" title="Hybrid App"></a>Hybrid App</h2><p>混合模式移动应用，介于web-app、native-app这两者之间的app，兼具“Native App良好交互体验的优势”和“Web App跨平台开发的优势”（百度百科解释）</p>
+<p>主要的原理是，由Native通过JSBridge等方法提供统一的API，然后用HTML+CSS实现界面，JS来写逻辑，调用API，最终的页面在webview中显示，这种模式下，Android、iOS的API一般有一致性，Hybrid App所有有跨平台效果。</p>
+<p><strong>优点</strong>：开发和发布都比较方便，效率介于Native App、Web App之间<br><strong>缺点</strong>：学习范围较广，需要原生配合<br><strong>举个栗子</strong>：<a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=https://music.163.com/#/download">网易云音乐</a>，我爱我家App<br><strong>应用技术</strong>：PhoneGap，AppCan，Wex5</p>
+<h2 id="React-Native-App"><a href="#React-Native-App" class="headerlink" title="React Native App"></a>React Native App</h2><p>Facebook发现Hybrid App存在很多缺陷和不足，于是发起开源的一套新的APP开发方案RN App。。使用JSX语言写原生界面，js通过JSBridge调用原生API渲染UI交互通信。</p>
+<p><strong>优点</strong>：效率体验接近Native App，发布和开发成本低于Native App<br><strong>缺点</strong>：学习有一定成本，且文档较少，免不了踩坑<br><strong>举个栗子</strong>：Facebook、youtube、discord、QQ、百度等等</p>
+<h2 id="WEEX-App"><a href="#WEEX-App" class="headerlink" title="WEEX App"></a>WEEX App</h2><p>阿里巴巴开发团队在RN的成功案例上，重新设计出的一套开发模式，站在了巨人肩膀上并有淘宝团队项目做养料，广受关注，2016年4月正式开源，并在v2.0版本官方支持Vue.js，与RN分庭抗礼。</p>
+<p><strong>优点</strong>：开发效率和体验上跟RN不相上下，并且跨平台性更强<br><strong>缺点</strong>：刚刚起步，社区没有RN活跃<br><strong>举个栗子</strong>：淘宝、天猫、饿了么等</p>
+<h1 id="继续剖析"><a href="#继续剖析" class="headerlink" title="继续剖析"></a>继续剖析</h1><h2 id="Native-App-1"><a href="#Native-App-1" class="headerlink" title="Native App"></a>Native App</h2><p><a target="_blank" rel="noopener" href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-70fa348f3db0fca7.png?w=640" title="APP开发选型 - 第1张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-70fa348f3db0fca7.png?w=640" alt="APP开发选型 - 第1张  | 张嘎"></a></p>
+<p>Native App是一种基于智能手机本地操作系统如iOS、Android、WP并使用原生程式编写运行的第三方应用程序,也叫本地app。一般使用的开发语言为JAVA、C++、Objective-C。</p>
+<p>自iOS和Android这两个的手机操作系统发布以来，在互联网界从此就多了一个新的名词：App意为运行在智能的移动终端设备第三方应用程序)。</p>
+<p>Native App因为位于平台层上方，向下访问和兼容的能力会比较好一些，可以支持在线或离线，消息推送或本地资源访问，摄像拨号功能的调取。但是由于设备碎片化，App的开发成本要高很多，维持多个版本的更新升级比较麻烦，用户的安装门槛也比较高。但是比较乐观的是，AppStore培养了一种比较好的用户付费模式，所以在Apple的生态圈里，开发者的盈利模式是一种明朗状态，其他market也在往这条路上靠拢。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><p>1、相比于其它模式，提供最佳的用户体验，最优质的用户界面，最华丽的交互<br>2、针对不同平台提供不同体验<br>3、可节省带宽成本，打开速度更快<br>4、功能最为强大,特别是在与系统交互中,几乎所有功能都能实现</p>
+<h3 id="劣势"><a href="#劣势" class="headerlink" title="劣势"></a>劣势</h3><p>1、门槛高，原生开发人才稀缺，至少比前端和后端少，开发环境昂贵<br>2、无法跨平台，开发的成本比较大，各个系统独立开发<br>3、发布成本高，需要通过store或market的审核，导致更新缓慢<br>4、维持多个版本、多个系统的成本比较高，而且必须做兼容<br>5、应用市场逐渐饱和，怎么样抢占用户时间需要投入大量时间和金钱，这也导致“僵尸”App的增多</p>
+<h2 id="WebApp-1"><a href="#WebApp-1" class="headerlink" title="WebApp"></a>WebApp</h2><p><a target="_blank" rel="noopener" href="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-a16fa91905d4214e.png?w=640" title="APP开发选型 - 第2张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-a16fa91905d4214e.png?w=640" alt="APP开发选型 - 第2张  | 张嘎"></a></p>
+<p>说到Web App不少人会联想到WAP，或者有人认为，WAP就是WebApp，其实不然。</p>
+<p>WebApp与WAP最直接的区别就是功能层面。WAP更侧重使用网页技术在移动端做展示，包括文字、媒体文件等。而Web App更侧重“功能”，是使用网页技术实现的App。总的来说，Web App就是运行于网络和标准浏览器上，基于网页技术开发实现特定功能的应用。</p>
+<p>响应式的大部分技术都是为实现WebApp能适配多类客户端而设计的。</p>
+<p>Web网站一般分两种，MPA(Multi-page Application)和SPA(Single-page Application)。而WebApp一般泛指SPA形式开发出的网站。这样更像是一个App。</p>
+<h3 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h3><p>1、可以跨平台，调试方便<br>2、无需安装，不会占用手机内存，而且更新速度最快<br>3、不存在多版本问题，维护成本低<br>4、临时入口，可以随意嵌入</p>
+<h3 id="劣势-1"><a href="#劣势-1" class="headerlink" title="劣势"></a>劣势</h3><p>1、依赖于网络，第一次访问页面速度慢，耗费流量<br>2、受限于手机和浏览器性能，用户体验相较于其他模式最差<br>3、功能受限，大量移动端功能无法实现<br>4、入口强依赖于第三方浏览器，且只能以URL地址的形式存在，导致用户留存率低（优点即缺点）</p>
+<h2 id="Hybird-App"><a href="#Hybird-App" class="headerlink" title="Hybird App"></a>Hybird App</h2><p><a target="_blank" rel="noopener" href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-e8ed4f0375d2639b.png?w=640" title="APP开发选型 - 第3张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-e8ed4f0375d2639b.png?w=640" alt="APP开发选型 - 第3张  | 张嘎"></a></p>
+<p>混合开发，也就是半原生半Web的开发模式，由原生提供统一的API给JS调用，实际的主要逻辑有Html和JS来完成，最终是放在webview中显示的，所以只需要写一套代码即可达到跨平台效果，另外也可以直接在浏览器中调试，很方便。最重要的是只需要一个前端人员稍微学习下JS api的调用即可。</p>
+<p>Hybird App 的较早实践者是PhoneGap，随后遍地开花，如Titanium、Salama、WeX5、Kerkee和国内的AppCan，项目各有各的实现方式，大致的原理基本相同。有幸在AppCan上海总部参与过一段时间的学习研究，如下大致简介：</p>
+<p>AppCan是基于HTML5技术的Hybird跨平台移动应用开发工具。开发者利用HTML5+CSS3+JavaScript技术，通过AppCan IDE集成开发系统、云端打包器等，快速开发出Android、iOS、WP平台上的移动应用。</p>
+<p>AppCan的平台构成</p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-cd8c63378a612022.png?w=640" title="APP开发选型 - 第4张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-cd8c63378a612022.png?w=640" alt="APP开发选型 - 第4张  | 张嘎"></a></p>
+<p>在实际的APP开发中，AppCan可以完成大部分的工作量，如图示：</p>
+<p><a target="_blank" rel="noopener" href="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-634591b2598fa8ad.png?w=640" title="APP开发选型 - 第5张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i2.wp.com/upload-images.jianshu.io/upload_images/1494908-634591b2598fa8ad.png?w=640" alt="APP开发选型 - 第5张  | 张嘎"></a></p>
+<p>AppCan将APP底层复杂的原生功能封装在引擎、插件中，开发者仅需调用接口、打包编译，就可以获得原生功能；灵活的插件扩展机制。</p>
+<p>开发者可以像开发WebApp一样开发app的视觉UI，以及绝大部分的交互，当需要使用原生功能（如摄像头，陀螺仪等功能）时，只需要调用官方的API就可以轻松实现Native的效果。至于JS和Native的通信，常用的有URL监听和绝大部分Hybrid厂商使用的JSBridge通信，两者原理相近。</p>
+<p><a target="_blank" rel="noopener" href="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-400b4c6162d774f4.png?w=640" title="APP开发选型 - 第6张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i1.wp.com/upload-images.jianshu.io/upload_images/1494908-400b4c6162d774f4.png?w=640" alt="APP开发选型 - 第6张  | 张嘎"></a></p>
+<p>JsBridge通信简图</p>
+<p>关于JsBridge的原理详解，可见<a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=http://blog.csdn.net/xiangzhihong8/article/details/66970600">http://blog.csdn.net/xiangzhihong8/article/details/66970600</a></p>
+<p>在Hybird概念盛行的时候，国内外各大公司也参与了探索，国外代表有Facebook、google、亚马逊，国内的有腾讯、阿里巴巴、网易等，慢慢的他们发现Hybird严重受限于WebView的解析渲染效率，于是Facebook开始了他的类原生的研究探索。</p>
+<h2 id="React-Native-App-1"><a href="#React-Native-App-1" class="headerlink" title="React Native App"></a>React Native App</h2><p><a target="_blank" rel="noopener" href="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-846d1bcbe4f9b505.png?w=640" title="APP开发选型 - 第7张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-846d1bcbe4f9b505.png?w=640" alt="APP开发选型 - 第7张  | 张嘎"></a></p>
+<p>请移驾 <a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=https://segmentfault.com/a/1190000010989345">【笔记】React Native 快速入门笔记</a></p>
+<h2 id="Weex-App"><a href="#Weex-App" class="headerlink" title="Weex App"></a>Weex App</h2><p><a target="_blank" rel="noopener" href="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-ec1e7c9c4de9f9c0.png?w=640" title="APP开发选型 - 第8张  | 张嘎" class="gallery-item" style="box-shadow: none;"> <img src="https://i0.wp.com/upload-images.jianshu.io/upload_images/1494908-ec1e7c9c4de9f9c0.png?w=640" alt="APP开发选型 - 第8张  | 张嘎"></a></p>
+<p>请移驾<a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=https://segmentfault.com/a/1190000011027225">网易严选App感受Weex开发</a></p>
+<p>作者：木羽zwwill<br>链接：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/33246251cfae">https://www.jianshu.com/p/33246251cfae</a><br>來源：简书<br>简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。</p>
+<p>真的从入门到放弃，fluuter</p>
+<p><a target="_blank" rel="noopener" href="http://www.52im.net/thread-1870-1-1.html">http://www.52im.net/thread-1870-1-1.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/139c5074ae5d">https://www.jianshu.com/p/139c5074ae5d</a></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2018-07-25</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E5%89%8D%E7%AB%AF/'>
+                            前端
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/jvm-remote/'>JVisualVM远程调试</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/redis-mode/">Redis笔记</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

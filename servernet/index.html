@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="游戏服务器网络库" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    游戏服务器网络库
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：3分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%B8%B8%E6%88%8F%E7%BD%91%E7%BB%9C%E5%BA%93"><span class="post-toc-text">游戏网络库</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E8%83%8C%E6%99%AF"><span class="post-toc-text">背景</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E7%89%B9%E6%80%A7"><span class="post-toc-text">特性</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E6%80%BB%E7%BB%93"><span class="post-toc-text">总结</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%BD%91%E7%BB%9C%E5%BA%93%E6%80%A7%E8%83%BD%E8%B0%83%E7%A0%94"><span class="post-toc-text">网络库性能调研</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%8E%B0%E7%8A%B6"><span class="post-toc-text">现状</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%B8%B8%E8%A7%81%E5%BC%80%E6%BA%90%E5%BA%93"><span class="post-toc-text">常见开源库</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#gnet"><span class="post-toc-text">gnet</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="post-toc-text">优势</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%8F%AF%E5%80%9F%E9%89%B4%E4%BC%98%E5%8C%96"><span class="post-toc-text">可借鉴优化</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#netpoll"><span class="post-toc-text">netpoll</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E4%BC%98%E5%8A%BF-1"><span class="post-toc-text">优势</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%8A%A3%E5%8A%BF"><span class="post-toc-text">劣势</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%8F%AF%E5%80%9F%E9%89%B4%E4%BC%98%E5%8C%96-1"><span class="post-toc-text">可借鉴优化</span></a></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><p>最近在开发golang的游戏服网络库，基础开发已经完成，准备做性能测试，在思考测试用例的时候，参考了下主要网络库的测试场景，在这里做一下汇总。</p>
+<h2 id="游戏网络库"><a href="#游戏网络库" class="headerlink" title="游戏网络库"></a>游戏网络库</h2><h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>通过封装TCP/UDP网络连接，向上层业务提供 <strong>可靠、易用</strong> 的网络库。</p>
+<p>获取网络层的控制权，先于业务做一些探索并最终赋能业务。</p>
+<span id="more"></span>
+
+<h4 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h4><ol>
+<li>易用性</li>
+</ol>
+<ul>
+<li>遵循golang net的接口规范，保证通用性。</li>
+<li>弱网环境下保证消息顺序、可靠，不需要业务层做额外工作。</li>
+<li>可以发送可靠消息，TCP消息，UDP消息。</li>
+<li>方便开启/关闭TCP/UDP以及双通道通信。</li>
+</ul>
+<ol start="2">
+<li>可靠性</li>
+</ol>
+<ul>
+<li>对网络连接进一步封装成逻辑连接(session)，将短时间内的断线重连作为同一个连接，对业务层透明。</li>
+<li>保证任何情况下消息的可靠，在TCP/UDP上封装KCP，保证UDP的可靠，以及断线重连下同一个逻辑连接(不同的TCP连接)消息的可靠性。</li>
+<li>支持上行/下行分别走不同的通道。</li>
+<li>针对游戏大包下发的场景(如登录游戏，进入场景/副本等)，优先使用TCP发包。</li>
+<li>根据网络时延自动选择TCP或UDP。</li>
+<li>网络连接自动选择就近IP，登录到就近部署区域。</li>
+</ul>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>针对游戏服务器特性在设计网络库的时候需要特别关注的一些地方：</p>
+<ol>
+<li>游戏业务重。在handler中处理一条消息业务的时候一般都涉及到I/O操作，如果同步执行的话，CPU主要消耗会在等待I/O操作上。此时handler必须要异步处理，这就涉及到上下文切换、I/O协作等需要考虑的代价。</li>
+<li>过多长链接的问题。在使用golang net网路库设计框架时，一般都是新启一个协程goroutine去处理一个连接的read事件，在大量连接的情况下需要考虑协程的上下文切换开销，以及空闲连接占用的问题。</li>
+<li>网络库在处理消息合包/拆包的情况下，对消息buffer的拷贝次数。常用的方案是RingBuffer和<a target="_blank" rel="noopener" href="https://www.infoq.cn/article/fea7chf9moohbxbtyres">Nocopy Buffer</a>，参考netty和netpoll。</li>
+<li>必须收到完整的数据包才可以继续处理，不能收到一半就开始处理。</li>
+<li>水平触发、边缘触发，对编程模型的影响。</li>
+</ol>
+<h2 id="网络库性能调研"><a href="#网络库性能调研" class="headerlink" title="网络库性能调研"></a>网络库性能调研</h2><h3 id="现状"><a href="#现状" class="headerlink" title="现状"></a>现状</h3><p>现在的网络库基于golang/net实现，golang/net本身已经是一个简洁高效的网络库。</p>
+<p>但在海量连接的业务场景下，特别是我们这种大网关的背景下，每个连接一组goroutine(一个接收消息的，一个发送消息的)，此时大量goroutine存在的情况下可能出现的问题：</p>
+<ol>
+<li><p>资源占有：消耗的资源就会呈线性趋势暴涨，首先给go runtime scheduler造成极大的压力和侵占系统资源，然后资源占用又反过来影响runtime的调度，导致性能下降。</p>
+</li>
+<li><p>网络抖动：在系统抖动时，大量网络请求断开并重连，伴随着的是大量协程的创建，退出的协程依旧在allg结构中，造成gc的扫描。</p>
+</li>
+<li><p>减少内存拷贝：新的网络库中解析过一次协议了，直接将buffer交给上层，减少copy。借鉴netpoll的设计，无锁且zero copy。</p>
+</li>
+<li><p>buffer扩容时copy原数组的问题，只能扩容无法缩容，占有大量内存。linkedbuffer。</p>
+</li>
+</ol>
+<h3 id="常见开源库"><a href="#常见开源库" class="headerlink" title="常见开源库"></a>常见开源库</h3><h3 id="gnet"><a href="#gnet" class="headerlink" title="gnet"></a><a target="_blank" rel="noopener" href="https://github.com/panjf2000/gnet">gnet</a></h3><p><a target="_blank" rel="noopener" href="https://strikefreedom.top/go-netpoll-io-multiplexing-reactor">gnet介绍</a></p>
+<h4 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h4><ul>
+<li><p>海量连接，高频创建销毁。</p>
+</li>
+<li><p>高性能，低损耗。</p>
+</li>
+<li><p>支持TCP、UDP。</p>
+</li>
+<li><p>Multi-Reactors、Multi-Reactors+Goruntine Pool两种网络模型。</p>
+</li>
+</ul>
+<h4 id="可借鉴优化"><a href="#可借鉴优化" class="headerlink" title="可借鉴优化"></a>可借鉴优化</h4><ul>
+<li><p>🔲内置 goroutine 池，由开源库 <a target="_blank" rel="noopener" href="https://github.com/panjf2000/ants">ants</a> 提供支持</p>
+</li>
+<li><p>🔲内置 bytes 内存池，由开源库 <a target="_blank" rel="noopener" href="https://github.com/valyala/bytebufferpool">bytebufferpool</a> 提供支持</p>
+</li>
+<li><p>🔲高效、可重用而且自动伸缩的环形内存 buffer</p>
+</li>
+<li><p>🔲支持异步写操作</p>
+</li>
+</ul>
+<h3 id="netpoll"><a href="#netpoll" class="headerlink" title="netpoll"></a><a target="_blank" rel="noopener" href="https://github.com/cloudwego/netpoll">netpoll</a></h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ByteDanceTech/article/details/106066621?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-6-106066621.pc_agg_new_rank&utm_term=netpoll%E5%92%8Cgnet&spm=1000.2123.3001.4430">netpoll介绍</a></p>
+<h4 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h4><ul>
+<li><p>适合重业务的RPC。</p>
+</li>
+<li><p>高效连接池，管理连接状态。</p>
+</li>
+<li><p>协程池，控制goroutine。</p>
+</li>
+<li><p>内存管理。</p>
+</li>
+<li><p>NoCopy Buffer。</p>
+</li>
+</ul>
+<h4 id="劣势"><a href="#劣势" class="headerlink" title="劣势"></a>劣势</h4><ul>
+<li>不支持UDP。</li>
+</ul>
+<h4 id="可借鉴优化-1"><a href="#可借鉴优化-1" class="headerlink" title="可借鉴优化"></a>可借鉴优化</h4><ul>
+<li><p>🔲丰富的测试场景</p>
+</li>
+<li><p>🔲<a target="_blank" rel="noopener" href="https://github.com/cloudwego/netpoll/blob/main/nocopy_linkbuffer.go">LinkBuffer</a> 提供可以流式读写的 nocopy API</p>
+</li>
+<li><p>🔲<a target="_blank" rel="noopener" href="https://github.com/bytedance/gopkg/tree/develop/util/gopool">gopool</a> 提供高性能的 goroutine 池</p>
+</li>
+<li><p>🔲<a target="_blank" rel="noopener" href="https://github.com/bytedance/gopkg/tree/develop/lang/mcache">mcache</a> 提供高效的内存复用</p>
+</li>
+<li><p>🔲IsActive 支持检查连接是否存活</p>
+</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2021-12-06</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%BD%91%E7%BB%9C/'>
+                            网络
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%8A%80%E6%9C%AF/'>
+                            服务器技术
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/linux-note/'>Linux常用命令</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/docker-net/">容器的网络模式</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

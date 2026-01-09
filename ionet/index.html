@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="【转载】 IO 多路复用" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    【转载】 IO 多路复用
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3.3k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：11分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BD%A0%E7%AE%A1%E8%BF%99%E7%A0%B4%E7%8E%A9%E6%84%8F%E5%8F%AB-IO-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%9F"><span class="post-toc-text">你管这破玩意叫 IO 多路复用？</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%98%BB%E5%A1%9E-IO"><span class="post-toc-text">阻塞 IO</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%9D%9E%E9%98%BB%E5%A1%9E-IO"><span class="post-toc-text">非阻塞 IO</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#IO-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8"><span class="post-toc-text">IO 多路复用</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#select"><span class="post-toc-text">select</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#poll"><span class="post-toc-text">poll</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#epoll"><span class="post-toc-text">epoll</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="你管这破玩意叫-IO-多路复用？"><a href="#你管这破玩意叫-IO-多路复用？" class="headerlink" title="你管这破玩意叫 IO 多路复用？"></a>你管这破玩意叫 IO 多路复用？</h1><p>原创 闪客 <a href="javascript:void(0);">低并发编程</a> <em>2021-03-25 09:00</em></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/YdIdoZ_yusVWza1PU7lWaw">https://mp.weixin.qq.com/s/YdIdoZ_yusVWza1PU7lWaw</a></p>
+<p>收录于合集</p>
+<p>#破玩意儿25个</p>
+<p>#网络4个</p>
+<p>低并发编程</p>
+<p>战略上藐视技术，战术上重视技术</p>
+<p>为了讲多路复用，当然还是要跟风，采用鞭尸的思路，先讲讲传统的网络 IO 的弊端，用拉踩的方式捧起多路复用 IO 的优势。</p>
+<p>为了方便理解，以下所有代码都是伪代码，知道其表达的意思即可。</p>
+<p><strong>Let’s go</strong></p>
+<h1 id="阻塞-IO"><a href="#阻塞-IO" class="headerlink" title="阻塞 IO"></a><strong>阻塞 IO</strong></h1><p>服务端为了处理客户端的连接和请求的数据，写了如下代码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">listenfd = socket();   // 打开一个网络通信端口</span><br><span class="line">bind(listenfd);        // 绑定</span><br><span class="line">listen(listenfd);      // 监听</span><br><span class="line">while(1) &#123;</span><br><span class="line">  connfd = accept(listenfd);  // 阻塞建立连接</span><br><span class="line">  int n = read(connfd, buf);  // 阻塞读数据</span><br><span class="line">  doSomeThing(buf);  // 利用读到的数据做些什么</span><br><span class="line">  close(connfd);     // 关闭连接，循环等待下一个连接</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码会执行得磕磕绊绊，就像这样。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zArJDictJLnnRWwXriaXkgJFXnUsibFTlxjqSaBicqpeH4NhXBCqWuFgc7VQ/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zArJDictJLnnRWwXriaXkgJFXnUsibFTlxjqSaBicqpeH4NhXBCqWuFgc7VQ/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>可以看到，服务端的线程阻塞在了两个地方，一个是 accept 函数，一个是 read 函数。</p>
+<p>如果再把 read 函数的细节展开，我们会发现其阻塞在了两个阶段。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zADM8nrhNkEtFpSpLjGicOemZ5mt7orYF8vFC7g83lPVDeSbnlgKl7XaA/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zADM8nrhNkEtFpSpLjGicOemZ5mt7orYF8vFC7g83lPVDeSbnlgKl7XaA/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>这就是传统的阻塞 IO。</p>
+<p>整体流程如下图。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAadgqoGRuEcAClAdesz7WTGhq6ugGbCKNiaghwqyAJJBC1GtVuYpkkmA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAadgqoGRuEcAClAdesz7WTGhq6ugGbCKNiaghwqyAJJBC1GtVuYpkkmA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" alt="图片"></a></p>
+<p>所以，如果这个连接的客户端一直不发数据，那么服务端线程将会一直阻塞在 read 函数上不返回，也无法接受其他客户端连接。</p>
+<p>这肯定是不行的。</p>
+<h1 id="非阻塞-IO"><a href="#非阻塞-IO" class="headerlink" title="非阻塞 IO"></a><strong>非阻塞 IO</strong></h1><p>为了解决上面的问题，其关键在于改造这个 read 函数。</p>
+<p>有一种聪明的办法是，每次都创建一个新的进程或线程，去调用 read 函数，并做业务处理。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">while(1) &#123;</span><br><span class="line">  connfd = accept(listenfd);  // 阻塞建立连接</span><br><span class="line">  pthread_create（doWork);  // 创建一个新的线程</span><br><span class="line">&#125;</span><br><span class="line">void doWork() &#123;</span><br><span class="line">  int n = read(connfd, buf);  // 阻塞读数据</span><br><span class="line">  doSomeThing(buf);  // 利用读到的数据做些什么</span><br><span class="line">  close(connfd);     // 关闭连接，循环等待下一个连接</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样，当给一个客户端建立好连接后，就可以立刻等待新的客户端连接，而不用阻塞在原客户端的 read 请求上。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zA55fIbicSuYiad7vYdyLD0usibPibYiaAjBDR0gQPzArnzYlWXOZRyQzub3Q/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zA55fIbicSuYiad7vYdyLD0usibPibYiaAjBDR0gQPzArnzYlWXOZRyQzub3Q/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>不过，这不叫非阻塞 IO，只不过用了多线程的手段使得主线程没有卡在 read 函数上不往下走罢了。操作系统为我们提供的 read 函数仍然是阻塞的。</p>
+<p>所以真正的非阻塞 IO，不能是通过我们用户层的小把戏，<strong>而是要恳请操作系统为我们提供一个非阻塞的 read 函数</strong>。</p>
+<p>这个 read 函数的效果是，如果没有数据到达时（到达网卡并拷贝到了内核缓冲区），立刻返回一个错误值（-1），而不是阻塞地等待。</p>
+<p>操作系统提供了这样的功能，只需要在调用 read 前，将文件描述符设置为非阻塞即可。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fcntl(connfd, F_SETFL, O_NONBLOCK);</span><br><span class="line">int n = read(connfd, buffer) != SUCCESS);</span><br></pre></td></tr></table></figure>
+
+<p>这样，就需要用户线程循环调用 read，直到返回值不为 -1，再开始处理业务。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAT6rHhibbzK5rXiarLuJU0P4MGrHNl35vVCV4JdS4FeejOkl8bBGz9nVQ/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAT6rHhibbzK5rXiarLuJU0P4MGrHNl35vVCV4JdS4FeejOkl8bBGz9nVQ/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>这里我们注意到一个细节。</p>
+<p>非阻塞的 read，指的是在数据到达前，即数据还未到达网卡，或者到达网卡但还没有拷贝到内核缓冲区之前，这个阶段是非阻塞的。</p>
+<p>当数据已到达内核缓冲区，此时调用 read 函数仍然是阻塞的，需要等待数据从内核缓冲区拷贝到用户缓冲区，才能返回。</p>
+<p>整体流程如下图</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zA4NCGPZZo9ydSiczrguMdwqFNvibGlzbaopiauFxTqrIa5po5faEAoY7HA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zA4NCGPZZo9ydSiczrguMdwqFNvibGlzbaopiauFxTqrIa5po5faEAoY7HA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" alt="图片"></a></p>
+<h1 id="IO-多路复用"><a href="#IO-多路复用" class="headerlink" title="IO 多路复用"></a><strong>IO 多路复用</strong></h1><p>为每个客户端创建一个线程，服务器端的线程资源很容易被耗光。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAibNxnhFichNdFVYbbTYQ45AhMnzQm7MYRwg3gWUYNib9MKUDpuibHRINlA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAibNxnhFichNdFVYbbTYQ45AhMnzQm7MYRwg3gWUYNib9MKUDpuibHRINlA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" alt="图片"></a></p>
+<p>当然还有个聪明的办法，我们可以每 accept 一个客户端连接后，将这个文件描述符（connfd）放到一个数组里。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fdlist.add(connfd);</span><br></pre></td></tr></table></figure>
+
+<p>然后弄一个新的线程去不断遍历这个数组，调用每一个元素的非阻塞 read 方法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">while(1) &#123;</span><br><span class="line">  for(fd &lt;-- fdlist) &#123;</span><br><span class="line">    if(read(fd) != -1) &#123;</span><br><span class="line">      doSomeThing();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样，我们就成功用一个线程处理了多个客户端连接。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zABlkKBoB04kDCApjketfzN9PWTwjwTng4ibWJTibCDmE3FsiaOTibAdaO3A/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zABlkKBoB04kDCApjketfzN9PWTwjwTng4ibWJTibCDmE3FsiaOTibAdaO3A/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>你是不是觉得这有些多路复用的意思？</p>
+<p>但这和我们用多线程去将阻塞 IO 改造成看起来是非阻塞 IO 一样，这种遍历方式也只是我们用户自己想出的小把戏，每次遍历遇到 read 返回 -1 时仍然是一次浪费资源的系统调用。</p>
+<p>在 while 循环里做系统调用，就好比你做分布式项目时在 while 里做 rpc 请求一样，是不划算的。</p>
+<p>所以，还是得恳请操作系统老大，提供给我们一个有这样效果的函数，我们将一批文件描述符通过一次系统调用传给内核，由内核层去遍历，才能真正解决这个问题。</p>
+<h2 id="select"><a href="#select" class="headerlink" title="select"></a><strong>select</strong></h2><p>select 是操作系统提供的系统调用函数，通过它，我们可以把一个文件描述符的数组发给操作系统， 让操作系统去遍历，确定哪个文件描述符可以读写， 然后告诉我们去处理：</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAicgy5qFYcyoWPAV31k82icRe6I4Lya2F9qWcBlhHv3kzpgt9yjD7Hnpw/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAicgy5qFYcyoWPAV31k82icRe6I4Lya2F9qWcBlhHv3kzpgt9yjD7Hnpw/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>select系统调用的函数定义如下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">int select(</span><br><span class="line">    int nfds,</span><br><span class="line">    fd_set *readfds,</span><br><span class="line">    fd_set *writefds,</span><br><span class="line">    fd_set *exceptfds,</span><br><span class="line">    struct timeval *timeout);</span><br><span class="line">// nfds:监控的文件描述符集里最大文件描述符加1</span><br><span class="line">// readfds：监控有读数据到达文件描述符集合，传入传出参数</span><br><span class="line">// writefds：监控写数据到达文件描述符集合，传入传出参数</span><br><span class="line">// exceptfds：监控异常发生达文件描述符集合, 传入传出参数</span><br><span class="line">// timeout：定时阻塞监控时间，3种情况</span><br><span class="line">//  1.NULL，永远等下去</span><br><span class="line">//  2.设置timeval，等待固定时间</span><br><span class="line">//  3.设置timeval里时间均为0，检查描述字后立即返回，轮询</span><br></pre></td></tr></table></figure>
+
+<p>服务端代码，这样来写。</p>
+<p>首先一个线程不断接受客户端连接，并把 socket 文件描述符放到一个 list 里。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">while(1) &#123;</span><br><span class="line">  connfd = accept(listenfd);</span><br><span class="line">  fcntl(connfd, F_SETFL, O_NONBLOCK);</span><br><span class="line">  fdlist.add(connfd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，另一个线程不再自己遍历，而是调用 select，将这批文件描述符 list 交给操作系统去遍历。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">while(1) &#123;</span><br><span class="line">  // 把一堆文件描述符 list 传给 select 函数</span><br><span class="line">  // 有已就绪的文件描述符就返回，nready 表示有多少个就绪的</span><br><span class="line">  nready = select(list);</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过，当 select 函数返回后，用户依然需要遍历刚刚提交给操作系统的 list。</p>
+<p>只不过，操作系统会将准备就绪的文件描述符做上标识，用户层将不会再有无意义的系统调用开销。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">while(1) &#123;</span><br><span class="line">  nready = select(list);</span><br><span class="line">  // 用户层依然要遍历，只不过少了很多无效的系统调用</span><br><span class="line">  for(fd &lt;-- fdlist) &#123;</span><br><span class="line">    if(fd != -1) &#123;</span><br><span class="line">      // 只读已就绪的文件描述符</span><br><span class="line">      read(fd, buf);</span><br><span class="line">      // 总共只有 nready 个已就绪描述符，不用过多遍历</span><br><span class="line">      if(--nready == 0) break;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>正如刚刚的动图中所描述的，其直观效果如下。（同一个动图消耗了你两次流量，气不气？）</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAicgy5qFYcyoWPAV31k82icRe6I4Lya2F9qWcBlhHv3kzpgt9yjD7Hnpw/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAicgy5qFYcyoWPAV31k82icRe6I4Lya2F9qWcBlhHv3kzpgt9yjD7Hnpw/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>可以看出几个细节：</p>
+<p>\1. select 调用需要传入 fd 数组，需要拷贝一份到内核，高并发场景下这样的拷贝消耗的资源是惊人的。（可优化为不复制）</p>
+<p>\2. select 在内核层仍然是通过遍历的方式检查文件描述符的就绪状态，是个同步过程，只不过无系统调用切换上下文的开销。（内核层可优化为异步事件通知）</p>
+<p>\3. select 仅仅返回可读文件描述符的个数，具体哪个可读还是要用户自己遍历。（可优化为只返回给用户就绪的文件描述符，无需用户做无效的遍历）</p>
+<p>整个 select 的流程图如下。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAr5qibfgLBad0zoCEWXxdqC9I4v4mAYLR2SiafwtG4qOmdicHxa1Sx8MKQ/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_png/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAr5qibfgLBad0zoCEWXxdqC9I4v4mAYLR2SiafwtG4qOmdicHxa1Sx8MKQ/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" alt="图片"></a></p>
+<p>可以看到，这种方式，既做到了一个线程处理多个客户端连接（文件描述符），又减少了系统调用的开销（多个文件描述符只有一次 select 的系统调用 + n 次就绪状态的文件描述符的 read 系统调用）。</p>
+<h2 id="poll"><a href="#poll" class="headerlink" title="poll"></a><strong>poll</strong></h2><p>poll 也是操作系统提供的系统调用函数。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">int poll(struct pollfd *fds, nfds_tnfds, int timeout);</span><br><span class="line"></span><br><span class="line">struct pollfd &#123;</span><br><span class="line">  intfd; /*文件描述符*/</span><br><span class="line">  shortevents; /*监控的事件*/</span><br><span class="line">  shortrevents; /*监控事件中满足条件返回的事件*/</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>它和 select 的主要区别就是，去掉了 select 只能监听 1024 个文件描述符的限制。</p>
+<h2 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a><strong>epoll</strong></h2><p>epoll 是最终的大 boss，它解决了 select 和 poll 的一些问题。</p>
+<p>还记得上面说的 select 的三个细节么？</p>
+<p>\1. select 调用需要传入 fd 数组，需要拷贝一份到内核，高并发场景下这样的拷贝消耗的资源是惊人的。（可优化为不复制）</p>
+<p>\2. select 在内核层仍然是通过遍历的方式检查文件描述符的就绪状态，是个同步过程，只不过无系统调用切换上下文的开销。（内核层可优化为异步事件通知）</p>
+<p>\3. select 仅仅返回可读文件描述符的个数，具体哪个可读还是要用户自己遍历。（可优化为只返回给用户就绪的文件描述符，无需用户做无效的遍历）</p>
+<p>所以 epoll 主要就是针对这三点进行了改进。</p>
+<p>\1. 内核中保存一份文件描述符集合，无需用户每次都重新传入，只需告诉内核修改的部分即可。</p>
+<p>\2. 内核不再通过轮询的方式找到就绪的文件描述符，而是通过异步 IO 事件唤醒。</p>
+<p>\3. 内核仅会将有 IO 事件的文件描述符返回给用户，用户也无需遍历整个文件描述符集合。</p>
+<p>具体，操作系统提供了这三个函数。</p>
+<p>第一步，创建一个 epoll 句柄</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int epoll_create(int size);</span><br></pre></td></tr></table></figure>
+
+<p>第二步，向内核添加、修改或删除要监控的文件描述符。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int epoll_ctl(</span><br><span class="line">  int epfd, int op, int fd, struct epoll_event *event);</span><br></pre></td></tr></table></figure>
+
+<p>第三步，类似发起了 select() 调用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int epoll_wait(</span><br><span class="line">  int epfd, struct epoll_event *events, int max events, int timeout);</span><br></pre></td></tr></table></figure>
+
+<p>使用起来，其内部原理就像如下一般丝滑。</p>
+<p><a target="_blank" rel="noopener" href="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAjXNXJTV82eOqkbJdOrDpQpAaWiceBqvAXyFEOTdV5fC2dNsL29yBW7w/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" title="图片" class="gallery-item" style="box-shadow: none;"> <img src="https://mmbiz.qpic.cn/mmbiz_gif/GLeh42uInXTyY80RSpUTLjIMiaGGicv9zAjXNXJTV82eOqkbJdOrDpQpAaWiceBqvAXyFEOTdV5fC2dNsL29yBW7w/640?wx_fmt=gif&wxfrom=5&wx_lazy=1" alt="图片"></a></p>
+<p>如果你想继续深入了解 epoll 的底层原理，推荐阅读飞哥的《<a target="_blank" rel="noopener" href="http://mp.weixin.qq.com/s?__biz=MjM5Njg5NDgwNA==&mid=2247484905&idx=1&sn=a74ed5d7551c4fb80a8abe057405ea5e&chksm=a6e304d291948dc4fd7fe32498daaae715adb5f84ec761c31faf7a6310f4b595f95186647f12&scene=21#wechat_redirect">图解 | 深入揭秘 epoll 是如何实现 IO 多路复用的！</a>》，从 linux 源码级别，一行一行非常硬核地解读 epoll 的实现原理，且配有大量方便理解的图片，非常适合源码控的小伙伴阅读。</p>
+<blockquote>
+<blockquote>
+<p><strong>后记</strong></p>
+</blockquote>
+</blockquote>
+<p>大白话总结一下。</p>
+<p>一切的开始，都起源于这个 read 函数是操作系统提供的，而且是阻塞的，我们叫它 <strong>阻塞 IO</strong>。</p>
+<p>为了破这个局，程序员在用户态通过多线程来防止主线程卡死。</p>
+<p>后来操作系统发现这个需求比较大，于是在操作系统层面提供了非阻塞的 read 函数，这样程序员就可以在一个线程内完成多个文件描述符的读取，这就是 <strong>非阻塞 IO</strong>。</p>
+<p>但多个文件描述符的读取就需要遍历，当高并发场景越来越多时，用户态遍历的文件描述符也越来越多，相当于在 while 循环里进行了越来越多的系统调用。</p>
+<p>后来操作系统又发现这个场景需求量较大，于是又在操作系统层面提供了这样的遍历文件描述符的机制，这就是 <strong>IO 多路复用</strong>。</p>
+<p>多路复用有三个函数，最开始是 select，然后又发明了 poll 解决了 select 文件描述符的限制，然后又发明了 epoll 解决 select 的三个不足。</p>
+<hr>
+<p>所以，IO 模型的演进，其实就是时代的变化，倒逼着操作系统将更多的功能加到自己的内核而已。</p>
+<p>如果你建立了这样的思维，很容易发现网上的一些错误。</p>
+<p>比如好多文章说，多路复用之所以效率高，是因为用一个线程就可以监控多个文件描述符。</p>
+<p>这显然是知其然而不知其所以然，多路复用产生的效果，完全可以由用户态去遍历文件描述符并调用其非阻塞的 read 函数实现。而多路复用快的原因在于，操作系统提供了这样的系统调用，使得原来的 while 循环里多次系统调用，变成了一次系统调用 + 内核层遍历这些文件描述符。</p>
+<p>就好比我们平时写业务代码，把原来 while 循环里调 http 接口进行批量，改成了让对方提供一个批量添加的 http 接口，然后我们一次 rpc 请求就完成了批量添加。</p>
+<p>一个道理。</p>
+<p>找时间我再专门写一篇，讲讲这块网络上鱼龙混杂的花式错误理解。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2022-07-26</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/prometheus/'>prometheus+grafana搭建监控服务</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/influxdb-grafana/">InfluxDB和Grafana搭建监控服务</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

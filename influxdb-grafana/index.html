@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="InfluxDB和Grafana搭建监控服务" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    InfluxDB和Grafana搭建监控服务
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：222</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：1分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker%E5%AE%89%E8%A3%85"><span class="post-toc-text">Docker安装</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A"><span class="post-toc-text">问题一：</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#InfluxDB"><span class="post-toc-text">InfluxDB</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A-1"><span class="post-toc-text">问题一：</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Grafana"><span class="post-toc-text">Grafana</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>本篇为监控服务的环境搭建教程。</p>
+<h2 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h2><p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1701451">安装教程</a></p>
+<h4 id="问题一："><a href="#问题一：" class="headerlink" title="问题一："></a>问题一：</h4><p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" title="WX20211217-005210@2x-AlSghZ" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005210@2x-AlSghZ.png" alt="WX20211217-005210@2x-AlSghZ"></a></p>
+<p>当前python环境为python3，修改/usr/bin/yum-config-manager使用的python版本为2即可。如下图</p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" title="WX20211217-005513@2x-8lyFc6" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-005513@2x-8lyFc6.png" alt="WX20211217-005513@2x-8lyFc6"></a></p>
+<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p>下面一是service方式安装，二是docker方式安装，按需选择一种方式安装即可，<strong>推荐方式1</strong>。</p>
+<ol>
+<li><p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Linux#install-influxdb-as-a-service-with-systemd">Install InfluxDB as a service with systemd</a></p>
+<p>我的是CentOS的系统，使用yum方式安装如下：</p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115000-i3NQOj.jpg" title="20211220115000-i3NQOj" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115000-i3NQOj.jpg" alt="20211220115000-i3NQOj"></a></p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115209-ElUVDl.jpg" title="20211220115209-ElUVDl" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115209-ElUVDl.jpg" alt="20211220115209-ElUVDl"></a></p>
+<p>启动influxd：</p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg" title="20211220115329-zLOFBX" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/20211220115329-zLOFBX.jpg" alt="20211220115329-zLOFBX"></a></p>
+</li>
+<li><p>也可以选择<a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v2.1/install/?t=Docker">Docker方式安装</a></p>
+</li>
+</ol>
+<h4 id="问题一：-1"><a href="#问题一：-1" class="headerlink" title="问题一："></a>问题一：</h4><p>如果服务器上已经使用yum安装了其他版本的influxDB，可以选择将旧版本卸载。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rpm -q influxdb</span><br><span class="line">rpm -e influxdb</span><br><span class="line">rpm -q influxdb</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><ul>
+<li><p>使用Grafana官网服务</p>
+<ol>
+<li><p><a target="_blank" rel="noopener" href="https://grafana.com/grafana/">https://grafana.com/grafana/</a></p>
+</li>
+<li><p>创建自己的grafana cloud，如：<a target="_blank" rel="noopener" href="https://zhangga.grafana.net/">https://zhangga.grafana.net/</a></p>
+</li>
+<li><p>配置数据源<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds1-qTTC9g.jpg" title="ds1-qTTC9g" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds1-qTTC9g.jpg" alt="ds1-qTTC9g"></a></p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds2-3lfW1i.jpg" title="ds2-3lfW1i" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds2-3lfW1i.jpg" alt="ds2-3lfW1i"></a></p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds3-Ve1we7.jpg" title="ds3-Ve1we7" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds3-Ve1we7.jpg" alt="ds3-Ve1we7"></a></p>
+</li>
+<li><p>配置监控面板</p>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds4-LUiCLt.jpg" title="ds4-LUiCLt" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/ds4-LUiCLt.jpg" alt="ds4-LUiCLt"></a></p>
+</li>
+</ol>
+</li>
+<li><p>云服务器安装Grafana</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1411555">安装指南</a>。</li>
+<li>在腾讯云服务器(CentOS)上安装成功。</li>
+<li>配置数据源同上。</li>
+</ol>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" title="WX20211217-002036@2x-x6aO5K" class="gallery-item" style="box-shadow: none;"> <img src="https://raw.githubusercontent.com/zhangga/gitment-comments/master/uPic/2021-12/WX20211217-002036@2x-x6aO5K.png" alt="WX20211217-002036@2x-x6aO5K"></a></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2021-12-16</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ionet/'>【转载】 IO 多路复用</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/linux-note/">Linux常用命令</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

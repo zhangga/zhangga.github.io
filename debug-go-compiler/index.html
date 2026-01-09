@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="Debugging Go compiler performance in a large codebase[zz]" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    Debugging Go compiler performance in a large codebase[zz]
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-01-09</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.2k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：7分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Visualising-the-build-process"><span class="post-toc-text">Visualising the build process</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Start-sooner-finish-sooner"><span class="post-toc-text">Start sooner, finish sooner</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Break-it-up"><span class="post-toc-text">Break it up</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#What-did-I-learn"><span class="post-toc-text">What did I learn?</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>zz: <a target="_blank" rel="noopener" href="https://incident.io/blog/go-build-faster">https://incident.io/blog/go-build-faster</a></p>
+<p>As <a target="_blank" rel="noopener" href="https://incident.io/blog/monolith">we’ve talked about before</a>, our app is a monolith: all our backend code lives together and gets compiled into a single binary. One of the reasons I prefer monolithic architectures is that they make it much easier to focus on shipping features without having to spend much time thinking about where code should live and how to get all the data you need together quickly.</p>
+<p>However, I’m not going to claim there aren’t disadvantages too. One of those is compile times. Because all the backend code needs to be built into a single artefact, the time it takes to do that inevitably increases as the amount of code to compile grows.</p>
+<p>That’s bad for shipping quickly: a slower build means it takes longer to get code from “pull request merged” to “running for customers”. It’s also bad for developer experience: time spent waiting for the compiler isn’t productive time, and it can really break your flow.</p>
+<p>While <a target="_blank" rel="noopener" href="https://incident.io/blog/festive-macbooks">faster MacBooks can make a big difference</a>, we can also apply some performance-optimising tools that come with Golang to figure out where the bottlenecks are and remove them!</p>
+<h2 id="Visualising-the-build-process"><a href="#Visualising-the-build-process" class="headerlink" title="Visualising the build process"></a>Visualising the build process</h2><p>The first thing to note is that the Go compiler caches previously-compiled code, so to get a clearer picture of the <em>worst case</em> scenario, I cleared that cache before each run, using <code>go cache -clean</code>.</p>
+<p>Looking at the docs, there are a few interesting-looking flags you can pass to <code>go build</code>:</p>
+<ul>
+<li><code>-debug-actiongraph</code> - this tells you what the compiler is doing at different points, and can be inspected with <a target="_blank" rel="noopener" href="https://github.com/icio/actiongraph">https://github.com/icio/actiongraph</a>.</li>
+<li><code>-debug-trace</code> - this produces a trace, which can be visualised in a tool like <a target="_blank" rel="noopener" href="https://ui.perfetto.dev/#!/viewer">Perfetto</a></li>
+</ul>
+<p>I found the trace view felt more familiar: at <a target="_blank" rel="noopener" href="http://incident.io/">incident.io</a> we debug things by reading traces <em>all the time</em>, and the Perfetto UI is really familiar if you’ve had to optimise JavaScript performance with the Chrome DevTools before.</p>
+<p>So, with a clean cache, I ran <code>go build ./cmd/app/ -debug-trace=tmp/trace.json</code>, and dropped that into Perfetto:</p>
+<p><a target="_blank" rel="noopener" href="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/b145104608fe8490391ffc0a4047167e34a12e45-2648x1516.png?q=75&fit=clip&auto=format&w=3840&q=75" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/b145104608fe8490391ffc0a4047167e34a12e45-2648x1516.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></a></p>
+<p>Well, that is pretty, but what does it tell us? Broadly there’s three phases:</p>
+<ol>
+<li>Planning: up at the top-left, there’s a bunch of short spans which are the compiler figuring out which packages import which other packages, and planning out the build. This is pretty quick!</li>
+<li>Next there’s a <em>really dense</em> set of spans: this is almost entirely compiling external dependencies. This uses all 8 cores and isn’t all that interesting to us: these packages don’t change much and therefore the build cache should be very effective at avoiding recompiling them.</li>
+<li>At about 25s in, we finally start compiling our own code. This code has a lot more dependencies between packages, which creates those gaps where every package waiting to be compiled imports something that is currently being compiled, and so has to wait.</li>
+</ol>
+<p>At this point, there’s only really one path to making this faster: eliminating as much of the empty space in the trace where there’s only one or two cores doing any work.</p>
+<p>The first thing to tackle is the turquoise span I’ve circled. That’s a package called <code>./pkg/domain</code>, which defines a struct for each table in our database. Things like:</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> <span class="title class_">Incident</span> struct &#123;</span><br><span class="line">  <span class="variable constant_">ID</span> <span class="built_in">string</span></span><br><span class="line">  <span class="title class_">Name</span> <span class="built_in">string</span></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>It makes sense that a <em>lot</em> of our code will import that package: if you’re using the database, you need to! It also makes sense that it’s a relatively big package, since we have around 250 tables. Once you add in the <a target="_blank" rel="noopener" href="https://incident.io/blog/code-generation#builders">builders we generate</a>, that gets up to around 800 files, containing almost 100k lines of code.</p>
+<p>To speed things up there were two strategies I tried:</p>
+<h2 id="Start-sooner-finish-sooner"><a href="#Start-sooner-finish-sooner" class="headerlink" title="Start sooner, finish sooner"></a>Start sooner, finish sooner</h2><p>The first option I tried at this point was removing dependencies from <code>pkg/domain</code>, so the compiler could get started on building it sooner.</p>
+<p>We were already using a great little linter called <code>depguard</code> to set rules that help us avoid import cycles. I started off setting an ultra-strict rule, saying <code>pkg/domain</code> cannot import anything except the standard library:</p>
+<p><a target="_blank" rel="noopener" href="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/58a6bc56a12beb19c09887c55f07455e3fe744df-1594x1074.png?q=75&fit=clip&auto=format&w=3840&q=75" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/58a6bc56a12beb19c09887c55f07455e3fe744df-1594x1074.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></a></p>
+<p>This produced a <em>long</em> list of violations! Working through those one-by-one let me check each of the packages we were importing and either add them to the <code>allow</code> list, or figure out how to break that dependency.</p>
+<p>After breaking each dependency I cleared the cache and did a fresh build to see if the trace had really changed much. The biggest improvement was removing the dependency on <a target="_blank" rel="noopener" href="https://github.com/yuin/goldmark">yuin/goldmark</a>, a markdown parsing library, which allowed these two large packages to be compiled in parallel, and got <code>pkg/domain</code> started at around 15s in, rather than 25s!</p>
+<p><a target="_blank" rel="noopener" href="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/4063c53eff31d8458b730265277e711dada2d686-2656x1462.png?q=75&fit=clip&auto=format&w=3840&q=75" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/4063c53eff31d8458b730265277e711dada2d686-2656x1462.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></a></p>
+<h2 id="Break-it-up"><a href="#Break-it-up" class="headerlink" title="Break it up"></a>Break it up</h2><p>That helped a lot with the worst case compile without anything cached. Luckily, that’s not all that common: a more frequent situation is that someone has changed a file inside <code>pkg/domain</code>. In that case, the compiler will recompile that package <em>plus anything that imports it</em>, which here means pretty much the whole app! A trace of that looks something like this:</p>
+<p><a target="_blank" rel="noopener" href="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/978bb9ee4a6228f6329ea7fe5b1bd27bf61970c8-3600x542.png?q=75&fit=clip&auto=format&w=3840&q=75" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/978bb9ee4a6228f6329ea7fe5b1bd27bf61970c8-3600x542.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></a></p>
+<p>Look at all those sad, bored CPUs not doing anything while we’re building <code>pkg/domain</code>!</p>
+<p>The only solution here is to make this package smaller. At first that seemed like a pretty complex task: there are lots of bidirectional relationships between different structs in this code for good reason! For example, we have code like this:</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// in incident.go</span></span><br><span class="line"><span class="keyword">type</span> <span class="title class_">Incident</span> struct &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="title class_">IncidentUpdates</span> []*<span class="title class_">IncidentUpdate</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// in incident_update.go</span></span><br><span class="line"><span class="keyword">type</span> <span class="title class_">IncidentUpdate</span> struct &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="title class_">Incident</span> *<span class="title class_">Incident</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>This lets us write code that loads both an incident with all its updates, or an update with the incident it belongs to. Splitting these across two packages creates an import cycle.</p>
+<p>That’s just one example - splitting this package up seemed like a recipe for nasty import cycles and unhappy engineers.</p>
+<p>Luckily, there was another axis to split this code along: app code vs test code. We <a target="_blank" rel="noopener" href="https://incident.io/blog/code-generation#matchers">generate type-safe <code>gomega</code> matchers</a> for each of these domain types, to make writing tests like this really simple:</p>
+<p><a target="_blank" rel="noopener" href="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/ae6d4d76526bacf5a0f1b698937d547b279c42a4-1102x578.png?q=75&fit=clip&auto=format&w=3840&q=75" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/ae6d4d76526bacf5a0f1b698937d547b279c42a4-1102x578.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></a></p>
+<p>That’s a big chunk of code that could live in a separate package, that will only be imported by tests. Moving those out into <code>pkg/domain/matchers</code> reduced the time to compile <code>pkg/domain</code> by about 30%, which adds up pretty quickly when that package get rebuilt 10-20 times a day across the team.</p>
+<p>That same example now looks like this:</p>
+<p><a target="_blank" rel="noopener" href="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/be4a5b2c81b238dda65376921db0ef02b58e8257-1120x578.png?q=75&fit=clip&auto=format&w=3840&q=75" title="img" class="gallery-item" style="box-shadow: none;"> <img src="https://incident.io/_next/image?url=https://cdn.sanity.io/images/oqy5aexb/production/be4a5b2c81b238dda65376921db0ef02b58e8257-1120x578.png?q=75&fit=clip&auto=format&w=3840&q=75" alt="img"></a></p>
+<h2 id="What-did-I-learn"><a href="#What-did-I-learn" class="headerlink" title="What did I learn?"></a>What did I learn?</h2><p>Developer tools like compilers can feel strange and scary if (like me) you’ve never really taken a look at what they’re doing. When you find something annoying about them, like a slow build or a dodgy error message it’s all <em>just more code</em> that you can use your normal skills and tools to work on.</p>
+<p>Your teammates will appreciate it 🫶</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2024-01-18</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/go/'>
+                            go
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/lua-settime/'>给lua函数添加调用时长限制</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/debug-remote-go-k8s/">Debugging Remotely with Go in Kubernetes[zz]</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>
