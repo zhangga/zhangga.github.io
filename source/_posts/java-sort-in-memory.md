@@ -216,27 +216,147 @@ List<Room> results = searcher.search("张三");
 
 ### 5.2 Maven 依赖
 
-```XML
-<dependencies>
-    <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-core</artifactId>
-        <version>9.11.1</version>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-queryparser</artifactId>
-        <version>9.11.1</version>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-analysis-smartcn</artifactId>
-        <version>9.11.1</version>
-    </dependency>
-</dependencies>
+```kts
+dependencies {
+    implementation 'org.apache.lucene:lucene-core:10.3.2'
+    implementation 'org.apache.lucene:lucene-queryparser:10.3.2'
+    implementation 'org.apache.lucene:lucene-analysis-icu:10.3.2'
+    implementation 'com.belerweb:pinyin4j:2.5.0'
+}
 ```
 
 ### 5.3 核心实现
+```Java
+import net.sourceforge.pinyin4j.PinyinHelper;
+import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.icu.ICUFoldingFilter;
+import org.apache.lucene.analysis.icu.segmentation.ICUTokenizer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+import org.slf4j.Logger;
+
+import java.io.IOException;
+import java.util.*;
+
+// 多语言分词器
+public class NameFuzzyAnalyzer extends Analyzer {
+
+    // 组合
+    private final Analyzer analyzer;
+
+    private NameFuzzyAnalyzer() {
+        this.analyzer = new Analyzer() {
+            @Override
+            protected TokenStreamComponents createComponents(String fieldName) {
+                ICUTokenizer tokenizer = new ICUTokenizer();
+                TokenStream stream = new ICUFoldingFilter(tokenizer);
+                TokenFilter filter = new LowerCaseFilter(stream);
+                return new TokenStreamComponents(tokenizer, filter);
+            }
+        };
+    }
+
+    @Override
+    protected TokenStreamComponents createComponents(String fieldName) {
+        NameFuzzyAnalyzer tokenizer = new NameFuzzyAnalyzer();
+        return new TokenStreamComponents(tokenizer);
+    }
+
+    private static class NameFuzzyTokenizer extends Tokenizer {
+        private final CharTermAttribute termAttr = addAttribute(CharTermAttribute.class);
+        private final PositionIncrementAttribute posIncrAttr = addAttribute(PositionIncrementAttribute.class);
+        private final OffsetAttribute offsetAttr = addAttribute(OffsetAttribute.class);
+
+        private Iterator<String> tokenIterator;
+        private int finalOffset;
+
+        @Override
+        public boolean incrementToken() throws IOException {
+            clearAttributes();
+            if (tokenIterator != null && tokenIterator.hasNext()) {
+                String token = tokenIterator.next();
+                termAttr.setEmpty().append(token);
+                posIncrAttr.setPositionIncrement(1);
+                offsetAttr.setOffset(0, Math.min(token.length(), finalOffset));
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void reset() throws IOException {
+            super.reset();
+            // 读取全部输入文本
+            StringBuilder sb = new StringBuilder();
+            char[] buffer = new char[256];
+            int len;
+            while ((len = input.read(buffer)) != -1) {
+                sb.append(buffer, 0, len);
+            }
+            String text = sb.toString().trim();
+            finalOffset = text.length();
+
+            // 调用你的分词+拼音方法
+            if (text.isEmpty()) {
+                tokenIterator = Collections.emptyIterator();
+            } else {
+                Set<String> tokens = NameFuzzyAnalyzer.this.tokenizeWithPinyin(text);
+                tokenIterator = (tokens != null && !tokens.isEmpty())
+                        ? tokens.iterator()
+                        : Collections.emptyIterator();
+            }
+        }
+
+        @Override
+        public void end() throws IOException {
+            super.end();
+            offsetAttr.setOffset(finalOffset, finalOffset);
+        }
+    }
+
+    public Set<String> tokenize(String text) {
+        Set<String> result = new HashSet<>();
+        // 前4个字符
+        for (int i = 1; i <= 4 && i < text.length(); i++) {
+            result.add(text.substring(0, i));
+            result.add(text.substring(i, i+1));
+        }
+        try (TokenStream ts = analyzer.tokenStream("field", text)) {
+            CharTermAttribute term = ts.addAttribute(CharTermAttribute.class);
+            ts.reset();
+            while (ts.incrementToken()) {
+                result.add(term.toString());
+            }
+            ts.end();
+        } catch (IOException e) {
+            logger.error("tokenize text failed: {}", e.toString());
+            return null;
+        }
+
+        return result;
+    }
+
+    public Set<String> tokenizeWithPinyin(String text) {
+        Set<String> tokens = tokenize(text);
+
+        Set<String> result = new HashSet<>(tokens);
+        for (String token : tokens) {
+            if (token.matches("[\\u4e00-\\u9fa5]+")) { // 中文
+                StringBuilder sb = new StringBuilder();
+                for (char c : token.toCharArray()) {
+                    String[] pinyinArray = PinyinHelper.toHanyuPinyinStringArray(c);
+                    if (pinyinArray != null)
+                        sb.append(pinyinArray[0].replaceAll("\\d", ""));
+                }
+                result.add(sb.toString()); // 添加拼音
+            }
+        }
+
+        return result;
+    }
+}
+```
 
 ```Java
 import org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer;
@@ -253,72 +373,161 @@ public class RoomLuceneSearch {
     private static final String F_CREATOR = "creatorName";
     private static final String F_TIME = "createTime";
 
+    // 所有房间
+    private fina Map<Long, Room> roomMap = new HashMap<>();
+    // 搜索相关
     private final Directory directory;
-    private final SmartChineseAnalyzer analyzer;
-    private IndexWriter writer;
-    private IndexSearcher searcher;
+    private final Analyzer analyzer; // 多语言分词器
+    private final IndexWriter indexWriter; // 索引写入器
+    private DirectoryReader indexReader; // 索引读取器
+    private IndexSearcher indexSearcher; // 搜索器
+    // 排序列表
+    private final NavigableSet<RoomInfo> sortedRooms = new ConcurrentSkipListSet<>((room1, room2) -> {
+        // 1. 状态不同，状态小的优先
+        if (room1.state() != room2.state()) {
+            return Integer.compare(room1.state(), room2.state());
+        }
+
+        // 2. 成员数量不同，成员数量多的优先
+        if (room1.playerNum() != room2.playerNum()) {
+            return Integer.compare(room2.playerNum(), room1.playerNum());
+        }
+
+        // 3. 房间ID
+        return Long.compare(room1.roomId(), room2.roomId());
+    });
 
     public RoomLuceneSearch() throws IOException {
         this.directory = new ByteBuffersDirectory(); // 纯内存存储
-        this.analyzer = new SmartChineseAnalyzer();
+        this.analyzer = new NameFuzzyAnalyzer();
         
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        this.writer = new IndexWriter(directory, config);
+        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+        this.indexWriter = new IndexWriter(directory, config);
     }
 
     /** 添加房间 */
     public void addRoom(Room room) throws IOException {
+        // 加入房间映射
+        var old = roomMap.put(room.roomId(), room);
+        // 更新排序列表
+        if (old != null) {
+            sortedRooms.remove(old);
+        }
+        sortedRooms.add(room);
+
         Document doc = new Document();
-        doc.add(new StringField(F_ROOM_ID, room.getRoomId(), Field.Store.YES));
-        doc.add(new TextField(F_ROOM_NAME, room.getRoomName(), Field.Store.YES));
-        doc.add(new TextField(F_CREATOR, room.getCreatorName(), Field.Store.YES));
-        doc.add(new LongPoint(F_TIME, room.getCreateTime()));
-        doc.add(new StoredField(F_TIME, room.getCreateTime()));
+        // LongPoint: BKD-Tree 索引, 支持高性能精确/范围查询，但不存储原值
+        doc.add(new LongPoint(F_ROOM_ID, room.roomId()));
+        // StoredField: 仅存储原值, 搜索命中后可以取回 roomId
+        doc.add(new StoredField(F_ROOM_ID, room.roomId()));
+
+        // TextField: 房间名称, 支持多语言分词
+        doc.add(new TextField(F_ROOM_NAME, room.roomName(), Field.Store.NO));
+        // TextField: 房主名称, 支持多语言分词
+        doc.add(new TextField(F_CREATOR, room.creatorName(), Field.Store.NO));
+        // StoredField: 仅存储原值, 搜索命中后可以取回 createTime
+        doc.add(new StoredField(F_TIME, room.createTime()));
         
-        writer.addDocument(doc);
-        writer.commit();
+        indexWriter.addDocument(doc);
+        indexWriter.commit();
         refreshSearcher();
     }
 
-    /** 模糊查询 + 分页 + 排序 */
-    public SearchResult search(String keyword, int page, int pageSize) 
-            throws Exception {
+    public void deleteRoom(long roomId) {
+        var removed = roomMap.remove(roomId);
+        if (removed != null) {
+            sortedRooms.remove(removed);
+        }
+
+        try {
+            indexWriter.deleteDocuments(LongPoint.newExactQuery(F_ROOM_ID, roomId));
+            indexWriter.commit();
+            refreshReader();
+        } catch (IOException e) {
+            logger.error("Error while removing document", e);
+        }
+    }
+
+    public void updateRoom(Room room) throws IOException {
+        var old = roomMap.put(room.roomId(), room);
+        // 房间名变更
+        if (!room.roomName().equals(old.roomName())) {
+            try {
+                indexWriter.deleteDocuments(LongPoint.newExactQuery(F_ROOM_ID, room.roomId()));
+                indexWriter.addDocument(buildDocument(room));
+                indexWriter.commit();
+                refreshReader();
+            } catch (IOException e) {
+                logger.error("Error while updating document", e);
+            }
+        }
+
+        // 其他字段变更，更新排序列表
+        if (old != null) {
+            sortedRooms.remove(old);
+        }
+        sortedRooms.add(roomInfo);
+    }
+
+    /** 模糊查询 */
+    public List<Room> search(String keyword, int topN) throws Exception {
+        if (indexSearcher == null || topN <= 0) {
+            return Collections.emptyList();
+        }
+
         // 构建查询：房间名 OR 创建者 模糊匹配
-        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
+        Query roomNameQuery = new QueryParser(F_ROOM_NAME, analyzer).parse(QueryParser.escape(keyword));
+        Query creatorQuery = new QueryParser(F_CREATOR, analyzer).parse(QueryParser.escape(keyword));
+
+        // 房间名 OR 创建者 模糊匹配
+        queryBuilder.add(roomNameQuery, BooleanClause.Occur.SHOULD);
+        queryBuilder.add(creatorQuery, BooleanClause.Occur.SHOULD);
         
-        // 通配符匹配实现 contains 效果
-        builder.add(new WildcardQuery(
+        // 通配符匹配实现 contains 效果。性能差
+        queryBuilder.add(new WildcardQuery(
             new Term(F_ROOM_NAME, "*" + keyword + "*")), BooleanClause.Occur.SHOULD);
-        builder.add(new WildcardQuery(
+        queryBuilder.add(new WildcardQuery(
             new Term(F_CREATOR, "*" + keyword + "*")), BooleanClause.Occur.SHOULD);
-        builder.setMinimumNumberShouldMatch(1);
+        // 至少命中一个条件
+        builqueryBuilderder.setMinimumNumberShouldMatch(1);
 
         // 按创建时间倒序
         Sort sort = new Sort(new SortField(F_TIME, SortField.Type.LONG, true));
         
-        int start = (page - 1) * pageSize;
-        TopDocs topDocs = searcher.search(builder.build(), start + pageSize, sort);
-        
-        List<Room> results = new ArrayList<>();
-        for (int i = start; i < Math.min(topDocs.scoreDocs.length, start + pageSize); i++) {
-            Document doc = searcher.storedFields().document(topDocs.scoreDocs[i].doc);
-            results.add(new Room(
-                doc.get(F_ROOM_ID),
-                doc.get(F_ROOM_NAME),
-                doc.get(F_CREATOR),
-                Long.parseLong(doc.get(F_TIME))
-            ));
+        TopDocs topDocs = indexSearcher.search(queryBuilder.build(), topN, sort);
+        if (topDocs.totalHits.value() <= 0) {
+            return Collections.emptyList();
         }
         
-        return new SearchResult(topDocs.totalHits.value, results);
+        int size = Math.min(topN, (int) topDocs.totalHits.value());
+        List<Room> results = new ArrayList<>(size);
+        ffor (int i = 0; i < size; i++) {
+            Document doc = indexSearcher.storedFields().document(topDocs.scoreDocs[i].doc);
+            String roomId = doc.get(F_ROOM_ID);
+            if (roomId == null || roomId.isEmpty())
+                continue;
+            var room = roomMap.get(Long.valueOf(roomId));
+            if (room == null)
+                continue;
+            results.add(room);
+        }
+        
+        return results;
     }
 
     private void refreshSearcher() throws IOException {
-        if (searcher != null) {
-            searcher.getIndexReader().close();
+        if (indexReader == null) {
+            indexReader = DirectoryReader.open(directory);
+        } else {
+            DirectoryReader newReader = DirectoryReader.openIfChanged(indexReader);
+            if (newReader != null) {
+                indexReader.close();
+                indexReader = newReader;
+            }
         }
-        DirectoryReader reader = DirectoryReader.open(directory);
-        searcher = new IndexSearcher(reader);
+        indexSearcher = new IndexSearcher(indexReader);
     }
 }
 ```
