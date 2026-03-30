@@ -38,8 +38,8 @@ sudo apt install subversion -y
 将auth区段的password-stores配置项解开，设置为simple
 
 ## 安装docker
+一键: `curl -fsSL https://get.docker.com | sudo sh`
 ```sh
-sudo dnf install -y docker
 sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -aG docker $USER && newgrp docker

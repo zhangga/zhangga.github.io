@@ -16,6 +16,23 @@ date: 2025-11-04 12:05:52
 
 # 安装
 
+## 推荐Docker Compose部署
+部署Jenkins 用的镜像是jenkins/jenkins:2.462.3-lts-jdk11 版本
+使用docker-compose 管理jenkins docker容器
+Jenkins docker compose 配置文件：/root/jenkins/docker-compose.yml
+
+```bash
+#查看在运行的容器
+docker-compose ls
+#如果修改了docker-compose.yml 配置文件(基本不修改)，需要执行
+docker-compose down
+docker-compose up -d
+#重启jenkins服务
+docker-compose restart jenkins2.462.3
+或者直接重启容器jenkins
+docker restart jenkins
+```
+
 ## Docker部署
 
 #### 拉取 Jenkins 镜像
