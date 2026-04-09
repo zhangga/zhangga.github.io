@@ -33,6 +33,13 @@ V2ray的相关仓可以直接从github上进行获取:
 * Manual: [://v2ray.com`https`](https://v2ray.com/)
 * Sample: [://www.v2ray.com/en/welcome/start.html`https`](https://www.v2ray.com/en/welcome/start.html)
 
+### Generate UUID
+生成一个随机的UUID，用于接下来的配置中。
+
+* 可以从 [Online UUID Generator](https://www.uuidgenerator.net/)  生成
+* Linux 可以用命令 `cat /proc/sys/kernel/random/uuid` 生成
+
+
 ### Using as server
 
 在服务端的`/usr/local/etc/v2ray/config.json` 设置接受端口vmess协议并向外直接转发:
@@ -46,7 +53,7 @@ V2ray的相关仓可以直接从github上进行获取:
       "port": 11223,
       "protocol": "vmess",
       "settings": {
-        "clients": [{ "id": "81498305-0be0-4923-a270-df4e490a086b" }] // Same as client
+        "clients": [{ "id": "81498305-0be0-4923-a270-df4e490a086b" }] // UUID Same as client
     }
   }],
   "outbounds": [{
