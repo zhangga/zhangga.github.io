@@ -236,7 +236,7 @@ sudo nano /usr/local/etc/xray/config.json
 
 ```bash
 # 下载
-wget https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-amd64.gz
+wget https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-linux-amd64-v1-v1.19.24.gz
 
 # 解压安装
 gunzip mihomo-linux-amd64.gz
