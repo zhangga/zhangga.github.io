@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="claude-proxy" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    claude-proxy
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.8k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：13分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#AWS-Xray-mihomo-%E4%BD%8F%E5%AE%85%E4%BB%A3%E7%90%86-%E5%AE%8C%E6%95%B4%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B"><span class="post-toc-text">AWS + Xray + mihomo + 住宅代理 完整搭建教程</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="post-toc-text">整体架构</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9AAWS-EC2-%E5%88%9B%E5%BB%BA"><span class="post-toc-text">第一部分：AWS EC2 创建</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-1-%E5%88%9B%E5%BB%BA%E5%AE%9E%E4%BE%8B"><span class="post-toc-text">1.1 创建实例</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-2-%E5%AE%89%E5%85%A8%E7%BB%84%E9%85%8D%E7%BD%AE"><span class="post-toc-text">1.2 安全组配置</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-3-%E5%88%86%E9%85%8D%E5%BC%B9%E6%80%A7-IP"><span class="post-toc-text">1.3 分配弹性 IP</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E5%AE%89%E8%A3%85-Xray"><span class="post-toc-text">第二部分：安装 Xray</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-1-SSH-%E7%99%BB%E5%BD%95"><span class="post-toc-text">2.1 SSH 登录</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-2-%E5%AE%89%E8%A3%85-Xray"><span class="post-toc-text">2.2 安装 Xray</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-3-%E8%B5%8B%E4%BA%88%E4%BD%8E%E7%AB%AF%E5%8F%A3%E6%9D%83%E9%99%90"><span class="post-toc-text">2.3 赋予低端口权限</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-4-%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5"><span class="post-toc-text">2.4 生成密钥</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-5-%E9%85%8D%E7%BD%AE-Xray%EF%BC%88%E5%85%B3%E9%94%AE%EF%BC%9A%E5%87%BA%E7%AB%99%E8%B5%B0-mihomo%EF%BC%89"><span class="post-toc-text">2.5 配置 Xray（关键：出站走 mihomo）</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86%EF%BC%9A%E5%AE%89%E8%A3%85%E5%92%8C%E9%85%8D%E7%BD%AE-mihomo"><span class="post-toc-text">第三部分：安装和配置 mihomo</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-1-%E5%AE%89%E8%A3%85-mihomo"><span class="post-toc-text">3.1 安装 mihomo</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-2-%E9%85%8D%E7%BD%AE-mihomo"><span class="post-toc-text">3.2 配置 mihomo</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-3-%E5%88%9B%E5%BB%BA-systemd-%E6%9C%8D%E5%8A%A1"><span class="post-toc-text">3.3 创建 systemd 服务</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E5%9B%9B%E9%83%A8%E5%88%86%EF%BC%9A%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1%EF%BC%88%E6%B3%A8%E6%84%8F%E9%A1%BA%E5%BA%8F%EF%BC%89"><span class="post-toc-text">第四部分：启动服务（注意顺序）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BC%80%E5%90%AF-BBR-%E5%8A%A0%E9%80%9F%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="post-toc-text">开启 BBR 加速（推荐）</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E4%BA%94%E9%83%A8%E5%88%86%EF%BC%9A%E9%AA%8C%E8%AF%81"><span class="post-toc-text">第五部分：验证</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-1-%E9%AA%8C%E8%AF%81-mihomo-%E4%BD%8F%E5%AE%85%E4%BB%A3%E7%90%86%E9%93%BE%E8%B7%AF"><span class="post-toc-text">5.1 验证 mihomo 住宅代理链路</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-2-%E9%AA%8C%E8%AF%81-Xray-%E7%9B%B4%E8%BF%9E%E6%B5%81%E9%87%8F"><span class="post-toc-text">5.2 验证 Xray 直连流量</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-3-%E9%AA%8C%E8%AF%81-Anthropic-%E8%B5%B0%E4%BD%8F%E5%AE%85%E4%BB%A3%E7%90%86"><span class="post-toc-text">5.3 验证 Anthropic 走住宅代理</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E5%85%AD%E9%83%A8%E5%88%86%EF%BC%9A%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%85%8D%E7%BD%AE"><span class="post-toc-text">第六部分：客户端配置</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-1-%E8%8E%B7%E5%8F%96%E5%85%AC%E9%92%A5%EF%BC%88%E5%A6%82%E6%9E%9C%E4%B9%8B%E5%89%8D%E6%B2%A1%E8%AE%B0%E4%B8%8B%EF%BC%89"><span class="post-toc-text">6.1 获取公钥（如果之前没记下）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-2-%E7%94%9F%E6%88%90%E9%80%9A%E7%94%A8%E9%93%BE%E6%8E%A5"><span class="post-toc-text">6.2 生成通用链接</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-3-Mac%EF%BC%9AClash-Verge-Rev"><span class="post-toc-text">6.3 Mac：Clash Verge Rev</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%8B%E8%BD%BD"><span class="post-toc-text">下载</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE"><span class="post-toc-text">配置</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%90%AF%E7%94%A8"><span class="post-toc-text">启用</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Claude-Code-%E4%BD%BF%E7%94%A8"><span class="post-toc-text">Claude Code 使用</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-4-iPhone%EF%BC%9AHiddify-Next"><span class="post-toc-text">6.4 iPhone：Hiddify Next</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%8B%E8%BD%BD-1"><span class="post-toc-text">下载</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE-1"><span class="post-toc-text">配置</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-5-Android%EF%BC%9AHiddify-Next-%E6%88%96-v2rayNG"><span class="post-toc-text">6.5 Android：Hiddify Next 或 v2rayNG</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Hiddify"><span class="post-toc-text">Hiddify</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#v2rayNG"><span class="post-toc-text">v2rayNG</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%83%E9%83%A8%E5%88%86%EF%BC%9A%E6%B5%81%E9%87%8F%E8%B7%AF%E5%BE%84%E8%AF%B4%E6%98%8E"><span class="post-toc-text">第七部分：流量路径说明</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E5%85%AB%E9%83%A8%E5%88%86%EF%BC%9A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="post-toc-text">第八部分：故障排查</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="post-toc-text">常见问题</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%97%A5%E5%BF%97%E6%8E%92%E6%9F%A5%E5%91%BD%E4%BB%A4"><span class="post-toc-text">日志排查命令</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%AC%AC%E4%B9%9D%E9%83%A8%E5%88%86%EF%BC%9A%E7%BB%B4%E6%8A%A4%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="post-toc-text">第九部分：维护命令速查</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%99%84%E5%BD%95"><span class="post-toc-text">附录</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#A-AWS-%E5%85%8D%E8%B4%B9%E5%A5%97%E9%A4%90"><span class="post-toc-text">A. AWS 免费套餐</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#B-%E6%88%90%E6%9C%AC%E4%BC%B0%E7%AE%97"><span class="post-toc-text">B. 成本估算</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#C-%E5%AE%89%E5%85%A8%E5%BB%BA%E8%AE%AE"><span class="post-toc-text">C. 安全建议</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="AWS-Xray-mihomo-住宅代理-完整搭建教程"><a href="#AWS-Xray-mihomo-住宅代理-完整搭建教程" class="headerlink" title="AWS + Xray + mihomo + 住宅代理 完整搭建教程"></a>AWS + Xray + mihomo + 住宅代理 完整搭建教程</h1><blockquote>
+<p>目标：所有设备通过加密隧道连接 VPS，VPS 智能分流，Anthropic/Claude 流量走住宅代理</p>
+</blockquote>
+<hr>
+<h2 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">手机 (Hiddify)  /  电脑 (Clash Verge Rev)</span><br><span class="line">         │</span><br><span class="line">         │  VLESS + Reality 加密隧道 (端口 443)</span><br><span class="line">         ▼</span><br><span class="line">┌──────────────────────────────────────┐</span><br><span class="line">│          AWS EC2 (美西/东京)          │</span><br><span class="line">│                                      │</span><br><span class="line">│  Xray (端口 443)                     │</span><br><span class="line">│    ↓ 所有流量转发到本地 socks5       │</span><br><span class="line">│  mihomo (127.0.0.1:7890)            │</span><br><span class="line">│    ├─ Anthropic/Claude → 住宅代理    │</span><br><span class="line">│    └─ 其他流量 → 直连上网            │</span><br><span class="line">└──────────────────────────────────────┘</span><br><span class="line">         │                    │</span><br><span class="line">         ▼                    ▼</span><br><span class="line">   住宅代理 (IPRoyal)     直连 Internet</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">   api.anthropic.com</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键点：</strong></p>
+<ul>
+<li>Xray 负责加密隧道（客户端 ↔ VPS）</li>
+<li>mihomo 负责智能分流（哪些走住宅代理，哪些直连）</li>
+<li>两者串联，7890 端口仅本地监听，不暴露公网</li>
+<li>客户端只需连接 Xray 的 443 端口</li>
+</ul>
+<hr>
+<h1 id="第一部分：AWS-EC2-创建"><a href="#第一部分：AWS-EC2-创建" class="headerlink" title="第一部分：AWS EC2 创建"></a>第一部分：AWS EC2 创建</h1><h2 id="1-1-创建实例"><a href="#1-1-创建实例" class="headerlink" title="1.1 创建实例"></a>1.1 创建实例</h2><table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>推荐值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>区域</td>
+<td>us-west-1 (美西) 或 ap-northeast-1 (东京)</td>
+</tr>
+<tr>
+<td>AMI</td>
+<td>Ubuntu Server 24.04 LTS</td>
+</tr>
+<tr>
+<td>实例类型</td>
+<td>t3.micro（免费套餐 750h/月）</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>8–20 GB gp3</td>
+</tr>
+</tbody></table>
+<h2 id="1-2-安全组配置"><a href="#1-2-安全组配置" class="headerlink" title="1.2 安全组配置"></a>1.2 安全组配置</h2><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>协议</th>
+<th>端口</th>
+<th>来源</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SSH</td>
+<td>TCP</td>
+<td>22</td>
+<td>My IP</td>
+<td>SSH 登录</td>
+</tr>
+<tr>
+<td>Custom TCP</td>
+<td>TCP</td>
+<td>443</td>
+<td>0.0.0.0/0</td>
+<td>Xray 入站</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>只开 22 和 443</strong>，mihomo 的 7890 不需要开放（仅本地使用）</p>
+</blockquote>
+<h2 id="1-3-分配弹性-IP"><a href="#1-3-分配弹性-IP" class="headerlink" title="1.3 分配弹性 IP"></a>1.3 分配弹性 IP</h2><ol>
+<li>EC2 → Elastic IPs → Allocate → Associate 到实例</li>
+<li>记下弹性 IP：<code>&lt;你的公网IP&gt;</code></li>
+</ol>
+<hr>
+<h1 id="第二部分：安装-Xray"><a href="#第二部分：安装-Xray" class="headerlink" title="第二部分：安装 Xray"></a>第二部分：安装 Xray</h1><h2 id="2-1-SSH-登录"><a href="#2-1-SSH-登录" class="headerlink" title="2.1 SSH 登录"></a>2.1 SSH 登录</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh -i your-key.pem ubuntu@&lt;你的公网IP&gt;</span><br><span class="line"><span class="built_in">sudo</span> apt update &amp;&amp; <span class="built_in">sudo</span> apt upgrade -y</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-2-安装-Xray"><a href="#2-2-安装-Xray" class="headerlink" title="2.2 安装 Xray"></a>2.2 安装 Xray</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-3-赋予低端口权限"><a href="#2-3-赋予低端口权限" class="headerlink" title="2.3 赋予低端口权限"></a>2.3 赋予低端口权限</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">setcap</span> cap_net_bind_service=+ep /usr/local/bin/xray</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-4-生成密钥"><a href="#2-4-生成密钥" class="headerlink" title="2.4 生成密钥"></a>2.4 生成密钥</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 生成 UUID</span></span><br><span class="line">xray uuid</span><br><span class="line"><span class="comment"># 记下输出，例如：a1b2c3d4-e5f6-7890-abcd-ef1234567890</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成 Reality 密钥对</span></span><br><span class="line">xray x25519</span><br><span class="line"><span class="comment"># 记下 Private key 和 Public key</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成 Short ID</span></span><br><span class="line">openssl rand -hex 8</span><br><span class="line"><span class="comment"># 记下输出，例如：a1b2c3d4e5f67890</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="2-5-配置-Xray（关键：出站走-mihomo）"><a href="#2-5-配置-Xray（关键：出站走-mihomo）" class="headerlink" title="2.5 配置 Xray（关键：出站走 mihomo）"></a>2.5 配置 Xray（关键：出站走 mihomo）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nano /usr/local/etc/xray/config.json</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;log&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;loglevel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;warning&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;dns&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">	<span class="attr">&quot;queryStrategy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;UseIPv4&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;servers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;8.8.8.8&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;1.1.1.1&quot;</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;inbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;listen&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.0.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">443</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;vless&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;clients&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                    <span class="punctuation">&#123;</span></span><br><span class="line">                        <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&lt;替换为你的UUID&gt;&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;flow&quot;</span><span class="punctuation">:</span> <span class="string">&quot;xtls-rprx-vision&quot;</span></span><br><span class="line">                    <span class="punctuation">&#125;</span></span><br><span class="line">                <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;decryption&quot;</span><span class="punctuation">:</span> <span class="string">&quot;none&quot;</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;streamSettings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;network&quot;</span><span class="punctuation">:</span> <span class="string">&quot;tcp&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;security&quot;</span><span class="punctuation">:</span> <span class="string">&quot;reality&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;realitySettings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                    <span class="attr">&quot;show&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;dest&quot;</span><span class="punctuation">:</span> <span class="string">&quot;www.apple.com:443&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;xver&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;serverNames&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                        <span class="string">&quot;www.apple.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="string">&quot;apple.com&quot;</span></span><br><span class="line">                    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;privateKey&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&lt;替换为你的Private Key&gt;&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="attr">&quot;shortIds&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                        <span class="string">&quot;&lt;替换为你的Short ID&gt;&quot;</span></span><br><span class="line">                    <span class="punctuation">]</span></span><br><span class="line">                <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;sniffing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;enabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;destOverride&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                    <span class="string">&quot;http&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="string">&quot;tls&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="string">&quot;quic&quot;</span></span><br><span class="line">                <span class="punctuation">]</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;outbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;freedom&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;direct&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;domainStrategy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;UseIPv4&quot;</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;proxy-via-mihomo&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;socks&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;servers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                    <span class="punctuation">&#123;</span></span><br><span class="line">                        <span class="attr">&quot;address&quot;</span><span class="punctuation">:</span> <span class="string">&quot;127.0.0.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">7890</span></span><br><span class="line">                    <span class="punctuation">&#125;</span></span><br><span class="line">                <span class="punctuation">]</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blackhole&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;block&quot;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;routing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;domainStrategy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;IPIfNonMatch&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;domainMatcher&quot;</span><span class="punctuation">:</span> <span class="string">&quot;hybrid&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;rules&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;proxy-via-mihomo&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;domain&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                    <span class="string">&quot;domain:anthropic.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="string">&quot;domain:anthropic.ai&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="string">&quot;domain:api.anthropic.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="string">&quot;domain:claude.ai&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="string">&quot;domain:claudecode.ai&quot;</span><span class="punctuation">,</span></span><br><span class="line">                    <span class="string">&quot;domain:ifconfig.me&quot;</span></span><br><span class="line">                <span class="punctuation">]</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>配置说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>inbounds</code></td>
+<td>端口 443，VLESS + Reality 加密入站</td>
+</tr>
+<tr>
+<td><code>outbounds[0]</code></td>
+<td><strong>关键</strong>：Anthropic 流量转发给本地 mihomo (127.0.0.1:7890)</td>
+</tr>
+<tr>
+<td><code>outbounds[1]</code></td>
+<td>其他流量直连上网</td>
+</tr>
+<tr>
+<td><code>routing.rules[0]</code></td>
+<td>Anthropic/Claude 域名走 mihomo</td>
+</tr>
+<tr>
+<td><code>routing.rules[1]</code></td>
+<td>其他流量直连</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这样 Xray 在入站层加密，在出站层根据域名分流：Anthropic 走 mihomo → 住宅代理，其他直连。</p>
+</blockquote>
+<hr>
+<h1 id="第三部分：安装和配置-mihomo"><a href="#第三部分：安装和配置-mihomo" class="headerlink" title="第三部分：安装和配置 mihomo"></a>第三部分：安装和配置 mihomo</h1><h2 id="3-1-安装-mihomo"><a href="#3-1-安装-mihomo" class="headerlink" title="3.1 安装 mihomo"></a>3.1 安装 mihomo</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载</span></span><br><span class="line">wget https://github.com/MetaCubeX/mihomo/releases/download/v1.19.24/mihomo-linux-amd64-v1-v1.19.24.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解压安装</span></span><br><span class="line">gunzip mihomo-linux-amd64.gz</span><br><span class="line"><span class="built_in">chmod</span> +x mihomo-linux-amd64</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mv</span> mihomo-linux-amd64 /usr/local/bin/mihomo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建目录</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> -p /etc/mihomo /var/log/mihomo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载 GeoIP 数据</span></span><br><span class="line"><span class="built_in">sudo</span> wget -O /etc/mihomo/Country.mmdb \</span><br><span class="line">  https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证</span></span><br><span class="line">mihomo -v</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-2-配置-mihomo"><a href="#3-2-配置-mihomo" class="headerlink" title="3.2 配置 mihomo"></a>3.2 配置 mihomo</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nano /etc/mihomo/config.yaml</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># === mihomo 配置 ===</span></span><br><span class="line"><span class="comment"># 仅监听本地，接收 Xray 转发的 Anthropic 流量</span></span><br><span class="line"></span><br><span class="line"><span class="attr">mixed-port:</span> <span class="number">7890</span></span><br><span class="line"><span class="attr">allow-lan:</span> <span class="literal">false</span>           <span class="comment"># 不允许外部连接，仅本地</span></span><br><span class="line"><span class="attr">bind-address:</span> <span class="string">&quot;127.0.0.1&quot;</span>  <span class="comment"># 仅绑定本地</span></span><br><span class="line"><span class="attr">mode:</span> <span class="string">rule</span></span><br><span class="line"><span class="attr">log-level:</span> <span class="string">info</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># DNS</span></span><br><span class="line"><span class="attr">dns:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">listen:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:1053</span></span><br><span class="line">  <span class="attr">enhanced-mode:</span> <span class="string">fake-ip</span></span><br><span class="line">  <span class="attr">fake-ip-range:</span> <span class="number">198.18</span><span class="number">.0</span><span class="number">.1</span><span class="string">/16</span></span><br><span class="line">  <span class="attr">nameserver:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">8.8</span><span class="number">.8</span><span class="number">.8</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">1.1</span><span class="number">.1</span><span class="number">.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ========== 住宅代理节点 ==========</span></span><br><span class="line"><span class="comment"># ⚠️ 替换为你的 IPRoyal 住宅代理信息</span></span><br><span class="line"><span class="attr">proxies:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;IPRoyal-住宅代理&quot;</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">socks5</span></span><br><span class="line">    <span class="attr">server:</span> <span class="string">&lt;住宅代理地址&gt;</span>         <span class="comment"># 替换：IPRoyal 给的 IP 或域名</span></span><br><span class="line">    <span class="attr">port:</span> <span class="string">&lt;住宅代理端口&gt;</span>           <span class="comment"># 替换：如 12324</span></span><br><span class="line">    <span class="attr">username:</span> <span class="string">&lt;代理用户名&gt;</span>         <span class="comment"># 替换</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">&lt;代理密码&gt;</span>           <span class="comment"># 替换</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 备用节点（如有多个代理）</span></span><br><span class="line">  <span class="comment"># - name: &quot;SOAX-住宅代理&quot;</span></span><br><span class="line">  <span class="comment">#   type: http</span></span><br><span class="line">  <span class="comment">#   server: &lt;备用IP&gt;</span></span><br><span class="line">  <span class="comment">#   port: &lt;端口&gt;</span></span><br><span class="line">  <span class="comment">#   username: &lt;用户名&gt;</span></span><br><span class="line">  <span class="comment">#   password: &lt;密码&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理组</span></span><br><span class="line"><span class="attr">proxy-groups:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;PROXY&quot;</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">select</span></span><br><span class="line">    <span class="attr">proxies:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;IPRoyal-住宅代理&quot;</span></span><br><span class="line">      <span class="comment"># - &quot;SOAX-住宅代理&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ========== 路由规则 ==========</span></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line">  <span class="comment"># Anthropic / Claude 全部走住宅代理</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,anthropic.com,PROXY</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,anthropic.ai,PROXY</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,api.anthropic.com,PROXY</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,claude.ai,PROXY</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,claudecode.ai,PROXY</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># Anthropic 官方 IP 段（备用）</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">IP-CIDR,23.23.0.0/16,PROXY</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">IP-CIDR,104.18.0.0/16,PROXY</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># ifconfig.me测试IP是否生效</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,ifconfig.me,PROXY</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 兜底：其他流量直连</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">MATCH,DIRECT</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="3-3-创建-systemd-服务"><a href="#3-3-创建-systemd-服务" class="headerlink" title="3.3 创建 systemd 服务"></a>3.3 创建 systemd 服务</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">tee</span> /etc/systemd/system/mihomo.service &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">[Unit]</span><br><span class="line">Description=mihomo Proxy</span><br><span class="line">After=network.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=simple</span><br><span class="line">ExecStart=/usr/local/bin/mihomo -d /etc/mihomo</span><br><span class="line">Restart=on-failure</span><br><span class="line">RestartSec=5</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> systemctl daemon-reload</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> mihomo</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="第四部分：启动服务（注意顺序）"><a href="#第四部分：启动服务（注意顺序）" class="headerlink" title="第四部分：启动服务（注意顺序）"></a>第四部分：启动服务（注意顺序）</h1><p><strong>必须先启动 mihomo，再启动 Xray</strong>（因为 Xray 出站依赖 mihomo 的 7890 端口）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 启动 mihomo</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl start mihomo</span><br><span class="line"><span class="built_in">sleep</span> 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 确认 mihomo 在监听</span></span><br><span class="line"><span class="built_in">sudo</span> ss -tlnp | grep 7890</span><br><span class="line"><span class="comment"># 应看到：LISTEN  127.0.0.1:7890</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 启动/重启 Xray</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart xray</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 确认 Xray 在监听</span></span><br><span class="line"><span class="built_in">sudo</span> ss -tlnp | grep 443</span><br><span class="line"><span class="comment"># 应看到：LISTEN  0.0.0.0:443</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="开启-BBR-加速（推荐）"><a href="#开启-BBR-加速（推荐）" class="headerlink" title="开启 BBR 加速（推荐）"></a>开启 BBR 加速（推荐）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;net.core.default_qdisc=fq&quot;</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> -a /etc/sysctl.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;net.ipv4.tcp_congestion_control=bbr&quot;</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> -a /etc/sysctl.conf</span><br><span class="line"><span class="built_in">sudo</span> sysctl -p</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="第五部分：验证"><a href="#第五部分：验证" class="headerlink" title="第五部分：验证"></a>第五部分：验证</h1><h2 id="5-1-验证-mihomo-住宅代理链路"><a href="#5-1-验证-mihomo-住宅代理链路" class="headerlink" title="5.1 验证 mihomo 住宅代理链路"></a>5.1 验证 mihomo 住宅代理链路</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试 mihomo 能否通过住宅代理上网</span></span><br><span class="line">curl -x socks5h://127.0.0.1:7890 https://ifconfig.me</span><br><span class="line"><span class="comment"># 应返回住宅代理的 IP（不是 VPS IP）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试 Anthropic 连通性</span></span><br><span class="line">curl -x socks5h://127.0.0.1:7890 -I https://api.anthropic.com</span><br><span class="line"><span class="comment"># 应返回 HTTP 200 或 404（不是 403/451）</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="5-2-验证-Xray-直连流量"><a href="#5-2-验证-Xray-直连流量" class="headerlink" title="5.2 验证 Xray 直连流量"></a>5.2 验证 Xray 直连流量</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从外部（手机/电脑）连接 Xray 后访问 ip.sb</span></span><br><span class="line"><span class="comment"># 应返回 VPS 的公网 IP（直连流量不走住宅代理）</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="5-3-验证-Anthropic-走住宅代理"><a href="#5-3-验证-Anthropic-走住宅代理" class="headerlink" title="5.3 验证 Anthropic 走住宅代理"></a>5.3 验证 Anthropic 走住宅代理</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从外部连接 Xray 后，在终端设置代理</span></span><br><span class="line"><span class="comment"># 然后 curl https://api.anthropic.com</span></span><br><span class="line"><span class="comment"># 观察 mihomo 日志</span></span><br><span class="line"><span class="built_in">sudo</span> journalctl -u mihomo -f</span><br><span class="line"><span class="comment"># 应看到 anthropic.com → PROXY 的日志</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="第六部分：客户端配置"><a href="#第六部分：客户端配置" class="headerlink" title="第六部分：客户端配置"></a>第六部分：客户端配置</h1><h2 id="6-1-获取公钥（如果之前没记下）"><a href="#6-1-获取公钥（如果之前没记下）" class="headerlink" title="6.1 获取公钥（如果之前没记下）"></a>6.1 获取公钥（如果之前没记下）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xray x25519 -i <span class="string">&quot;&lt;你的Private Key&gt;&quot;</span></span><br><span class="line"><span class="comment"># 记下输出的 Public key</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="6-2-生成通用链接"><a href="#6-2-生成通用链接" class="headerlink" title="6.2 生成通用链接"></a>6.2 生成通用链接</h2><p>将以下链接中的占位符替换后保存，<strong>所有设备通用</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vless://&lt;UUID&gt;@&lt;你的公网IP&gt;:443?encryption=none&amp;flow=xtls-rprx-vision&amp;security=reality&amp;sni=www.apple.com&amp;fp=chrome&amp;pbk=&lt;Public Key&gt;&amp;sid=&lt;Short ID&gt;&amp;type=tcp#AWS-Xray</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-3-Mac：Clash-Verge-Rev"><a href="#6-3-Mac：Clash-Verge-Rev" class="headerlink" title="6.3 Mac：Clash Verge Rev"></a>6.3 Mac：Clash Verge Rev</h2><h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><p><a target="_blank" rel="noopener" href="https://github.com/clash-verge-rev/clash-verge-rev/releases">https://github.com/clash-verge-rev/clash-verge-rev/releases</a></p>
+<ul>
+<li>M 芯片：<code>Clash.Verge_x.x.x_aarch64.dmg</code></li>
+<li>Intel：<code>Clash.Verge_x.x.x_x64.dmg</code></li>
+</ul>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>Profiles → New → Local → 创建 <code>.yaml</code> 文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mixed-port:</span> <span class="number">7890</span></span><br><span class="line"><span class="attr">allow-lan:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">mode:</span> <span class="string">rule</span></span><br><span class="line"><span class="attr">log-level:</span> <span class="string">info</span></span><br><span class="line"></span><br><span class="line"><span class="attr">dns:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">enhanced-mode:</span> <span class="string">fake-ip</span></span><br><span class="line">  <span class="attr">nameserver:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">8.8</span><span class="number">.8</span><span class="number">.8</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">1.1</span><span class="number">.1</span><span class="number">.1</span></span><br><span class="line"></span><br><span class="line"><span class="attr">proxies:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;AWS-Reality&quot;</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">vless</span></span><br><span class="line">    <span class="attr">server:</span> <span class="string">&lt;你的公网IP&gt;</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">443</span></span><br><span class="line">    <span class="attr">uuid:</span> <span class="string">&lt;你的UUID&gt;</span></span><br><span class="line">    <span class="attr">network:</span> <span class="string">tcp</span></span><br><span class="line">    <span class="attr">udp:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">tls:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">flow:</span> <span class="string">xtls-rprx-vision</span></span><br><span class="line">    <span class="attr">client-fingerprint:</span> <span class="string">chrome</span></span><br><span class="line">    <span class="attr">reality-opts:</span></span><br><span class="line">      <span class="attr">public-key:</span> <span class="string">&lt;你的Public</span> <span class="string">Key&gt;</span></span><br><span class="line">      <span class="attr">short-id:</span> <span class="string">&lt;你的Short</span> <span class="string">ID&gt;</span></span><br><span class="line">    <span class="attr">servername:</span> <span class="string">www.apple.com</span></span><br><span class="line"></span><br><span class="line"><span class="attr">proxy-groups:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;Proxy&quot;</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">select</span></span><br><span class="line">    <span class="attr">proxies:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;AWS-Reality&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line">  <span class="comment"># Anthropic / Claude 走代理</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,anthropic.com,Proxy</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,anthropic.ai,Proxy</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,claude.ai,Proxy</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,claudecode.ai,Proxy</span></span><br><span class="line">  <span class="comment"># Google 等常用站点走代理</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,google.com,Proxy</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,youtube.com,Proxy</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">DOMAIN-SUFFIX,github.com,Proxy</span></span><br><span class="line">  <span class="comment"># 其他直连</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">MATCH,DIRECT</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="启用"><a href="#启用" class="headerlink" title="启用"></a>启用</h3><ol>
+<li>Profiles → 选中配置</li>
+<li>Settings → 打开 <strong>System Proxy</strong></li>
+<li>访问 <a target="_blank" rel="noopener" href="https://ipinfo.io/">https://ipinfo.io</a> 验证</li>
+</ol>
+<h3 id="Claude-Code-使用"><a href="#Claude-Code-使用" class="headerlink" title="Claude Code 使用"></a>Claude Code 使用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Clash Verge Rev 开启后，终端设置代理</span></span><br><span class="line"><span class="built_in">export</span> http_proxy=<span class="string">&quot;http://127.0.0.1:7890&quot;</span></span><br><span class="line"><span class="built_in">export</span> https_proxy=<span class="string">&quot;http://127.0.0.1:7890&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者在 ~/.bashrc 中永久配置</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export http_proxy=&quot;http://127.0.0.1:7890&quot;&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export https_proxy=&quot;http://127.0.0.1:7890&quot;&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证</span></span><br><span class="line">curl https://api.anthropic.com</span><br><span class="line"><span class="comment"># 应能连通</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="6-4-iPhone：Hiddify-Next"><a href="#6-4-iPhone：Hiddify-Next" class="headerlink" title="6.4 iPhone：Hiddify Next"></a>6.4 iPhone：Hiddify Next</h2><h3 id="下载-1"><a href="#下载-1" class="headerlink" title="下载"></a>下载</h3><p>App Store 搜索 <strong>Hiddify</strong>（需美区 Apple ID，免费）</p>
+<h3 id="配置-1"><a href="#配置-1" class="headerlink" title="配置"></a>配置</h3><p>打开 Hiddify → <strong>+</strong> → 粘贴第 6.2 节生成的 <code>vless://</code> 链接 → 保存 → 连接</p>
+<h2 id="6-5-Android：Hiddify-Next-或-v2rayNG"><a href="#6-5-Android：Hiddify-Next-或-v2rayNG" class="headerlink" title="6.5 Android：Hiddify Next 或 v2rayNG"></a>6.5 Android：Hiddify Next 或 v2rayNG</h2><h3 id="Hiddify"><a href="#Hiddify" class="headerlink" title="Hiddify"></a>Hiddify</h3><ul>
+<li>Google Play 搜索 <strong>Hiddify</strong></li>
+<li>或 GitHub 下载 APK：<a target="_blank" rel="noopener" href="https://github.com/hiddify/hiddify-app/releases">https://github.com/hiddify/hiddify-app/releases</a></li>
+<li>粘贴同一条 <code>vless://</code> 链接</li>
+</ul>
+<h3 id="v2rayNG"><a href="#v2rayNG" class="headerlink" title="v2rayNG"></a>v2rayNG</h3><ul>
+<li>GitHub：<a target="_blank" rel="noopener" href="https://github.com/2dust/v2rayNG/releases">https://github.com/2dust/v2rayNG/releases</a></li>
+<li>打开 → <strong>+</strong> → 从剪贴板导入 → 粘贴链接</li>
+</ul>
+<hr>
+<h1 id="第七部分：流量路径说明"><a href="#第七部分：流量路径说明" class="headerlink" title="第七部分：流量路径说明"></a>第七部分：流量路径说明</h1><p>连接后，不同流量的走向：</p>
+<table>
+<thead>
+<tr>
+<th>流量类型</th>
+<th>路径</th>
+<th>出口 IP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>访问 Google/YouTube</td>
+<td>客户端 → Xray → <strong>直连</strong></td>
+<td>VPS 公网 IP</td>
+</tr>
+<tr>
+<td>访问 api.anthropic.com</td>
+<td>客户端 → Xray → <strong>mihomo → 住宅代理</strong></td>
+<td>住宅代理 IP</td>
+</tr>
+<tr>
+<td>访问 claude.ai</td>
+<td>客户端 → Xray → <strong>mihomo → 住宅代理</strong></td>
+<td>住宅代理 IP</td>
+</tr>
+<tr>
+<td>访问国内网站</td>
+<td>客户端 → <strong>直连</strong>（Clash 规则 DIRECT）</td>
+<td>本机 IP</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="第八部分：故障排查"><a href="#第八部分：故障排查" class="headerlink" title="第八部分：故障排查"></a>第八部分：故障排查</h1><h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>排查</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Xray 443 端口没监听</td>
+<td><code>sudo setcap cap_net_bind_service=+ep /usr/local/bin/xray &amp;&amp; sudo systemctl restart xray</code></td>
+</tr>
+<tr>
+<td>mihomo 7890 没监听</td>
+<td><code>sudo systemctl status mihomo</code> 查看错误日志</td>
+</tr>
+<tr>
+<td>能上 Google 但 Anthropic 403</td>
+<td>住宅代理 IP 有问题，联系 IPRoyal 更换</td>
+</tr>
+<tr>
+<td>所有网站都打不开</td>
+<td>mihomo 可能没启动，Xray 转发到 7890 失败，先检查 mihomo</td>
+</tr>
+<tr>
+<td>Anthropic 返回 451</td>
+<td>出口 IP 被识别为代理，需要更纯净的住宅 IP</td>
+</tr>
+<tr>
+<td>Clash Verge 连不上</td>
+<td>检查 <code>client-fingerprint: chrome</code> 是否填写</td>
+</tr>
+</tbody></table>
+<h2 id="日志排查命令"><a href="#日志排查命令" class="headerlink" title="日志排查命令"></a>日志排查命令</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Xray 日志</span></span><br><span class="line"><span class="built_in">sudo</span> journalctl -u xray -f --no-pager</span><br><span class="line"></span><br><span class="line"><span class="comment"># mihomo 日志</span></span><br><span class="line"><span class="built_in">sudo</span> journalctl -u mihomo -f --no-pager</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查端口</span></span><br><span class="line"><span class="built_in">sudo</span> ss -tlnp | grep -E <span class="string">&#x27;443|7890&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试住宅代理本身</span></span><br><span class="line">curl -x socks5://127.0.0.1:7890 https://ifconfig.me</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="第九部分：维护命令速查"><a href="#第九部分：维护命令速查" class="headerlink" title="第九部分：维护命令速查"></a>第九部分：维护命令速查</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ===== 启动（先 mihomo 后 Xray）=====</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl start mihomo</span><br><span class="line"><span class="built_in">sudo</span> systemctl start xray</span><br><span class="line"></span><br><span class="line"><span class="comment"># ===== 停止 =====</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl stop xray</span><br><span class="line"><span class="built_in">sudo</span> systemctl stop mihomo</span><br><span class="line"></span><br><span class="line"><span class="comment"># ===== 重启（改配置后）=====</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart mihomo</span><br><span class="line"><span class="built_in">sudo</span> systemctl restart xray</span><br><span class="line"></span><br><span class="line"><span class="comment"># ===== 查看状态 =====</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl status mihomo</span><br><span class="line"><span class="built_in">sudo</span> systemctl status xray</span><br><span class="line"></span><br><span class="line"><span class="comment"># ===== 编辑配置 =====</span></span><br><span class="line"><span class="built_in">sudo</span> nano /usr/local/etc/xray/config.json    <span class="comment"># Xray 配置</span></span><br><span class="line"><span class="built_in">sudo</span> nano /etc/mihomo/config.yaml             <span class="comment"># mihomo 配置</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ===== 更换住宅代理 =====</span></span><br><span class="line"><span class="comment"># 1. 编辑 /etc/mihomo/config.yaml 中的 proxies 段</span></span><br><span class="line"><span class="comment"># 2. sudo systemctl restart mihomo</span></span><br><span class="line"><span class="comment"># 3. curl -x socks5://127.0.0.1:7890 https://ifconfig.me  验证新 IP</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="A-AWS-免费套餐"><a href="#A-AWS-免费套餐" class="headerlink" title="A. AWS 免费套餐"></a>A. AWS 免费套餐</h2><table>
+<thead>
+<tr>
+<th>资源</th>
+<th>免费额度</th>
+<th>时间</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>t3.micro</td>
+<td>750 小时/月</td>
+<td>12 个月</td>
+</tr>
+<tr>
+<td>EBS</td>
+<td>30 GB</td>
+<td>12 个月</td>
+</tr>
+<tr>
+<td>数据传出</td>
+<td>100 GB/月</td>
+<td>永久</td>
+</tr>
+</tbody></table>
+<h2 id="B-成本估算"><a href="#B-成本估算" class="headerlink" title="B. 成本估算"></a>B. 成本估算</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>月费用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AWS EC2 (免费套餐内)</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>AWS EC2 (免费套餐后)</td>
+<td>~$8–10</td>
+</tr>
+<tr>
+<td>IPRoyal ISP 代理 (30天)</td>
+<td>~$2.70/IP</td>
+</tr>
+<tr>
+<td><strong>总计</strong></td>
+<td><strong>$2.70–$13/月</strong></td>
+</tr>
+</tbody></table>
+<h2 id="C-安全建议"><a href="#C-安全建议" class="headerlink" title="C. 安全建议"></a>C. 安全建议</h2><ol>
+<li>定期更新：<code>sudo apt update &amp;&amp; sudo apt upgrade -y</code></li>
+<li>开启 UFW 防火墙：仅放行 22 和 443</li>
+<li>不要分享 UUID、密钥等配置信息</li>
+<li>开启 AWS 账单告警，防止意外扣费</li>
+<li>住宅代理定期检查 IP 信誉度</li>
+</ol>
+<hr>
+<blockquote>
+<p>文档版本：v2.0 | 更新日期：2026-04-21</p>
+</blockquote>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-04-21</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/skill-hub/'>SKILL/MCP 管理方案</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ai-thinking/">关于AI和工作的一些思考</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="SKILL/MCP 管理方案" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    SKILL/MCP 管理方案
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：599</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：2分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E8%83%8C%E6%99%AF"><span class="post-toc-text">背景</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%88%91%E7%9A%84%E6%96%B9%E6%A1%88%EF%BC%9A"><span class="post-toc-text">我的方案：</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="post-toc-text">具体实现</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BB%93%E5%BA%93%E7%BB%93%E6%9E%84"><span class="post-toc-text">仓库结构</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BB%93%E5%BA%93%E7%BB%B4%E6%8A%A4"><span class="post-toc-text">仓库维护</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%8F%91%E5%B8%83"><span class="post-toc-text">发布</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%8E%A8%E8%8D%90%E4%BD%BF%E7%94%A8"><span class="post-toc-text">推荐使用</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在电脑上第一次安装SKILL的时候，我就意识到这是一个高度定制化并且需要沉淀成个人资产的东西，不能今天看到一个好的SKILL，一个命令安装到电脑上爽了。下次一换电脑都不知道哪些SKILL是安装过的，哪些是没安装过的。</p>
+<p>一个完备的SKILL管理应该支持下面的需求：</p>
+<ol>
+<li>一键分发到任何电脑上</li>
+<li>可以收集网上已有的优秀SKILL（公网<a target="_blank" rel="noopener" href="https://skills.sh/">skill hub</a>，他人的分享的skill代码），可以开发自己的SKILL</li>
+<li>对SKILL进行分类，按需安装，毕竟SKILL数量会慢慢膨胀</li>
+</ol>
+<h1 id="我的方案："><a href="#我的方案：" class="headerlink" title="我的方案："></a>我的方案：</h1><p>通过一键安装脚本来实现分发</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://raw.githubusercontent.com/zhangga/aihub/main/skills/install.sh | bash</span><br></pre></td></tr></table></figure>
+
+<h1 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h1><p>使用Github仓库管理</p>
+<h2 id="仓库结构"><a href="#仓库结构" class="headerlink" title="仓库结构"></a>仓库结构</h2><p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/20260430-164911.wj60p2uih.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/20260430-164911.wj60p2uih.webp"></a></p>
+<ul>
+<li>​****<a href="**%E2%80%8B%3Cu%3E./skills/%3C/u%3E%E2%80%8B**">`/skills`</a>****​: 智能体扩展技能分发目录。这里存放最终对外发布和安装的 Agent 技能产物，内容由同步脚本统一生成和维护。<ul>
+<li>​<em>*详细技能列表和配置见 <a href="*%E2%80%8B%3Cu%3E./skills/README.md%3C/u%3E*">skills 目录</a>。*</em></li>
+</ul>
+</li>
+<li>​****<a href="**%E2%80%8B%3Cu%3E./mcp/%3C/u%3E%E2%80%8B**">`/mcp**​​**`</a>****​: MCP Server 分发目录。这里存放跨客户端的一键安装脚本、registry 和 bundles，用于把 MCP server 写入 Codex、Claude Code、Claude Desktop、VS Code 等客户端配置。</li>
+<li>​****<a href="**%E2%80%8B%3Cu%3E./local-skills/%3C/u%3E%E2%80%8B**">`/local-skills`</a>****​: 自研技能源码目录。用于存放你自己编写并希望纳入统一分发流程的本地 skills。</li>
+<li>​****<a href="**%E2%80%8B%3Cu%3E./prompts/%3C/u%3E%E2%80%8B**">`/prompts`</a>****​: 高质量提示词模板库。沉淀了经过实际验证的、适用于不同场景的系统提示词，可直接应用于大模型的上下文。</li>
+<li>​****<a href="**%E2%80%8B%3Cu%3E./external/%3C/u%3E%E2%80%8B**">`/external`</a>****​: 存放通过 Git Submodule 引入、仍需镜像分发的第三方技能仓库源。</li>
+<li>​****<a href="**%E2%80%8B%3Cu%3E./docs/%3C/u%3E%E2%80%8B**">`/docs`</a>****​: 项目模板、设计说明和维护草稿。</li>
+</ul>
+<p>当前 skills 分发同时支持三种来源：</p>
+<ul>
+<li><code>submodule</code>：从 <code>/external</code> 镜像</li>
+<li><code>local</code>：从 <code>/local-skills</code> 镜像</li>
+<li><code>proxy</code>：不镜像代码，只在安装时直接代理执行上游安装命令</li>
+</ul>
+<h2 id="仓库维护"><a href="#仓库维护" class="headerlink" title="仓库维护"></a>仓库维护</h2><ul>
+<li>需要自己开发skill的时候，在local_skills目录下开发。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/ScreenShot_2026-04-30_164043_873.67y2leox6i.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/ScreenShot_2026-04-30_164043_873.67y2leox6i.webp"></a></p>
+<ul>
+<li>需要引入外部skill或skill hub上已有的skill时，通过和AI对话，让AI来完成。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/ScreenShot_2026-04-30_164016_010.64egnovugr.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/ScreenShot_2026-04-30_164016_010.64egnovugr.webp"></a><br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/ScreenShot_2026-04-30_163931_706.86u9bqufhy.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/ScreenShot_2026-04-30_163931_706.86u9bqufhy.webp"></a></p>
+<h2 id="发布"><a href="#发布" class="headerlink" title="发布"></a>发布</h2><p>直接提交Github即可，AI已经把相关的文件都准备就绪了。</p>
+<h1 id="推荐使用"><a href="#推荐使用" class="headerlink" title="推荐使用"></a>推荐使用</h1><p>如果你也想自建自己的skill仓库，欢迎使用下面的skill来创建仓库骨架</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npx skills add https://github.com/zhangga/aihub --skill skill-hub-builder</span><br></pre></td></tr></table></figure>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-04-30</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/AI/'>
+                            AI
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/claude-proxy/">claude-proxy</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="使用v2ray搭建VPN服务" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    使用v2ray搭建VPN服务
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：5分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Links"><span class="post-toc-text">Links</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Installation"><span class="post-toc-text">Installation</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Configs"><span class="post-toc-text">Configs</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Generate-UUID"><span class="post-toc-text">Generate UUID</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Using-as-server"><span class="post-toc-text">Using as server</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Using-as-client"><span class="post-toc-text">Using as client</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Running-service"><span class="post-toc-text">Running service</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Mongo%E6%9C%8D%E5%8A%A1"><span class="post-toc-text">Mongo服务</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>记录下在aws上部署v2ray的步骤。</p>
+<h2 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/faple-ml/blog/issues/4">使用v2ray搭建VPN服务</a></li>
+</ul>
+<p>V2ray的相关仓可以直接从github上进行获取:</p>
+<ul>
+<li>Main: <a target="_blank" rel="noopener" href="https://github.com/v2ray">https://github.com/v2ray</a></li>
+<li>MacOS: <a target="_blank" rel="noopener" href="https://github.com/v2ray/homebrew-v2ray">https://github.com/v2ray/homebrew-v2ray</a></li>
+<li>Android: <a target="_blank" rel="noopener" href="https://github.com/v2ray/V2RayNG">https://github.com/v2ray/V2RayNG</a></li>
+<li>Windows: <a target="_blank" rel="noopener" href="https://github.com/2dust/v2rayN">https://github.com/2dust/v2rayN</a></li>
+<li>Other Awesome tools: <a target="_blank" rel="noopener" href="https://www.v2ray.com/en/awesome/tools.html">https://www.v2ray.com/en/awesome/tools.html</a></li>
+</ul>
+<h2 id="Installation"><a href="#Installation" class="headerlink" title="Installation"></a>Installation</h2><p>官方一键安装脚本: <a target="_blank" rel="noopener" href="https://github.com/v2fly/fhs-install-v2ray">://github.com/v2fly/fhs-install-v2ray<code>https</code></a></p>
+<h2 id="Configs"><a href="#Configs" class="headerlink" title="Configs"></a>Configs</h2><ul>
+<li>Path: <code>/usr/local/etc/v2ray/config.json</code></li>
+<li>Manual: <a target="_blank" rel="noopener" href="https://v2ray.com/">://v2ray.com<code>https</code></a></li>
+<li>Sample: <a target="_blank" rel="noopener" href="https://www.v2ray.com/en/welcome/start.html">://www.v2ray.com/en/welcome/start.html<code>https</code></a></li>
+</ul>
+<h3 id="Generate-UUID"><a href="#Generate-UUID" class="headerlink" title="Generate UUID"></a>Generate UUID</h3><p>生成一个随机的UUID，用于接下来的配置中。</p>
+<ul>
+<li>可以从 <a target="_blank" rel="noopener" href="https://www.uuidgenerator.net/">Online UUID Generator</a>  生成</li>
+<li>Linux 可以用命令 <code>cat /proc/sys/kernel/random/uuid</code> 生成</li>
+</ul>
+<h3 id="Using-as-server"><a href="#Using-as-server" class="headerlink" title="Using as server"></a>Using as server</h3><p>在服务端的<code>/usr/local/etc/v2ray/config.json</code> 设置接受端口vmess协议并向外直接转发:</p>
+<p>/usr/local/etc/v2ray/config.json</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;inbounds&quot;: [&#123;</span><br><span class="line">      // Server port, need to add TCP security policy in AWS security group</span><br><span class="line">      &quot;port&quot;: 11223,</span><br><span class="line">      &quot;protocol&quot;: &quot;vmess&quot;,</span><br><span class="line">      &quot;settings&quot;: &#123;</span><br><span class="line">        &quot;clients&quot;: [&#123; &quot;id&quot;: &quot;81498305-0be0-4923-a270-df4e490a086b&quot; &#125;] // UUID Same as client</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;],</span><br><span class="line">  &quot;outbounds&quot;: [&#123;</span><br><span class="line">    &quot;protocol&quot;: &quot;freedom&quot;,</span><br><span class="line">    &quot;settings&quot;: &#123;&#125;</span><br><span class="line">  &#125;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Using-as-client"><a href="#Using-as-client" class="headerlink" title="Using as client"></a>Using as client</h3><p>在客户端的<code>/usr/local/etc/v2ray/config.json</code>同样文件里设置本地端口转发到服务端的 对应对口上:</p>
+<p>/usr/local/etc/v2ray/config.json</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    // Log output to var and set log level to error</span><br><span class="line">    &quot;log&quot;: &#123;</span><br><span class="line">        &quot;access&quot;: &quot;/var/log/v2ray/log&quot;,</span><br><span class="line">        &quot;error&quot;: &quot;/var/log/v2ray/log&quot;,</span><br><span class="line">        &quot;loglevel&quot;: &quot;error&quot;</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    // Accept local socks request</span><br><span class="line">    &quot;inbounds&quot;: [&#123;</span><br><span class="line">        &quot;listen&quot;: &quot;127.0.0.1&quot;,</span><br><span class="line">        &quot;port&quot;: 11112,</span><br><span class="line">        &quot;protocol&quot;: &quot;socks&quot;,</span><br><span class="line">        &quot;tag&quot;: &quot;socks-inbound&quot;,</span><br><span class="line">        &quot;settings&quot;: &#123;</span><br><span class="line">            &quot;auth&quot;: &quot;noauth&quot;,</span><br><span class="line">            &quot;udp&quot;: true,</span><br><span class="line">            &quot;userlevel&quot;: 8,</span><br><span class="line">            &quot;ip&quot;: &quot;127.0.0.1&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;sniffing&quot;: &#123;</span><br><span class="line">            &quot;enabled&quot;: true,</span><br><span class="line">            &quot;destOverride&quot;: [&quot;http&quot;, &quot;tls&quot;]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    // Accept local http request</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;listen&quot;: &quot;127.0.0.1&quot;,</span><br><span class="line">        &quot;port&quot;: 11111,</span><br><span class="line">        &quot;protocol&quot;: &quot;http&quot;,</span><br><span class="line">        &quot;tag&quot;: &quot;http-inbound&quot;,</span><br><span class="line">        &quot;settings&quot;: &#123;</span><br><span class="line">            &quot;userlevel&quot;: 8</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;],</span><br><span class="line"></span><br><span class="line">    // Transfer to vps server using vmess</span><br><span class="line">    &quot;outbounds&quot;: [&#123;</span><br><span class="line">        &quot;mux&quot;: &#123;</span><br><span class="line">            &quot;concurrency&quot;: -1,</span><br><span class="line">            &quot;enabled&quot;: false</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;protocol&quot;: &quot;vmess&quot;,</span><br><span class="line">        &quot;settings&quot;: &#123;</span><br><span class="line">            &quot;vnext&quot;: [&#123;</span><br><span class="line">                &quot;address&quot;: &quot;server.ip.address&quot;,</span><br><span class="line">                &quot;port&quot;: 11223, // Same as server</span><br><span class="line">                &quot;users&quot;: [&#123;</span><br><span class="line">                    &quot;alterId&quot;: 0,</span><br><span class="line">                    &quot;id&quot;: &quot;81498305-0be0-4923-a270-df4e490a086b&quot;,</span><br><span class="line">                    &quot;security&quot;: &quot;auto&quot;,</span><br><span class="line">                    &quot;level&quot;: 8</span><br><span class="line">                &#125;]</span><br><span class="line">            &#125;]</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;streamSettings&quot;: &#123;</span><br><span class="line">            &quot;network&quot;: &quot;tcp&quot;,</span><br><span class="line">            &quot;security&quot;:&quot;&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;tag&quot;: &quot;proxy&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;protocol&quot;: &quot;blackhole&quot;,</span><br><span class="line">        &quot;settings&quot;: &#123;&#125;,</span><br><span class="line">        &quot;tag&quot;: &quot;blocked&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;protocol&quot;: &quot;freedom&quot;,</span><br><span class="line">        &quot;settings&quot;: &#123;&#125;,</span><br><span class="line">        &quot;tag&quot;: &quot;direct&quot;</span><br><span class="line">    &#125;],</span><br><span class="line"></span><br><span class="line">    &quot;routing&quot;: &#123;</span><br><span class="line">        &quot;domainStrategy&quot;: &quot;IPIfNonMatch&quot;,</span><br><span class="line">        &quot;rules&quot;:[ ]</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    &quot;dns&quot;: &#123;</span><br><span class="line">        &quot;hosts&quot;: &#123;</span><br><span class="line">            &quot;domain:github.io&quot;: &quot;pages.github.com&quot;,</span><br><span class="line">            &quot;domain:wikipedia.org&quot;: &quot;www.wikimedia.org&quot;,</span><br><span class="line">            &quot;domain:shadowsocks.org&quot;: &quot;electronicsrealm.com&quot;,</span><br><span class="line">            &quot;domain:googleapis.cn&quot;: &quot;googleapis.com&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;servers&quot;: [</span><br><span class="line">            &quot;1.1.1.1&quot;</span><br><span class="line">        ]</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    &quot;policy&quot;: &#123;</span><br><span class="line">        &quot;levels&quot;: &#123;</span><br><span class="line">            &quot;8&quot;: &#123;</span><br><span class="line">                &quot;connIdle&quot;: 300,</span><br><span class="line">                &quot;uplinkOnly&quot;: 1,</span><br><span class="line">                &quot;handshake&quot;: 4,</span><br><span class="line">                &quot;downlinkOnly&quot;: 1</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;system&quot;: &#123;</span><br><span class="line">            &quot;statsInboundUplink&quot;: false,</span><br><span class="line">            &quot;statsInboundDownlink&quot;: false,</span><br><span class="line">            &quot;statsOutboundUplink&quot;: false,</span><br><span class="line">            &quot;statsOutboundDownlink&quot;: false</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Running-service"><a href="#Running-service" class="headerlink" title="Running service"></a>Running service</h2><p>客户端和服务端都启动v2ray:</p>
+<p>Directly Run:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v2ray --config /usr/local/etc/v2ray/config.json &amp;</span><br></pre></td></tr></table></figure>
+
+<p>Start as systemd service</p>
+<p>Linux</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Set v2ray as startup service</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> v2ray</span><br><span class="line"><span class="built_in">sudo</span> systemctl start v2ray</span><br></pre></td></tr></table></figure>
+
+<p>MacOS</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> brew services start v2ray</span><br></pre></td></tr></table></figure>
+
+<p>之后在客户端使用对应代理就可以了:</p>
+<p>linux/unix</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> http_proxy = <span class="string">&quot;127.0.0.1:11111&quot;</span></span><br><span class="line"><span class="built_in">export</span> https_proxy = <span class="string">&quot;127.0.0.1:11111&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>在Windows上配置浏览器代理即可</p>
+<h2 id="Mongo服务"><a href="#Mongo服务" class="headerlink" title="Mongo服务"></a>Mongo服务</h2><p>下面是部署mongo服务的脚本:run_mongo.sh</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env bash</span></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line"><span class="comment"># =======================</span></span><br><span class="line"><span class="comment"># 配置区（按需修改）</span></span><br><span class="line"><span class="comment"># =======================</span></span><br><span class="line">CONTAINER_NAME=<span class="string">&quot;mongo&quot;</span></span><br><span class="line">IMAGE=<span class="string">&quot;mongo:6&quot;</span></span><br><span class="line"></span><br><span class="line">HOST_PORT=27017</span><br><span class="line">CONTAINER_PORT=27017</span><br><span class="line"></span><br><span class="line">DATA_DIR=<span class="string">&quot;/data/mongo&quot;</span></span><br><span class="line"></span><br><span class="line">MONGO_ROOT_USER=<span class="string">&quot;root&quot;</span></span><br><span class="line">MONGO_ROOT_PASSWORD=<span class="string">&quot;xxxxxx&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># =======================</span></span><br><span class="line"><span class="comment"># 逻辑区</span></span><br><span class="line"><span class="comment"># =======================</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;==&gt; Checking Docker...&quot;</span></span><br><span class="line"><span class="keyword">if</span> ! <span class="built_in">command</span> -v docker &amp;&gt;/dev/null; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;Docker not found, please install Docker first.&quot;</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;==&gt; Creating data dir: <span class="variable">$DATA_DIR</span>&quot;</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$DATA_DIR</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果容器已存在，先删除</span></span><br><span class="line"><span class="keyword">if</span> docker ps -a --format <span class="string">&#x27;&#123;&#123;.Names&#125;&#125;&#x27;</span> | grep -q <span class="string">&quot;^<span class="variable">$&#123;CONTAINER_NAME&#125;</span>$&quot;</span>; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;==&gt; Removing existing container: <span class="variable">$CONTAINER_NAME</span>&quot;</span></span><br><span class="line">  docker stop <span class="string">&quot;<span class="variable">$CONTAINER_NAME</span>&quot;</span> || <span class="literal">true</span></span><br><span class="line">  docker <span class="built_in">rm</span> <span class="string">&quot;<span class="variable">$CONTAINER_NAME</span>&quot;</span> || <span class="literal">true</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;==&gt; Starting MongoDB container...&quot;</span></span><br><span class="line">docker run -d \</span><br><span class="line">  --name <span class="string">&quot;<span class="variable">$CONTAINER_NAME</span>&quot;</span> \</span><br><span class="line">  --restart unless-stopped \</span><br><span class="line">  -p <span class="string">&quot;<span class="variable">$&#123;HOST_PORT&#125;</span>:<span class="variable">$&#123;CONTAINER_PORT&#125;</span>&quot;</span> \</span><br><span class="line">  -v <span class="string">&quot;<span class="variable">$&#123;DATA_DIR&#125;</span>:/data/db&quot;</span> \</span><br><span class="line">  -e MONGO_INITDB_ROOT_USERNAME=<span class="string">&quot;<span class="variable">$MONGO_ROOT_USER</span>&quot;</span> \</span><br><span class="line">  -e MONGO_INITDB_ROOT_PASSWORD=<span class="string">&quot;<span class="variable">$MONGO_ROOT_PASSWORD</span>&quot;</span> \</span><br><span class="line">  <span class="string">&quot;<span class="variable">$IMAGE</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;==&gt; MongoDB started successfully!&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;==&gt; Connect URI:&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;mongodb://<span class="variable">$&#123;MONGO_ROOT_USER&#125;</span>:&lt;password&gt;@127.0.0.1:<span class="variable">$&#123;HOST_PORT&#125;</span>/admin&quot;</span></span><br></pre></td></tr></table></figure>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-19</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/linux-init/'>linux开发环境配置</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/cc-switch/">cc-switch</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

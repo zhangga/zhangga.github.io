@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="DS共享内存和多GameInstance性能对比" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    DS共享内存和多GameInstance性能对比
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：846</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：3分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E8%83%8C%E6%99%AF%E6%8F%8F%E8%BF%B0"><span class="post-toc-text">背景描述</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%A2%84%E6%9C%9F%E7%9B%AE%E6%A0%87"><span class="post-toc-text">预期目标</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="post-toc-text">方案对比</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83"><span class="post-toc-text">测试环境</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B"><span class="post-toc-text">测试用例</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98"><span class="post-toc-text">共享内存</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E5%A4%9AGameInstance"><span class="post-toc-text">多GameInstance</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="post-toc-text">测试结果</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Fork-vs-%E5%A4%9AInstance"><span class="post-toc-text">Fork vs 多Instance</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Fork%E4%B8%8B%E7%88%B6%E5%AD%90"><span class="post-toc-text">Fork下父子</span></a></li></ol></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="post-toc-text">结论</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="背景描述"><a href="#背景描述" class="headerlink" title="背景描述"></a>背景描述</h1><p>DS服目前使用共享内存（Fork）方案，一核可以跑25个，压测数据如下：<br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/mf-1.9kgkm6ldpf.webp" title="insight-1" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/mf-1.9kgkm6ldpf.webp" alt="insight-1"></a><br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/mf-2.8z6wzvvqoh.webp" title="insight-2" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/mf-2.8z6wzvvqoh.webp" alt="insight-2"></a><br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/mf-3.13m62jc2gh.webp" title="insight-3" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/mf-3.13m62jc2gh.webp" alt="insight-3"></a><br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/mf-4.3ns0f6e9ym.webp" title="insight-4" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/mf-4.3ns0f6e9ym.webp" alt="insight-4"></a></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CPU总核</td>
+<td>16c * 4</td>
+</tr>
+<tr>
+<td>内存总量</td>
+<td>64g * 4</td>
+</tr>
+<tr>
+<td>机器人数量</td>
+<td>4800</td>
+</tr>
+<tr>
+<td>营地数量</td>
+<td>1600</td>
+</tr>
+<tr>
+<td>CPU最大占用</td>
+<td>&lt;60%</td>
+</tr>
+<tr>
+<td>内存最大占用</td>
+<td>&lt;75%</td>
+</tr>
+</tbody></table>
+<h1 id="预期目标"><a href="#预期目标" class="headerlink" title="预期目标"></a>预期目标</h1><p>当前DS服使用 <strong>16c*64g ​</strong>的机型，核心目标是降低内存占用，最终适配1:2的标配机型。</p>
+<h1 id="方案对比"><a href="#方案对比" class="headerlink" title="方案对比"></a>方案对比</h1><p>鉴于多 GameInstance 与共享内存两种方案各有优劣，需通过实际跑测获取 CPU 占用、内存开销、稳定性等核心性能数据，基于准确对比结果确定最终技术方案。</p>
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>共享内存（Fork）</th>
+<th>单进程多GameInstance</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内存共享方式</td>
+<td>物理内存页级共享（COW）</td>
+<td>资源只加载一份</td>
+</tr>
+<tr>
+<td>内存开销</td>
+<td>有COW的额外内存页开销</td>
+<td>无额外开销，资源内存共享，逻辑数据全部分离</td>
+</tr>
+<tr>
+<td>资源加载</td>
+<td>父进程预加载，子进程共享</td>
+<td>进程内加载一次，所有实例复用</td>
+</tr>
+<tr>
+<td>隔离级别</td>
+<td>进程级隔离（崩溃不扩散，tick间相互没影响）</td>
+<td>实例级隔离（崩溃影响所有实例，tick卡顿影响其他实例）</td>
+</tr>
+<tr>
+<td>游戏测试</td>
+<td>无额外负担</td>
+<td>多个Instance被分配到同一个进程下，可能和分配到不同进程下，表现不一致（数据没隔离的bug）</td>
+</tr>
+<tr>
+<td>实例分配</td>
+<td>无额外负担</td>
+<td>更加复杂的分配和释放实例的策略</td>
+</tr>
+</tbody></table>
+<h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2><p>DS版本：`LinuxServer_Trunk-Testxxxx</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ lscpu</span><br><span class="line">Architecture:                         x86_64</span><br><span class="line">CPU(s):                               32</span><br><span class="line">Model name:                           Intel(R) Xeon(R) Gold 6462C</span><br><span class="line">Thread(s) per core:                   2</span><br><span class="line">Core(s) per socket:                   16</span><br><span class="line">Socket(s):                            1</span><br><span class="line">CPU MHz:                              3899.634</span><br><span class="line">CPU max MHz:                          3900.0000</span><br><span class="line">CPU min MHz:                          800.0000</span><br><span class="line">L1d cache:                            768 KiB</span><br><span class="line">L1i cache:                            512 KiB</span><br><span class="line">L2 cache:                             32 MiB</span><br><span class="line">L3 cache:                             60 MiB</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ free -h</span><br><span class="line">               total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:            60Gi        16Gi       3.0Gi        17Gi        41Gi        26Gi</span><br><span class="line">Swap:             0B          0B          0B</span><br></pre></td></tr></table></figure>
+
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><p>45个玩家分成15支队伍，进入15个DS服，在其中不停地移动和更换装备（这个用例的操作频率是要远高于线上玩家正常操作的）。</p>
+<h4 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h4><p>启动15个子进程，每个进程为一个营地实例</p>
+<ul>
+<li>父进程</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">game     2415317 2415299  1 14:27 ?        00:00:03 /data00/ds/Latest/MyProject/Binaries/Linux/MyProjectServer-Linux-Test -SvcType=xx -DsaPid=2415299 -DsaSock=<span class="string">&quot;/data00/dsagent/2415299.sock&quot;</span> -UdpHost=10.10.10.10 -NumMultiWorld=1 -Map=<span class="string">&quot;/Game/Project/Maps/MyMap&quot;</span> -NumForks=15 -WaitAndForkCmdLinePath=/data00/ds/CmdLines -BiPath=<span class="string">&quot;/data00/ds/logs/bi&quot;</span> -ABSLOG=<span class="string">&quot;/data00/ds/logs/MyProject_MyMap.log&quot;</span> -core -nothreading -longtimeouts -unattended</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>子进程</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">game@n253-012-090:/data00/ds/logs$ <span class="built_in">cat</span> /data00/ds/CmdLines/1</span><br><span class="line"></span><br><span class="line">-SvcType=xx -DsaPid=2415299 -DsaSock=<span class="string">&quot;/data00/dsagent/2415299.sock&quot;</span> -Port=30001 -UdpHost=10.10.10.10 -ABSLOG=<span class="string">&quot;/data00/ds/logs/MyProject_30001.log&quot;</span> -BiPath=<span class="string">&quot;/data00/ds/logs/bi&quot;</span> -core -nothreading -longtimeouts -unattended -NODEFAULTLOG</span><br></pre></td></tr></table></figure>
+
+<h4 id="多GameInstance"><a href="#多GameInstance" class="headerlink" title="多GameInstance"></a>多GameInstance</h4><p>启动一个进程，单进程下15个GameInstance实例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">game     2430225 2430210 11 16:26 ?        00:01:25 /data00/ds/Latest/MyProject/Binaries/Linux/MyProjectServer-Linux-Test -SvcType=xx -DsaPid=2430210 -DsaSock=<span class="string">&quot;/data00/dsagent/2430210.sock&quot;</span> -UdpHost=10.10.10.10 -Port=30001 -NumMultiWorld=15 -Map=<span class="string">&quot;/Game/Project/Maps/MyMap&quot;</span> -BiPath=<span class="string">&quot;/data00/ds/logs/bi&quot;</span> -ABSLOG=<span class="string">&quot;/data00/ds/logs/MyProject_30001.log&quot;</span> -nofork -core -nothreading -longtimeouts -unattended</span><br></pre></td></tr></table></figure>
+
+<h2 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h2><h4 id="Fork-vs-多Instance"><a href="#Fork-vs-多Instance" class="headerlink" title="Fork vs 多Instance"></a>Fork vs 多Instance</h4><p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/mf-mem.6ikokz1cro.webp" title="memo" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/mf-mem.6ikokz1cro.webp" alt="memo"></a></p>
+<h4 id="Fork下父子"><a href="#Fork下父子" class="headerlink" title="Fork下父子"></a>Fork下父子</h4><p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/mf-parent.102k4tuw06.webp" title="parent" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/mf-parent.102k4tuw06.webp" alt="parent"></a><br><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/mf-child.3d56m196us.webp" title="child" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/mf-child.3d56m196us.webp" alt="child"></a></p>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p><strong>多GameInstance方案在内存上有明显的优势。</strong></p>
+<ol>
+<li>场景启动后，玩家还没进入场景的时候，两者内存占用差不多</li>
+<li>Fork模式下，玩家进入场景后内存明显增加（COW），5分钟后趋于稳定，内存增长了117%（1557m）</li>
+<li>多GameInstance模式下，玩家进入场景后内存就稳定了，内存增长了15%（189m）</li>
+</ol>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2025-10-15</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/booknote-mckinsey/'>读书笔记-结构化战略思维</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ue-multiworld/">UE5单进程多GameInstance方案</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

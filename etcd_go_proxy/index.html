@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="etcd go客户端无法正常连接" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    etcd go客户端无法正常连接
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：668</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：2分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="post-toc-text">问题描述</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5"><span class="post-toc-text">问题排查</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%97%AE%E9%A2%98%E5%8E%9F%E5%9B%A0"><span class="post-toc-text">问题原因</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>golang项目在Windows下开发没问题，换到Linux下发现etcd无法连接。</p>
+<h1 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h1><ol>
+<li>排查网络。Linux机器和etcd服务之前网络是通的</li>
+<li>排查etcd用户名，密码。使用etcdctl发现是能正常获取值的</li>
+<li>降级etcd clientV3版本，降到之前确认没问题的版本，发现还是不行</li>
+<li>基本确认是这台Linux机器有一些什么特别的设置</li>
+<li>在本地安装Linux服务，发现无论是否开启密码验证，都能连接本地etcd服务</li>
+<li>确认是网络的问题</li>
+<li>检查发现开启了HTTP_PROXY和HTTPS_PROXY，关闭后可以正确连接远程etcd服务<h1 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h1>问了下gpt goClient和etcdctl之前的区别，回答如下：</li>
+</ol>
+<p>你遇到的现象是：</p>
+<p>系统设置了 HTTP_PROXY（或 http_proxy）环境变量。<br>用 Go 的 etcd client（如 go.etcd.io/etcd/client/v3）连接 etcd 失败。<br>但用 etcdctl 命令行工具却能正常连接。<br>这实际上是一个在企业/云环境下很常见的情况，下面详细解释原因和解决办法。</p>
+<p>原因分析<br>Go 的 etcd client 默认遵循 HTTP(S)_PROXY 环境变量。<br>Go 1.4+ 的 http(s) 库会自动读取 HTTP_PROXY、HTTPS_PROXY、NO_PROXY 等变量，把所有 HTTP、HTTPS 请求通过代理转发。<br>虽然 etcd client 默认是 gRPC，但底层用的 net/http/transport，依然会读取代理环境变量。<br>etcdctl 默认不走代理。<br>etcdctl 用自己的 dial 方式，不理会 HTTP_PROXY。<br>etcd 节点通常在内网，走代理会失败。<br>解决方法<br>方案1：设置 NO_PROXY<br>让 Go client 直连内网 etcd，不走代理，需要设置 NO_PROXY 变量，指定 etcd 的 IP/域名/端口：</p>
+<p>假设 etcd 地址为 10.37.55.13:2369</p>
+<p>bash<br>export NO_PROXY=10.37.55.13,127.0.0.1,localhost<br>或者（如果端口也要区分，可以写成如下，但一般只填主机）：</p>
+<p>bash<br>export NO_PROXY=10.37.55.13,10.37.55.13:2369,127.0.0.1,localhost<br>你可以把这句加到你的服务启动脚本前面，或者在 shell 里全局设置。</p>
+<p>方案2：Go 代码里禁用代理<br>如果你不能或不想改环境变量，可以在代码里禁用代理。例如：</p>
+<p>Go<br>import (<br>    “net/http”<br>    “go.etcd.io/etcd/client/v3”<br>)</p>
+<p>tr := http.DefaultTransport.(*http.Transport).Clone()<br>tr.Proxy = nil // 禁用代理</p>
+<p>cli, err := clientv3.New(clientv3.Config{<br>    Endpoints:   []string{“<a href="http://10.37.55.13:2369&quot;}">http://10.37.55.13:2369&quot;}</a>,<br>    DialTimeout: 5 * time.Second,<br>    DialOptions: []grpc.DialOption{<br>        grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {<br>            d := net.Dialer{}<br>            return d.DialContext(ctx, “tcp”, addr)<br>        }),<br>    },<br>})<br>不过直接设置 NO_PROXY 更简单。</p>
+<p>总结<br>etcdctl 不受 HTTP_PROXY 影响；Go etcd client 会被 HTTP_PROXY 影响。<br>解决方案：设置 NO_PROXY 包含你 etcd 的 IP/域名。<br>推荐方法：在你的 shell 或服务启动脚本里加上 export NO_PROXY=…。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2025-07-10</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/linux-memory/'>查看Linux下进程占用内存</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ue_ds_manager/">UE DS服管理</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

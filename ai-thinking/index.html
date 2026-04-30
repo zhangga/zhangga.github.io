@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="关于AI和工作的一些思考" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    关于AI和工作的一些思考
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：970</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：3分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Agent"><span class="post-toc-text">Agent</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%9C%BA%E6%99%AF"><span class="post-toc-text">场景</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%AE%A9AI%E6%B7%B1%E5%85%A5%E5%88%B0%E6%97%A5%E5%B8%B8%E7%9A%84%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B"><span class="post-toc-text">让AI深入到日常的开发流程</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#AI%E5%AE%A2%E6%9C%8D"><span class="post-toc-text">AI客服</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%A4%84%E7%90%86%E6%9C%8D%E5%8A%A1%E6%8A%A5%E8%AD%A6"><span class="post-toc-text">处理服务报警</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%8A%8A%E9%9A%8F%E6%89%8B%E7%AC%94%E8%AE%B0%E6%95%B4%E7%90%86%E6%88%90%E6%96%87%E7%AB%A0"><span class="post-toc-text">把随手笔记整理成文章</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%B6%E4%BB%96%E5%A5%87%E5%A5%87%E6%80%AA%E6%80%AA%E7%9A%84%E6%83%B3%E6%B3%95"><span class="post-toc-text">其他奇奇怪怪的想法</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%8A%80%E5%B7%A7"><span class="post-toc-text">技巧</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#CLAUDE-md"><span class="post-toc-text">CLAUDE.md</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Rules"><span class="post-toc-text">Rules</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Skills"><span class="post-toc-text">Skills</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><p>深度学习和使用过<code>ClaudeCode</code>后，结合日常的研发工作，我开始思考如何利用AI来提高开发效率，解放自己。</p>
+<h1 id="Agent"><a href="#Agent" class="headerlink" title="Agent"></a>Agent</h1><p>在AI的时代恰恰相反，我们要拿着锤子去找钉子，任何有可能用AI来解决的问题，我们都要用尝试下让AI来解决。<br>在解决的过程中，我们要对流程进行优化，每一步都能把控，这样最终的效果才是可预测的、可持续优化的。<br>最终沉淀成一个<code>Agent</code>，这个<code>Agent</code>可以自动完成一些重复的工作，比如代码审查、测试、文档维护等。<br><code>个人Agent = 通用Agent + 基座模型 + 领域上下文</code></p>
+<ul>
+<li>通用Agent: ClaudeCode、CodeX等</li>
+<li>基座模型: <a target="_blank" rel="noopener" href="https://arxiv.org/html/2603.03823v1">Coding模型排行榜</a></li>
+<li>领域上下文：CLAUDE.md、Skills、Rules。最重要的部分，一切工程化的目的都是为了给模型构建最准确的上下文。</li>
+<li>关于记忆，能分解成尽可能小的问题，对记忆的依赖就越小，这样就可以让AI来完成更多的工作。</li>
+<li>上下文可以让AI自己去探索，告诉它相应的文档或项目在哪，让他去根据需要查找自己想要的，而不是直接塞给他结果。</li>
+</ul>
+<h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><h2 id="让AI深入到日常的开发流程"><a href="#让AI深入到日常的开发流程" class="headerlink" title="让AI深入到日常的开发流程"></a>让AI深入到日常的开发流程</h2><ol>
+<li>最基础的代码辅助，之前我们可能会用一些代码补全工具，现在我们可以让AI来帮我们写代码，甚至是重构代码。AI的代码质量已经非常高了，可以大大提高我们的开发效率。</li>
+<li>自动代码审查，这个大大降低了心智的负担，很多我们没意识到的问题，AI都可以自动发现。不过AI也有过度的边界设计问题，可以根据需要来优化我们的提示词。</li>
+<li>自动测试，测试用例的编写和维护也是非常麻烦的工作，AI可以帮助我们自动生成和维护测试用例，提高测试覆盖率和质量。</li>
+<li>最重要的就是文档，之前我们手动维护文档，从第2/3版开始之后，文档就失去了时效性，现在让AI来维护文档。Code is Doc.</li>
+</ol>
+<h2 id="AI客服"><a href="#AI客服" class="headerlink" title="AI客服"></a>AI客服</h2><p>现在每个人都应该有一个属于自己的AI客服，让他来帮助我们回答策划、QA的一些简单问题，或者自动帮我们处理一些前置工作。<br>我们的AI机器人也要跟随我们一起成长（建立符合我们体质的本地知识库），不仅每天学习我们commit的代码，自动总结更新文档，还要根据我们的反馈和使用情况，不断优化自己的性能和功能。</p>
+<h2 id="处理服务报警"><a href="#处理服务报警" class="headerlink" title="处理服务报警"></a>处理服务报警</h2><p>对接日志、埋点、监控数据等，自动发现和处理服务报警，过滤掉重复的报警，这样才能不遗漏任何重要的报警。</p>
+<h2 id="把随手笔记整理成文章"><a href="#把随手笔记整理成文章" class="headerlink" title="把随手笔记整理成文章"></a>把随手笔记整理成文章</h2><p>AI可以帮助我们自动整理随手笔记，把笔记转换成文章，方便我们后续的阅读和分享，沉淀知识。</p>
+<h2 id="其他奇奇怪怪的想法"><a href="#其他奇奇怪怪的想法" class="headerlink" title="其他奇奇怪怪的想法"></a>其他奇奇怪怪的想法</h2><h1 id="技巧"><a href="#技巧" class="headerlink" title="技巧"></a>技巧</h1><h2 id="CLAUDE-md"><a href="#CLAUDE-md" class="headerlink" title="CLAUDE.md"></a>CLAUDE.md</h2><p>其他工具叫(AGENTS.md)，Agent启动时会全量加载这个文件，所以他应该保持简洁，优先写命令、约束、架构边界。用它来定义角色、工作流、代码标准、输出格式等。</p>
+<h2 id="Rules"><a href="#Rules" class="headerlink" title="Rules"></a>Rules</h2><p>细分领域的详细规则，比如git操作规范、markdown编写规范、lark配置等。</p>
+<h2 id="Skills"><a href="#Skills" class="headerlink" title="Skills"></a>Skills</h2><ul>
+<li>最核心的部分，沉淀可重复使用的技能。</li>
+<li>渐进式披露、按需加载。</li>
+<li>skill沉淀下来的脚本和工具，是真正发挥最大效率的关键。</li>
+<li>skill和workflow的区别，workflow流程固定，skill可以让agent自由编排。</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-30</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/AI/'>
+                            AI
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/claude-proxy/'>claude-proxy</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ue-linux-arm/">交叉编译DS LinuxArm64</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

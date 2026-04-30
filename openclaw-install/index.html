@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="openclaw-install" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    openclaw-install
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：330</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：1分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85-OpenClaw"><span class="post-toc-text">安装 OpenClaw</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE-OpenClaw"><span class="post-toc-text">配置 OpenClaw</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE%E5%A4%A7%E6%A8%A1%E5%9E%8B"><span class="post-toc-text">配置大模型</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="post-toc-text">常用命令</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="安装-OpenClaw"><a href="#安装-OpenClaw" class="headerlink" title="安装 OpenClaw"></a>安装 OpenClaw</h1><ol>
+<li>Windows下，以管理员身份打开 PowerShell。</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-1.2kshfvb7dc.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-1.2kshfvb7dc.webp"></a></p>
+<ol start="2">
+<li>执行以下命令安装 OpenClaw。</li>
+</ol>
+<ul>
+<li>Windows：<code>iwr -useb </code>​<code>https://openclaw.ai/install.ps1</code>​<code> | iex</code></li>
+<li>MacOS：<code>curl -fsSL </code>​<code>https://openclaw.ai/install.sh</code>​<code> | bash</code></li>
+</ul>
+<h1 id="配置-OpenClaw"><a href="#配置-OpenClaw" class="headerlink" title="配置 OpenClaw"></a>配置 OpenClaw</h1><p>安装后，根据引导进行配置。如果跳过了的话，或者需要重新配置，使用命令：</p>
+<p><code>openclaw onboard --install-daemon</code></p>
+<ol>
+<li>Yes</li>
+<li>QuickStart</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-2.3rbsoh1pik.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-2.3rbsoh1pik.webp"></a></p>
+<ol start="3">
+<li>Skip for now</li>
+<li>All providers</li>
+<li>Keep current</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-3.1apk9jvncz.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-3.1apk9jvncz.webp"></a></p>
+<ol start="6">
+<li>Skip for now</li>
+<li>Skip for now</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-4.6m4gu9i34e.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-4.6m4gu9i34e.webp"></a></p>
+<ol start="8">
+<li>Yes</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-5.1lce2pbm3n.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-5.1lce2pbm3n.webp"></a></p>
+<ol start="9">
+<li>空格选中Skip for now，然后回车确认</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-6.2h8vi5lp0x.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-6.2h8vi5lp0x.webp"></a></p>
+<ol start="10">
+<li>接下来几个API相关的全默认的No</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-7.45i8fccbtp.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-7.45i8fccbtp.webp"></a></p>
+<ol start="11">
+<li> hooks相关的，除了Skip for now之外，全部用空格选中，然后回车确认</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-8.7lkk7fmlmm.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-8.7lkk7fmlmm.webp"></a></p>
+<ol start="12">
+<li>Open the Web UI</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-9.4690y8v7g.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-9.4690y8v7g.webp"></a></p>
+<ol start="13">
+<li> <a target="_blank" rel="noopener" href="http://127.0.0.1:18789/chat?session=main">http://127.0.0.1:18789/chat?session=main</a></li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-10.2kshfvfr3z.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-10.2kshfvfr3z.webp"></a></p>
+<ol start="14">
+<li> 同时后台会有一个gateway进程运行，不要关闭</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-11.58hxq8a6js.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-11.58hxq8a6js.webp"></a></p>
+<ol start="15">
+<li> OpenClaw启动成功！</li>
+</ol>
+<h1 id="配置大模型"><a href="#配置大模型" class="headerlink" title="配置大模型"></a>配置大模型</h1><p>可以使用火山云的 <a target="_blank" rel="noopener" href="https://www.volcengine.com/activity/codingplan">Coding Plan计划</a>，收费可控。</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://console.volcengine.com/ark/region:ark+cn-beijing/apikey">获取 API Key</a>。先准备好大模型的API Key，可以参考火山云的文档</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://www.volcengine.com/docs/82379/2183190?lang=zh#f05bb565">https://www.volcengine.com/docs/82379/2183190?lang=zh#f05bb565</a></p>
+<ol start="2">
+<li>在PowerShell输入命令：<code>openclaw config</code></li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-12.26m1p08ucm.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-12.26m1p08ucm.webp"></a></p>
+<ol start="3">
+<li>Local</li>
+<li>Model</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-13.8hh1mvxo6e.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-13.8hh1mvxo6e.webp"></a></p>
+<ol start="5">
+<li>Volcano Engine</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-14.73uiiumm5h.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-14.73uiiumm5h.webp"></a></p>
+<ol start="6">
+<li>Paste API key now</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-16.et2u3phgx.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-16.et2u3phgx.webp"></a></p>
+<ol start="7">
+<li>复制第一步准备好的API Key</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-17.3d5cxlxqy8.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-17.3d5cxlxqy8.webp"></a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-18.73uiiumm5p.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-18.73uiiumm5p.webp"></a></p>
+<ol start="8">
+<li>保持默认的 <code>volcengine-plan/ark-code-latest</code> 即可</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-19.232frafrn0.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-19.232frafrn0.webp"></a></p>
+<ol start="9">
+<li>Continue 完成配置</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-20.6f18ytz357.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-20.6f18ytz357.webp"></a></p>
+<ol start="10">
+<li>在PowerShell输入命令，重启生效：<code>openclaw gateway restart</code></li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-22.83alw0pdbd.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/openclaw-22.83alw0pdbd.webp"></a></p>
+<h1 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h1><ul>
+<li>重启网关：<code>openclaw gateway restart</code></li>
+<li>打开主界面：<code>openclaw dashboard</code>  或者加 –no-open 查看连接和token，以便在其他机器上访问</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-23</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/AI/'>
+                            AI
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/claudecode/'>claudecode</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ai-skill/">AI Skill 小技巧</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

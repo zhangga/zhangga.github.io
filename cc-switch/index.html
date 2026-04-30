@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="cc-switch" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    cc-switch
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：7分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%9A%80-%E4%B8%80%E3%80%81%E9%A1%B9%E7%9B%AE%E4%BC%A0%E5%A5%87%EF%BC%9A%E4%BB%8E%E9%9B%B6%E5%88%B03%E4%B8%87Star%E7%9A%84%E5%8D%8A%E5%B9%B4%E5%BE%81%E7%A8%8B"><span class="post-toc-text">🚀 一、项目传奇：从零到3万Star的半年征程</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-1-%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF"><span class="post-toc-text">1.1 项目背景</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-2-%E4%BD%9C%E8%80%85%E4%BC%A0%E5%A5%87%EF%BC%9A%E4%BB%8E%E8%BF%9B%E5%87%BA%E5%8F%A3%E8%B4%B8%E6%98%93%E5%88%B0AI%E5%BC%80%E5%8F%91"><span class="post-toc-text">1.2 作者传奇：从进出口贸易到AI开发</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%9B%A0%EF%B8%8F-%E4%BA%8C%E3%80%81%E5%BC%80%E5%8F%91%E5%AE%9E%E6%88%98%EF%BC%9ACC-Switch%E7%9A%84%E8%AF%9E%E7%94%9F%E4%B8%8E%E8%BF%9B%E5%8C%96"><span class="post-toc-text">🛠️ 二、开发实战：CC Switch的诞生与进化</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-1-%E5%BC%80%E5%8F%91%E7%BC%98%E8%B5%B7"><span class="post-toc-text">2.1 开发缘起</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-2-%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6%EF%BC%9A%E6%98%93%E7%94%A8%E6%80%A7%E4%B8%BA%E7%8E%8B"><span class="post-toc-text">2.2 设计哲学：易用性为王</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-3-%E9%80%9A%E7%94%A8%E9%85%8D%E7%BD%AE%EF%BC%9A%E8%A7%A3%E5%86%B3%E4%BE%9B%E5%BA%94%E5%95%86%E5%88%87%E6%8D%A2%E9%9A%BE%E9%A2%98"><span class="post-toc-text">2.3 通用配置：解决供应商切换难题</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%94%84-%E4%B8%89%E3%80%81%E9%87%8D%E6%9E%84%E4%B9%8B%E8%B7%AF%EF%BC%9A%E4%B8%89%E6%AC%A1%E9%87%8D%E5%A4%A7%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B"><span class="post-toc-text">🔄 三、重构之路：三次重大技术演进</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-1-%E7%AC%AC%E4%B8%80%E6%AC%A1%E9%87%8D%E6%9E%84%EF%BC%9A%E6%95%B0%E6%8D%AE%E6%9E%B6%E6%9E%84%E9%87%8D%E5%A1%91"><span class="post-toc-text">3.1 第一次重构：数据架构重塑</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-2-%E7%AC%AC%E4%BA%8C%E6%AC%A1%E9%87%8D%E6%9E%84%EF%BC%9ATaro%E9%87%8D%E5%86%99%E4%B8%8E%E6%80%A7%E8%83%BD%E9%A3%9E%E8%B7%83"><span class="post-toc-text">3.2 第二次重构：Taro重写与性能飞跃</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-3-%E7%AC%AC%E4%B8%89%E6%AC%A1%E9%87%8D%E6%9E%84%EF%BC%9A%E6%B8%85%E7%90%86%E6%8A%80%E6%9C%AF%E5%80%BA%E5%8A%A1"><span class="post-toc-text">3.3 第三次重构：清理技术债务</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%93%9A-%E5%9B%9B%E3%80%81%E8%AE%BE%E8%AE%A1%E6%95%99%E8%AE%AD%EF%BC%9A%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91%E4%B8%8E%E5%AE%9D%E8%B4%B5%E7%BB%8F%E9%AA%8C"><span class="post-toc-text">📚 四、设计教训：踩过的坑与宝贵经验</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-1-%E5%BC%80%E5%85%B3%E4%BD%8D%E7%BD%AE%EF%BC%9A%E6%96%B0%E6%89%8B%E8%AF%AF%E6%93%8D%E4%BD%9C%E4%B9%8B%E7%97%9B"><span class="post-toc-text">4.1 开关位置：新手误操作之痛</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-2-%E9%85%8D%E7%BD%AE%E6%9B%BF%E6%8D%A2%EF%BC%9A%E5%85%AC%E7%94%A8%E5%AD%97%E6%AE%B5%E4%BC%A0%E9%80%92%E7%9A%84%E8%89%BA%E6%9C%AF"><span class="post-toc-text">4.2 配置替换：公用字段传递的艺术</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%8E%A2-%E4%BA%94%E3%80%81%E6%92%9E%E8%BD%A6%E7%BB%8F%E5%8E%86%EF%BC%9A%E8%A2%AB%E5%A4%A7%E5%8E%82%E2%80%9D%E8%87%B4%E6%95%AC%E2%80%9D%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B"><span class="post-toc-text">🎢 五、撞车经历：被大厂”致敬”的那些事</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-1-%E9%A6%96%E6%AC%A1%E6%92%9E%E8%BD%A6%EF%BC%9A%E4%BB%A3%E7%90%86%E6%8E%A5%E7%AE%A1%E5%8A%9F%E8%83%BD"><span class="post-toc-text">5.1 首次撞车：代理接管功能</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-2-%E4%BA%8C%E6%AC%A1%E6%92%9E%E8%BD%A6%EF%BC%9A%E6%A0%BC%E5%BC%8F%E8%BD%AC%E6%8D%A2%E5%8A%9F%E8%83%BD"><span class="post-toc-text">5.2 二次撞车：格式转换功能</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%A4%96-%E5%85%AD%E3%80%81AI%E7%BC%96%E7%A8%8B%E5%BF%83%E5%BE%97%EF%BC%9A%E7%BB%8F%E9%AA%8C%E4%B9%8B%E8%B0%88"><span class="post-toc-text">🤖 六、AI编程心得：经验之谈</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#6-1-%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E7%AD%96%E7%95%A5"><span class="post-toc-text">6.1 模型选择策略</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#6-2-%E4%BC%A0%E7%BB%9F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E7%9A%84%E5%9B%9E%E5%BD%92"><span class="post-toc-text">6.2 传统软件工程的回归</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#6-3-%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B%EF%BC%9AAI%E7%BC%96%E7%A8%8B%E7%9A%84%E6%A0%B8%E5%BF%83%E7%AB%9E%E4%BA%89%E5%8A%9B"><span class="post-toc-text">6.3 上下文工程：AI编程的核心竞争力</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%8C%9F-%E4%B8%83%E3%80%81%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E4%BA%A4%E6%B5%81%EF%BC%9A%E7%BB%8F%E9%AA%8C%E4%B8%8E%E5%BF%83%E5%BE%97"><span class="post-toc-text">🌟 七、开源项目交流：经验与心得</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-1-%E7%94%A8%E6%88%B7%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="post-toc-text">7.1 用户常见问题</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-2-%E5%BC%80%E6%BA%90%E5%BF%83%E6%80%81%EF%BC%9A-maintainer%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB"><span class="post-toc-text">7.2 开源心态： maintainer的自我修养</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-3-%E6%8E%A8%E5%B9%BF%E7%AD%96%E7%95%A5%EF%BC%9A%E8%AE%A9%E5%A5%BD%E9%A1%B9%E7%9B%AE%E8%A2%AB%E7%9C%8B%E8%A7%81"><span class="post-toc-text">7.3 推广策略：让好项目被看见</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-4-%E5%BC%80%E6%BA%90%E5%95%86%E4%B8%9A%E5%8C%96%EF%BC%9AAI%E6%97%B6%E4%BB%A3%E7%9A%84%E6%96%B0%E6%9C%BA%E9%81%87"><span class="post-toc-text">7.4 开源商业化：AI时代的新机遇</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%94%8C-%E5%85%AB%E3%80%81API%E4%B8%AD%E8%BD%AC%E7%AB%99%E7%B1%BB%E5%9E%8B%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="post-toc-text">🔌 八、API中转站类型深度解析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-1-%E5%8E%9F%E7%94%9FAPI"><span class="post-toc-text">8.1 原生API</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-2-Max%E5%8F%B7%E6%B1%A0%E5%8F%8D%E4%BB%A3"><span class="post-toc-text">8.2 Max号池反代</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-3-%E5%8F%8D%E4%BB%A3"><span class="post-toc-text">8.3 反代</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-4-%E5%85%AC%E7%9B%8A%E7%AB%99"><span class="post-toc-text">8.4 公益站</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><p>今天听了下CC-Switch项目创始人的分享，感慨他的毅力和执行力。</p>
+<h2 id="🚀-一、项目传奇：从零到3万Star的半年征程"><a href="#🚀-一、项目传奇：从零到3万Star的半年征程" class="headerlink" title="🚀 一、项目传奇：从零到3万Star的半年征程"></a>🚀 一、项目传奇：从零到3万Star的半年征程</h2><h3 id="1-1-项目背景"><a href="#1-1-项目背景" class="headerlink" title="1.1 项目背景"></a>1.1 项目背景</h3><p><strong>CC Switch</strong> 是GitHub上一颗冉冉升起的新星，自2025年8月底启动以来，仅用短短半年时间便收获了<strong>近3万Star</strong>的惊人成绩。这一成绩对于独立开发者而言堪称传奇。</p>
+<p>​<strong>核心功能定位</strong>​：</p>
+<ul>
+<li>✅ ​<strong>配置管理</strong>​：轻松管理Claude Code X、OpenAI等主流Coding Agent的配置</li>
+<li>✅ ​<strong>API Key切换</strong>​：一键切换不同供应商的API密钥</li>
+<li>✅ ​<strong>操作便捷</strong>​：可视化GUI界面，告别繁琐的命令行操作</li>
+</ul>
+<h3 id="1-2-作者传奇：从进出口贸易到AI开发"><a href="#1-2-作者传奇：从进出口贸易到AI开发" class="headerlink" title="1.2 作者传奇：从进出口贸易到AI开发"></a>1.2 作者传奇：从进出口贸易到AI开发</h3><p><strong>Jason的个人转型故事</strong>是这场会议最引人入胜的部分之一：</p>
+<table>
+<thead>
+<tr>
+<th>时间节点</th>
+<th>经历</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>30岁前</td>
+<td>从事进出口贸易工作</td>
+</tr>
+<tr>
+<td>2024年中</td>
+<td>陷入存在主义危机，受王小波作品启发，决定追寻儿时成为程序员的梦想</td>
+</tr>
+<tr>
+<td>2024年底</td>
+<td>恰逢AI热潮，前往推特学习，受三位有影响力人士启发</td>
+</tr>
+<tr>
+<td>2025年</td>
+<td>半年自学后完成CC Switch测试版本，开启开源传奇</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 ​<strong>学习路径分享</strong>​：选用欧美主流教材和技术，跟随MOS课程体系学习，通过不断制作Demo和玩具项目来巩固所学知识。</p>
+</blockquote>
+<h2 id="🛠️-二、开发实战：CC-Switch的诞生与进化"><a href="#🛠️-二、开发实战：CC-Switch的诞生与进化" class="headerlink" title="🛠️ 二、开发实战：CC Switch的诞生与进化"></a>🛠️ 二、开发实战：CC Switch的诞生与进化</h2><h3 id="2-1-开发缘起"><a href="#2-1-开发缘起" class="headerlink" title="2.1 开发缘起"></a>2.1 开发缘起</h3><p>Jason开发CC Switch的初衷源于​<strong>真实的痛点</strong>​：</p>
+<ol>
+<li>​<strong>Claude Code在国内封禁严格</strong>​，供应商切换极其不便</li>
+<li>​<strong>市面上的解决方案多为脚本形式</strong>​，缺乏友好的用户界面</li>
+<li>​<strong>技术选型</strong>​：采用Electron框架编写可视化GUI程序，实现跨平台支持</li>
+</ol>
+<h3 id="2-2-设计哲学：易用性为王"><a href="#2-2-设计哲学：易用性为王" class="headerlink" title="2.2 设计哲学：易用性为王"></a>2.2 设计哲学：易用性为王</h3><p>Jason认为，​<strong>易用性是CC Switch的核心竞争力</strong>​。他的设计理念可以概括为：​**”吃自己的狗粮”（Dogfooding<strong>​​</strong>）**​——以真实用户的视角打磨产品。</p>
+<p><strong>🎯 典型案例：代理接管功能</strong></p>
+<p>代理接管功能经历了精心的架构设计，大幅提升了易用性。这个功能最初是为了解决Cloud Code热切换问题而开发的，虽然后来卡拉购自身支持了切换功能，但CC Switch的代理接管仍可应用于格式转换等场景。</p>
+<h3 id="2-3-通用配置：解决供应商切换难题"><a href="#2-3-通用配置：解决供应商切换难题" class="headerlink" title="2.3 通用配置：解决供应商切换难题"></a>2.3 通用配置：解决供应商切换难题</h3><p>针对供应商配置切换的痛点，Jason设计了​<strong>通用配置功能</strong>​：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">通用配置策略：</span><br><span class="line">├── 提取共性：将除关键信息（API Key等）外的字段抽象到通用配置</span><br><span class="line">├── 简化操作：用户只需维护一套通用配置</span><br><span class="line">└── 灵活扩展：支持多供应商快速切换</span><br></pre></td></tr></table></figure>
+
+<p>经过多个版本的迭代优化，这一功能的使用体验已达到相当成熟的水平。</p>
+<h2 id="🔄-三、重构之路：三次重大技术演进"><a href="#🔄-三、重构之路：三次重大技术演进" class="headerlink" title="🔄 三、重构之路：三次重大技术演进"></a>🔄 三、重构之路：三次重大技术演进</h2><h3 id="3-1-第一次重构：数据架构重塑"><a href="#3-1-第一次重构：数据架构重塑" class="headerlink" title="3.1 第一次重构：数据架构重塑"></a>3.1 第一次重构：数据架构重塑</h3><p>​<strong>问题背景</strong>​：</p>
+<ul>
+<li>初始数据存储方式分散，不利于云同步等高级功能的开发</li>
+</ul>
+<p>​<strong>解决方案</strong>​：</p>
+<ul>
+<li>将数据集中存储到JSON文件</li>
+<li>设计完善的迁移与回退逻辑</li>
+<li>确保用户数据安全无虞</li>
+</ul>
+<h3 id="3-2-第二次重构：Taro重写与性能飞跃"><a href="#3-2-第二次重构：Taro重写与性能飞跃" class="headerlink" title="3.2 第二次重构：Taro重写与性能飞跃"></a>3.2 第二次重构：Taro重写与性能飞跃</h3><p>这是一次​<strong>技术栈的重大迁移</strong>​：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>重构前</th>
+<th>重构后</th>
+<th>提升幅度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>安装包大小</td>
+<td>100MB</td>
+<td>5MB</td>
+<td><strong>95%↓</strong></td>
+</tr>
+<tr>
+<td>启动速度</td>
+<td>较慢</td>
+<td>显著提升</td>
+<td>质的飞跃</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>🚀 ​<strong>Taro框架的优势</strong>​：轻量级、高性能、跨平台能力出色</p>
+</blockquote>
+<h3 id="3-3-第三次重构：清理技术债务"><a href="#3-3-第三次重构：清理技术债务" class="headerlink" title="3.3 第三次重构：清理技术债务"></a>3.3 第三次重构：清理技术债务</h3><ul>
+<li>对未组件化的部分进行全面组件化</li>
+<li>拆分大文件，优化代码结构</li>
+<li>完善整体架构设计</li>
+</ul>
+<h2 id="📚-四、设计教训：踩过的坑与宝贵经验"><a href="#📚-四、设计教训：踩过的坑与宝贵经验" class="headerlink" title="📚 四、设计教训：踩过的坑与宝贵经验"></a>📚 四、设计教训：踩过的坑与宝贵经验</h2><h3 id="4-1-开关位置：新手误操作之痛"><a href="#4-1-开关位置：新手误操作之痛" class="headerlink" title="4.1 开关位置：新手误操作之痛"></a>4.1 开关位置：新手误操作之痛</h3><p>​<strong>问题现象</strong>​：</p>
+<ul>
+<li>在主页添加了代理接管和故障转移开关</li>
+<li>新手用户容易误操作，导致困惑</li>
+</ul>
+<p>​<strong>解决方案</strong>​：</p>
+<ul>
+<li>将开关移至设置页面</li>
+<li>提供”是否显示”的可配置选项</li>
+<li>让高级功能对新手隐藏，对专家可及</li>
+</ul>
+<h3 id="4-2-配置替换：公用字段传递的艺术"><a href="#4-2-配置替换：公用字段传递的艺术" class="headerlink" title="4.2 配置替换：公用字段传递的艺术"></a>4.2 配置替换：公用字段传递的艺术</h3><p>配置替换方式曾出现问题，最终通过<strong>通用配置传递公用字段</strong>的方式优雅解决。</p>
+<h2 id="🎢-五、撞车经历：被大厂”致敬”的那些事"><a href="#🎢-五、撞车经历：被大厂”致敬”的那些事" class="headerlink" title="🎢 五、撞车经历：被大厂”致敬”的那些事"></a>🎢 五、撞车经历：被大厂”致敬”的那些事</h2><h3 id="5-1-首次撞车：代理接管功能"><a href="#5-1-首次撞车：代理接管功能" class="headerlink" title="5.1 首次撞车：代理接管功能"></a>5.1 首次撞车：代理接管功能</h3><p>​<strong>事件经过</strong>​：</p>
+<ul>
+<li>Jason为解决Cloud Code热切换问题开发了代理接管功能</li>
+<li>不久后，卡拉购自身支持了切换功能</li>
+</ul>
+<p>​<strong>启示</strong>​：核心功能即使被大厂覆盖，仍有其独特价值（如格式转换等场景）。</p>
+<h3 id="5-2-二次撞车：格式转换功能"><a href="#5-2-二次撞车：格式转换功能" class="headerlink" title="5.2 二次撞车：格式转换功能"></a>5.2 二次撞车：格式转换功能</h3><p>​<strong>事件经过</strong>​：</p>
+<ul>
+<li>尝试开发格式转换功能</li>
+<li>Open Router随后自行支持了Message格式</li>
+</ul>
+<p>​<strong>感悟</strong>​：在快速发展的AI领域，功能撞车是常态，保持迭代速度是关键。</p>
+<h2 id="🤖-六、AI编程心得：经验之谈"><a href="#🤖-六、AI编程心得：经验之谈" class="headerlink" title="🤖 六、AI编程心得：经验之谈"></a>🤖 六、AI编程心得：经验之谈</h2><h3 id="6-1-模型选择策略"><a href="#6-1-模型选择策略" class="headerlink" title="6.1 模型选择策略"></a>6.1 模型选择策略</h3><p>Jason推荐的高效AI编程模型组合：</p>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>推荐模型</th>
+<th>优势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>代码生成</td>
+<td>Claude Opus 4.6</td>
+<td>逻辑严密，代码质量高</td>
+</tr>
+<tr>
+<td>代码审核</td>
+<td>Codex 5.4</td>
+<td>分析可靠，洞察深刻</td>
+</tr>
+</tbody></table>
+<p>​<strong>💡 交叉审核技巧</strong>​：写完代码后使用另一个模型进行交叉Review，避免同一模型”自卖自夸”的局限性。</p>
+<h3 id="6-2-传统软件工程的回归"><a href="#6-2-传统软件工程的回归" class="headerlink" title="6.2 传统软件工程的回归"></a>6.2 传统软件工程的回归</h3><p>在AI时代，经典软件工程概念的重要性反而​<strong>不降反升</strong>​：</p>
+<p>​<strong>人的参与至关重要</strong>​：</p>
+<ul>
+<li>✅ 制定开发计划</li>
+<li>✅ 功能架构设计</li>
+<li>✅ 代码验收把关</li>
+</ul>
+<p><strong>💎 核心理念：”代码是负债，而非资产”</strong></p>
+<ul>
+<li>避免AI过度设计</li>
+<li>采用简单架构</li>
+<li>追求可读性强的代码</li>
+<li>功能能用即可，避免过度工程化</li>
+</ul>
+<h3 id="6-3-上下文工程：AI编程的核心竞争力"><a href="#6-3-上下文工程：AI编程的核心竞争力" class="headerlink" title="6.3 上下文工程：AI编程的核心竞争力"></a>6.3 上下文工程：AI编程的核心竞争力</h3><p>​<strong>演进历程</strong>​：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Chat → Coverlet → Cursor → Cloud Code</span><br><span class="line">         ↓</span><br><span class="line">    本质演进：上下文工程的不断进步</span><br></pre></td></tr></table></figure>
+
+<p>​<strong>控制策略</strong>​：</p>
+<ol>
+<li>​<strong>拆分任务</strong>​：避免单个任务过于复杂</li>
+<li>​<strong>压缩上下文</strong>​：定期清理无关信息</li>
+<li>​<strong>维护文档</strong>​：建立项目知识库</li>
+<li>​<strong>文件大小控制</strong>​：单个文件不超过1000行</li>
+<li>​<strong>性能考量</strong>​：兼顾Claude Code等工具的读取性能</li>
+</ol>
+<h2 id="🌟-七、开源项目交流：经验与心得"><a href="#🌟-七、开源项目交流：经验与心得" class="headerlink" title="🌟 七、开源项目交流：经验与心得"></a>🌟 七、开源项目交流：经验与心得</h2><h3 id="7-1-用户常见问题"><a href="#7-1-用户常见问题" class="headerlink" title="7.1 用户常见问题"></a>7.1 用户常见问题</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>现状/进展</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>是否有TUI版本？</td>
+<td>CC Switch CL2版本的TUI表现出色</td>
+</tr>
+<tr>
+<td>是否有CR版本？</td>
+<td>CC Switch CR的P2正在积极开发中</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-开源心态：-maintainer的自我修养"><a href="#7-2-开源心态：-maintainer的自我修养" class="headerlink" title="7.2 开源心态： maintainer的自我修养"></a>7.2 开源心态： maintainer的自我修养</h3><p>​<strong>推荐阅读</strong>​：《做开源的心态培养》（安德富著）</p>
+<p>这本书帮助开源项目维护者：</p>
+<ul>
+<li>应对来自社区的压力</li>
+<li>建立健康的开源心态</li>
+<li>平衡个人生活与开源贡献</li>
+</ul>
+<h3 id="7-3-推广策略：让好项目被看见"><a href="#7-3-推广策略：让好项目被看见" class="headerlink" title="7.3 推广策略：让好项目被看见"></a>7.3 推广策略：让好项目被看见</h3><p>​<strong>有效途径</strong>​：</p>
+<ol>
+<li>​<strong>推特宣传​</strong>​：利用社交媒体扩大影响力</li>
+<li>​<strong>蹭热点</strong>​：紧跟新模型发布的热度，展示项目用途</li>
+<li>​<strong>社区运营</strong>​：活跃于开发者社区，建立口碑</li>
+</ol>
+<h3 id="7-4-开源商业化：AI时代的新机遇"><a href="#7-4-开源商业化：AI时代的新机遇" class="headerlink" title="7.4 开源商业化：AI时代的新机遇"></a>7.4 开源商业化：AI时代的新机遇</h3><p>​<strong>趋势洞察</strong>​：AI时代开源软件更容易获得Sponsor支持</p>
+<p>​<strong>成功案例</strong>​：</p>
+<ul>
+<li>Chatbox通过内置会员系统实现盈利</li>
+<li>开源与商业化可以良性共存</li>
+</ul>
+<h2 id="🔌-八、API中转站类型深度解析"><a href="#🔌-八、API中转站类型深度解析" class="headerlink" title="🔌 八、API中转站类型深度解析"></a>🔌 八、API中转站类型深度解析</h2><p>会议最后，与会者就API中转站生态进行了深入交流：</p>
+<h3 id="8-1-原生API"><a href="#8-1-原生API" class="headerlink" title="8.1 原生API"></a>8.1 原生API</h3><ul>
+<li>​<strong>来源</strong>​：微软、亚马逊云或官方直接提供</li>
+<li>​<strong>价格</strong>​：较高</li>
+<li>​<strong>适用场景</strong>​：对合规性和价格不敏感的用户</li>
+</ul>
+<h3 id="8-2-Max号池反代"><a href="#8-2-Max号池反代" class="headerlink" title="8.2 Max号池反代"></a>8.2 Max号池反代</h3><ul>
+<li>​<strong>模式</strong>​：用虚拟号段订阅做成号池反代</li>
+<li>​<strong>价格</strong>​：便宜</li>
+<li>​<strong>风险</strong>​：稳定性差，使用范围受限</li>
+</ul>
+<h3 id="8-3-反代"><a href="#8-3-反代" class="headerlink" title="8.3 反代"></a>8.3 反代</h3><ul>
+<li>​<strong>模式</strong>​：批量注册免费账号进行反代</li>
+<li>​<strong>成本</strong>​：极低</li>
+<li>​<strong>代价</strong>​：性能有损失，价格过低可能属于此类</li>
+</ul>
+<h3 id="8-4-公益站"><a href="#8-4-公益站" class="headerlink" title="8.4 公益站"></a>8.4 公益站</h3><ul>
+<li>​<strong>模式</strong>​：完全免费</li>
+<li>​<strong>API来源</strong>​：官方或亚马逊云的原价API</li>
+<li>​<strong>注意</strong>​：免费背后的代价往往未明确说明</li>
+</ul>
+<p>​<strong>核心收获</strong>​：</p>
+<ol>
+<li>✅ 优秀的开源项目源于对真实痛点的深刻理解和解决</li>
+<li>✅ 易用性是独立开发者项目的核心竞争力</li>
+<li>✅ 在AI时代，传统软件工程思维依然重要</li>
+<li>✅ 开源不仅是技术分享，更是心态的修炼</li>
+</ol>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-18</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/v2ray/'>使用v2ray搭建VPN服务</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/java-sort-in-memory/">内存房间列表查询与排序方案详解</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

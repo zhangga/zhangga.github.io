@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="交叉编译DS LinuxArm64" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    交叉编译DS LinuxArm64
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：5分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Window%E7%8E%AF%E5%A2%83"><span class="post-toc-text">Window环境</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="post-toc-text">安装工具</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Plugin%E6%94%AF%E6%8C%81"><span class="post-toc-text">Plugin支持</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%BC%96%E8%AF%91"><span class="post-toc-text">编译</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E8%BF%90%E8%A1%8C"><span class="post-toc-text">运行</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%95%9C%E5%83%8F"><span class="post-toc-text">镜像</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#%E6%94%AF%E6%8C%81%E5%90%8CTag%E5%A4%9A%E6%9E%B6%E6%9E%84"><span class="post-toc-text">支持同Tag多架构</span></a></li></ol></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><p><a target="_blank" rel="noopener" href="https://dev.epicgames.com/documentation/zh-cn/unreal-engine/linux-development-requirements-for-unreal-engine?application_version=5.7#cross-compile-toolchain">虚幻引擎的Linux开发要求 | 虚幻引擎 5.7 文档 | Epic Developer Community</a></p>
+<blockquote>
+<p><strong>交叉编译</strong>让游戏开发者可以在Windows上对Linux进行开发。 目前，交叉编译仅支持Windows，而Mac用户目前只能使用<u><a target="_blank" rel="noopener" href="https://dev.epicgames.com/documentation/zh-cn/unreal-engine/linux-development-requirements-for-unreal-engine?application_version=5.5#native-toolchain">原生编译</a></u>。 此外，我们支持、测试并提供了适用于Linux-x86_64平台的库和工具链。</p>
+</blockquote>
+<h1 id="Window环境"><a href="#Window环境" class="headerlink" title="Window环境"></a>Window环境</h1><p>参考文章：<a target="_blank" rel="noopener" href="https://aws.amazon.com/cn/blogs/gametech/compiling-unreal-engine-5-dedicated-servers-for-aws-graviton-ec2-instances/">https://aws.amazon.com/cn/blogs/gametech/compiling-unreal-engine-5-dedicated-servers-for-aws-graviton-ec2-instances/</a></p>
+<h3 id="安装工具"><a href="#安装工具" class="headerlink" title="安装工具"></a>安装工具</h3><ul>
+<li>安装交叉编译的工具</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://dev.epicgames.com/documentation/en-us/unreal-engine/linux-development-requirements-for-unreal-engine?application%5C_version=5.7">https://dev.epicgames.com/documentation/en-us/unreal-engine/linux-development-requirements-for-unreal-engine?application\_version=5.7</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_1.7p46648w12.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_1.7p46648w12.webp"></a></p>
+<h3 id="Plugin支持"><a href="#Plugin支持" class="headerlink" title="Plugin支持"></a>Plugin支持</h3><p>整理项目下的Plugins目录，确保Server用到的插件，都添加了<code>LinuxArm64</code>平台的支持。</p>
+<p>示例：SkinnedDecalComponent.uplugin</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;FileVersion&quot;</span><span class="punctuation">:</span> <span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;Version&quot;</span><span class="punctuation">:</span> <span class="number">13</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;VersionName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;3.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;FriendlyName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SkinnedDecalComponent&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;Description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Decal system that follows Skeletal Mesh Bone Deformations &amp; Morph Targets.&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;Category&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Rendering&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;CreatedBy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Eddie Ataberk&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;CreatedByURL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;DocsURL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://docs.google.com/document/d/143XU1cLZiNeu347StrXHoC3RRKb8tRS-z-wtS2RvTA8&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;MarketplaceURL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;com.epicgames.launcher://ue/marketplace/product/05b6b0f2f8f049aaa469a1da4e09275c&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;SupportURL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;EngineVersion&quot;</span><span class="punctuation">:</span> <span class="string">&quot;5.7.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;CanContainContent&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;Installed&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;Modules&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                <span class="punctuation">&#123;</span></span><br><span class="line">                        <span class="attr">&quot;Name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SkinnedDecalComponent&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;Type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Runtime&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;LoadingPhase&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Default&quot;</span><span class="punctuation">,</span></span><br><span class="line">                        <span class="attr">&quot;PlatformAllowList&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">                                <span class="string">&quot;Win64&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;Mac&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;Linux&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;LinuxArm64&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;IOS&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;Android&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;XSX&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;PS5&quot;</span><span class="punctuation">,</span></span><br><span class="line">                                <span class="string">&quot;WinGDK&quot;</span></span><br><span class="line">                        <span class="punctuation">]</span></span><br><span class="line">                <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update​</span><br><span class="line"><span class="built_in">sudo</span> apt install -y \​</span><br><span class="line">    build-essential cmake ninja-build automake libtool pkg-config autoconf \​</span><br><span class="line">    unzip git subversion wget curl \​</span><br><span class="line">    libssl-dev libcurl4-openssl-dev \​</span><br><span class="line">    python3 python3-pip \​</span><br><span class="line">    libglib2.0-0 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libxcomposite1 libxdamage1 \​</span><br><span class="line">    libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libxkbcommon-x11-0 libpango1.0-0 libasound2 \​</span><br><span class="line">    apt-transport-https ca-certificates gnupg-agent software-properties-common</span><br></pre></td></tr></table></figure>
+
+<p>在FortniteServer.Target.cs上加入一行:</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (Target.Platform == UnrealTargetPlatform.LinuxArm64)</span><br><span class="line">&#123;</span><br><span class="line">  	<span class="comment">// 优化 linux-arm64 编译,指定最小的cpu类型</span></span><br><span class="line">		MinArm64CpuTarget = Arm64TargetCpuType.Graviton3;</span><br><span class="line">    <span class="comment">// 如果运行支持在AVX2架构上，换成这一行</span></span><br><span class="line">    <span class="comment">// MinCpuArchX64 = MinimumCpuArchitectureX64.AVX2;</span></span><br><span class="line">    <span class="comment">// 这样可以让游戏在构建时启用针对这些平台的专用优化。</span></span><br><span class="line">    <span class="comment">// 根据我们的观察，这样做大约能带来8%的cpu开销下降。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Cook</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_2.3ns6rqcm0f.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_2.3ns6rqcm0f.webp"></a></p>
+<ul>
+<li>Pack</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_3.77e4hjfbse.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_3.77e4hjfbse.webp"></a></p>
+<ul>
+<li>添加可执行权限</li>
+</ul>
+<p>chmod +x xxxxxServer</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_4.175yct5q42.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_4.175yct5q42.webp"></a></p>
+<ul>
+<li>准备项目其他环境</li>
+</ul>
+<p>DS启动需要打包过程中生成的<code>Version</code>文件，由于Windows工作流下没有这一步，直接在打包好的根目录下添加下即可。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ cat Version     </span><br><span class="line">Trunk<span class="operator">-</span>Test0</span><br><span class="line"><span class="keyword">commit</span> <span class="number">25e125</span>d515f695184</span><br><span class="line"><span class="keyword">Merge</span>: <span class="number">3</span>d09e0d c30888</span><br><span class="line">Author: xxxxx</span><br><span class="line"><span class="type">Date</span>:   Sun Jan <span class="number">4</span> <span class="number">16</span>:<span class="number">43</span>:<span class="number">18</span> <span class="number">2026</span> <span class="operator">+</span><span class="number">0800</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">Merge</span> branch <span class="string">&#x27;xxxx&#x27;</span> <span class="keyword">of</span> xxxx<span class="operator">/</span>unreal<span class="operator">-</span>engine <span class="keyword">into</span> xxxxx</span><br><span class="line"><span class="comment">------------------------------------------------------------------------</span></span><br><span class="line">r2079371 <span class="operator">|</span> xxxxxx <span class="operator">|</span> <span class="number">2026</span><span class="number">-01</span><span class="number">-05</span> <span class="number">22</span>:<span class="number">18</span>:<span class="number">18</span> <span class="operator">+</span><span class="number">0800</span> (Mon, <span class="number">05</span> Jan <span class="number">2026</span>) <span class="operator">|</span> <span class="number">1</span> line</span><br><span class="line"></span><br><span class="line">【UI】【任务系统】任务界面资源入版</span><br><span class="line"><span class="comment">------------------------------------------------------------------------</span></span><br><span class="line">ClientVersion:&#123;&quot;Dun_Ver&quot;: <span class="number">116</span>, &quot;Camp_Ver&quot;: <span class="number">107</span>, &quot;DsInter_Ver&quot;: <span class="number">104</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_5.2oc3ek9uuo.webp" class="gallery-item" style="box-shadow: none;"> <img src="https://github.com/zhangga/picx-images-hosting/raw/master/dsarm64_5.2oc3ek9uuo.webp"></a></p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>启动DSAgent项目运行即可。</p>
+<h3 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h3><p>扩展Dockerfile支持交叉编译</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编译 DSAgent 进程</span></span><br><span class="line"><span class="keyword">FROM</span> --platform=$BUILDPLATFORM ​golang:<span class="number">1.25</span>.<span class="number">5</span>-bookworm as builder</span><br><span class="line"></span><br><span class="line"><span class="keyword">ARG</span> TARGETOS</span><br><span class="line"><span class="keyword">ARG</span> TARGETARCH</span><br><span class="line"><span class="keyword">ARG</span> SERVER_VERSION=unknown</span><br><span class="line"><span class="keyword">ARG</span> COMMIT_SHA1=unknown</span><br><span class="line"><span class="keyword">ARG</span> COMMIT_MSG_RAW=unknown</span><br><span class="line"></span><br><span class="line"><span class="keyword">ENV</span> SERVER_VERSION=$&#123;SERVER_VERSION&#125;</span><br><span class="line"><span class="keyword">ENV</span> COMMIT_SHA1=$&#123;COMMIT_SHA1&#125;</span><br><span class="line"><span class="keyword">ENV</span> COMMIT_MSG_RAW=$&#123;COMMIT_MSG_RAW&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apt-get update &amp;&amp; apt-get install -y \</span></span><br><span class="line"><span class="language-bash">    build-essential git bash perl \</span></span><br><span class="line"><span class="language-bash">    gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \</span></span><br><span class="line"><span class="language-bash">    &amp;&amp; <span class="built_in">rm</span> -rf /var/lib/apt/lists/*</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENV</span> GOPROXY=<span class="string">&#x27;https://goproxy.cn,https://goproxy.io,direct&#x27;</span></span><br><span class="line"><span class="keyword">ENV</span> GOPRIVATE=<span class="string">&#x27;xxx.org/*&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> go.mod go.sum ./</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> go mod download</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> . ./</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$&#123;TARGETARCH&#125;</span>&quot;</span> = <span class="string">&quot;arm64&quot;</span> ]; <span class="keyword">then</span> \</span></span><br><span class="line"><span class="language-bash">      <span class="built_in">export</span> CC=aarch64-linux-gnu-gcc; \</span></span><br><span class="line"><span class="language-bash">      <span class="built_in">export</span> CXX=aarch64-linux-gnu-g++; \</span></span><br><span class="line"><span class="language-bash">    <span class="keyword">fi</span> &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">    GOOS=<span class="variable">$&#123;TARGETOS&#125;</span> GOARCH=<span class="variable">$&#123;TARGETARCH&#125;</span> \</span></span><br><span class="line"><span class="language-bash">    CGO_ENABLED=1 \</span></span><br><span class="line"><span class="language-bash">    make build \</span></span><br><span class="line"><span class="language-bash">    SERVER_VERSION=<span class="string">&quot;<span class="variable">$SERVER_VERSION</span>&quot;</span> \</span></span><br><span class="line"><span class="language-bash">    COMMIT_SHA1=<span class="string">&quot;<span class="variable">$COMMIT_SHA1</span>&quot;</span> \</span></span><br><span class="line"><span class="language-bash">    COMMIT_MSG_RAW=<span class="string">&quot;<span class="variable">$COMMIT_MSG_RAW</span>&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 构建最终镜像</span></span><br><span class="line"><span class="keyword">FROM</span> debian:<span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 构建参数接收版本号</span></span><br><span class="line"><span class="keyword">ARG</span> APP_VERSION</span><br><span class="line"><span class="comment"># 设置环境变量（容器运行时可用）</span></span><br><span class="line"><span class="keyword">ENV</span> APP_VERSION=$APP_VERSION</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="built_in">set</span> -eux; \</span></span><br><span class="line"><span class="language-bash">    <span class="keyword">if</span> [ -f /etc/apt/sources.list ]; <span class="keyword">then</span> \</span></span><br><span class="line"><span class="language-bash">      sed -i <span class="string">&#x27;s|deb.debian.org|mirrors.xxx.org|g&#x27;</span> /etc/apt/sources.list; \</span></span><br><span class="line"><span class="language-bash">    <span class="keyword">else</span> \</span></span><br><span class="line"><span class="language-bash">      <span class="built_in">printf</span> <span class="string">&#x27;%s\n&#x27;</span> \</span></span><br><span class="line"><span class="language-bash">        <span class="string">&quot;deb http://mirrors.xxx.org/debian bookworm main contrib non-free&quot;</span> \</span></span><br><span class="line"><span class="language-bash">        <span class="string">&quot;deb http://mirrors.xxx.org/debian-security bookworm-security main contrib non-free&quot;</span> \</span></span><br><span class="line"><span class="language-bash">        <span class="string">&quot;deb http://mirrors.xxx.org/debian bookworm-updates main contrib non-free&quot;</span> \</span></span><br><span class="line"><span class="language-bash">        &gt; /etc/apt/sources.list; \</span></span><br><span class="line"><span class="language-bash">    <span class="keyword">fi</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apt-get update &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">  apt-get install -y dstat sysstat iftop gdb <span class="built_in">sudo</span> python3 &amp;&amp; apt clean &amp;&amp; \</span></span><br><span class="line"><span class="language-bash">  <span class="built_in">rm</span> -rf /var/lib/apt/lists/*</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> useradd -m xxx</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="built_in">echo</span> <span class="string">&quot;xxx ALL=(ALL) NOPASSWD:ALL&quot;</span> &gt;&gt; /etc/sudoers</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="language-bash"> /home/xxx</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">USER</span> xxx</span><br><span class="line"><span class="keyword">ENV</span> LANG=C.UTF-<span class="number">8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝dsagent相关文件</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=builder ​--<span class="built_in">chown</span>=xxx:xxx /app/bin ./</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=builder ​--<span class="built_in">chown</span>=xxx:xxx /app/configs ./configs</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝docker需要的文件</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=builder ​--<span class="built_in">chown</span>=xxx:xxx /app/docker ./</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝DS相关文件</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="built_in">mkdir</span> -p ./XXXX/CmdLines</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --<span class="built_in">chown</span>=xxx:xxx ds_general/Engine ./XXXX/LinuxServer/Engine</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --<span class="built_in">chown</span>=xxx:xxx ds_general/*.* ./XXXX/LinuxServer/</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --<span class="built_in">chown</span>=xxx:xxx ds_general/xxxx/Binaries ./XXXX/LinuxServer/xxxx/Binaries</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --<span class="built_in">chown</span>=xxx:xxx ds_general/xxxx/Content ./XXXX/LinuxServer/xxxx/Content</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --<span class="built_in">chown</span>=xxx:xxx ds_general/Version ./XXXX/LinuxServer/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENTRYPOINT</span><span class="language-bash"> [<span class="string">&quot;./dsagent&quot;</span>]</span></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> [<span class="string">&quot;run&quot;</span>, <span class="string">&quot;-c=configs/config_prod.yaml&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="支持同Tag多架构"><a href="#支持同Tag多架构" class="headerlink" title="支持同Tag多架构"></a>支持同Tag多架构</h4></div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-24</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ai-thinking/'>关于AI和工作的一些思考</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/claudecode/">claudecode</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="内存房间列表查询与排序方案详解" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    内存房间列表查询与排序方案详解
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.9k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：14分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E5%9C%BA%E6%99%AF%E6%A6%82%E8%BF%B0"><span class="post-toc-text">一、场景概述</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81%E6%96%B9%E6%A1%88%E9%80%89%E5%9E%8B%E5%AF%B9%E6%AF%94"><span class="post-toc-text">二、方案选型对比</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E6%9A%B4%E5%8A%9B%E9%81%8D%E5%8E%86%EF%BC%88%E5%B0%8F%E6%95%B0%E6%8D%AE%E9%87%8F%EF%BC%89"><span class="post-toc-text">三、方案一：暴力遍历（小数据量）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-1-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="post-toc-text">3.1 适用场景</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-2-%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81"><span class="post-toc-text">3.2 实现代码</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-3-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="post-toc-text">3.3 性能分析</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9AN-Gram-%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="post-toc-text">四、方案二：N-Gram 倒排索引（推荐）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="post-toc-text">4.1 核心思想</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-2-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="post-toc-text">4.2 完整实现</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-3-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="post-toc-text">4.3 使用示例</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-4-N-%E5%80%BC%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="post-toc-text">4.4 N 值选择建议</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-5-%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="post-toc-text">4.5 性能对比</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%94%E3%80%81%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9ALucene-MemoryIndex%EF%BC%88%E4%BC%81%E4%B8%9A%E7%BA%A7%EF%BC%89"><span class="post-toc-text">五、方案三：Lucene MemoryIndex（企业级）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-1-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="post-toc-text">5.1 适用场景</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-2-Maven-%E4%BE%9D%E8%B5%96"><span class="post-toc-text">5.2 Maven 依赖</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-3-%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="post-toc-text">5.3 核心实现</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-4-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="post-toc-text">5.4 方案对比</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AD%E3%80%81%E6%96%B9%E6%A1%88%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="post-toc-text">六、方案选型决策树</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%83%E3%80%81%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%BB%BA%E8%AE%AE"><span class="post-toc-text">七、生产环境建议</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-1-%E7%B4%A2%E5%BC%95%E6%9B%B4%E6%96%B0%E7%AD%96%E7%95%A5"><span class="post-toc-text">7.1 索引更新策略</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-2-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%8A%80%E5%B7%A7"><span class="post-toc-text">7.2 性能优化技巧</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-3-%E5%86%85%E5%AD%98%E9%A2%84%E4%BC%B0"><span class="post-toc-text">7.3 内存预估</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="post-toc-text">八、总结</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="一、场景概述"><a href="#一、场景概述" class="headerlink" title="一、场景概述"></a>一、场景概述</h2><p>在即时通讯、直播、游戏等应用中，房间列表的查询是高频操作。当数据存储在 Java 内存中时，如何实现：</p>
+<ul>
+<li>​<strong>模糊查询</strong>​：按房间名、创建者名字进行子串匹配</li>
+<li>​<strong>灵活排序</strong>​：按创建时间、活跃度等排序</li>
+<li>​<strong>分页支持</strong>​：大数据量下的分页查询</li>
+</ul>
+<p>本文系统性地梳理各方案的适用场景、实现细节和性能表现。</p>
+<h2 id="二、方案选型对比"><a href="#二、方案选型对比" class="headerlink" title="二、方案选型对比"></a>二、方案选型对比</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>适用场景</th>
+<th>时间复杂度</th>
+<th>空间复杂度</th>
+<th>推荐指数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>暴力遍历</strong></td>
+<td>数据量 &lt; 1000</td>
+<td>O(N)</td>
+<td>O(1)</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td><strong>N-Gram ​倒排索引</strong></td>
+<td>数据量 1K ~ 100K</td>
+<td>O(k) ~ O(1)</td>
+<td>O(N)</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>Trie 树</strong></td>
+<td>前缀匹配场景</td>
+<td>O(m)</td>
+<td>O(N×L)</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>BK-Tree</strong></td>
+<td>容错/相似度匹配</td>
+<td>O(logN)</td>
+<td>O(N)</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>Lucene MemoryIndex</strong></td>
+<td>大数据量+复杂查询</td>
+<td>O(logN)</td>
+<td>O(3N)</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>N = 数据量，L = 平均字符串长度，m = 查询串长度，k = 命中的候选集大小</p>
+</blockquote>
+<h2 id="三、方案一：暴力遍历（小数据量）"><a href="#三、方案一：暴力遍历（小数据量）" class="headerlink" title="三、方案一：暴力遍历（小数据量）"></a>三、方案一：暴力遍历（小数据量）</h2><h3 id="3-1-适用场景"><a href="#3-1-适用场景" class="headerlink" title="3.1 适用场景"></a>3.1 适用场景</h3><ul>
+<li>房间数量 &lt; 1000</li>
+<li>实现简单，无需维护索引</li>
+</ul>
+<h3 id="3-2-实现代码"><a href="#3-2-实现代码" class="headerlink" title="3.2 实现代码"></a>3.2 实现代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> List&lt;Room&gt; <span class="title function_">search</span><span class="params">(List&lt;Room&gt; rooms, String keyword)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">lower</span> <span class="operator">=</span> keyword.toLowerCase();</span><br><span class="line">    <span class="keyword">return</span> rooms.stream()</span><br><span class="line">        .filter(r -&gt; r.getRoomName().toLowerCase().contains(lower)</span><br><span class="line">                  || r.getCreatorName().toLowerCase().contains(lower))</span><br><span class="line">        .sorted(Comparator.comparing(Room::getCreateTime).reversed())</span><br><span class="line">        .collect(Collectors.toList());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-性能分析"><a href="#3-3-性能分析" class="headerlink" title="3.3 性能分析"></a>3.3 性能分析</h3><ul>
+<li>​<strong>查询耗时</strong>​：1万条数据约 15ms</li>
+<li>​<strong>内存开销</strong>​：无额外索引内存</li>
+</ul>
+<h2 id="四、方案二：N-Gram-倒排索引（推荐）"><a href="#四、方案二：N-Gram-倒排索引（推荐）" class="headerlink" title="四、方案二：N-Gram 倒排索引（推荐）"></a>四、方案二：N-Gram 倒排索引（推荐）</h2><h3 id="4-1-核心思想"><a href="#4-1-核心思想" class="headerlink" title="4.1 核心思想"></a>4.1 核心思想</h3><p>将字符串切分为 N-Gram 片段建立倒排索引，查询时通过索引交集快速定位候选集。</p>
+<p><strong>示例（Bigram，N=2）：</strong></p>
+<ul>
+<li>“王者荣耀” → [王者, 者荣, 荣耀]</li>
+<li>查询 “荣耀” → 命中 “荣耀” → 返回房间</li>
+</ul>
+<h3 id="4-2-完整实现"><a href="#4-2-完整实现" class="headerlink" title="4.2 完整实现"></a>4.2 完整实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.util.stream.Collectors;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RoomFuzzySearch</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 房间实体 */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Room</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String roomId;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String roomName;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> String creatorName;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">long</span> createTime;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">Room</span><span class="params">(String roomId, String roomName, </span></span><br><span class="line"><span class="params">                    String creatorName, <span class="type">long</span> createTime)</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.roomId = roomId;</span><br><span class="line">            <span class="built_in">this</span>.roomName = roomName;</span><br><span class="line">            <span class="built_in">this</span>.creatorName = creatorName;</span><br><span class="line">            <span class="built_in">this</span>.createTime = createTime;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">getRoomId</span><span class="params">()</span> &#123; <span class="keyword">return</span> roomId; &#125;</span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">getRoomName</span><span class="params">()</span> &#123; <span class="keyword">return</span> roomName; &#125;</span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">getCreatorName</span><span class="params">()</span> &#123; <span class="keyword">return</span> creatorName; &#125;</span><br><span class="line">        <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">getCreateTime</span><span class="params">()</span> &#123; <span class="keyword">return</span> createTime; &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> n;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Room&gt; rooms = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Set&lt;Integer&gt;&gt; index = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">RoomFuzzySearch</span><span class="params">(<span class="type">int</span> n)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.n = n; <span class="comment">// 推荐 n=2（Bigram）</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 添加房间到索引 */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addRoom</span><span class="params">(Room room)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">id</span> <span class="operator">=</span> rooms.size();</span><br><span class="line">        rooms.add(room);</span><br><span class="line">        indexField(room.getRoomName(), id);</span><br><span class="line">        indexField(room.getCreatorName(), id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">indexField</span><span class="params">(String text, <span class="type">int</span> id)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (text == <span class="literal">null</span> || text.isEmpty()) <span class="keyword">return</span>;</span><br><span class="line">        <span class="type">String</span> <span class="variable">lower</span> <span class="operator">=</span> text.toLowerCase();</span><br><span class="line">        <span class="keyword">for</span> (String gram : extractGrams(lower)) &#123;</span><br><span class="line">            index.computeIfAbsent(gram, k -&gt; <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;&gt;()).add(id);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 模糊查询 + 按时间排序 */</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Room&gt; <span class="title function_">search</span><span class="params">(String keyword)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (keyword == <span class="literal">null</span> || keyword.isEmpty()) &#123;</span><br><span class="line">            <span class="keyword">return</span> rooms.stream()</span><br><span class="line">                .sorted(Comparator.comparing(Room::getCreateTime).reversed())</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">lower</span> <span class="operator">=</span> keyword.toLowerCase();</span><br><span class="line">        List&lt;String&gt; grams = extractGrams(lower);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 单字查询退化为遍历</span></span><br><span class="line">        <span class="keyword">if</span> (grams.isEmpty()) &#123;</span><br><span class="line">            <span class="keyword">return</span> rooms.stream()</span><br><span class="line">                .filter(r -&gt; matchRoom(r, lower))</span><br><span class="line">                .sorted(Comparator.comparing(Room::getCreateTime).reversed())</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1. 倒排索引取交集</span></span><br><span class="line">        Set&lt;Integer&gt; candidates = <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">for</span> (String gram : grams) &#123;</span><br><span class="line">            Set&lt;Integer&gt; ids = index.getOrDefault(gram, Collections.emptySet());</span><br><span class="line">            <span class="keyword">if</span> (candidates == <span class="literal">null</span>) &#123;</span><br><span class="line">                candidates = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;&gt;(ids);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                candidates.retainAll(ids);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (candidates.isEmpty()) <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 二次验证 + 排序</span></span><br><span class="line">        <span class="keyword">return</span> candidates.stream()</span><br><span class="line">            .map(rooms::get)</span><br><span class="line">            .filter(r -&gt; matchRoom(r, lower))</span><br><span class="line">            .sorted(Comparator.comparing(Room::getCreateTime).reversed())</span><br><span class="line">            .collect(Collectors.toList());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">matchRoom</span><span class="params">(Room room, String keyword)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (room.getRoomName() != <span class="literal">null</span> </span><br><span class="line">                    &amp;&amp; room.getRoomName().toLowerCase().contains(keyword))</span><br><span class="line">            || (room.getCreatorName() != <span class="literal">null</span> </span><br><span class="line">                    &amp;&amp; room.getCreatorName().toLowerCase().contains(keyword));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; <span class="title function_">extractGrams</span><span class="params">(String text)</span> &#123;</span><br><span class="line">        List&lt;String&gt; result = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt;= text.length() - n; i++) &#123;</span><br><span class="line">            result.add(text.substring(i, i + n));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-使用示例"><a href="#4-3-使用示例" class="headerlink" title="4.3 使用示例"></a>4.3 使用示例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化</span></span><br><span class="line"><span class="type">RoomFuzzySearch</span> <span class="variable">searcher</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RoomFuzzySearch</span>(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 加载数据</span></span><br><span class="line">searcher.addRoom(<span class="keyword">new</span> <span class="title class_">Room</span>(<span class="string">&quot;r001&quot;</span>, <span class="string">&quot;王者荣耀五排开黑&quot;</span>, <span class="string">&quot;张三&quot;</span>, <span class="number">1704067200L</span>));</span><br><span class="line">searcher.addRoom(<span class="keyword">new</span> <span class="title class_">Room</span>(<span class="string">&quot;r002&quot;</span>, <span class="string">&quot;周末狼人杀&quot;</span>, <span class="string">&quot;李四&quot;</span>, <span class="number">1704153600L</span>));</span><br><span class="line">searcher.addRoom(<span class="keyword">new</span> <span class="title class_">Room</span>(<span class="string">&quot;r003&quot;</span>, <span class="string">&quot;张三的技术分享房&quot;</span>, <span class="string">&quot;张三&quot;</span>, <span class="number">1704240000L</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模糊查询</span></span><br><span class="line">List&lt;Room&gt; results = searcher.search(<span class="string">&quot;张三&quot;</span>);</span><br><span class="line"><span class="comment">// 结果：r003(房间名+创建者), r001(创建者)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-N-值选择建议"><a href="#4-4-N-值选择建议" class="headerlink" title="4.4 N 值选择建议"></a>4.4 N 值选择建议</h3><table>
+<thead>
+<tr>
+<th>N 值</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>单字命中</td>
+<td>索引区分度低</td>
+<td>不推荐</td>
+</tr>
+<tr>
+<td>**2 (Bigram)**✅</td>
+<td>中文 2 字词为主，平衡好</td>
+<td>单字需退化遍历</td>
+<td><strong>中文场景首选</strong></td>
+</tr>
+<tr>
+<td>3 (Trigram)</td>
+<td>精度高</td>
+<td>2 字查询无法生成 gram</td>
+<td>英文/长文本</td>
+</tr>
+</tbody></table>
+<h3 id="4-5-性能对比"><a href="#4-5-性能对比" class="headerlink" title="4.5 性能对比"></a>4.5 性能对比</h3><table>
+<thead>
+<tr>
+<th>数据量</th>
+<th>暴力查询</th>
+<th>N-Gram 查询</th>
+<th>提升倍数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1 万</td>
+<td>15ms</td>
+<td>0.1ms</td>
+<td><strong>150x</strong></td>
+</tr>
+<tr>
+<td>10 万</td>
+<td>150ms</td>
+<td>0.5ms</td>
+<td><strong>300x</strong></td>
+</tr>
+</tbody></table>
+<h2 id="五、方案三：Lucene-MemoryIndex（企业级）"><a href="#五、方案三：Lucene-MemoryIndex（企业级）" class="headerlink" title="五、方案三：Lucene MemoryIndex（企业级）"></a>五、方案三：Lucene MemoryIndex（企业级）</h2><h3 id="5-1-适用场景"><a href="#5-1-适用场景" class="headerlink" title="5.1 适用场景"></a>5.1 适用场景</h3><ul>
+<li>房间数量 &gt; 10 万</li>
+<li>需要复杂查询（多字段、布尔逻辑）</li>
+<li>需要相关度排序</li>
+</ul>
+<h3 id="5-2-Maven-依赖"><a href="#5-2-Maven-依赖" class="headerlink" title="5.2 Maven 依赖"></a>5.2 Maven 依赖</h3><figure class="highlight kts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    implementation <span class="string">&#x27;org.apache.lucene:lucene-core:10.3.2&#x27;</span></span><br><span class="line">    implementation <span class="string">&#x27;org.apache.lucene:lucene-queryparser:10.3.2&#x27;</span></span><br><span class="line">    implementation <span class="string">&#x27;org.apache.lucene:lucene-analysis-icu:10.3.2&#x27;</span></span><br><span class="line">    implementation <span class="string">&#x27;com.belerweb:pinyin4j:2.5.0&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-核心实现"><a href="#5-3-核心实现" class="headerlink" title="5.3 核心实现"></a>5.3 核心实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> net.sourceforge.pinyin4j.PinyinHelper;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.analysis.*;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.analysis.icu.ICUFoldingFilter;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.analysis.icu.segmentation.ICUTokenizer;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.analysis.tokenattributes.CharTermAttribute;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.analysis.tokenattributes.OffsetAttribute;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 多语言分词器</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NameFuzzyAnalyzer</span> <span class="keyword">extends</span> <span class="title class_">Analyzer</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 组合</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Analyzer analyzer;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="title function_">NameFuzzyAnalyzer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.analyzer = <span class="keyword">new</span> <span class="title class_">Analyzer</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">protected</span> TokenStreamComponents <span class="title function_">createComponents</span><span class="params">(String fieldName)</span> &#123;</span><br><span class="line">                <span class="type">ICUTokenizer</span> <span class="variable">tokenizer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ICUTokenizer</span>();</span><br><span class="line">                <span class="type">TokenStream</span> <span class="variable">stream</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ICUFoldingFilter</span>(tokenizer);</span><br><span class="line">                <span class="type">TokenFilter</span> <span class="variable">filter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LowerCaseFilter</span>(stream);</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">TokenStreamComponents</span>(tokenizer, filter);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> TokenStreamComponents <span class="title function_">createComponents</span><span class="params">(String fieldName)</span> &#123;</span><br><span class="line">        <span class="type">NameFuzzyAnalyzer</span> <span class="variable">tokenizer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NameFuzzyAnalyzer</span>();</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">TokenStreamComponents</span>(tokenizer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">NameFuzzyTokenizer</span> <span class="keyword">extends</span> <span class="title class_">Tokenizer</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">CharTermAttribute</span> <span class="variable">termAttr</span> <span class="operator">=</span> addAttribute(CharTermAttribute.class);</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">PositionIncrementAttribute</span> <span class="variable">posIncrAttr</span> <span class="operator">=</span> addAttribute(PositionIncrementAttribute.class);</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">OffsetAttribute</span> <span class="variable">offsetAttr</span> <span class="operator">=</span> addAttribute(OffsetAttribute.class);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> Iterator&lt;String&gt; tokenIterator;</span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> finalOffset;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">incrementToken</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">            clearAttributes();</span><br><span class="line">            <span class="keyword">if</span> (tokenIterator != <span class="literal">null</span> &amp;&amp; tokenIterator.hasNext()) &#123;</span><br><span class="line">                <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> tokenIterator.next();</span><br><span class="line">                termAttr.setEmpty().append(token);</span><br><span class="line">                posIncrAttr.setPositionIncrement(<span class="number">1</span>);</span><br><span class="line">                offsetAttr.setOffset(<span class="number">0</span>, Math.min(token.length(), finalOffset));</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">reset</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">            <span class="built_in">super</span>.reset();</span><br><span class="line">            <span class="comment">// 读取全部输入文本</span></span><br><span class="line">            <span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">            <span class="type">char</span>[] buffer = <span class="keyword">new</span> <span class="title class_">char</span>[<span class="number">256</span>];</span><br><span class="line">            <span class="type">int</span> len;</span><br><span class="line">            <span class="keyword">while</span> ((len = input.read(buffer)) != -<span class="number">1</span>) &#123;</span><br><span class="line">                sb.append(buffer, <span class="number">0</span>, len);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="type">String</span> <span class="variable">text</span> <span class="operator">=</span> sb.toString().trim();</span><br><span class="line">            finalOffset = text.length();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 调用你的分词+拼音方法</span></span><br><span class="line">            <span class="keyword">if</span> (text.isEmpty()) &#123;</span><br><span class="line">                tokenIterator = Collections.emptyIterator();</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Set&lt;String&gt; tokens = NameFuzzyAnalyzer.<span class="built_in">this</span>.tokenizeWithPinyin(text);</span><br><span class="line">                tokenIterator = (tokens != <span class="literal">null</span> &amp;&amp; !tokens.isEmpty())</span><br><span class="line">                        ? tokens.iterator()</span><br><span class="line">                        : Collections.emptyIterator();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">end</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">            <span class="built_in">super</span>.end();</span><br><span class="line">            offsetAttr.setOffset(finalOffset, finalOffset);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Set&lt;String&gt; <span class="title function_">tokenize</span><span class="params">(String text)</span> &#123;</span><br><span class="line">        Set&lt;String&gt; result = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;&gt;();</span><br><span class="line">        <span class="comment">// 前4个字符</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= <span class="number">4</span> &amp;&amp; i &lt; text.length(); i++) &#123;</span><br><span class="line">            result.add(text.substring(<span class="number">0</span>, i));</span><br><span class="line">            result.add(text.substring(i, i+<span class="number">1</span>));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">TokenStream</span> <span class="variable">ts</span> <span class="operator">=</span> analyzer.tokenStream(<span class="string">&quot;field&quot;</span>, text)) &#123;</span><br><span class="line">            <span class="type">CharTermAttribute</span> <span class="variable">term</span> <span class="operator">=</span> ts.addAttribute(CharTermAttribute.class);</span><br><span class="line">            ts.reset();</span><br><span class="line">            <span class="keyword">while</span> (ts.incrementToken()) &#123;</span><br><span class="line">                result.add(term.toString());</span><br><span class="line">            &#125;</span><br><span class="line">            ts.end();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            logger.error(<span class="string">&quot;tokenize text failed: &#123;&#125;&quot;</span>, e.toString());</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Set&lt;String&gt; <span class="title function_">tokenizeWithPinyin</span><span class="params">(String text)</span> &#123;</span><br><span class="line">        Set&lt;String&gt; tokens = tokenize(text);</span><br><span class="line"></span><br><span class="line">        Set&lt;String&gt; result = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;&gt;(tokens);</span><br><span class="line">        <span class="keyword">for</span> (String token : tokens) &#123;</span><br><span class="line">            <span class="keyword">if</span> (token.matches(<span class="string">&quot;[\\u4e00-\\u9fa5]+&quot;</span>)) &#123; <span class="comment">// 中文</span></span><br><span class="line">                <span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">char</span> c : token.toCharArray()) &#123;</span><br><span class="line">                    String[] pinyinArray = PinyinHelper.toHanyuPinyinStringArray(c);</span><br><span class="line">                    <span class="keyword">if</span> (pinyinArray != <span class="literal">null</span>)</span><br><span class="line">                        sb.append(pinyinArray[<span class="number">0</span>].replaceAll(<span class="string">&quot;\\d&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">                &#125;</span><br><span class="line">                result.add(sb.toString()); <span class="comment">// 添加拼音</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.document.*;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.index.*;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.search.*;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.store.ByteBuffersDirectory;</span><br><span class="line"><span class="keyword">import</span> org.apache.lucene.store.Directory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RoomLuceneSearch</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">F_ROOM_ID</span> <span class="operator">=</span> <span class="string">&quot;roomId&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">F_ROOM_NAME</span> <span class="operator">=</span> <span class="string">&quot;roomName&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">F_CREATOR</span> <span class="operator">=</span> <span class="string">&quot;creatorName&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">F_TIME</span> <span class="operator">=</span> <span class="string">&quot;createTime&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 所有房间</span></span><br><span class="line">    <span class="keyword">private</span> fina Map&lt;Long, Room&gt; roomMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    <span class="comment">// 搜索相关</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Directory directory;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Analyzer analyzer; <span class="comment">// 多语言分词器</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> IndexWriter indexWriter; <span class="comment">// 索引写入器</span></span><br><span class="line">    <span class="keyword">private</span> DirectoryReader indexReader; <span class="comment">// 索引读取器</span></span><br><span class="line">    <span class="keyword">private</span> IndexSearcher indexSearcher; <span class="comment">// 搜索器</span></span><br><span class="line">    <span class="comment">// 排序列表</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> NavigableSet&lt;RoomInfo&gt; sortedRooms = <span class="keyword">new</span> <span class="title class_">ConcurrentSkipListSet</span>&lt;&gt;((room1, room2) -&gt; &#123;</span><br><span class="line">        <span class="comment">// 1. 状态不同，状态小的优先</span></span><br><span class="line">        <span class="keyword">if</span> (room1.state() != room2.state()) &#123;</span><br><span class="line">            <span class="keyword">return</span> Integer.compare(room1.state(), room2.state());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 成员数量不同，成员数量多的优先</span></span><br><span class="line">        <span class="keyword">if</span> (room1.playerNum() != room2.playerNum()) &#123;</span><br><span class="line">            <span class="keyword">return</span> Integer.compare(room2.playerNum(), room1.playerNum());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 房间ID</span></span><br><span class="line">        <span class="keyword">return</span> Long.compare(room1.roomId(), room2.roomId());</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">RoomLuceneSearch</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="built_in">this</span>.directory = <span class="keyword">new</span> <span class="title class_">ByteBuffersDirectory</span>(); <span class="comment">// 纯内存存储</span></span><br><span class="line">        <span class="built_in">this</span>.analyzer = <span class="keyword">new</span> <span class="title class_">NameFuzzyAnalyzer</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="type">IndexWriterConfig</span> <span class="variable">config</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">IndexWriterConfig</span>(analyzer);</span><br><span class="line">        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);</span><br><span class="line">        <span class="built_in">this</span>.indexWriter = <span class="keyword">new</span> <span class="title class_">IndexWriter</span>(directory, config);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 添加房间 */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addRoom</span><span class="params">(Room room)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="comment">// 加入房间映射</span></span><br><span class="line">        <span class="type">var</span> <span class="variable">old</span> <span class="operator">=</span> roomMap.put(room.roomId(), room);</span><br><span class="line">        <span class="comment">// 更新排序列表</span></span><br><span class="line">        <span class="keyword">if</span> (old != <span class="literal">null</span>) &#123;</span><br><span class="line">            sortedRooms.remove(old);</span><br><span class="line">        &#125;</span><br><span class="line">        sortedRooms.add(room);</span><br><span class="line"></span><br><span class="line">        <span class="type">Document</span> <span class="variable">doc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Document</span>();</span><br><span class="line">        <span class="comment">// LongPoint: BKD-Tree 索引, 支持高性能精确/范围查询，但不存储原值</span></span><br><span class="line">        doc.add(<span class="keyword">new</span> <span class="title class_">LongPoint</span>(F_ROOM_ID, room.roomId()));</span><br><span class="line">        <span class="comment">// StoredField: 仅存储原值, 搜索命中后可以取回 roomId</span></span><br><span class="line">        doc.add(<span class="keyword">new</span> <span class="title class_">StoredField</span>(F_ROOM_ID, room.roomId()));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// TextField: 房间名称, 支持多语言分词</span></span><br><span class="line">        doc.add(<span class="keyword">new</span> <span class="title class_">TextField</span>(F_ROOM_NAME, room.roomName(), Field.Store.NO));</span><br><span class="line">        <span class="comment">// TextField: 房主名称, 支持多语言分词</span></span><br><span class="line">        doc.add(<span class="keyword">new</span> <span class="title class_">TextField</span>(F_CREATOR, room.creatorName(), Field.Store.NO));</span><br><span class="line">        <span class="comment">// StoredField: 仅存储原值, 搜索命中后可以取回 createTime</span></span><br><span class="line">        doc.add(<span class="keyword">new</span> <span class="title class_">StoredField</span>(F_TIME, room.createTime()));</span><br><span class="line">        </span><br><span class="line">        indexWriter.addDocument(doc);</span><br><span class="line">        indexWriter.commit();</span><br><span class="line">        refreshSearcher();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">deleteRoom</span><span class="params">(<span class="type">long</span> roomId)</span> &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">removed</span> <span class="operator">=</span> roomMap.remove(roomId);</span><br><span class="line">        <span class="keyword">if</span> (removed != <span class="literal">null</span>) &#123;</span><br><span class="line">            sortedRooms.remove(removed);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            indexWriter.deleteDocuments(LongPoint.newExactQuery(F_ROOM_ID, roomId));</span><br><span class="line">            indexWriter.commit();</span><br><span class="line">            refreshReader();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            logger.error(<span class="string">&quot;Error while removing document&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">updateRoom</span><span class="params">(Room room)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">old</span> <span class="operator">=</span> roomMap.put(room.roomId(), room);</span><br><span class="line">        <span class="comment">// 房间名变更</span></span><br><span class="line">        <span class="keyword">if</span> (!room.roomName().equals(old.roomName())) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                indexWriter.deleteDocuments(LongPoint.newExactQuery(F_ROOM_ID, room.roomId()));</span><br><span class="line">                indexWriter.addDocument(buildDocument(room));</span><br><span class="line">                indexWriter.commit();</span><br><span class="line">                refreshReader();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                logger.error(<span class="string">&quot;Error while updating document&quot;</span>, e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 其他字段变更，更新排序列表</span></span><br><span class="line">        <span class="keyword">if</span> (old != <span class="literal">null</span>) &#123;</span><br><span class="line">            sortedRooms.remove(old);</span><br><span class="line">        &#125;</span><br><span class="line">        sortedRooms.add(roomInfo);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 模糊查询 */</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Room&gt; <span class="title function_">search</span><span class="params">(String keyword, <span class="type">int</span> topN)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="keyword">if</span> (indexSearcher == <span class="literal">null</span> || topN &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 构建查询：房间名 OR 创建者 模糊匹配</span></span><br><span class="line">        BooleanQuery.<span class="type">Builder</span> <span class="variable">queryBuilder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">BooleanQuery</span>.Builder();</span><br><span class="line">        <span class="type">Query</span> <span class="variable">roomNameQuery</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">QueryParser</span>(F_ROOM_NAME, analyzer).parse(QueryParser.escape(keyword));</span><br><span class="line">        <span class="type">Query</span> <span class="variable">creatorQuery</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">QueryParser</span>(F_CREATOR, analyzer).parse(QueryParser.escape(keyword));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 房间名 OR 创建者 模糊匹配</span></span><br><span class="line">        queryBuilder.add(roomNameQuery, BooleanClause.Occur.SHOULD);</span><br><span class="line">        queryBuilder.add(creatorQuery, BooleanClause.Occur.SHOULD);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 通配符匹配实现 contains 效果。性能差</span></span><br><span class="line">        queryBuilder.add(<span class="keyword">new</span> <span class="title class_">WildcardQuery</span>(</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">Term</span>(F_ROOM_NAME, <span class="string">&quot;*&quot;</span> + keyword + <span class="string">&quot;*&quot;</span>)), BooleanClause.Occur.SHOULD);</span><br><span class="line">        queryBuilder.add(<span class="keyword">new</span> <span class="title class_">WildcardQuery</span>(</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">Term</span>(F_CREATOR, <span class="string">&quot;*&quot;</span> + keyword + <span class="string">&quot;*&quot;</span>)), BooleanClause.Occur.SHOULD);</span><br><span class="line">        <span class="comment">// 至少命中一个条件</span></span><br><span class="line">        builqueryBuilderder.setMinimumNumberShouldMatch(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 按创建时间倒序</span></span><br><span class="line">        <span class="type">Sort</span> <span class="variable">sort</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Sort</span>(<span class="keyword">new</span> <span class="title class_">SortField</span>(F_TIME, SortField.Type.LONG, <span class="literal">true</span>));</span><br><span class="line">        </span><br><span class="line">        <span class="type">TopDocs</span> <span class="variable">topDocs</span> <span class="operator">=</span> indexSearcher.search(queryBuilder.build(), topN, sort);</span><br><span class="line">        <span class="keyword">if</span> (topDocs.totalHits.value() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> Math.min(topN, (<span class="type">int</span>) topDocs.totalHits.value());</span><br><span class="line">        List&lt;Room&gt; results = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(size);</span><br><span class="line">        ffor (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; size; i++) &#123;</span><br><span class="line">            <span class="type">Document</span> <span class="variable">doc</span> <span class="operator">=</span> indexSearcher.storedFields().document(topDocs.scoreDocs[i].doc);</span><br><span class="line">            <span class="type">String</span> <span class="variable">roomId</span> <span class="operator">=</span> doc.get(F_ROOM_ID);</span><br><span class="line">            <span class="keyword">if</span> (roomId == <span class="literal">null</span> || roomId.isEmpty())</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            <span class="type">var</span> <span class="variable">room</span> <span class="operator">=</span> roomMap.get(Long.valueOf(roomId));</span><br><span class="line">            <span class="keyword">if</span> (room == <span class="literal">null</span>)</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            results.add(room);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> results;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">refreshSearcher</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="keyword">if</span> (indexReader == <span class="literal">null</span>) &#123;</span><br><span class="line">            indexReader = DirectoryReader.open(directory);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="type">DirectoryReader</span> <span class="variable">newReader</span> <span class="operator">=</span> DirectoryReader.openIfChanged(indexReader);</span><br><span class="line">            <span class="keyword">if</span> (newReader != <span class="literal">null</span>) &#123;</span><br><span class="line">                indexReader.close();</span><br><span class="line">                indexReader = newReader;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        indexSearcher = <span class="keyword">new</span> <span class="title class_">IndexSearcher</span>(indexReader);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-方案对比"><a href="#5-4-方案对比" class="headerlink" title="5.4 方案对比"></a>5.4 方案对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>N-Gram 倒排索引</th>
+<th>Lucene MemoryIndex</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现复杂度</td>
+<td>低</td>
+<td>中等</td>
+</tr>
+<tr>
+<td>功能丰富度</td>
+<td>基础模糊查询</td>
+<td>全文检索、分词、高亮</td>
+</tr>
+<tr>
+<td>内存占用</td>
+<td>~2x 原数据</td>
+<td>~3x 原数据</td>
+</tr>
+<tr>
+<td>查询性能</td>
+<td>极快（亚毫秒）</td>
+<td>快（毫秒级）</td>
+</tr>
+<tr>
+<td>维护成本</td>
+<td>低</td>
+<td>中等</td>
+</tr>
+</tbody></table>
+<h2 id="六、方案选型决策树"><a href="#六、方案选型决策树" class="headerlink" title="六、方案选型决策树"></a>六、方案选型决策树</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">你的房间数据量是多少？</span><br><span class="line">│</span><br><span class="line">├── &lt; 1,000 条</span><br><span class="line">│   └── ✅ 暴力遍历 + Stream API</span><br><span class="line">│       （代码最简单，性能足够）</span><br><span class="line">│</span><br><span class="line">├── 1,000 ~ 100,000 条</span><br><span class="line">│   └── ✅ N-Gram 倒排索引（Bigram）</span><br><span class="line">│       （性价比最高，查询快 100 倍）</span><br><span class="line">│</span><br><span class="line">└── &gt; 100,000 条 或 需要复杂功能</span><br><span class="line">    └── ✅ Lucene MemoryIndex</span><br><span class="line">        （功能最全，支持分词、排序、分页）</span><br></pre></td></tr></table></figure>
+
+<h2 id="七、生产环境建议"><a href="#七、生产环境建议" class="headerlink" title="七、生产环境建议"></a>七、生产环境建议</h2><h3 id="7-1-索引更新策略"><a href="#7-1-索引更新策略" class="headerlink" title="7.1 索引更新策略"></a>7.1 索引更新策略</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>房间创建频率低</td>
+<td>增量 addRoom()</td>
+</tr>
+<tr>
+<td>房间频繁增删</td>
+<td>定时 rebuild() 全量重建</td>
+</tr>
+<tr>
+<td>高并发读写</td>
+<td>ConcurrentHashMap + ReentrantReadWriteLock</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-性能优化技巧"><a href="#7-2-性能优化技巧" class="headerlink" title="7.2 性能优化技巧"></a>7.2 性能优化技巧</h3><ol>
+<li>​<strong>预热索引</strong>​：服务启动时预加载房间数据</li>
+<li>​<strong>缓存热点</strong>​：对高频查询结果使用 Caffeine 缓存</li>
+<li>​<strong>异步重建</strong>​：大数据量重建时异步执行，避免阻塞</li>
+</ol>
+<h3 id="7-3-内存预估"><a href="#7-3-内存预估" class="headerlink" title="7.3 内存预估"></a>7.3 内存预估</h3><p>以 10 万房间、平均房间名 20 字为例：</p>
+<ul>
+<li>原始数据：~10 MB</li>
+<li>N-Gram 索引：~20 MB</li>
+<li>Lucene 索引：~30 MB</li>
+</ul>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>一句话总结</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>暴力遍历</td>
+<td>小数据量的「简单美」</td>
+</tr>
+<tr>
+<td>N-Gram 倒排索引</td>
+<td>中等规模的最佳性价比选择</td>
+</tr>
+<tr>
+<td>Lucene MemoryIndex</td>
+<td>企业级的全能方案</td>
+</tr>
+</tbody></table>
+<p>对于绝大多数房间列表场景，​<strong>N-Gram ​倒排索引</strong>​<strong>（Bigram）</strong> 是最佳选择，在查询性能和实现复杂度之间取得了完美平衡。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-16</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/'>
+                            服务器
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/cc-switch/'>cc-switch</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/redis-db/">Redis 存储引擎深度解析</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

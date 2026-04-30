@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="claudecode" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    claudecode
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3.7k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：14分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%AE%89%E8%A3%85"><span class="post-toc-text">安装</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="post-toc-text">常用命令</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="post-toc-text">配置文件</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%A1%88%E4%BE%8B"><span class="post-toc-text">案例</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6"><span class="post-toc-text">权限控制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BC%9A%E8%AF%9D%E7%AE%A1%E7%90%86"><span class="post-toc-text">会话管理</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BC%9A%E8%AF%9D%EF%BC%9Asession"><span class="post-toc-text">会话：session</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BC%9A%E8%AF%9D%E6%81%A2%E5%A4%8D%EF%BC%9A-resume"><span class="post-toc-text">会话恢复：&#x2F;resume</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86"><span class="post-toc-text">上下文管理</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3%EF%BC%9A-context"><span class="post-toc-text">上下文窗口：&#x2F;context</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E8%87%AA%E5%8A%A8%E5%8E%8B%E7%BC%A9"><span class="post-toc-text">自动压缩</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%BB%E5%8A%A8%E5%8E%8B%E7%BC%A9%EF%BC%9A-compact%E4%B8%8D%E5%BB%BA%E8%AE%AE"><span class="post-toc-text">主动压缩：&#x2F;compact不建议</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%BB%E5%8A%A8%E6%B8%85%E7%A9%BA%EF%BC%9A-clear"><span class="post-toc-text">主动清空：&#x2F;clear</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#CLAUDE-md"><span class="post-toc-text">CLAUDE.md</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="post-toc-text">工作机制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9%E5%AF%B9CLAUDE-md%E7%9A%84%E5%BD%B1%E5%93%8D%EF%BC%88%E6%97%A0%EF%BC%89"><span class="post-toc-text">上下文压缩对CLAUDE.md的影响（无）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%B6%85%E9%95%BF%E4%B8%8A%E4%B8%8B%E6%96%87%E5%AF%B9CLAUDE-md%E7%9A%84%E5%BD%B1%E5%93%8D%EF%BC%88%E6%9C%89%EF%BC%89"><span class="post-toc-text">超长上下文对CLAUDE.md的影响（有）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="post-toc-text">最佳实践</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%86%85%E7%BD%AETOOL"><span class="post-toc-text">内置TOOL</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6-1"><span class="post-toc-text">工作机制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5-1"><span class="post-toc-text">最佳实践</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#MCP"><span class="post-toc-text">MCP</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE"><span class="post-toc-text">配置</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7"><span class="post-toc-text">优先级</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B"><span class="post-toc-text">启动过程</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#mcp"><span class="post-toc-text">&#x2F;mcp</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6-2"><span class="post-toc-text">工作机制</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6-1"><span class="post-toc-text">权限控制</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%8F%AC%E5%9B%9EMCP-Server-Tool"><span class="post-toc-text">召回MCP Server Tool</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5-2"><span class="post-toc-text">最佳实践</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#SKILL"><span class="post-toc-text">SKILL</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%84%E6%88%90"><span class="post-toc-text">基本组成</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#SKILL%E5%85%83%E6%95%B0%E6%8D%AE"><span class="post-toc-text">SKILL元数据</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE-amp-%E5%8A%A0%E8%BD%BD"><span class="post-toc-text">配置&amp;加载</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#skills"><span class="post-toc-text">&#x2F;skills</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6-2"><span class="post-toc-text">权限控制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="post-toc-text">使用方式</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6-3"><span class="post-toc-text">工作机制</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%A8%A1%E5%9E%8B%E5%A6%82%E4%BD%95%E5%8F%AC%E5%9B%9ESKILL"><span class="post-toc-text">模型如何召回SKILL</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E8%AF%BB%E5%8F%96SKILL-md"><span class="post-toc-text">读取SKILL.md</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#SKILL-md%E5%8A%A8%E6%80%81%E6%B3%A8%E5%85%A5%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="post-toc-text">SKILL.md动态注入上下文</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5-3"><span class="post-toc-text">最佳实践</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#HOOK"><span class="post-toc-text">HOOK</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%AE%9E%E8%B7%B5%E6%A1%88%E4%BE%8B"><span class="post-toc-text">实践案例</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B"><span class="post-toc-text">执行案例</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%80%80%E5%87%BA%E7%A0%81%E6%9C%BA%E5%88%B6"><span class="post-toc-text">退出码机制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5-4"><span class="post-toc-text">最佳实践</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#SubAgent"><span class="post-toc-text">SubAgent</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%BC%80%E5%8F%91"><span class="post-toc-text">配置与开发</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6-4"><span class="post-toc-text">工作机制</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%A6%82%E4%BD%95%E4%BC%A0%E7%BB%99%E6%A8%A1%E5%9E%8B"><span class="post-toc-text">如何传给模型</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%A6%82%E4%BD%95%E8%A2%AB%E5%8F%AC%E5%9B%9E"><span class="post-toc-text">如何被召回</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C"><span class="post-toc-text">如何工作</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#SubAgent%E7%9A%84%E8%BE%93%E5%87%BA%E5%A6%82%E4%BD%95%E4%BD%9C%E7%94%A8%E7%BB%99%E4%B8%BBAgent"><span class="post-toc-text">SubAgent的输出如何作用给主Agent</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Plugin"><span class="post-toc-text">Plugin</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6-5"><span class="post-toc-text">工作机制</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%A1%B9%E7%9B%AE%E7%BA%A7%E5%88%AB%E8%87%AA%E5%8A%A8%E5%AE%89%E8%A3%85%E5%92%8C%E7%94%9F%E6%95%88"><span class="post-toc-text">项目级别自动安装和生效</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%80%BB%E7%BB%93"><span class="post-toc-text">总结</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p><a target="_blank" rel="noopener" href="https://code.claude.com/docs/zh-CN/overview#terminal">https://code.claude.com/docs/zh-CN/overview#terminal</a></p>
+<h1 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h1><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><blockquote>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://code.claude.com/docs/zh-CN/settings">https://code.claude.com/docs/zh-CN/settings</a></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>个人-全局配置</th>
+<th>项目-公共配置</th>
+<th>项目-本地配置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>配置文件地址</td>
+<td><code>~/.claude/settings.json</code></td>
+<td><code>/</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>.claude/settings.json</code></td>
+<td><code>/</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>.claude/settings.local.json</code>&gt;</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>自动 ignore |<br>| 优先级       | 1                             | 2                                                | 3                                                                            |</p>
+</blockquote>
+<h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><ul>
+<li>火山方舟 coding plan 模型</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.volcengine.com/docs/82379/2183190?lang=zh">火山文档</a></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;autoUpdatesChannel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;latest&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span><span class="punctuation">:</span> <span class="string">&quot;xxxxxxxxxxx&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_BASE_URL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://ark.cn-beijing.volces.com/api/coding&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_HAIKU_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ark-code-latest&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_OPUS_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ark-code-latest&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_SONNET_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ark-code-latest&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ark-code-latest&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>cc-switch</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YmJiNmQyZTJlM2I4NzQ2OGVjOTc4YjNjOTE5ZDIzMzhfeGZQS01TQTVMbUNPSWtzZEtwd0ZDRUpCRmxxeGlMZ2RfVG9rZW46UUk4cWJaa3JvbzRSOU14UmxFVWNGT0pNblBoXzE3NzQ0MDM0NDY6MTc3NDQwNzA0Nl9WNA" class="gallery-item" style="box-shadow: none;"> <img src="https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YmJiNmQyZTJlM2I4NzQ2OGVjOTc4YjNjOTE5ZDIzMzhfeGZQS01TQTVMbUNPSWtzZEtwd0ZDRUpCRmxxeGlMZ2RfVG9rZW46UUk4cWJaa3JvbzRSOU14UmxFVWNGT0pNblBoXzE3NzQ0MDM0NDY6MTc3NDQwNzA0Nl9WNA"></a></p>
+<h2 id="权限控制"><a href="#权限控制" class="headerlink" title="权限控制"></a>权限控制</h2><p><a target="_blank" rel="noopener" href="https://code.claude.com/docs/zh-CN/permissions">https://code.claude.com/docs/zh-CN/permissions</a></p>
+<p>可以直接修改<code>~/.claude/settings.json</code></p>
+<p>比如修改允许 Bash 执行 svn 所有的操作、允许调用 python3 脚本、禁止执行 git。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;permissions&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;allow&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;Bash(svn *)&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Bash(python3 *)&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;dent&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;Bash(git *)&quot;</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="会话管理"><a href="#会话管理" class="headerlink" title="会话管理"></a>会话管理</h2><h3 id="会话：session"><a href="#会话：session" class="headerlink" title="会话：session"></a>会话：<code>session</code></h3><p>每次启动 claude 都是一个新的 Session，在这次 Session 中上下文持续积累，关闭后重新打开就清空。</p>
+<p>会话数据存储在：<code>~/.claude/projects</code></p>
+<h3 id="会话恢复：-resume"><a href="#会话恢复：-resume" class="headerlink" title="会话恢复：/resume"></a>会话恢复：<code>/resume</code></h3><h2 id="上下文管理"><a href="#上下文管理" class="headerlink" title="上下文管理"></a>上下文管理</h2><h3 id="上下文窗口：-context"><a href="#上下文窗口：-context" class="headerlink" title="上下文窗口：/context"></a>上下文窗口：<code>/context</code></h3><p>查看当前会话上下文状态</p>
+<h3 id="自动压缩"><a href="#自动压缩" class="headerlink" title="自动压缩"></a>自动压缩</h3><p>当前会话上下文达到阈值会自动压缩，可能造成信息失真，不利于精准完成任务。</p>
+<p>建议将功能拆分成尽可能独立、尽可能自闭换的小任务。完成小任务后清空上下文，再进行下一个任务。</p>
+<h3 id="主动压缩：-compact不建议"><a href="#主动压缩：-compact不建议" class="headerlink" title="主动压缩：/compact不建议"></a>主动压缩：<code>/compact</code>不建议</h3><p>大部分情况下不需要主动压缩，要不参考上面的建议拆分小任务，要不自动压缩。</p>
+<h3 id="主动清空：-clear"><a href="#主动清空：-clear" class="headerlink" title="主动清空：/clear"></a>主动清空：<code>/clear</code></h3><p>在明确任务完成后，建议主动使用clear清空上下文，再进行下一个任务。</p>
+<h1 id="CLAUDE-md"><a href="#CLAUDE-md" class="headerlink" title="CLAUDE.md"></a>CLAUDE.md</h1><blockquote>
+<p>除了ClaudeCode，其他大部分工具用的是AGENTS.md，其实是一样的东西。</p>
+</blockquote>
+<p>项目一开始建议使用 <code>/init</code> 来生成 <code>CLAUDE.md</code>。</p>
+<h2 id="工作机制"><a href="#工作机制" class="headerlink" title="工作机制"></a>工作机制</h2><blockquote>
+<p>CLAUDE.md内容只是作为一段Prompt插入到消息列表开头，随着上下文增加，模型在上下文的表现会越来越差。如果CLAUDE.md占据了大量无效、错误的信息，会直接影响长任务的执行效果。</p>
+<p>所以上下文并非越多越好，只需保留关键指引，持续迭代完善。</p>
+</blockquote>
+<h2 id="上下文压缩对CLAUDE-md的影响（无）"><a href="#上下文压缩对CLAUDE-md的影响（无）" class="headerlink" title="上下文压缩对CLAUDE.md的影响（无）"></a>上下文压缩对CLAUDE.md的影响（无）</h2><p>压缩后，CLAUDE.md还会被加到消息列表的头部。</p>
+<h2 id="超长上下文对CLAUDE-md的影响（有）"><a href="#超长上下文对CLAUDE-md的影响（有）" class="headerlink" title="超长上下文对CLAUDE.md的影响（有）"></a>超长上下文对CLAUDE.md的影响（有）</h2><p>受限于LLM对超长上下文的的处理能力，即使CLAUDE.md没有被压缩，也有可能因为过长的上下文导致LLM失焦，不能完全遵循Prompt。</p>
+<p>从上面的工作机制也能看出来，CLAUDE.md只是作为Message List的开头，也不是<code>System Prompt</code>，指令遵循上也不一定完全符合预期。</p>
+<h2 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h2><p><a target="_blank" rel="noopener" href="https://www.humanlayer.dev/blog/writing-a-good-claude-md">https://www.humanlayer.dev/blog/writing-a-good-claude-md</a></p>
+<p>CLAUDE.md 是个持续迭代的过程，并非初始化一次就结束了。</p>
+<p>可以通过一些工具自动初始化，但是要进行人工删减，后续过程发现不按照期望规则做事，则需要动态更新和调整，或者查漏补缺。</p>
+<ol>
+<li>保持正确性，删除错误内容</li>
+<li>保持精准干练，删除冗余无效内容</li>
+<li>不要把什么任务都丢给LLM（一些确定性，能用脚本或工具完成的，可以直接在流程里做）</li>
+</ol>
+<h1 id="内置TOOL"><a href="#内置TOOL" class="headerlink" title="内置TOOL"></a>内置TOOL</h1><h2 id="工作机制-1"><a href="#工作机制-1" class="headerlink" title="工作机制"></a>工作机制</h2><p>ClaudeCode本身设计了一套工具</p>
+<h2 id="最佳实践-1"><a href="#最佳实践-1" class="headerlink" title="最佳实践"></a>最佳实践</h2><p>实际业务中如果有不使用的工具可以直接禁用，减少过多或者不必要的工具造成LLM决策工具召回出现问题。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;permissions&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;allow&quot;</span>: [<span class="string">&quot;Bash(svn *)&quot;</span>, <span class="string">&quot;Bash(python3 *)&quot;</span>],</span><br><span class="line">        <span class="string">&quot;dent&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;WebFetch&quot;</span>,</span><br><span class="line">            <span class="string">&quot;WebSearch&quot;</span></span><br><span class="line">        ]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>System Tools 是 Claude Code 针对编码场景开发的特定工具，无论是 Grep、Read 等都有一些设计特色和实现特点，值得学习。</p>
+</blockquote>
+<ul>
+<li><code>TodoWrite</code>：我们经常看到 todo 列表的更新能力</li>
+<li><code>AskUserQestion</code>：TUI 上询问用户问题，然后选择、输入等能力</li>
+</ul>
+<p>SKILL、MCP、Agent 都会被转化成 Tools 或者 TOOLs 中的某个位置传入给模型，LLM 通过 function calling 进行工具召回和参数提取决策</p>
+<ul>
+<li>SKILL：会将 name + description 传入到 <code>SKILL</code> tool 的 Description 中</li>
+<li>MCP：mcp tool 会直接挂到 tools 列表汇总</li>
+<li>Agent：会挂在到 <code>TASK</code> tool 的 Description 中</li>
+</ul>
+<h1 id="MCP"><a href="#MCP" class="headerlink" title="MCP"></a>MCP</h1><p>大多数MCP Server就是API的包装器，现在Tool比较实用。</p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;mcpServers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;github-personal&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span><span class="string">&quot;npx&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;args&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;-y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;@modelcontextprotocol/server-github&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;GITHUB_PERSONAL_ACCESS_TOKEN&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;GITHUB_PERSONAL_TOKEN&#125;&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h3><p><a target="_blank" rel="noopener" href="https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=MDFhMDM1ZDhiNDFlNTg2YWNjYmMwYTdhYWNjMTgyMThfRFlEVmM1WHN2TU1lTE5qRHBVRmx1Ymg4cDFpQlAzdERfVG9rZW46Tk1ZR2JlRktHb3pGemJ4Vk0wUmNMcFJLbkNkXzE3NzQ0MDM0NDY6MTc3NDQwNzA0Nl9WNA" class="gallery-item" style="box-shadow: none;"> <img src="https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=MDFhMDM1ZDhiNDFlNTg2YWNjYmMwYTdhYWNjMTgyMThfRFlEVmM1WHN2TU1lTE5qRHBVRmx1Ymg4cDFpQlAzdERfVG9rZW46Tk1ZR2JlRktHb3pGemJ4Vk0wUmNMcFJLbkNkXzE3NzQ0MDM0NDY6MTc3NDQwNzA0Nl9WNA"></a></p>
+<h2 id="启动过程"><a href="#启动过程" class="headerlink" title="启动过程"></a>启动过程</h2><p>claude在启动的时候会自动连接所有MCP Servers，并解析出Tools，如果有失败，会在右下角提示。</p>
+<h2 id="mcp"><a href="#mcp" class="headerlink" title="/mcp"></a><code>/mcp</code></h2><p>查看状态</p>
+<h2 id="工作机制-2"><a href="#工作机制-2" class="headerlink" title="工作机制"></a>工作机制</h2><p>MCP 的 tools 是如何传给模型的？在 Tools 章节我们已经了解到，所有的工具都会通过接口的 tools 字段。将描述+参数 schema 传递给模型，LLM 会通过 Function Calling 决定调用哪个工具做什么任务。</p>
+<p>MCP Server建立连接后，即可拉取所有工具。</p>
+<h3 id="权限控制-1"><a href="#权限控制-1" class="headerlink" title="权限控制"></a>权限控制</h3><p>MCP 工具授权的基本规则：</p>
+<ul>
+<li>​<strong>授权单个 TOOL：mcp__<strong>​</strong><mcp server name><strong>​​</strong>__<strong>​</strong><mcp server tool></strong></li>
+<li>​<strong>授权所有 TOOL：mcp__<strong>​</strong><mcp server name><strong>​</strong>__* ​</strong></li>
+</ul>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;permissions&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;allow&quot;</span>: [</span><br><span class="line">      <span class="string">&quot;mcp__icon-park-mcp__search_icons&quot;</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="召回MCP-Server-Tool"><a href="#召回MCP-Server-Tool" class="headerlink" title="召回MCP Server Tool"></a>召回MCP Server Tool</h3><p>本质上就是通过 <code>mcp__&lt;mcp server name&gt;__&lt;mcp tool name&gt;</code> 的规则构造出一个 Tool，然后追加到工具列表中。</p>
+<p>对于工具的召回，仍然依赖上下文，基于 Function Calling 决定在什么时候召回什么工具，参数是什么。</p>
+<h2 id="最佳实践-2"><a href="#最佳实践-2" class="headerlink" title="最佳实践"></a>最佳实践</h2><ol>
+<li>控制MCP Server数量，控制MCP Server Tools启用数量</li>
+<li>减少MCP Server Tool输出内容，只保留有用信息</li>
+<li>不盲目追捧（SKILL）、拉踩（MCP）<ol>
+<li>工具简单、无编排依赖，并且在执行过程中会多次召回使用，并非面向某个特定场景任务的功能，仍然可以保持 MCP 的接入方式。</li>
+<li>不额外干预的情况下，MCP Tool 的召回效果、执行效率是超过 SKILL 的。</li>
+<li>如果涉及多个工具编排、有依赖性、工具过多、会引入额外的 prompt 描述，更适合通过 SKILL 的方式实现。</li>
+</ol>
+</li>
+</ol>
+<h1 id="SKILL"><a href="#SKILL" class="headerlink" title="SKILL"></a>SKILL</h1><p><a target="_blank" rel="noopener" href="https://code.claude.com/docs/zh-CN/skills">https://code.claude.com/docs/zh-CN/skills</a></p>
+<h2 id="基本组成"><a href="#基本组成" class="headerlink" title="基本组成"></a>基本组成</h2><p>每个 skill 都是一个以 <code>SKILL.md</code> 作为入口点的目录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">my-skill/</span><br><span class="line">├── SKILL.md           # 主要说明（必需）</span><br><span class="line">├── template.md        # Claude 要填写的模板</span><br><span class="line">├── examples/</span><br><span class="line">│   └── sample.md      # 显示预期格式的示例输出</span><br><span class="line">└── scripts/    </span><br><span class="line">    └── validate.sh    # Claude 可以执行的脚本</span><br></pre></td></tr></table></figure>
+
+<h2 id="SKILL元数据"><a href="#SKILL元数据" class="headerlink" title="SKILL元数据"></a>SKILL元数据</h2><p>除了 markdown 内容外，你可以使用 <code>SKILL.md</code> 文件顶部 <code>---</code> 标记之间的 YAML frontmatter 字段来配置 skill 行为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">name: my-skill</span><br><span class="line">description: What this skill does</span><br><span class="line">disable-model-invocation: true</span><br><span class="line">allowed-tools: Read, Grep</span><br><span class="line">---</span><br><span class="line"></span><br><span class="line">Your skill instructions here...</span><br></pre></td></tr></table></figure>
+
+<p>所有字段都是可选的。建议使用 <code>description</code>，以便 Claude 知道何时使用该 skill。</p>
+<blockquote>
+<p>元数据的支持需要看具体的 AI Coding 工具，一般情况下，除了 name 和 description，不太需要非常深入的了解，按需使用即可</p>
+</blockquote>
+<h2 id="配置-amp-加载"><a href="#配置-amp-加载" class="headerlink" title="配置&amp;加载"></a>配置&amp;加载</h2><p>建议在项目维度配置SKILLS。</p>
+<p>CLAUDE启动后会扫描skills下的目录，提取出<code>SKILL.md</code>中的<code>name</code>和<code>description</code>。</p>
+<h2 id="skills"><a href="#skills" class="headerlink" title="/skills"></a><code>/skills</code></h2><p>查看当前session扫描出的列表。</p>
+<p>ClaudeCode支持SKILLS热更新，不需要重启。</p>
+<p>一键安装SKILL：<a target="_blank" rel="noopener" href="https://www.npmjs.com/package/skills">https://www.npmjs.com/package/skills</a></p>
+<h2 id="权限控制-2"><a href="#权限控制-2" class="headerlink" title="权限控制"></a>权限控制</h2><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;permissions&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;allow&quot;</span>: [</span><br><span class="line">      <span class="string">&quot;mcp__icon-park-mcp__search_icons&quot;</span>,</span><br><span class="line">      <span class="string">&quot;Skill&quot;</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>​<strong>Skill</strong>​: 放行所有技能</li>
+<li>​**Skill(name)**​：放行某个技能</li>
+</ul>
+<h2 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h2><ul>
+<li>基于上下文自动召回</li>
+<li>手动精准触发：命令<code>/使用的技能</code></li>
+</ul>
+<p>在SKILL元数据中支持配置禁止模型召回，允许手动调用</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">my-skill</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">What</span> <span class="string">this</span> <span class="string">skill</span> <span class="string">does</span></span><br><span class="line"><span class="attr">disable-model-invocation:</span> <span class="literal">true</span> <span class="comment"># 禁止模型召回</span></span><br><span class="line"><span class="attr">user-invocable:</span> <span class="literal">true</span> <span class="comment"># 允许出现在 slash command 中让用户手动执行</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="string">Your</span> <span class="string">skill</span> <span class="string">instructions</span> <span class="string">here...</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="工作机制-3"><a href="#工作机制-3" class="headerlink" title="工作机制"></a>工作机制</h2><p>【基于上下文自动召回】章节简单介绍了上下文召回模式的工作流程，涉及两次模型调用与相关内容读取，也就是“渐进式披露”的概念。</p>
+<h3 id="模型如何召回SKILL"><a href="#模型如何召回SKILL" class="headerlink" title="模型如何召回SKILL"></a>模型如何召回SKILL</h3><p>在Claude的<code>内置TOOL</code>中，有一个<code>Skill</code>的工具，我们的skill在安装后，会将skill的description塞到<code>内置Skill</code>工具的描述中，模型在FunctionCalling的时候，基于描述发现有可以使用的skill。FunctionCalling的结果：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tool_use: Skill</span><br><span class="line">params:</span><br><span class="line">    skill： your-skill-name</span><br><span class="line">    args：params</span><br></pre></td></tr></table></figure>
+
+<p>技能不是万金油，单工具召回效率和召回效果远不如 mcp tool，mcp tool 作为 tool list 的一员，而 skill 只是将你的 description 塞入到 <code>Skill</code> 这个 tool 的工具描述中。</p>
+<blockquote>
+<p>网络传言 anthropic 在预训练阶段和后训练阶段有针对性强化 Skill 的召回，但是没找到具体内容和信息</p>
+</blockquote>
+<p><strong>技能描述的好坏，直接影响工具的召回效果，上下文膨胀后，SKILL 召回效率和效果会下降</strong></p>
+<h3 id="读取SKILL-md"><a href="#读取SKILL-md" class="headerlink" title="读取SKILL.md"></a>读取SKILL.md</h3><p>模型在召回阶段只是说要调用<code>Skill</code>这个工具，参数是<code>your-skill-name</code>，工具调用的结果是，去读取<code>your-skill-name</code>的<code>SKILL.md</code>。</p>
+<p>在调用Skill之后，ClaudCode会插入一些上下文：</p>
+<ol>
+<li>skill的路径：这个路径主要是为了后续读取resources和scripts。</li>
+<li>ARGUMENTS：将提取出来的args插入SKILL.md底部。</li>
+</ol>
+<p>翻译后的SKILL.md作为完整的prompt再次输入给模型。</p>
+<h3 id="SKILL-md动态注入上下文"><a href="#SKILL-md动态注入上下文" class="headerlink" title="SKILL.md动态注入上下文"></a>SKILL.md动态注入上下文</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">pr-summary</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">Summarize</span> <span class="string">changes</span> <span class="string">in</span> <span class="string">a</span> <span class="string">pull</span> <span class="string">request</span></span><br><span class="line"><span class="attr">context:</span> <span class="string">fork</span></span><br><span class="line"><span class="attr">agent:</span> <span class="string">Explore</span></span><br><span class="line"><span class="attr">allowed-tools:</span> <span class="string">Bash(gh</span> <span class="string">*)</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="comment">## Pull request context</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">PR diff:</span> <span class="string">!`gh</span> <span class="string">pr</span> <span class="string">diff`</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">PR comments:</span> <span class="string">!`gh</span> <span class="string">pr</span> <span class="string">view</span> <span class="string">--comments`</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">Changed files:</span> <span class="string">!`gh</span> <span class="string">pr</span> <span class="string">diff</span> <span class="string">--name-only`</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## Your task</span></span><br><span class="line"><span class="string">Summarize</span> <span class="string">this</span> <span class="string">pull</span> <span class="string">request...</span></span><br></pre></td></tr></table></figure>
+
+<p>基于动态注入上下文的能力，很多信息可以直接在SKILL.md中写，无需让LLM进行多次决策和工具调用。</p>
+<p>警惕恶意SKILL。</p>
+<h2 id="最佳实践-3"><a href="#最佳实践-3" class="headerlink" title="最佳实践"></a>最佳实践</h2><p><a target="_blank" rel="noopener" href="https://platform.claude.com/docs/zh-CN/agents-and-tools/agent-skills/best-practices#claude-2">https://platform.claude.com/docs/zh-CN/agents-and-tools/agent-skills/best-practices#claude-2</a></p>
+<ul>
+<li>SKILL替代MCP完成领域问题解决</li>
+<li>结合CLAUDE.md提高SKILL召回率</li>
+</ul>
+<blockquote>
+<p>将 SKILL + 具体触发 Case 描述补充到 CLAUDE.md 中，对于召回效果有一定提升</p>
+</blockquote>
+<ul>
+<li>使用高质量的模型来完善SKILL内容，再用性价比的模型来跑任务</li>
+<li>能工程化的工作不要让LLM决策执行</li>
+</ul>
+<h1 id="HOOK"><a href="#HOOK" class="headerlink" title="HOOK"></a>HOOK</h1><p><a target="_blank" rel="noopener" href="https://code.claude.com/docs/zh-CN/hooks-guide">https://code.claude.com/docs/zh-CN/hooks-guide</a></p>
+<h2 id="实践案例"><a href="#实践案例" class="headerlink" title="实践案例"></a>实践案例</h2><p>通过ClaudeCode Hook机制，将AI生成代码diff上传至统计平台，最终计算AI代码贡献率的端到端方案。</p>
+<p>核心在于将本地生成的代码变更(diff)与最终合入代码库的记录进行关联。整个流程分三步：</p>
+<ol>
+<li>客户端采集：在开发者环境中，通过hook机制，每次AI交互结束时自动捕获生成的代码patch。</li>
+<li>数据上报：将捕获的patch及相关元信息（仓库、用户信息等）作为埋点事件，上传至统计平台。</li>
+<li>最终归因：定时拉取数据，并结合代码库的commit记录，计算准确的AI贡献率。</li>
+</ol>
+<h2 id="执行案例"><a href="#执行案例" class="headerlink" title="执行案例"></a>执行案例</h2><ul>
+<li>利用hook自动格式化代码</li>
+<li>利用hook发送飞书通知</li>
+<li>利用hook监控是否触发上下文压缩</li>
+</ul>
+<h2 id="退出码机制"><a href="#退出码机制" class="headerlink" title="退出码机制"></a>退出码机制</h2><p><a target="_blank" rel="noopener" href="https://code.claude.com/docs/en/hooks#hook-input-and-output">https://code.claude.com/docs/en/hooks#hook-input-and-output</a></p>
+<h2 id="最佳实践-4"><a href="#最佳实践-4" class="headerlink" title="最佳实践"></a>最佳实践</h2><p>利用hook优化工程自动化能力，而非完全依赖LLM</p>
+<h1 id="SubAgent"><a href="#SubAgent" class="headerlink" title="SubAgent"></a>SubAgent</h1><ul>
+<li>只能通过上下文召回，不能通过手动直接触发</li>
+<li>独立的上下文</li>
+<li>支持设置独立的权限、允许的SKILL、子agent的hook、工具、模型</li>
+</ul>
+<h2 id="配置与开发"><a href="#配置与开发" class="headerlink" title="配置与开发"></a>配置与开发</h2><p><a target="_blank" rel="noopener" href="https://code.claude.com/docs/zh-CN/sub-agents">https://code.claude.com/docs/zh-CN/sub-agents</a></p>
+<p><code>~/.claude/agents/</code></p>
+<p>所有在agents目录下的md文件，只要使用了YAML Formatter的写法，并且有name，都会被识别成SubAgent，与文件的位置没有关系。</p>
+<h2 id="工作机制-4"><a href="#工作机制-4" class="headerlink" title="工作机制"></a>工作机制</h2><h3 id="如何传给模型"><a href="#如何传给模型" class="headerlink" title="如何传给模型"></a>如何传给模型</h3><p>和SKILL类似，SubAgent并不会直接插入到模型上下文或者工具列表，而是插入到<code>Task</code>这个工具的description中。实际中，SubAgent要么有非常明显的领域特色或者功能场景，要么需要非常清晰的指令描述（比如使用AgentXXX），否则召回难度比较大。</p>
+<h3 id="如何被召回"><a href="#如何被召回" class="headerlink" title="如何被召回"></a>如何被召回</h3><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tool_name: Task</span><br><span class="line">params:</span><br><span class="line">    subagent_type： your-agent-name</span><br><span class="line">    prompt：输入给SubAgent的prompt</span><br></pre></td></tr></table></figure>
+
+<h3 id="如何工作"><a href="#如何工作" class="headerlink" title="如何工作"></a>如何工作</h3><ol>
+<li>提取的prompt+CLAUDE.md作为输入</li>
+<li>组织调整SystemPrompt，不具备动态上下文注入的能力</li>
+<li>控制模型的Tools，过滤掉了Task、PlanMode等工具</li>
+</ol>
+<h3 id="SubAgent的输出如何作用给主Agent"><a href="#SubAgent的输出如何作用给主Agent" class="headerlink" title="SubAgent的输出如何作用给主Agent"></a>SubAgent的输出如何作用给主Agent</h3><p>SubAgent是通过Task Tool召回的，因此SubAgent的结果会作为Task Tool工具调用的结果插入到Message List中，而中间的执行过程不会出现在MainAgent的消息列表。</p>
+<h1 id="Plugin"><a href="#Plugin" class="headerlink" title="Plugin"></a>Plugin</h1><p><a target="_blank" rel="noopener" href="https://code.claude.com/docs/zh-CN/plugins">https://code.claude.com/docs/zh-CN/plugins</a></p>
+<p>Plugin可以理解为对上面的能力（MCP、Skill、Hook、SlashCommand、Agents）的集合，方便共享。</p>
+<h2 id="工作机制-5"><a href="#工作机制-5" class="headerlink" title="工作机制"></a>工作机制</h2><ol>
+<li>需要配置插件市场</li>
+<li>如果是项目级别的安装，插件安装后，会在<code>.claude/settings.json</code>中配置使用的plugin</li>
+<li>在首次启动的时候，会通过git clone将marketplace repo复制到本地，将plugin文件夹移动到缓存目录<code>~/.claude/plugins/cache</code></li>
+<li>ClaudeCode从plugins中加载相关组件（SKILL、Agent、Hook）</li>
+<li>私有源不会自动更新，需要进行设置才会自动更新</li>
+</ol>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">claude plugin marketplace list</span><br><span class="line">claude plugin marketplace update</span><br><span class="line">claude plugin update demo-plugin@demo-marketplace --scope project</span><br></pre></td></tr></table></figure>
+
+<h2 id="项目级别自动安装和生效"><a href="#项目级别自动安装和生效" class="headerlink" title="项目级别自动安装和生效"></a>项目级别自动安装和生效</h2><p>在<code>.claude/settings.json</code>中配置好marketplace和自动安装的plugin，注意plugin名字和marketplace名字要一致。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;permissions&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;defaultMode&quot;</span><span class="punctuation">:</span> <span class="string">&quot;bypassPermissions&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;enabledPlugins&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">​    ​<span class="attr">&quot;demo-plugin@demo-marketplace&quot;</span><span class="punctuation">:</span>​ ​<span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">​  ​<span class="attr">&quot;extraKnownMarketplaces&quot;</span><span class="punctuation">:</span>​ ​<span class="punctuation">&#123;</span></span><br><span class="line">​    ​<span class="attr">&quot;demo-marketplace&quot;</span><span class="punctuation">:</span>​ ​<span class="punctuation">&#123;</span></span><br><span class="line">​      ​<span class="attr">&quot;source&quot;</span><span class="punctuation">:</span>​ ​<span class="punctuation">&#123;</span></span><br><span class="line">​        ​<span class="attr">&quot;source&quot;</span><span class="punctuation">:</span>​ ​<span class="string">&quot;git&quot;</span><span class="punctuation">,</span></span><br><span class="line">​        ​<span class="attr">&quot;url&quot;</span><span class="punctuation">:</span>​ ​<span class="string">&quot;git@github.com:zhangga/claude-code-demo-marketplace.git&quot;</span></span><br><span class="line">​      ​<span class="punctuation">&#125;</span></span><br><span class="line">​    ​<span class="punctuation">&#125;</span></span><br><span class="line">​  ​<span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li><strong>关注 Context Window，任务尽可能小而独立，clear 无用上下文，降低干扰</strong></li>
+<li><strong>CLAUDE.md 内容不是越多越好，少而精即是多</strong></li>
+<li><strong>MCP Server 不是工作单元，工作单元是 mcp server tool，召回效率高于 SKILL、Agent，适合单点持续工作</strong></li>
+<li><strong>SKILL 是工作单元，但是召回效率不如 MCP，description 是关键因子，相同领域最好只有一个 SKILL，配合 CLAUDE.md 效果更好，用好动态上下文注入能力</strong></li>
+<li><strong>Slash Command 已经与 SKILL.md 融合，一些纯手动触发的场景，及时屏蔽，避免被作为 SKILL 注入到上下文被召回</strong></li>
+<li><strong>能工程化的任务多利用Hooks，但是安全性是第一考量，别人开发的 Hook 一定要 review 代码</strong></li>
+<li><strong>SubAgent 没有经历非常明确的场景，但是上下文隔离与并行任务处理的场景仍然可以考虑</strong></li>
+<li><strong>Plugin 仍然适合团队级别最佳实践与相关能力集成，如果觉得概念太多或者聚焦打造项目范本，plugin 是首选</strong></li>
+</ol>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-24</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ue-linux-arm/'>交叉编译DS LinuxArm64</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/openclaw-install/">openclaw-install</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

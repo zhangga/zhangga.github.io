@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="Redis 存储引擎深度解析" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    Redis 存储引擎深度解析
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-04-30</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.9k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：7分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81Redis-%E6%A6%82%E8%A7%88"><span class="post-toc-text">一、Redis 概览</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-Redis%EF%BC%9F"><span class="post-toc-text">为什么选择 Redis？</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81IO-%E6%B5%81%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="post-toc-text">二、IO 流程与线程模型</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-1-%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="post-toc-text">2.1 线程模型</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-2-IO-%E6%B5%81%E7%A8%8B"><span class="post-toc-text">2.2 IO 流程</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-3-%E6%80%A7%E8%83%BD%E8%80%83%E9%87%8F"><span class="post-toc-text">2.3 性能考量</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="post-toc-text">三、存储引擎核心机制</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-1-WAL-%E6%96%87%E4%BB%B6%EF%BC%9AAOF"><span class="post-toc-text">3.1 WAL 文件：AOF</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-2-Data-%E6%96%87%E4%BB%B6%EF%BC%9ARDB"><span class="post-toc-text">3.2 Data 文件：RDB</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-3-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E2%80%94%E2%80%94AOF-%E9%87%8D%E5%86%99"><span class="post-toc-text">3.3 垃圾回收——AOF 重写</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-4-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E2%80%94%E2%80%94%E5%86%85%E5%AD%98%E7%A2%8E%E7%89%87%E6%95%B4%E7%90%86"><span class="post-toc-text">3.4 垃圾回收——内存碎片整理</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84"><span class="post-toc-text">四、索引结构</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%B8%90%E8%BF%9B%E5%BC%8F-Rehash"><span class="post-toc-text">渐进式 Rehash</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%94%E3%80%81%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6"><span class="post-toc-text">五、主从复制</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-1-%E5%BF%AB%E7%85%A7"><span class="post-toc-text">5.1 快照</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-2-%E5%85%A8%E9%87%8F%E5%A4%8D%E5%88%B6"><span class="post-toc-text">5.2 全量复制</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-3-%E5%A2%9E%E9%87%8F%E5%A4%8D%E5%88%B6"><span class="post-toc-text">5.3 增量复制</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-4-%E4%B8%BB%E4%BB%8E%E7%BA%A7%E8%81%94"><span class="post-toc-text">5.4 主从级联</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AD%E3%80%81%E4%BA%8B%E5%8A%A1%E4%B8%8E-Pipeline"><span class="post-toc-text">六、事务与 Pipeline</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#6-1-Pipeline"><span class="post-toc-text">6.1 Pipeline</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#6-2-%E4%BA%8B%E5%8A%A1"><span class="post-toc-text">6.2 事务</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%83%E3%80%81%E5%B0%8F%E7%BB%93"><span class="post-toc-text">七、小结</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h2 id="一、Redis-概览"><a href="#一、Redis-概览" class="headerlink" title="一、Redis 概览"></a>一、Redis 概览</h2><p>Redis 是一个广为人知的全内存数据库，作为「存储」（而非仅仅是缓存）来看，它拥有完整的数据库功能。在字节跳动内部也广泛使用，其稳定性、性能、成本控制和故障恢复能力都经过验证。</p>
+<p>正如「没有银弹」所言，不同场景需要不同的存储选型，这也是各种存储引擎百花齐放的原因。</p>
+<h3 id="为什么选择-Redis？"><a href="#为什么选择-Redis？" class="headerlink" title="为什么选择 Redis？"></a>为什么选择 Redis？</h3><p>Redis 是全内存数据库，Key 和 Value 都存储在内存中，性能在业界处于领先地位。以至于 2022 年的反思文章《13 Years Later – Does Redis Need a New Architecture?》的结论是：​<strong>NO</strong>​。</p>
+<p>本文将结合存储主题的核心模块，深入回顾 Redis 的技术细节。</p>
+<h2 id="二、IO-流程与线程模型"><a href="#二、IO-流程与线程模型" class="headerlink" title="二、IO 流程与线程模型"></a>二、IO 流程与线程模型</h2><h3 id="2-1-线程模型"><a href="#2-1-线程模型" class="headerlink" title="2.1 线程模型"></a>2.1 线程模型</h3><p>Redis 常被描述为「单线程」，实际上是指在​<strong>默认情况下，Redis 的数据面由主线程单独完成</strong>​。后台仍有其他线程执行文件写入操作（如 AOF 持久化、Lazy Free 大对象），甚至会 fork 出子进程创建快照。</p>
+<p>另外，可以通过配置开启<strong>网络 ​IO</strong>​​<strong>​ ​多线程</strong>​，让主线程专注于执行逻辑。但经典且高性能的模式仍是​<strong>单线程 Run-to-Complete</strong>​。</p>
+<h3 id="2-2-IO-流程"><a href="#2-2-IO-流程" class="headerlink" title="2.2 IO 流程"></a>2.2 IO 流程</h3><p>Redis 协议层的核心是 ​<strong>IO​ 多路复用</strong>​，封装了各平台最高效的多路复用工具：</p>
+<ul>
+<li>Linux → epoll</li>
+<li>Solaris → evport</li>
+<li>BSD/macOS → kqueue</li>
+</ul>
+<p><strong>数据流向：</strong></p>
+<ol>
+<li>从网络 IO poll read 读取数据，记录到 client 对象的读 buffer</li>
+<li>进入命令执行阶段</li>
+<li>执行结果写入 client 对象的 buffer</li>
+<li>下次 poll write 时写入 socket</li>
+</ol>
+<h3 id="2-3-性能考量"><a href="#2-3-性能考量" class="headerlink" title="2.3 性能考量"></a>2.3 性能考量</h3><p>Redis 命令都是处理内存数据结构，极为讲究效率，通常为 <strong>O(1)</strong> 时间完成。</p>
+<p>但对于 ​<strong>O(N) 操作</strong>​（如删除一个包含 10 万个元素的 zset），需要谨慎处理：</p>
+<ul>
+<li>直接调用 free 10 万次会阻塞主线程</li>
+<li>因此引入 <strong>Lazy Free</strong> 特性</li>
+</ul>
+<p>同理，当 hash 表保存百万级数据时，遇到负载因子过高需要扩容，采用​<strong>渐进式 Rehash</strong>​，避免大规模数据迁移导致卡顿。</p>
+<blockquote>
+<p>💡 ​<strong>作为数据库的设计原则</strong>​：必须考虑大数据量场景，不能因为单个用户的极端操作导致系统不可用。</p>
+</blockquote>
+<h2 id="三、存储引擎核心机制"><a href="#三、存储引擎核心机制" class="headerlink" title="三、存储引擎核心机制"></a>三、存储引擎核心机制</h2><h3 id="3-1-WAL-文件：AOF"><a href="#3-1-WAL-文件：AOF" class="headerlink" title="3.1 WAL 文件：AOF"></a>3.1 WAL 文件：AOF</h3><p>Redis 的 WAL 称为 ​<strong>AOF（Append Only File）</strong>​，保存具体执行的命令。</p>
+<p>虽然 AOF 语义上类似 WAL，但实际上 Redis 的 AOF ​<strong>保存着全量数据</strong>​，WAL 即数据库本身。</p>
+<p><strong>工作流程：</strong></p>
+<ol>
+<li>执行完命令后，向全局 <code>aof_buf</code> 放入执行命令</li>
+<li>发起异步任务（bio: Background I/O service）在 IO 线程写入文件</li>
+</ol>
+<p><strong>AOF 保存模式：</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>说明</th>
+<th>数据安全性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>always</td>
+<td>每个命令都 fsync</td>
+<td>最高，但性能低</td>
+</tr>
+<tr>
+<td>everysec（默认）</td>
+<td>每秒 fsync 一次</td>
+<td>平衡，可能丢失 1 秒数据</td>
+</tr>
+<tr>
+<td>no</td>
+<td>由操作系统决定 fsync 时机</td>
+<td>最低，性能最高</td>
+</tr>
+</tbody></table>
+<p>默认配置下（everysec），只要不出现系统崩溃、电源故障、硬件故障，数据是安全的。</p>
+<h3 id="3-2-Data-文件：RDB"><a href="#3-2-Data-文件：RDB" class="headerlink" title="3.2 Data 文件：RDB"></a>3.2 Data 文件：RDB</h3><p><strong>RDB（Redis</strong>​<strong>​ DataBase File）</strong> 是 Redis 的数据快照文件：</p>
+<ul>
+<li>数据经过紧密序列化，文件更小</li>
+<li>加载速度更快</li>
+<li>生成成本高，一般周期性生成（如 900 秒）</li>
+</ul>
+<p><strong>生成方式：</strong>使用 <strong>fork</strong> 机制产生快照。由于 Redis 的全内存特性，fork 后内存数据立即「静止」，原进程采用 ​<strong>COW（Copy On Write）</strong>​。</p>
+<p>⚠️ ​<strong>注意事项</strong>​：Redis 写 QPS 可能很高，造成大量 COW，导致内存暴涨和 CPU 紧张。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">for (j = 0; j &lt; server.dbnum; j++) &#123;</span><br><span class="line">    redisDb *db = server.db+j;</span><br><span class="line">    for (auto item in db-&gt;dict) &#123;</span><br><span class="line">       rdbSaveObject(item)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-垃圾回收——AOF-重写"><a href="#3-3-垃圾回收——AOF-重写" class="headerlink" title="3.3 垃圾回收——AOF 重写"></a>3.3 垃圾回收——AOF 重写</h3><p>AOF 重写并非改写每条命令，而是当 AOF 文件过大时，根据当前数据库状态重写一遍，精简重复命令。</p>
+<p>​<strong>本质</strong>​：用命令记录内存中的所有数据，相当于整个数据库的逻辑表达。</p>
+<p><strong>执行流程：</strong></p>
+<ol>
+<li>基于 fork 创建子进程（需要快照）</li>
+<li>父进程将快照后的增量 AOF 写入临时缓冲区</li>
+<li>子进程结束后，父进程将增量 AOF 写入重写文件</li>
+<li>删除旧 AOF 文件，完成垃圾回收</li>
+</ol>
+<p>​<strong>Redis​ 7.0+ 优化</strong>​：引入 <strong>AOF Manifest</strong> 机制，重写后的 AOF 文件 + 增量 AOF 文件组成全量数据，效率更高。</p>
+<h3 id="3-4-垃圾回收——内存碎片整理"><a href="#3-4-垃圾回收——内存碎片整理" class="headerlink" title="3.4 垃圾回收——内存碎片整理"></a>3.4 垃圾回收——内存碎片整理</h3><p>Redis 全内存保存 KV，重的内存操作容易产生碎片，导致实际物理内存开销大于统计值。</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Redis 4 以下</td>
+<td>只能重启实例</td>
+</tr>
+<tr>
+<td>Redis 4+</td>
+<td>引入 defrag 模块</td>
+</tr>
+</tbody></table>
+<p>​<strong>实现依赖</strong>​：必须使用 <strong>Jemalloc</strong> 才能启用内存碎片整理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> defined(USE_JEMALLOC) &amp;&amp; defined(JEMALLOC_FRAG_HINT)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HAVE_DEFRAG</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>​<strong>工作原理</strong>​：</p>
+<ol>
+<li>遍历 db 中的 key（每次只遍历 N 个，避免阻塞）</li>
+<li>询问 Jemalloc 目标指针移动能否减少碎片</li>
+<li>如果可以，在新地址空间申请内存并完成替换</li>
+</ol>
+<h2 id="四、索引结构"><a href="#四、索引结构" class="headerlink" title="四、索引结构"></a>四、索引结构</h2><p>由于 Redis 是全内存数据库，对索引的依赖不如磁盘数据库强。</p>
+<p><strong>主索引</strong>​​<strong>结构</strong>​：哈希表（dict）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dictEntry</span> &#123;</span></span><br><span class="line">    <span class="type">void</span> *key;                <span class="comment">// 键</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">        <span class="type">void</span> *val;            <span class="comment">// 值</span></span><br><span class="line">        <span class="type">uint64_t</span> u64;</span><br><span class="line">        <span class="type">int64_t</span> s64;</span><br><span class="line">        <span class="type">double</span> d;</span><br><span class="line">    &#125; v;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">dictEntry</span> *<span class="title">next</span>;</span>   <span class="comment">// 冲突链表</span></span><br><span class="line">&#125; dictEntry;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dictht</span> &#123;</span></span><br><span class="line">    dictEntry **table;        <span class="comment">// 两个数组，实现渐进式 rehash</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> size;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> sizemask;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> used;</span><br><span class="line">&#125; dictht;</span><br></pre></td></tr></table></figure>
+
+<h3 id="渐进式-Rehash"><a href="#渐进式-Rehash" class="headerlink" title="渐进式 Rehash"></a>渐进式 Rehash</h3><p>解决扩容 <strong>O(N)</strong> 操作阻塞服务器的问题：</p>
+<ul>
+<li>一次性申请扩容内存</li>
+<li>逐步将原 dict 成员迁移到新 dict</li>
+<li>迁移时机：每次对该 dict 的增删改查操作中</li>
+</ul>
+<p><strong>操作规则：</strong></p>
+<ul>
+<li>查询：依次查 table[0]，再查 table[1]</li>
+<li>添加：只在 table[1]</li>
+<li>删除：依次 table[0]，再 table[1]</li>
+</ul>
+<h2 id="五、主从复制"><a href="#五、主从复制" class="headerlink" title="五、主从复制"></a>五、主从复制</h2><h3 id="5-1-快照"><a href="#5-1-快照" class="headerlink" title="5.1 快照"></a>5.1 快照</h3><p>通过 <strong>fork</strong> 即可完成，是所有存储中实现快照最方便的方式，直接使用操作系统命令，无需设计复杂存储结构。</p>
+<h3 id="5-2-全量复制"><a href="#5-2-全量复制" class="headerlink" title="5.2 全量复制"></a>5.2 全量复制</h3><p>新从节点需要同步全量数据：</p>
+<ol>
+<li>从节点发送 <code>FULLRESYNC</code> 命令</li>
+<li>主节点 fork 产生快照</li>
+<li>子进程中生成 RDB</li>
+<li>直接写入目标 socket（而非文件）</li>
+</ol>
+<h3 id="5-3-增量复制"><a href="#5-3-增量复制" class="headerlink" title="5.3 增量复制"></a>5.3 增量复制</h3><p>已有数据的从节点只需同步增量：</p>
+<ol>
+<li>发送 <code>PSYNC</code> 命令</li>
+<li>同步 <code>aof_buf</code> 中的 WAL</li>
+</ol>
+<h3 id="5-4-主从级联"><a href="#5-4-主从级联" class="headerlink" title="5.4 主从级联"></a>5.4 主从级联</h3><p>为减轻主节点生成 RDB 的压力，Redis 支持从节点挂载从节点。但代价是数据一致性延迟更高。</p>
+<h2 id="六、事务与-Pipeline"><a href="#六、事务与-Pipeline" class="headerlink" title="六、事务与 Pipeline"></a>六、事务与 Pipeline</h2><h3 id="6-1-Pipeline"><a href="#6-1-Pipeline" class="headerlink" title="6.1 Pipeline"></a>6.1 Pipeline</h3><p>保证若干命令通过<strong>一次 TCP 连接</strong>传递到服务端，并顺序执行。但中间可能插入其他客户端的命令。</p>
+<h3 id="6-2-事务"><a href="#6-2-事务" class="headerlink" title="6.2 事务"></a>6.2 事务</h3><p>保障「若干命令顺序执行，中间不会执行其他客户端命令」。</p>
+<p><strong>ACID 特性分析：</strong></p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>原子性</strong></td>
+<td>⚠️ 不支持回滚。事务中某命令出错不影响其他命令执行。编写无错误的事务可拥有原子性</td>
+</tr>
+<tr>
+<td><strong>一致性</strong></td>
+<td>✅ Redis 在各种出错情况下都能满足一致性要求（约束较少）</td>
+</tr>
+<tr>
+<td><strong>隔离性</strong></td>
+<td>✅ 事务总是串行执行，满足隔离性要求（串行化）</td>
+</tr>
+<tr>
+<td><strong>持久性</strong></td>
+<td>⚠️ 仅在开启 AOF/RDB 且<code>appendfsync=always</code>时才能保证。主从异步复制切主时可能丢数据</td>
+</tr>
+</tbody></table>
+<h2 id="七、小结"><a href="#七、小结" class="headerlink" title="七、小结"></a>七、小结</h2><p>Redis 的「存储引擎」并非传统意义上的标准实现，它更适合：</p>
+<ul>
+<li>数据量较小的场景</li>
+<li>可以经常进行全库 Dump（AOF 或 RDB）</li>
+<li>快照通过 fork 方便完成</li>
+</ul>
+<p>其设计哲学体现了「简单即高效」的理念，通过操作系统原语（fork、epoll）和精巧的内存管理，在单线程模型下实现了极高的性能。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-16</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/'>
+                            数据库
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/java-sort-in-memory/'>内存房间列表查询与排序方案详解</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/log-relay/">日志中转服</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>
