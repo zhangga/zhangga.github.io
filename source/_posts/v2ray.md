@@ -12,7 +12,6 @@ date: 2026-03-19 16:34:51
 
 ## Links
 
-* 使用亚马逊搭建个人服务器可参考: [使用免费的亚马逊云服务(AWS)](https://silentming.net/blog/2019/03/03/aws/)
 * [使用v2ray搭建VPN服务](https://github.com/faple-ml/blog/issues/4)
 
 V2ray的相关仓可以直接从github上进行获取:
