@@ -603,18 +603,78 @@ App Store 搜索 **Hiddify**（需美区 Apple ID，免费）
 
 | 问题 | 排查 |
 |---|---|
-| Xray 443 端口没监听 | `sudo setcap cap_net_bind_service=+ep /usr/local/bin/xray && sudo systemctl restart xray` |
+| Xray 443 端口没监听 | `sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/xray && sudo systemctl restart xray` |
 | mihomo 7890 没监听 | `sudo systemctl status mihomo` 查看错误日志 |
 | 能上 Google 但 Anthropic 403 | 住宅代理 IP 有问题，联系 IPRoyal 更换 |
 | 所有网站都打不开 | mihomo 可能没启动，Xray 转发到 7890 失败，先检查 mihomo |
 | Anthropic 返回 451 | 出口 IP 被识别为代理，需要更纯净的住宅 IP |
 | Clash Verge 连不上 | 检查 `client-fingerprint: chrome` 是否填写 |
 
+## chatgpt.com 无法访问
+OpenAI 的主动地区 / IP 风控，chatgpt.com 在 Cloudflare 边缘对 ** 数据中心 IP（尤其 AWS / GCP / Azure / OCI）** 直接返回 403 /unsupported_country，这是已知行为。
+### Step 1：装 WARP（一键脚本）
+`wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh && sudo bash menu.sh`
+菜单里选：
+* 安装 WARP
+* 12 模式选 WARP-Wireproxy（SOCKS5 代理模式），监听端口默认 40000
+
+装完后验证：
+`curl -x socks5://127.0.0.1:40000 https://chatgpt.com/cdn-cgi/trace`
+如果看到 warp=on 且能返回正常内容 → WARP 工作正常。
+
+### Step 2：改 Xray 配置，让流量走 WARP
+编辑 /usr/local/etc/xray/config.json，把 outbounds 部分替换为：
+
+```json
+"outbounds": [
+  {
+    "tag": "warp",
+    "protocol": "socks",
+    "settings": {
+      "servers": [
+        {
+          "address": "127.0.0.1",
+          "port": 40000
+        }
+      ]
+    }
+  },
+  {
+    "tag": "direct",
+    "protocol": "freedom",
+    "settings": {}
+  },
+  {
+    "tag": "block",
+    "protocol": "blackhole",
+    "settings": {}
+  }
+],
+"routing": {
+  "domainStrategy": "IPIfNonMatch",
+  "rules": [
+    {
+      "type": "field",
+      "domain": [
+        "geosite:openai",
+        "domain:openai.com",
+        "domain:chatgpt.com",
+        "domain:oaistatic.com",
+        "domain:oaiusercontent.com",
+        "domain:auth0.com"
+      ],
+      "outboundTag": "warp"
+    }
+  ]
+}
+```
+
+
 ## 日志排查命令
 
 ```bash
 # Xray 日志
-sudo journalctl -u xray -f --no-pager
+sudo journalctl -u xray -n 100 --no-pager
 
 # mihomo 日志
 sudo journalctl -u mihomo -f --no-pager
