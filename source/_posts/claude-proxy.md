@@ -92,7 +92,7 @@ bash <(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)
 ## 2.3 赋予低端口权限
 
 ```bash
-sudo setcap cap_net_bind_service=+ep /usr/local/bin/xray
+sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/xray
 ```
 
 ## 2.4 生成密钥
@@ -213,6 +213,49 @@ sudo nano /usr/local/etc/xray/config.json
             }
         ]
     }
+}
+```
+
+如要只需要 xray ，无需 mihomo ，可以用下面最简单的配置：
+```json
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 443,
+      "listen": "0.0.0.0",
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "你的UUID",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "www.microsoft.com:443",
+          "xver": 0,
+          "serverNames": ["www.microsoft.com"],
+          "privateKey": "服务器私钥",
+          "shortIds": [""]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
 }
 ```
 
