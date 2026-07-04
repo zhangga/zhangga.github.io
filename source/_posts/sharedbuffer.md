@@ -157,6 +157,72 @@ SharedBuffer(const SharedBuffer& o) : base(o.base) { header()->ref.fetch_add(1);
 
 ---
 
+## 5.1 知识点四·进阶：原子引用计数的两个方法与内存序
+
+引用计数的加/减通常写成两个方法，是并发编程的教科书级写法（和 `std::shared_ptr` 内部控制块几乎一致），难点全在 `std::memory_order` 的选择上：
+
+```cpp
+void SharedBuffer::Header::addref() {
+    ref.fetch_add(1, std::memory_order_relaxed);   // 计数 +1
+}
+
+void SharedBuffer::Header::release() {
+    if (1 == ref.fetch_sub(1, std::memory_order_acq_rel)) {
+        delete this;   // 减到 0 → 我是最后一个使用者 → 释放内存
+    }
+}
+```
+
+### (1) fetch_add / fetch_sub 返回的是「旧值」
+
+```cpp
+ref.fetch_add(1, ...);   // 原子地做 ref = ref + 1，返回【修改前】的值
+ref.fetch_sub(1, ...);   // 原子地做 ref = ref - 1，返回【修改前】的值
+```
+
+所以 `if (1 == ref.fetch_sub(1, ...))` 判断的是「旧值为 1 → 减完变成 0 → 我是最后一个」。
+用旧值判断而不是「先减再读」，是为了让**判断和递减处于同一个原子操作内**，中间不会被其他线程插入，避免竞态。
+
+### (2) addref 为什么用 relaxed（最宽松）
+
+`relaxed` 只保证自增**本身是原子的**（不会两个线程同时 +1 却只加一次），不建立任何跨线程内存顺序约束。
+
+够用的原因：调用 `addref` 的前提是**当前线程已持有一个有效引用**（计数至少为 1，对象此刻绝不会被销毁）。增加引用只是「多登记一个使用者」，不需要看见其他线程的数据修改，也不需要保护其他内存的读写顺序。既然没有同步需求，就用最廉价的 `relaxed`，省掉内存屏障开销。
+
+### (3) release 为什么用 acq_rel（获取 + 释放）
+
+`acq_rel` = `acquire` + `release` 合体，两个语义各解决一个问题：
+
+- **release 语义**：像一道单向屏障，保证本线程在 `fetch_sub` **之前**的所有内存写入（比如刚往缓冲区写过数据），不会被重排到递减之后。这样其他线程一旦观察到这次递减，就一定能看到完整的数据写入——把自己的修改「发布」出去。
+- **acquire 语义**：保证最后归零、要执行 `delete this` 的线程，在 `fetch_sub` **之后**能完整看到其他所有线程之前的写入——「接收」前面所有线程发布的修改，才能安全销毁，否则析构时可能读到过期数据。
+
+| 场景 | 需要的语义 | 作用 |
+|---|---|---|
+| 非最后一个线程递减 | `release` | 把自己的修改发布出去，让后来者能看到 |
+| 最后一个线程递减到 0 | `acquire` | 接收前面所有线程的修改，才能安全销毁 |
+
+因为**同一行代码既可能是「非最后一个」也可能是「最后一个」**（取决于运行时哪个线程最后到达），所以两种语义都要，合起来就是 `acq_rel`。
+
+### (4) delete this 惯用法
+
+- 由于 `fetch_sub` 的原子性，全世界**只有一个线程**能拿到旧值 `1`，因此 `delete this` 只执行一次，不会重复释放。
+- `delete this` 后 `this` 立即失效，必须是函数的**最后一条语句**，之后绝不能再访问任何成员。
+
+### (5) 进阶优化（了解即可）
+
+工业级实现常把 `acquire` 开销从「每次递减」降到「仅归零那一次」：递减用较便宜的 `release`，确认归零后再补一个 `acquire` 屏障才销毁，效果等价、开销更低：
+
+```cpp
+if (1 == ref.fetch_sub(1, std::memory_order_release)) {
+    std::atomic_thread_fence(std::memory_order_acquire);  // 归零时才补 acquire
+    delete this;
+}
+```
+
+入门直接用 `acq_rel` 更简洁易懂，正确性完全没问题。
+
+---
+
 ## 6. 知识点五：内存对齐带来的实际大小差异
 
 理论上 `sizeof(Header) = 8 + 8 + 4 = 20`，但受**内存对齐**影响：
@@ -196,6 +262,7 @@ base = (void*)(h + 1);                      // base = 头部之后的数据区
 | 2 | 指针算术 | `-1` 退一个元素 = `sizeof(*p)` 字节，非 1 字节 |
 | 3 | 前缀头部 | 元数据藏数据前，对外只给数据指针，反向偏移取头 |
 | 4 | 引用计数 | `atomic ref` 实现 O(1) 浅拷贝共享 + 归零释放 |
+| 4+ | 内存序 | `addref` 用 `relaxed`；`release` 用 `acq_rel`，判旧值==1 才 `delete this` |
 | 5 | 写时复制 | 改前判断 `ref>1` 则先复制，隔离共享者 |
 | 6 | 内存对齐 | 用 `sizeof(Header)` 而非硬编码字节数 |
 | 7 | 分配/释放 | `free` 和 `malloc` 都针对头部起始地址，别用 base |
@@ -209,3 +276,4 @@ base = (void*)(h + 1);                      // base = 头部之后的数据区
 - Reference counting、`std::shared_ptr` 控制块的相似思路
 - placement new / 手动内存管理
 - Redis SDS (Simple Dynamic Strings) 的头部布局
+
