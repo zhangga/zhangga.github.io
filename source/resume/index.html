@@ -363,6 +363,40 @@
       line-height: 1.62;
     }
 
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .impact {
+      min-height: 126px;
+      padding: 18px;
+      color: var(--white);
+      background:
+        linear-gradient(145deg, rgba(0, 125, 134, 0.92), rgba(36, 39, 44, 0.96)),
+        var(--teal-dark);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .impact strong {
+      display: block;
+      font-size: 1.65rem;
+      line-height: 1.05;
+      font-weight: 900;
+    }
+
+    .impact span {
+      display: block;
+      margin-top: 12px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
     .timeline {
       display: grid;
       gap: 22px;
@@ -527,7 +561,8 @@
         grid-column: 1 / -1;
       }
 
-      .highlight-grid {
+      .highlight-grid,
+      .impact-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
@@ -545,6 +580,7 @@
       .contact-grid,
       .sidebar,
       .highlight-grid,
+      .impact-grid,
       .education-row {
         grid-template-columns: 1fr;
       }
@@ -625,6 +661,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .impact-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .job {
         break-inside: avoid;
         page-break-inside: avoid;
@@ -653,7 +693,7 @@
         <div class="kicker">Personal Resume</div>
         <h1>张泽强</h1>
         <p class="role">主程 / 技术专家 / 游戏服务器架构</p>
-        <p class="summary">14+ 年游戏服务器研发经验，长期负责服务器框架、中台服务、性能调优和技术攻坚。熟悉 Java、Go、JVM、Linux、分布式框架、微服务与游戏核心系统开发，也具备工程效能工具、团队招聘和新人培养经验。</p>
+        <p class="summary">14+ 年游戏服务器研发经验，长期负责服务器框架、中台服务、性能调优和技术攻坚。熟悉 Java、Go、JVM、Linux、分布式框架、微服务与游戏核心系统开发，近期聚焦 UE DS 性能优化、战场管理服务、云端成本控制与 AI 工程提效。</p>
 
         <div class="contact-grid" aria-label="联系方式">
           <div class="contact-item">
@@ -670,7 +710,11 @@
           </div>
           <div class="contact-item">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93"></path><path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07"></path></svg>
-            <a href="https://www.kwaibook.com">www.kwaibook.com</a>
+            <a href="https://zhangga.github.io/list">技术博客</a>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93"></path><path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07"></path></svg>
+            <a href="https://zhangga.github.io/resume">在线简历</a>
           </div>
           <div class="contact-item">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.1-6-2.5"></path><path d="M15 22v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.1-1.5 6.1-6.7a5.2 5.2 0 0 0-1.4-3.6 4.8 4.8 0 0 0-.1-3.6s-1.1-.3-3.7 1.4a12.8 12.8 0 0 0-6.8 0C5.6.8 4.5 1.1 4.5 1.1a4.8 4.8 0 0 0-.1 3.6A5.2 5.2 0 0 0 3 8.3c0 5.2 3.1 6.4 6.1 6.7a3.4 3.4 0 0 0-.9 2.6V22"></path></svg>
@@ -713,10 +757,13 @@
             <span class="chip">MongoDB</span>
             <span class="chip">微服务</span>
             <span class="chip">分布式框架</span>
-            <span class="chip">异步调用</span>
-            <span class="chip">事件响应</span>
             <span class="chip">NavMesh / AOI</span>
-            <span class="chip">Unity / UE4</span>
+            <span class="chip">Unity / UE5</span>
+            <span class="chip">UE DS</span>
+            <span class="chip">Agones</span>
+            <span class="chip">Iris</span>
+            <span class="chip">ARM</span>
+            <span class="chip">AI</span>
           </div>
         </section>
 
@@ -735,6 +782,7 @@
           <ul class="side-list">
             <li>英语 CET-4</li>
             <li>首届 Hackathon 最佳用户体验奖</li>
+            <li>朝夕光年 2025 Spot Bonus（个人）</li>
           </ul>
         </section>
 
@@ -750,19 +798,41 @@
 
       <main class="main">
         <section>
+          <h2>关键成果</h2>
+          <div class="impact-grid">
+            <div class="impact">
+              <strong>从 0 到 1</strong>
+              <span>主导搭建 UE DS 战场管理服务，覆盖 DS 生命周期、发布、调度、扩缩容和滚更链路。</span>
+            </div>
+            <div class="impact">
+              <strong>50%+</strong>
+              <span>接入 Agones 自动扩缩容、原地滚动更新和 ARM 版本，谷峰期服务器成本降低 50% 以上。</span>
+            </div>
+            <div class="impact">
+              <strong>5 倍</strong>
+              <span>营地 DS 支持多实例模式，单核负载提升 5 倍，内存占用降低 50%。</span>
+            </div>
+            <div class="impact">
+              <strong>20%</strong>
+              <span>接入 Iris 优化网络复制链路，CPU 消耗降低 20%，并配合 fork 模式提升战场负载。</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
           <h2>能力亮点</h2>
           <div class="highlight-grid">
             <div class="highlight">
               <strong>服务器架构</strong>
-              <span>参与并负责 SLG、MMO、沙盒、H5、休闲游戏等多类型服务器框架设计、维护和优化。</span>
+              <span>参与并负责 SLG、MMO、沙盒、H5、休闲游戏、UE DS 等多类型服务器框架设计、维护和优化。</span>
             </div>
             <div class="highlight">
               <strong>中台与通用服务</strong>
               <span>落地网关、货币、社交等通用服务，推进框架迭代、容器化、日志平台和数据埋点接入。</span>
             </div>
             <div class="highlight">
-              <strong>性能与稳定性</strong>
-              <span>熟悉 JVM、Linux、数据库与缓存，长期参与线上性能调优、维护工具和合服工具建设。</span>
+              <strong>性能与成本优化</strong>
+              <span>负责 UE DS 性能优化和成本控制，结合弹性伸缩、ARM、多实例、fork 和 Iris 等方案降低资源消耗。</span>
             </div>
             <div class="highlight">
               <strong>工程效能</strong>
@@ -774,7 +844,7 @@
             </div>
             <div class="highlight">
               <strong>技术探索</strong>
-              <span>有 AIGC 生成游戏玩法、前后端开发、Unity/UE4 等探索和项目实践经历。</span>
+              <span>有 AIGC 生成游戏玩法、前后端开发、Unity/UE5 等探索和项目实践经历。</span>
             </div>
           </div>
         </section>
@@ -787,17 +857,22 @@
               <div>
                 <div class="job-head">
                   <h3>北京字节跳动科技有限公司</h3>
-                  <span class="job-title">工作内容待补充</span>
+                  <span class="job-title">服务器架构 / UE DS 优化</span>
                 </div>
-                <p class="meta">第二段字节经历，具体项目、职责和成果后续补充。</p>
+                <p class="meta">项目：《雾影猎人》UE DS 战场管理服务、DS 生命周期管理、研发环境调试链路、AI 工程提效</p>
                 <ul class="bullets">
-                  <li>待补充当前项目方向、承担角色、核心产出和可量化结果。</li>
+                  <li>主导 UE Dedicated Server（DS）性能优化与成本控制，从零搭建整套战场管理服务，覆盖 DS 生命周期、发布、调度、扩缩容和滚更链路。</li>
+                  <li>推动 DS 发布接入 Agones，支持自动扩缩容和原地滚动更新，并支持 ARM 版本，谷峰期服务器成本降低 50% 以上。</li>
+                  <li>推进营地 DS 多实例模式与战场 fork 模式：单核负载提升 5 倍，内存占用降低 50%，战场负载提高 30%。</li>
+                  <li>接入 Iris，进一步优化网络复制链路，CPU 消耗降低 20%。</li>
+                  <li>搭建研发环境服务器部署平台，支持不同版本测试；支持 Editor 下运行 DS，减少本地 DS cook 依赖，提升日常开发效率。</li>
+                  <li>接入 AI CodeReview 平台，建立 harness 框架，并扩展研发环境 CLI 工具，提升代码质量和 AI 定位问题效率。</li>
                 </ul>
               </div>
             </article>
 
             <article class="job">
-              <div class="date">2021.10 - 2024.12</div>
+              <div class="date">2021.10 - 2025.01</div>
               <div>
                 <div class="job-head">
                   <h3>北京趣加科技有限公司</h3>
@@ -821,8 +896,9 @@
                 </div>
                 <p class="meta">项目：服务器中台、休闲游戏等</p>
                 <ul class="bullets">
-                  <li>负责效能工具开发、通用服务调研落地、服务器框架迭代和性能调优。</li>
-                  <li>建设项目脚手架、游戏数据配置工具，落地网关、货币、社交等通用服务。</li>
+                  <li>负责技术中心效能工具开发、通用服务调研落地、服务器框架迭代和性能调优。</li>
+                  <li>建设项目脚手架、游戏数据配置工具，提升项目初始化、配置生产和日常研发效率。</li>
+                  <li>落地网关服务、货币服务、社交服务等通用服务，沉淀休闲游戏可复用的服务能力。</li>
                   <li>整合公司基础设施，接入容器化、日志平台、数据埋点等工程能力。</li>
                 </ul>
               </div>
@@ -838,8 +914,9 @@
                 <p class="meta">项目：《空岛：创世纪》沙盒手游、《公仔大作战》.io + MOBA</p>
                 <ul class="bullets">
                   <li>负责技术招聘和新人培训，参与游戏核心系统开发。</li>
-                  <li>优化分布式、异步调用、事件响应机制的服务器框架。</li>
-                  <li>负责大世界场景底层建模、不同场景寻路优化、开放 NPC 系统和性能调优。</li>
+                  <li>优化服务器框架中的分布式、异步调用和事件响应机制，提升复杂玩法下的服务端扩展性。</li>
+                  <li>负责大世界场景底层建模、不同类型场景寻路优化、开放 NPC 系统和性能调优。</li>
+                  <li>支撑沙盒大世界与 .io + MOBA 玩法的核心服务器开发，兼顾功能落地和性能稳定性。</li>
                 </ul>
               </div>
             </article>
@@ -853,8 +930,8 @@
                 </div>
                 <p class="meta">项目：《烈火如歌》MMO 手游、沙盒手游</p>
                 <ul class="bullets">
-                  <li>负责 MMO 手游服务器端场景 NavMesh 接入、AOI 模块和任务系统。</li>
-                  <li>参与沙盒游戏新项目 Demo 期服务器框架优化和功能开发。</li>
+                  <li>负责《烈火如歌》服务器端场景 NavMesh 接入、AOI 模块和任务系统开发。</li>
+                  <li>参与沙盒游戏新项目 Demo 期服务器框架优化和核心功能开发。</li>
                 </ul>
               </div>
             </article>
@@ -868,9 +945,9 @@
                 </div>
                 <p class="meta">项目：《我叫 MT：山口山战记》H5、《三生三世 十里桃花》H5</p>
                 <ul class="bullets">
-                  <li>初期负责搭建服务器基础框架，支撑 MMOARPG 类型 H5 游戏多平台运营。</li>
-                  <li>参与 BOSS 战、跨服战、运营活动等功能开发。</li>
-                  <li>负责服务器性能调优，并主导运营工具、线上维护和合服工具开发。</li>
+                  <li>初期负责搭建服务器基础框架，支撑 MMOARPG 类型 H5 游戏在爱微游、手Q 等多平台运营。</li>
+                  <li>参与前后端功能开发，重点负责 BOSS 战、跨服战、运营活动等核心玩法。</li>
+                  <li>负责服务器性能调优，并主导运营工具、线上维护工具和合服工具开发。</li>
                 </ul>
               </div>
             </article>
@@ -885,7 +962,8 @@
                 <p class="meta">项目：《三国英雄联盟》、《英雄小镇》手游</p>
                 <ul class="bullets">
                   <li>初创团队成员，参与策略卡牌对战和经营战斗冒险 3D 手游研发。</li>
-                  <li>搭建 Netty 服务框架，引入 Redis、MongoDB，承担前后端功能开发。</li>
+                  <li>搭建 Netty 服务框架，引入 Redis、MongoDB，负责服务端基础能力建设。</li>
+                  <li>团队成员承担前后端开发，参与核心功能实现、联调和上线支持。</li>
                 </ul>
               </div>
             </article>
@@ -913,7 +991,8 @@
                 </div>
                 <p class="meta">项目：《部落农场》微博社交平台页游</p>
                 <ul class="bullets">
-                  <li>参与主要功能模块开发，并进行后期服务器性能调优。</li>
+                  <li>参与微博社交平台页游主要功能模块开发。</li>
+                  <li>参与后期服务器性能调优，支持项目线上稳定运行。</li>
                 </ul>
               </div>
             </article>
