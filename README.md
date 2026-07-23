@@ -4,13 +4,37 @@ source 分支才是 blog 真正的编辑源文件。
 
 master 分支是自动发布的产物。
 
-## init
+## 新电脑初始化
 
-1. clone 到本地后，安装 hexo：npm install hexo-cli -g
-2. 初始化环境，进入 zhangga.github.io 目录：执行 npm install
-3. 本地测试：hexo server
-4. 发布：直接提交 GitHub 自动发布，走的是 Github Actions，流程在.github/workflows/中。
-5. 安装 uPic 图床工具一键上传图片，直接获得 Markdown 语法。
+1. 安装 Git 和 Node.js。
+2. clone 仓库并切换到 `source` 分支。
+3. 在仓库根目录执行对应系统的初始化脚本。
+
+初始化脚本会自动拉取 Git Submodule、执行 `npm ci`、验证 Hexo 构建，并在成功后启动本地服务：
+
+Windows：
+
+```powershell
+.\init.cmd
+```
+
+macOS / Linux：
+
+```bash
+bash ./init.sh
+```
+
+如果只初始化和验证环境、不启动本地服务：
+
+```powershell
+.\init.cmd -SkipServer
+```
+
+```bash
+bash ./init.sh --skip-server
+```
+
+不需要全局安装 `hexo-cli`。发布时直接提交到 GitHub，GitHub Actions 会执行发布流程。
 
 ## 图床
 1. 在线：https://picx.xpoet.cn/#/upload
@@ -31,4 +55,4 @@ master 分支是自动发布的产物。
 1. 新建博文：hexo new post $title
 2. 新建草稿：hexo new draft $title
 3. 本地推送发布：hexo g && hexo d
-4. 目录：source/posts
+4. 目录：source/_posts
