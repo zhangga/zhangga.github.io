@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="UE5-Iris 网络复制系统技术分析指南" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    UE5-Iris 网络复制系统技术分析指南
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-07-24</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：3分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%B3%BB%E5%88%97%E5%A4%A7%E7%BA%B2"><span class="post-toc-text">系列大纲</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%A8%E9%83%A8%E6%96%87%E7%AB%A0"><span class="post-toc-text">全部文章</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%86%85%E5%AE%B9%E7%AE%80%E4%BB%8B"><span class="post-toc-text">内容简介</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9A%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%BF%B0%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="post-toc-text">第一部分：系统概述与架构设计</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E6%9E%B6%E6%9E%84%E5%B1%82%E6%AC%A1"><span class="post-toc-text">第二部分：架构层次</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86%EF%BC%9A%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="post-toc-text">第三部分：核心数据结构</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E5%9B%9B%E9%83%A8%E5%88%86%EF%BC%9A%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6%E8%AF%A6%E8%A7%A3"><span class="post-toc-text">第四部分：核心组件详解</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E4%BA%94%E9%83%A8%E5%88%86%EF%BC%9A%E8%BF%87%E6%BB%A4%E7%B3%BB%E7%BB%9F"><span class="post-toc-text">第五部分：过滤系统</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E5%85%AD%E9%83%A8%E5%88%86%EF%BC%9A%E4%BC%98%E5%85%88%E7%BA%A7%E7%B3%BB%E7%BB%9F"><span class="post-toc-text">第六部分：优先级系统</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E4%B8%83%E9%83%A8%E5%88%86%EF%BC%9A%E5%BA%8F%E5%88%97%E5%8C%96%E7%B3%BB%E7%BB%9F"><span class="post-toc-text">第七部分：序列化系统</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E5%85%AB%E9%83%A8%E5%88%86%EF%BC%9A%E6%95%B0%E6%8D%AE%E6%B5%81%E4%B8%8E%E4%BC%A0%E8%BE%93"><span class="post-toc-text">第八部分：数据流与传输</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E4%B9%9D%E9%83%A8%E5%88%86%EF%BC%9ANetBlob-%E7%B3%BB%E7%BB%9F"><span class="post-toc-text">第九部分：NetBlob 系统</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E5%8D%81%E9%83%A8%E5%88%86%EF%BC%9A%E5%A2%9E%E9%87%8F%E5%8E%8B%E7%BC%A9"><span class="post-toc-text">第十部分：增量压缩</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E5%8D%81%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9A%E8%BD%AE%E8%AF%A2%E4%B8%8E%E8%84%8F%E6%95%B0%E6%8D%AE%E6%A3%80%E6%B5%8B"><span class="post-toc-text">第十一部分：轮询与脏数据检测</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%AC%AC%E5%8D%81%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8%E4%B8%8E%E4%BE%9D%E8%B5%96"><span class="post-toc-text">第十二部分：对象引用与依赖</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%96%87%E7%AB%A0%E6%9D%A5%E6%BA%90"><span class="post-toc-text">文章来源</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>本页是《UE5 Iris 网络复制系统技术分析指南》的统一入口。目前已发布系列大纲和第 1～12 部分，内容从整体架构、核心数据结构一路深入到过滤、优先级、序列化、数据流、NetBlob、增量压缩、脏数据检测以及对象引用与依赖。</p>
+<p>各部分的完整正文仍以独立 HTML 形式保留；后续新增章节也会继续汇总到本页，不再为每一部分单独创建简短 Post。</p>
+<span id="more"></span>
+
+<h2 id="系列大纲"><a href="#系列大纲" class="headerlink" title="系列大纲"></a>系列大纲</h2><ul>
+<li><a href="/html-articles/ue5-iris-guide-outline/">查看完整系列大纲</a></li>
+</ul>
+<h2 id="全部文章"><a href="#全部文章" class="headerlink" title="全部文章"></a>全部文章</h2><table>
+<thead>
+<tr>
+<th>部分</th>
+<th>主题</th>
+<th>完整文章</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一部分</td>
+<td>系统概述与架构设计</td>
+<td><a href="/html-articles/ue5-iris-guide-part-1/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第二部分</td>
+<td>架构层次</td>
+<td><a href="/html-articles/ue5-iris-guide-part-2/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第三部分</td>
+<td>核心数据结构</td>
+<td><a href="/html-articles/ue5-iris-guide-part-3/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第四部分</td>
+<td>核心组件详解</td>
+<td><a href="/html-articles/ue5-iris-guide-part-4/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第五部分</td>
+<td>过滤系统</td>
+<td><a href="/html-articles/ue5-iris-guide-part-5/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第六部分</td>
+<td>优先级系统</td>
+<td><a href="/html-articles/ue5-iris-guide-part-6/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第七部分</td>
+<td>序列化系统</td>
+<td><a href="/html-articles/ue5-iris-guide-part-7/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第八部分</td>
+<td>数据流与传输</td>
+<td><a href="/html-articles/ue5-iris-guide-part-8/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第九部分</td>
+<td>NetBlob 系统</td>
+<td><a href="/html-articles/ue5-iris-guide-part-9/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第十部分</td>
+<td>增量压缩</td>
+<td><a href="/html-articles/ue5-iris-guide-part-10/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第十一部分</td>
+<td>轮询与脏数据检测</td>
+<td><a href="/html-articles/ue5-iris-guide-part-11/">打开 HTML</a></td>
+</tr>
+<tr>
+<td>第十二部分</td>
+<td>对象引用与依赖</td>
+<td><a href="/html-articles/ue5-iris-guide-part-12/">打开 HTML</a></td>
+</tr>
+</tbody></table>
+<h2 id="内容简介"><a href="#内容简介" class="headerlink" title="内容简介"></a>内容简介</h2><h3 id="第一部分：系统概述与架构设计"><a href="#第一部分：系统概述与架构设计" class="headerlink" title="第一部分：系统概述与架构设计"></a>第一部分：系统概述与架构设计</h3><p>介绍 Iris 的启用方式、设计目标与适用场景，梳理从游戏层到网络传输层的整体架构、数据流向及核心设计理念。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-1/">阅读第一部分</a></p>
+<h3 id="第二部分：架构层次"><a href="#第二部分：架构层次" class="headerlink" title="第二部分：架构层次"></a>第二部分：架构层次</h3><p>以国际快递中心为类比，逐层拆解游戏对象、引擎桥接、对象桥接、复制系统、数据流与网络传输之间的完整发送和接收路径。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-2/">阅读第二部分</a></p>
+<h3 id="第三部分：核心数据结构"><a href="#第三部分：核心数据结构" class="headerlink" title="第三部分：核心数据结构"></a>第三部分：核心数据结构</h3><p>深入介绍网络对象句柄、复制状态描述符、复制片段、复制协议及描述符构建器，并说明这些结构如何共同描述一个可复制对象。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-3/">阅读第三部分</a></p>
+<h3 id="第四部分：核心组件详解"><a href="#第四部分：核心组件详解" class="headerlink" title="第四部分：核心组件详解"></a>第四部分：核心组件详解</h3><p>分析 <code>UReplicationSystem</code>、各级 <code>ReplicationBridge</code> 与 <code>FNetRefHandleManager</code>，覆盖初始化、更新循环、对象生命周期和连接管理。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-4/">阅读第四部分</a></p>
+<h3 id="第五部分：过滤系统"><a href="#第五部分：过滤系统" class="headerlink" title="第五部分：过滤系统"></a>第五部分：过滤系统</h3><p>回答“哪些对象应该进入某条连接的复制作用域”，讲解 Owner、Connection、Group 与 Dynamic Filtering，以及 GridFilter、组覆盖和滞后机制。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-5/">阅读第五部分</a></p>
+<h3 id="第六部分：优先级系统"><a href="#第六部分：优先级系统" class="headerlink" title="第六部分：优先级系统"></a>第六部分：优先级系统</h3><p>回答“通过过滤的对象，本帧应该先发送谁”，讲解静态与动态优先级、Sphere、FieldOfView、Owner Boost、Count Limiter、跨帧累计和位预算。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-6/">阅读第六部分</a></p>
+<h3 id="第七部分：序列化系统"><a href="#第七部分：序列化系统" class="headerlink" title="第七部分：序列化系统"></a>第七部分：序列化系统</h3><p>沿 Gameplay Value、Descriptor、Quantize、ChangeMask、BitStream、Dequantize 与 Apply 的完整链路，讲解内置和自定义 <code>FNetSerializer</code>。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-7/">阅读第七部分</a></p>
+<h3 id="第八部分：数据流与传输"><a href="#第八部分：数据流与传输" class="headerlink" title="第八部分：数据流与传输"></a>第八部分：数据流与传输</h3><p>沿对象状态进入 <code>UReplicationDataStream</code>、共享包预算、接收派发和状态应用的路径，分析 DataStream 生命周期、投递反馈、Attachment 与分块传输。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-8/">阅读第八部分</a></p>
+<h3 id="第九部分：NetBlob-系统"><a href="#第九部分：NetBlob-系统" class="headerlink" title="第九部分：NetBlob 系统"></a>第九部分：NetBlob 系统</h3><p>追踪一份对象附件从创建、类型路由、逐连接排队和可靠窗口，到 Partial 分片、接收端组装与最终交付的全过程。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-9/">阅读第九部分</a></p>
+<h3 id="第十部分：增量压缩"><a href="#第十部分：增量压缩" class="headerlink" title="第十部分：增量压缩"></a>第十部分：增量压缩</h3><p>区分 ChangeMask、逐连接 Baseline 与成员 Delta 序列化，分析双槽位 Baseline、ACK/Lost、失效、丢包恢复和内存成本。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-10/">阅读第十部分</a></p>
+<h3 id="第十一部分：轮询与脏数据检测"><a href="#第十一部分：轮询与脏数据检测" class="headerlink" title="第十一部分：轮询与脏数据检测"></a>第十一部分：轮询与脏数据检测</h3><p>拆解 <code>DirtyNetObjectTracker</code>、Push Model、<code>ObjectPoller</code> 与频率限制，说明对象级脏位、成员 Poll Mask 和量化 ChangeMask 的边界。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-11/">阅读第十一部分</a></p>
+<h3 id="第十二部分：对象引用与依赖"><a href="#第十二部分：对象引用与依赖" class="headerlink" title="第十二部分：对象引用与依赖"></a>第十二部分：对象引用与依赖</h3><p>沿引用采集、身份导出、远端解析或排队、Factory 创建和依赖调度的链路，分析 <code>ObjectReferenceCache</code>、<code>NetDependencyData</code>、<code>NetTokenStore</code> 与 <code>NetObjectFactory</code>。</p>
+<p><a href="/html-articles/ue5-iris-guide-part-12/">阅读第十二部分</a></p>
+<h2 id="文章来源"><a href="#文章来源" class="headerlink" title="文章来源"></a>文章来源</h2><p>系列大纲与第一至第四部分整理自 Smartuil 发布的知乎专栏文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1996685633524089868">系列大纲原文</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1996686801008611714">第一部分原文</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1996687209709991513">第二部分原文</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1996687444926562622">第三部分原文</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1999247087972419399">第四部分原文</a></li>
+</ul>
+<p>第五部分起由 Jossy Zhang 根据系列大纲原创扩写，技术结论依据对应版本的 Epic Games 官方文档、本地 Unreal Engine 源码和 ReplicationSystemTestPlugin 自动化测试。每篇完整 HTML 文章均在正文中注明具体版本与技术依据。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-07-24</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                        <a href='/tags/Iris/'>
+                            Iris
+                        </a>
+                    
+                        <a href='/tags/%E7%BD%91%E7%BB%9C%E5%A4%8D%E5%88%B6/'>
+                            网络复制
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/iris-baseline/'>iris-baseline</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ds-grafana/">DS 帧率卡顿定位 · Grafana 看板设计方案</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

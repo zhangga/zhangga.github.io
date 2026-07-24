@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="一个基于「引用计数 + 前缀头部」的共享缓冲区设计" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    一个基于「引用计数 + 前缀头部」的共享缓冲区设计
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-07-24</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.5k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：9分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#SharedBuffer-%E5%B7%A7%E5%A6%99%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%E8%A6%81%E7%82%B9"><span class="post-toc-text">SharedBuffer 巧妙数据结构设计要点</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#0-%E5%8E%9F%E5%A7%8B%E4%BB%A3%E7%A0%81"><span class="post-toc-text">0. 原始代码</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%EF%BC%9A%E4%B8%80%E5%9D%97%E8%BF%9E%E7%BB%AD%E5%86%85%E5%AD%98%EF%BC%8C%E5%A4%B4%E9%83%A8-%E6%95%B0%E6%8D%AE%E5%8C%BA"><span class="post-toc-text">1. 内存布局：一块连续内存，头部 + 数据区</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-%E7%9F%A5%E8%AF%86%E7%82%B9%E4%B8%80%EF%BC%9A%E5%B5%8C%E5%A5%97%E7%B1%BB%E5%9E%8B%E5%A3%B0%E6%98%8E-%E2%89%A0-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F"><span class="post-toc-text">2. 知识点一：嵌套类型声明 ≠ 成员变量</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-%E7%9F%A5%E8%AF%86%E7%82%B9%E4%BA%8C%EF%BC%9A%E6%8C%87%E9%92%88%E7%AE%97%E6%9C%AF%EF%BC%8C-1-%E5%87%8F%E7%9A%84%E6%98%AF%E2%80%9D%E4%B8%80%E4%B8%AA%E5%85%83%E7%B4%A0%E2%80%9D"><span class="post-toc-text">3. 知识点二：指针算术，-1 减的是”一个元素”</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-%E7%9F%A5%E8%AF%86%E7%82%B9%E4%B8%89%EF%BC%9A%E5%89%8D%E7%BC%80%E5%A4%B4%E9%83%A8%EF%BC%88Prefix-Header%EF%BC%89%E6%8A%80%E5%B7%A7"><span class="post-toc-text">4. 知识点三：前缀头部（Prefix Header）技巧</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-%E7%9F%A5%E8%AF%86%E7%82%B9%E5%9B%9B%EF%BC%9A%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0-%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6%EF%BC%88COW%EF%BC%89"><span class="post-toc-text">5. 知识点四：引用计数 + 写时复制（COW）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-1-%E7%9F%A5%E8%AF%86%E7%82%B9%E5%9B%9B%C2%B7%E8%BF%9B%E9%98%B6%EF%BC%9A%E5%8E%9F%E5%AD%90%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E7%9A%84%E4%B8%A4%E4%B8%AA%E6%96%B9%E6%B3%95%E4%B8%8E%E5%86%85%E5%AD%98%E5%BA%8F"><span class="post-toc-text">5.1 知识点四·进阶：原子引用计数的两个方法与内存序</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-fetch-add-fetch-sub-%E8%BF%94%E5%9B%9E%E7%9A%84%E6%98%AF%E3%80%8C%E6%97%A7%E5%80%BC%E3%80%8D"><span class="post-toc-text">(1) fetch_add &#x2F; fetch_sub 返回的是「旧值」</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-addref-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8-relaxed%EF%BC%88%E6%9C%80%E5%AE%BD%E6%9D%BE%EF%BC%89"><span class="post-toc-text">(2) addref 为什么用 relaxed（最宽松）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-release-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8-acq-rel%EF%BC%88%E8%8E%B7%E5%8F%96-%E9%87%8A%E6%94%BE%EF%BC%89"><span class="post-toc-text">(3) release 为什么用 acq_rel（获取 + 释放）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-delete-this-%E6%83%AF%E7%94%A8%E6%B3%95"><span class="post-toc-text">(4) delete this 惯用法</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-%E8%BF%9B%E9%98%B6%E4%BC%98%E5%8C%96%EF%BC%88%E4%BA%86%E8%A7%A3%E5%8D%B3%E5%8F%AF%EF%BC%89"><span class="post-toc-text">(5) 进阶优化（了解即可）</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-%E7%9F%A5%E8%AF%86%E7%82%B9%E4%BA%94%EF%BC%9A%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90%E5%B8%A6%E6%9D%A5%E7%9A%84%E5%AE%9E%E9%99%85%E5%A4%A7%E5%B0%8F%E5%B7%AE%E5%BC%82"><span class="post-toc-text">6. 知识点五：内存对齐带来的实际大小差异</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#7-%E9%87%8A%E6%94%BE%E6%97%B6%E7%9A%84%E9%99%B7%E9%98%B1"><span class="post-toc-text">7. 释放时的陷阱</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#8-%E4%B8%80%E5%9B%BE%E6%80%BB%E7%BB%93%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="post-toc-text">8. 一图总结知识点</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#9-%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="post-toc-text">9. 延伸阅读关键词</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="SharedBuffer-巧妙数据结构设计要点"><a href="#SharedBuffer-巧妙数据结构设计要点" class="headerlink" title="SharedBuffer 巧妙数据结构设计要点"></a>SharedBuffer 巧妙数据结构设计要点</h1><blockquote>
+<p>一个基于「引用计数 + 前缀头部」的共享缓冲区设计，常见于高性能网络库 / 序列化库。</p>
+<p>命名说明：</p>
+<ul>
+<li>**<code>SharedBuffer</code>**（共享缓冲区，对外使用的类）</li>
+<li>**<code>Header</code>**（头部元数据，藏在数据区前面的管理信息）</li>
+</ul>
+</blockquote>
+<h2 id="0-原始代码"><a href="#0-原始代码" class="headerlink" title="0. 原始代码"></a>0. 原始代码</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SharedBuffer</span> &#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">Header</span> &#123;</span><br><span class="line">        <span class="type">size_t</span> cap;            <span class="comment">// 容量：这块缓冲能装多少字节</span></span><br><span class="line">        <span class="type">size_t</span> len;            <span class="comment">// 当前实际长度：用了多少字节</span></span><br><span class="line">        std::atomic_long ref;  <span class="comment">// 引用计数：多少个 SharedBuffer 共享我</span></span><br><span class="line">        <span class="comment">// ……方法……</span></span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="type">void</span> *base;                <span class="comment">// 唯一的数据成员！指向&quot;真实数据区&quot;的首字节</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>核心思想一句话：**<code>SharedBuffer</code> 对象本身只有一个指针那么大，所有元数据和数据都藏在堆上的同一块连续内存里。**</p>
+<hr>
+<h2 id="1-内存布局：一块连续内存，头部-数据区"><a href="#1-内存布局：一块连续内存，头部-数据区" class="headerlink" title="1. 内存布局：一块连续内存，头部 + 数据区"></a>1. 内存布局：一块连续内存，头部 + 数据区</h2><p>分配时一次性申请 <code>sizeof(Header) + cap</code> 字节，排列成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">     ┌──────────── 一块连续的堆内存 ────────────┐</span><br><span class="line">     │                                          │</span><br><span class="line">     ▼                                          ▼</span><br><span class="line">  ┌────────┬────────┬────────┬─────────────────────────┐</span><br><span class="line">  │  cap   │  len   │  ref   │      数据区 (cap 字节)     │</span><br><span class="line">  └────────┴────────┴────────┴─────────────────────────┘</span><br><span class="line">  ▲                          ▲</span><br><span class="line">  │                          │</span><br><span class="line">起始地址                    base 指向这里（数据区首字节）</span><br><span class="line">(Header 头部)</span><br><span class="line">  │←──────  sizeof(Header)  →│</span><br></pre></td></tr></table></figure>
+
+<p>关键点：</p>
+<ul>
+<li><code>base</code> 存的是<strong>数据区首字节地址</strong>，不是这块内存的起始地址。</li>
+<li>真正的起始地址（Header 头部）在 <code>base</code> 前方 <code>sizeof(Header)</code> 字节处。</li>
+<li>头部与数据区<strong>紧贴、连续</strong>，缓存局部性好，一次分配、一次释放。</li>
+</ul>
+<hr>
+<h2 id="2-知识点一：嵌套类型声明-≠-成员变量"><a href="#2-知识点一：嵌套类型声明-≠-成员变量" class="headerlink" title="2. 知识点一：嵌套类型声明 ≠ 成员变量"></a>2. 知识点一：嵌套类型声明 ≠ 成员变量</h2><p><code>struct Header &#123; ... &#125;;</code> 写在 <code>SharedBuffer</code> 内部，只是定义了一个<strong>嵌套类型</strong> <code>SharedBuffer::Header</code>，它<strong>不占用 <code>SharedBuffer</code> 的任何字节</strong>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SharedBuffer</span> &#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">Header</span> &#123; <span class="type">size_t</span> cap; <span class="type">size_t</span> len; std::atomic_long ref; &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Header  header;  // ← 如果这样写，Header 才会内联进 SharedBuffer，对象变大</span></span><br><span class="line">    <span class="type">void</span>* base;         <span class="comment">// ← 当前写法：只放一个指针</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>验证：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sizeof</span>(SharedBuffer) == <span class="built_in">sizeof</span>(<span class="type">void</span>*)   <span class="comment">// 64 位平台恒为 8 字节，与 Header 里字段多少无关</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>Header 在哪</th>
+<th>sizeof(SharedBuffer)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Header header;</code>（值成员）</td>
+<td>内联在 SharedBuffer 对象里</td>
+<td>至少 <code>sizeof(Header)</code></td>
+</tr>
+<tr>
+<td><code>void* base;</code>（当前）</td>
+<td>堆上独立分配，SharedBuffer 只存指针</td>
+<td><code>sizeof(void*)</code> = 8</td>
+</tr>
+</tbody></table>
+<p>嵌套定义的作用是<strong>类型作用域组织</strong>：把 <code>Header</code> 藏在 <code>SharedBuffer</code> 命名空间内，避免污染外部命名空间。</p>
+<hr>
+<h2 id="3-知识点二：指针算术，-1-减的是”一个元素”"><a href="#3-知识点二：指针算术，-1-减的是”一个元素”" class="headerlink" title="3. 知识点二：指针算术，-1 减的是”一个元素”"></a>3. 知识点二：指针算术，<code>-1</code> 减的是”一个元素”</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Header* header = (Header*)base - <span class="number">1</span>;   <span class="comment">// 定位头部</span></span><br></pre></td></tr></table></figure>
+
+<p>运算顺序：</p>
+<ol>
+<li><code>(Header*)base</code> —— 先把 <code>void*</code> 转成 <code>Header*</code>，编译器认为它指向一个 <code>Header</code>。</li>
+<li><code>- 1</code> —— 在 <code>Header*</code> 上减 1，地址后退 <strong><code>1 × sizeof(Header)</code> 字节</strong>，而不是 1 字节。</li>
+</ol>
+<p>真实地址公式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">地址 = (char*)p ± n * sizeof(*p)</span><br></pre></td></tr></table></figure>
+
+<p>同样是 <code>-1</code>，指针类型不同，退的字节数完全不同：</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>每步字节数</th>
+<th><code>-1</code> 后退</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>(char*)base - 1</code></td>
+<td>1</td>
+<td>1 字节</td>
+</tr>
+<tr>
+<td><code>(int*)base - 1</code></td>
+<td>4</td>
+<td>4 字节</td>
+</tr>
+<tr>
+<td><code>(Header*)base - 1</code></td>
+<td><code>sizeof(Header)</code></td>
+<td>整个 Header 头部</td>
+</tr>
+</tbody></table>
+<p>因为布局是 <code>[Header 头部][数据区]</code> 且 <code>base</code> 指向数据区首字节，所以 <code>(Header*)base - 1</code> 精确后退一整个头部，落在头部起始处，且类型正好是 <code>Header*</code>，可直接 <code>header-&gt;cap</code>、<code>header-&gt;ref</code>。</p>
+<p><strong>记忆口诀：指针 <code>-1</code> 减的是”一个元素”，元素多大由指针类型决定，与字节数无关。</strong></p>
+<hr>
+<h2 id="4-知识点三：前缀头部（Prefix-Header）技巧"><a href="#4-知识点三：前缀头部（Prefix-Header）技巧" class="headerlink" title="4. 知识点三：前缀头部（Prefix Header）技巧"></a>4. 知识点三：前缀头部（Prefix Header）技巧</h2><p>这种”把元数据放在数据区前面、对外只暴露数据指针”的手法，业界称为 <strong>prefix header / fat pointer 的变体</strong>，也被 SDS（Redis 字符串）、部分 STL 实现、COW 字符串广泛使用。</p>
+<p>对外接口拿到的是”干净”的数据指针，需要元数据时反向偏移取头部：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Header* <span class="title">header</span><span class="params">()</span>  </span>&#123; <span class="keyword">return</span> (Header*)base - <span class="number">1</span>; &#125;</span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">size</span><span class="params">()</span>     </span>&#123; <span class="keyword">return</span> <span class="built_in">header</span>()-&gt;len; &#125;</span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">capacity</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="built_in">header</span>()-&gt;cap; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<ul>
+<li>使用方无需关心元数据，<code>base</code> 可以像普通 <code>char*</code> 一样传递。</li>
+<li>元数据与数据一次分配，减少内存碎片、提升局部性。</li>
+</ul>
+<hr>
+<h2 id="5-知识点四：引用计数-写时复制（COW）"><a href="#5-知识点四：引用计数-写时复制（COW）" class="headerlink" title="5. 知识点四：引用计数 + 写时复制（COW）"></a>5. 知识点四：引用计数 + 写时复制（COW）</h2><p><code>ref</code> 用 <code>std::atomic_long</code>，支持多个 <code>SharedBuffer</code> <strong>共享同一块内存</strong>：</p>
+<ul>
+<li><strong>拷贝</strong> <code>SharedBuffer</code>：只拷贝 <code>base</code> 指针，并对 <code>ref</code> 原子自增，<strong>不复制数据</strong>（浅拷贝，O(1)）。</li>
+<li><strong>析构 / 释放</strong>：<code>ref</code> 原子自减，减到 0 时才真正 <code>free</code> 整块内存。</li>
+<li><strong>写时复制（COW）</strong>：真正要修改内容前，若 <code>ref &gt; 1</code>，先复制出一份独享副本再改，避免影响其他共享者。</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码</span></span><br><span class="line"><span class="built_in">SharedBuffer</span>(<span class="type">const</span> SharedBuffer&amp; o) : <span class="built_in">base</span>(o.base) &#123; <span class="built_in">header</span>()-&gt;ref.<span class="built_in">fetch_add</span>(<span class="number">1</span>); &#125;</span><br><span class="line"></span><br><span class="line">~<span class="built_in">SharedBuffer</span>() &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">header</span>()-&gt;ref.<span class="built_in">fetch_sub</span>(<span class="number">1</span>) == <span class="number">1</span>)   <span class="comment">// 我是最后一个</span></span><br><span class="line">        <span class="built_in">free</span>(<span class="built_in">header</span>());                      <span class="comment">// 释放整块（从头部起始处 free）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>用 <code>atomic</code> 是为了<strong>多线程下引用计数安全</strong>；注意 COW 本身在多线程写场景仍需额外同步。</p>
+<hr>
+<h2 id="5-1-知识点四·进阶：原子引用计数的两个方法与内存序"><a href="#5-1-知识点四·进阶：原子引用计数的两个方法与内存序" class="headerlink" title="5.1 知识点四·进阶：原子引用计数的两个方法与内存序"></a>5.1 知识点四·进阶：原子引用计数的两个方法与内存序</h2><p>引用计数的加/减通常写成两个方法，是并发编程的教科书级写法（和 <code>std::shared_ptr</code> 内部控制块几乎一致），难点全在 <code>std::memory_order</code> 的选择上：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> SharedBuffer::Header::<span class="built_in">addref</span>() &#123;</span><br><span class="line">    ref.<span class="built_in">fetch_add</span>(<span class="number">1</span>, std::memory_order_relaxed);   <span class="comment">// 计数 +1</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> SharedBuffer::Header::<span class="built_in">release</span>() &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="number">1</span> == ref.<span class="built_in">fetch_sub</span>(<span class="number">1</span>, std::memory_order_acq_rel)) &#123;</span><br><span class="line">        <span class="keyword">delete</span> <span class="keyword">this</span>;   <span class="comment">// 减到 0 → 我是最后一个使用者 → 释放内存</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-fetch-add-fetch-sub-返回的是「旧值」"><a href="#1-fetch-add-fetch-sub-返回的是「旧值」" class="headerlink" title="(1) fetch_add / fetch_sub 返回的是「旧值」"></a>(1) fetch_add / fetch_sub 返回的是「旧值」</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ref.<span class="built_in">fetch_add</span>(<span class="number">1</span>, ...);   <span class="comment">// 原子地做 ref = ref + 1，返回【修改前】的值</span></span><br><span class="line">ref.<span class="built_in">fetch_sub</span>(<span class="number">1</span>, ...);   <span class="comment">// 原子地做 ref = ref - 1，返回【修改前】的值</span></span><br></pre></td></tr></table></figure>
+
+<p>所以 <code>if (1 == ref.fetch_sub(1, ...))</code> 判断的是「旧值为 1 → 减完变成 0 → 我是最后一个」。<br>用旧值判断而不是「先减再读」，是为了让<strong>判断和递减处于同一个原子操作内</strong>，中间不会被其他线程插入，避免竞态。</p>
+<h3 id="2-addref-为什么用-relaxed（最宽松）"><a href="#2-addref-为什么用-relaxed（最宽松）" class="headerlink" title="(2) addref 为什么用 relaxed（最宽松）"></a>(2) addref 为什么用 relaxed（最宽松）</h3><p><code>relaxed</code> 只保证自增<strong>本身是原子的</strong>（不会两个线程同时 +1 却只加一次），不建立任何跨线程内存顺序约束。</p>
+<p>够用的原因：调用 <code>addref</code> 的前提是<strong>当前线程已持有一个有效引用</strong>（计数至少为 1，对象此刻绝不会被销毁）。增加引用只是「多登记一个使用者」，不需要看见其他线程的数据修改，也不需要保护其他内存的读写顺序。既然没有同步需求，就用最廉价的 <code>relaxed</code>，省掉内存屏障开销。</p>
+<h3 id="3-release-为什么用-acq-rel（获取-释放）"><a href="#3-release-为什么用-acq-rel（获取-释放）" class="headerlink" title="(3) release 为什么用 acq_rel（获取 + 释放）"></a>(3) release 为什么用 acq_rel（获取 + 释放）</h3><p><code>acq_rel</code> = <code>acquire</code> + <code>release</code> 合体，两个语义各解决一个问题：</p>
+<ul>
+<li><strong>release 语义</strong>：像一道单向屏障，保证本线程在 <code>fetch_sub</code> <strong>之前</strong>的所有内存写入（比如刚往缓冲区写过数据），不会被重排到递减之后。这样其他线程一旦观察到这次递减，就一定能看到完整的数据写入——把自己的修改「发布」出去。</li>
+<li><strong>acquire 语义</strong>：保证最后归零、要执行 <code>delete this</code> 的线程，在 <code>fetch_sub</code> <strong>之后</strong>能完整看到其他所有线程之前的写入——「接收」前面所有线程发布的修改，才能安全销毁，否则析构时可能读到过期数据。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>需要的语义</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>非最后一个线程递减</td>
+<td><code>release</code></td>
+<td>把自己的修改发布出去，让后来者能看到</td>
+</tr>
+<tr>
+<td>最后一个线程递减到 0</td>
+<td><code>acquire</code></td>
+<td>接收前面所有线程的修改，才能安全销毁</td>
+</tr>
+</tbody></table>
+<p>因为<strong>同一行代码既可能是「非最后一个」也可能是「最后一个」</strong>（取决于运行时哪个线程最后到达），所以两种语义都要，合起来就是 <code>acq_rel</code>。</p>
+<h3 id="4-delete-this-惯用法"><a href="#4-delete-this-惯用法" class="headerlink" title="(4) delete this 惯用法"></a>(4) delete this 惯用法</h3><ul>
+<li>由于 <code>fetch_sub</code> 的原子性，全世界<strong>只有一个线程</strong>能拿到旧值 <code>1</code>，因此 <code>delete this</code> 只执行一次，不会重复释放。</li>
+<li><code>delete this</code> 后 <code>this</code> 立即失效，必须是函数的<strong>最后一条语句</strong>，之后绝不能再访问任何成员。</li>
+</ul>
+<h3 id="5-进阶优化（了解即可）"><a href="#5-进阶优化（了解即可）" class="headerlink" title="(5) 进阶优化（了解即可）"></a>(5) 进阶优化（了解即可）</h3><p>工业级实现常把 <code>acquire</code> 开销从「每次递减」降到「仅归零那一次」：递减用较便宜的 <code>release</code>，确认归零后再补一个 <code>acquire</code> 屏障才销毁，效果等价、开销更低：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="number">1</span> == ref.<span class="built_in">fetch_sub</span>(<span class="number">1</span>, std::memory_order_release)) &#123;</span><br><span class="line">    std::<span class="built_in">atomic_thread_fence</span>(std::memory_order_acquire);  <span class="comment">// 归零时才补 acquire</span></span><br><span class="line">    <span class="keyword">delete</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>入门直接用 <code>acq_rel</code> 更简洁易懂，正确性完全没问题。</p>
+<hr>
+<h2 id="6-知识点五：内存对齐带来的实际大小差异"><a href="#6-知识点五：内存对齐带来的实际大小差异" class="headerlink" title="6. 知识点五：内存对齐带来的实际大小差异"></a>6. 知识点五：内存对齐带来的实际大小差异</h2><p>理论上 <code>sizeof(Header) = 8 + 8 + 4 = 20</code>，但受<strong>内存对齐</strong>影响：</p>
+<ul>
+<li><code>std::atomic_long</code> 在 64 位平台常按 8 字节对齐 / 大小为 8。</li>
+<li>编译器会在结构体尾部补齐（padding），使 <code>sizeof(Header)</code> 成为对齐值的整数倍。</li>
+<li>实际 <code>sizeof(Header)</code> 常为 <strong>24 字节</strong>，数据区从对齐后的偏移开始。</li>
+</ul>
+<p>所以不要手写死 <code>base - 20</code>，<strong>永远用 <code>sizeof(Header)</code>（即 <code>(Header*)base - 1</code>）</strong>让编译器算，才能自动兼容对齐和平台差异。</p>
+<hr>
+<h2 id="7-释放时的陷阱"><a href="#7-释放时的陷阱" class="headerlink" title="7. 释放时的陷阱"></a>7. 释放时的陷阱</h2><p>因为 <code>base</code> 不是 <code>malloc</code> 返回的原始地址，<strong>释放时必须回退到头部</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">free</span>(<span class="built_in">header</span>());       <span class="comment">// 正确：free((Header*)base - 1)</span></span><br><span class="line"><span class="comment">// free(base);        // 错误！base 不是分配起始地址，会导致未定义行为</span></span><br></pre></td></tr></table></figure>
+
+<p>分配同理，<code>malloc</code> 之后要把返回指针<strong>向后偏移 <code>sizeof(Header)</code></strong> 才得到 <code>base</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>* mem = <span class="built_in">malloc</span>(<span class="built_in">sizeof</span>(Header) + cap);</span><br><span class="line">Header* h = <span class="built_in">new</span> (mem) Header&#123;cap, <span class="number">0</span>, <span class="number">1</span>&#125;;   <span class="comment">// placement new 构造头部</span></span><br><span class="line">base = (<span class="type">void</span>*)(h + <span class="number">1</span>);                      <span class="comment">// base = 头部之后的数据区</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-一图总结知识点"><a href="#8-一图总结知识点" class="headerlink" title="8. 一图总结知识点"></a>8. 一图总结知识点</h2><table>
+<thead>
+<tr>
+<th>#</th>
+<th>知识点</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>嵌套类型</td>
+<td>类内 <code>struct Header&#123;&#125;</code> 只是声明类型，不占对象内存</td>
+</tr>
+<tr>
+<td>2</td>
+<td>指针算术</td>
+<td><code>-1</code> 退一个元素 = <code>sizeof(*p)</code> 字节，非 1 字节</td>
+</tr>
+<tr>
+<td>3</td>
+<td>前缀头部</td>
+<td>元数据藏数据前，对外只给数据指针，反向偏移取头</td>
+</tr>
+<tr>
+<td>4</td>
+<td>引用计数</td>
+<td><code>atomic ref</code> 实现 O(1) 浅拷贝共享 + 归零释放</td>
+</tr>
+<tr>
+<td>4+</td>
+<td>内存序</td>
+<td><code>addref</code> 用 <code>relaxed</code>；<code>release</code> 用 <code>acq_rel</code>，判旧值==1 才 <code>delete this</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>写时复制</td>
+<td>改前判断 <code>ref&gt;1</code> 则先复制，隔离共享者</td>
+</tr>
+<tr>
+<td>6</td>
+<td>内存对齐</td>
+<td>用 <code>sizeof(Header)</code> 而非硬编码字节数</td>
+</tr>
+<tr>
+<td>7</td>
+<td>分配/释放</td>
+<td><code>free</code> 和 <code>malloc</code> 都针对头部起始地址，别用 base</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="9-延伸阅读关键词"><a href="#9-延伸阅读关键词" class="headerlink" title="9. 延伸阅读关键词"></a>9. 延伸阅读关键词</h2><ul>
+<li>Prefix header / intrusive metadata</li>
+<li>Copy-on-write (COW) string</li>
+<li>Reference counting、<code>std::shared_ptr</code> 控制块的相似思路</li>
+<li>placement new / 手动内存管理</li>
+<li>Redis SDS (Simple Dynamic Strings) 的头部布局</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-07-04</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/timebased-bucket/'>令牌桶限流：一个 long 字段搞定的时间戳法实现详解</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/msvc-bug/">std::mutex ABI 不兼容崩溃排查记录</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

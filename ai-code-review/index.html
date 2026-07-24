@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="使用 AI 进行代码审查" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    使用 AI 进行代码审查
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-07-24</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3.6k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：12分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%A0%B8%E5%BF%83%E5%86%85%E5%AE%B9%E5%AF%BC%E8%88%AA"><span class="post-toc-text">核心内容导航</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8A%A8%E6%9C%BA"><span class="post-toc-text">一、背景与动机</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%8E%B0%E7%8A%B6%E4%B8%8E%E7%97%9B%E7%82%B9"><span class="post-toc-text">现状与痛点</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%AE%9A%E4%BD%8D"><span class="post-toc-text">定位</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81%E6%8E%A2%E7%B4%A2%E4%B8%8E%E9%80%89%E5%9E%8B"><span class="post-toc-text">二、探索与选型</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%A4%B1%E8%B4%A5%E5%B0%9D%E8%AF%95"><span class="post-toc-text">失败尝试</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-CLI-%E5%9E%8B-Agent"><span class="post-toc-text">为什么选择 CLI 型 Agent</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="post-toc-text">三、系统架构与工作流</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%A7%88"><span class="post-toc-text">系统概览</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%9C%A8%E7%BA%BF%E5%AE%A1%E6%9F%A5%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="post-toc-text">在线审查工作流</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%A6%BB%E7%BA%BF%E5%88%86%E6%9E%90%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="post-toc-text">离线分析工作流</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BB%BB%E5%8A%A1%E8%A7%A6%E5%8F%91"><span class="post-toc-text">任务触发</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%89%A7%E8%A1%8C%E5%AE%A1%E6%9F%A5"><span class="post-toc-text">执行审查</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%AE%B0%E5%BD%95%E4%B8%8E%E5%8F%8D%E9%A6%88"><span class="post-toc-text">记录与反馈</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E8%87%AA%E5%8A%A8%E6%80%BB%E7%BB%93%E4%B8%8E%E5%AE%9A%E6%9C%9F%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98"><span class="post-toc-text">自动总结与定期同步问题</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E6%8E%A5%E5%85%A5-SOP"><span class="post-toc-text">四、接入 SOP</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%BA%94%E3%80%81%E8%90%BD%E5%9C%B0%E6%95%88%E6%9E%9C"><span class="post-toc-text">五、落地效果</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%85%AD%E3%80%81%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="post-toc-text">六、经验总结与展望</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%8F%E9%AA%8C"><span class="post-toc-text">核心经验</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%90%8E%E7%BB%AD%E8%A7%84%E5%88%92"><span class="post-toc-text">后续规划</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#AI-%E5%9F%BA%E5%BB%BA%E5%8D%B3%E6%96%B0%E4%BA%BA%E6%96%87%E6%A1%A3"><span class="post-toc-text">AI 基建即新人文档</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E9%99%84%EF%BC%9AQ-amp-A"><span class="post-toc-text">附：Q&amp;A</span></a>
+            
+        
+        <div class=".article-gallery"><h2 id="核心内容导航"><a href="#核心内容导航" class="headerlink" title="核心内容导航"></a>核心内容导航</h2><blockquote>
+<p>👉</p>
+<ul>
+<li><strong>Why —— 为什么需要这套系统</strong></li>
+<li><strong>What —— 整套系统怎么跑起来的</strong></li>
+<li><strong>How —— 如何接入到自己的项目</strong></li>
+</ul>
+</blockquote>
+<hr>
+<h1 id="一、背景与动机"><a href="#一、背景与动机" class="headerlink" title="一、背景与动机"></a>一、背景与动机</h1><blockquote>
+<p><em>本节回答：为什么我们需要自行建设 AI 代码审查能力？</em></p>
+</blockquote>
+<h2 id="现状与痛点"><a href="#现状与痛点" class="headerlink" title="现状与痛点"></a>现状与痛点</h2><p>许多项目采用快速迭代的发布节奏，代码集成模式多样（如直接 commit 到主干、cherry-pick 到发布分支等）。当项目<strong>缺少强制的 Merge Request 流程</strong>时，往往<strong>缺少审查拦截点</strong>，代码质量难以保障。</p>
+<p>代码审查中常见的主要痛点如下：</p>
+<table>
+<thead>
+<tr>
+<th>痛点</th>
+<th>表现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>缺少前置审查</strong></td>
+<td>代码直接入主干，缺少强制的审查拦截点</td>
+</tr>
+<tr>
+<td><strong>人工审查成本高</strong></td>
+<td>开发节奏快，逐个 commit 仔细 review 不现实</td>
+</tr>
+<tr>
+<td><strong>问题发现滞后</strong></td>
+<td>性能隐患、数据一致性问题往往在线上才暴露</td>
+</tr>
+<tr>
+<td><strong>通用工具不适配</strong></td>
+<td>部分业务技术架构独立，难以直接接入标准化的集团级审查方案</td>
+</tr>
+</tbody></table>
+<p>因此，需要结合可用资源，使用合规工具自行建设 AI 代码审查能力，提高代码质量。</p>
+<h2 id="定位"><a href="#定位" class="headerlink" title="定位"></a>定位</h2><blockquote>
+<p>🌟<br>AI 代码审查<strong>不是替代人工审查</strong>，而是作为人工审查的<strong>前置环节和辅助工具</strong>。<br>通过 AI 审查拦截大部分基础错误，让人工聚焦架构设计与业务逻辑。</p>
+</blockquote>
+<p>相比直接使用通用 AI 平台进行代码审查，本 SOP 的主要优势如下：</p>
+<table>
+<thead>
+<tr>
+<th>特点</th>
+<th>实现</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>推送及时</strong></td>
+<td>1. webhook 触发及时；2. Agent 审查速度更快；3. 发现问题时，机器人主动私聊推送卡片</td>
+<td>问题推送延迟约 <strong>3-5 分钟</strong>（基于离线计算链路的方案延迟通常 &gt; 1h）；实时性更高，方便代码提交后及时发现问题</td>
+</tr>
+<tr>
+<td><strong>有效率高</strong></td>
+<td>1. 支持按问题类型、严重程度进行过滤，只推送过滤后的问题；2. 支持指定 SOTA 模型</td>
+<td>垃圾信息少，问题拦截率高；接入负担小，更容易在项目内落地</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="二、探索与选型"><a href="#二、探索与选型" class="headerlink" title="二、探索与选型"></a>二、探索与选型</h1><blockquote>
+<p><em>本节回答：我们试过哪些方案，最终为什么选择 CLI 型 Agent？</em></p>
+</blockquote>
+<h2 id="失败尝试"><a href="#失败尝试" class="headerlink" title="失败尝试"></a>失败尝试</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>做法</th>
+<th>失败原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Webhook 创建 MR</strong></td>
+<td>每次提交自动创建 MR，邀请 AI 评审</td>
+<td>1. AI 无法理解高度耦合的复杂业务逻辑，只能检出规范问题；2. 审查速度太慢</td>
+</tr>
+<tr>
+<td><strong>平台定时任务</strong></td>
+<td>定时拉取更新，平台自动 review</td>
+<td>1. 审查效果有限；2. 授权单一，只能通知任务创建者</td>
+</tr>
+<tr>
+<td><strong>平台 OpenAPI</strong></td>
+<td>调用审查平台 OpenAPI 创建审查任务</td>
+<td>1. sandbox 模式每次需要重新生成中间代码；2. copilot 模式无法执行中间代码生成；3. 无状态看板</td>
+</tr>
+</tbody></table>
+<p>共同教训：复杂项目代码高度耦合，简单的规范检查或 API 调用无法满足需求，必须使用能深入理解大型代码库、支持本地部署和自定义流程的 Agent 工具。</p>
+<h2 id="为什么选择-CLI-型-Agent"><a href="#为什么选择-CLI-型-Agent" class="headerlink" title="为什么选择 CLI 型 Agent"></a>为什么选择 CLI 型 Agent</h2><table>
+<thead>
+<tr>
+<th>特点</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>代码能力最强</strong></td>
+<td>同模型下，性能接近主流顶尖编码 Agent；TUI（CLI）形式的 Agent 相比 IDE / Web 形式，在代码任务上性能更优</td>
+</tr>
+<tr>
+<td><strong>二次开发友好</strong></td>
+<td>可本地部署（命令行直接调用）；支持 OpenAPI、ACP，可无缝集成到各种流水线</td>
+</tr>
+<tr>
+<td><strong>安全合规</strong></td>
+<td>Agent -&gt; 模型网关 -&gt; 模型供应商，应确保具备数据零留存协议</td>
+</tr>
+<tr>
+<td><strong>生态完善</strong></td>
+<td>支持 MCP、Skills、Subagent、AGENTS.md 等特性；可内置 IM 工具和 Codebase 检索等能力；支持客户端部署、IDE 插件、Web 端直接使用</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="三、系统架构与工作流"><a href="#三、系统架构与工作流" class="headerlink" title="三、系统架构与工作流"></a>三、系统架构与工作流</h1><blockquote>
+<p><em>本节回答：整套系统是怎么跑起来的？</em></p>
+</blockquote>
+<h2 id="系统概览"><a href="#系统概览" class="headerlink" title="系统概览"></a>系统概览</h2><h3 id="在线审查工作流"><a href="#在线审查工作流" class="headerlink" title="在线审查工作流"></a>在线审查工作流</h3><p>核心链路：Git Push → Webhook 触发审查引擎 → 提取提交上下文 → Agent 分析 → 结果落数据表 → IM 机器人推送问题 → 用户反馈回写。</p>
+<h3 id="离线分析工作流"><a href="#离线分析工作流" class="headerlink" title="离线分析工作流"></a>离线分析工作流</h3><p>两条定时任务：每日统计审查指标并推送仪表盘；每月基于反馈数据和代码证据，AI 生成改进建议。</p>
+<h2 id="任务触发"><a href="#任务触发" class="headerlink" title="任务触发"></a>任务触发</h2><table>
+<thead>
+<tr>
+<th>要求</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>自动触发</td>
+<td>codebase webhook 监听 git push -&gt; 独立 CI/CD job（如 Jenkins）</td>
+</tr>
+<tr>
+<td>服务状态可视化</td>
+<td>CI/CD 服务器自带 dashboard 和任务状态留存</td>
+</tr>
+</tbody></table>
+<h2 id="执行审查"><a href="#执行审查" class="headerlink" title="执行审查"></a>执行审查</h2><table>
+<thead>
+<tr>
+<th>背景</th>
+<th>要求</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>公司代码不允许泄漏</td>
+<td>安全合规，没有泄密风险</td>
+<td>选用与模型供应商签有数据零留存协议的统一模型网关</td>
+</tr>
+<tr>
+<td>webhook 偶发丢包不重试；模型偶发抽风；模型服务不保证 SLA；单点故障（如打版机掉线、Agent crash）</td>
+<td>具备基础的容灾能力</td>
+<td><strong>滑动窗口</strong>：每次触发时回溯最近的 n 次提交，找出未完成审查的 commit 发起任务；<strong>原子任务</strong>：只有完成了代码审查、表格记录、IM 通知等所有步骤的任务才会落盘；<strong>有限重试</strong>：在回溯窗口内，未完成的任务会不断重试，且不会无限重试</td>
+</tr>
+<tr>
+<td>-</td>
+<td>审查效果好（上下文提取）</td>
+<td>查询同一工单的最近提交，一并交给 AI；如有需要，可以按文件类型、文件名过滤</td>
+</tr>
+<tr>
+<td>-</td>
+<td>审查效果好（模型更新）</td>
+<td>持续跟进所支持的 SOTA 模型，及时更新模型</td>
+</tr>
+<tr>
+<td>-</td>
+<td>审查效果好（提示词优化）</td>
+<td>项目级规范/定义 -&gt; AGENTS.md；代码审查任务要求 -&gt; 代码审查任务提示词</td>
+</tr>
+<tr>
+<td>-</td>
+<td>审查效果好（新特性的使用）</td>
+<td>Skills -&gt; 固化获取上下文/调用工具的 <strong>SOP</strong>，或开发渐进式披露的知识库/项目规范；Subagent/多轮调用 -&gt; 解耦代码审查和报告验收两部分，过滤模型的幻觉和误报</td>
+</tr>
+</tbody></table>
+<p>单次审查流程：扫描未审查提交 → 按 Commit 逐个提取工单关联的历史变更 → 连同增量代码一并提交 Agent → 返回审查建议。</p>
+<h2 id="记录与反馈"><a href="#记录与反馈" class="headerlink" title="记录与反馈"></a>记录与反馈</h2><blockquote>
+<p><em>本节回答：审查结果怎么追溯？怎么形成闭环？</em></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>目的</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>审查记录可追溯</strong></td>
+<td>所有结果（是否有审查出问题）和反馈（审查问题是否正确）均使用数据表记录，系统的运行细节不是黑盒</td>
+</tr>
+<tr>
+<td><strong>推送问题可反馈</strong></td>
+<td>人工核查 AI 审查出的问题是否有效后，点击卡片一键反馈</td>
+</tr>
+<tr>
+<td><strong>不过度打扰用户</strong></td>
+<td><strong>推送分级</strong>：按问题严重程度分级，前期只推送高级别问题，有效率达标后逐步放宽；使用 IM 机器人<strong>私聊</strong>通知用户</td>
+</tr>
+</tbody></table>
+<p>反馈闭环流程：审查结果存数据表 → 高风险问题通过 IM 卡片私聊通知作者 → 作者点击”有用/无用”一键反馈 → 服务回调更新表格记录。</p>
+<h2 id="自动总结与定期同步问题"><a href="#自动总结与定期同步问题" class="headerlink" title="自动总结与定期同步问题"></a>自动总结与定期同步问题</h2><table>
+<thead>
+<tr>
+<th>目的</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>持续优化代码审查的效果</td>
+<td>自动总结：统计高频问题（脚本统计字典词频 + 排序 + 过滤）；召回相关代码，AI 根据问题类型及相关代码给出改进建议；反馈有用/无用的记录分开统计，分别得到对提高代码质量的建议，以及 AI 代码审查的优化建议</td>
+</tr>
+<tr>
+<td>提高组内同学的代码质量</td>
+<td>定期同步近期 AI 代码审查中出现的高频问题、典型问题</td>
+</tr>
+</tbody></table>
+<p>月度总结流程：拉取上月反馈记录 → 分词 + 字典匹配做初步分类 → 提取典型案例源码 → AI 归纳生成改进建议。</p>
+<hr>
+<h1 id="四、接入-SOP"><a href="#四、接入-SOP" class="headerlink" title="四、接入 SOP"></a>四、接入 SOP</h1><blockquote>
+<p><em>本节回答：怎么把 AI 代码审查接入你的项目？</em></p>
+</blockquote>
+<blockquote>
+<p>👍 详细 SOP 文档和脚本模板已准备就绪。如果你的项目也有代码审查需求，欢迎按照操作指南接入。</p>
+</blockquote>
+<p>接入要点：</p>
+<ul>
+<li>本方案<strong>不限语言、不限代码管理工具</strong>，已在 Java、C++、Lua、TypeScript 等语言以及 Git、Svn 等工具上验证，接入成本通常 1-2 天。</li>
+<li>对于项目定制化需求，可以让 AI 直接 vibe coding 改，AI 写 Python 脚本的效果非常好。</li>
+</ul>
+<p>通用接入步骤：</p>
+<ol>
+<li><strong>配置 webhook</strong>：在代码仓库设置 git push 触发，对接 CI/CD job。</li>
+<li><strong>部署审查脚本</strong>：拉取增量提交、提取工单关联上下文、调用 Agent。</li>
+<li><strong>配置数据表</strong>：用于记录审查结果与反馈。</li>
+<li><strong>配置 IM 机器人</strong>：推送问题卡片并接收反馈。</li>
+<li><strong>编写 AGENTS.md 与审查提示词</strong>：沉淀项目规范、架构特点与审查关注点。</li>
+<li><strong>设置定时任务</strong>：每日指标统计、每月改进建议生成。</li>
+</ol>
+<hr>
+<h1 id="五、落地效果"><a href="#五、落地效果" class="headerlink" title="五、落地效果"></a>五、落地效果</h1><blockquote>
+<p><em>本节回答：实际跑起来效果怎么样？</em></p>
+</blockquote>
+<p>从接入到产出有效结果，一个项目通常只需 <strong>1-2 天</strong>部署时间。</p>
+<p>本方案已在多种类型的项目中验证，覆盖不同的代码管理工具与编程语言组合：</p>
+<table>
+<thead>
+<tr>
+<th>代码管理</th>
+<th>语言示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Git + Svn</td>
+<td>Lua、C++</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>Java</td>
+</tr>
+<tr>
+<td>Svn</td>
+<td>TypeScript、C++</td>
+</tr>
+</tbody></table>
+<p>落地参考表现：</p>
+<ul>
+<li>成熟接入的服务端项目，问题有效率可超过 **70%**，可累计拦截大量数据一致性、性能、空值安全、逻辑缺陷类问题，达到完全可用状态。</li>
+<li>新接入项目（如前端 TypeScript、客户端 C++）在早期有效率约 50%-60%，随着 AGENTS.md 与提示词的持续打磨稳步提升。</li>
+</ul>
+<p>典型发现的问题类型：数据一致性隐患、性能问题、空值安全、逻辑缺陷。</p>
+<hr>
+<h1 id="六、经验总结与展望"><a href="#六、经验总结与展望" class="headerlink" title="六、经验总结与展望"></a>六、经验总结与展望</h1><blockquote>
+<p><em>本节回答：踩过哪些坑？接下来往哪走？</em></p>
+</blockquote>
+<h2 id="核心经验"><a href="#核心经验" class="headerlink" title="核心经验"></a>核心经验</h2><blockquote>
+<p>适用于项目内所有 AI 工具的落地</p>
+</blockquote>
+<ul>
+<li><strong>上下文工程很重要</strong> — 提供正确的上下文（工单、关联变更、框架知识），效果远胜于单纯换更强的模型。</li>
+<li><strong>反馈闭环是持续优化的基石</strong> — 没有有用/无用的反馈机制，就无法量化改进。</li>
+<li><strong>先收紧再放开</strong> — 前期只推高风险问题，有效率达标后再逐步放宽，决定了团队对 AI 审查的第一印象。</li>
+<li><strong>AGENTS.md/Skills 是项目智慧的沉淀</strong> — 项目规范、架构特点、踩过的坑持续写入，AI 越来越懂业务。</li>
+<li><strong>在系统层面容错</strong> — 滑动窗口、任务原子性、二次校验，接受 AI 会出错，用机制兜底。</li>
+</ul>
+<h2 id="后续规划"><a href="#后续规划" class="headerlink" title="后续规划"></a>后续规划</h2><ul>
+<li>持续跟进最新模型，保持审查效果领先。</li>
+<li>深化 AGENTS.md，提升 AI 对业务的理解深度。</li>
+<li>降低新人上手门槛，通过 AI 反馈快速熟悉项目。</li>
+<li>定期同步高频问题，推动编码规范改进。</li>
+</ul>
+<h2 id="AI-基建即新人文档"><a href="#AI-基建即新人文档" class="headerlink" title="AI 基建即新人文档"></a>AI 基建即新人文档</h2><blockquote>
+<p>👉 <strong>AI 是超高智商的实习生，为 AI 准备的一切也是为新人准备的。一套投入，两份回报。</strong></p>
+</blockquote>
+<p>从本质上看，AI 的行为模式和一个高智商但缺乏项目经验的实习生非常相似 —— 它有强大的通用能力，但不<strong>了解你的项目为什么这样设计、哪些写法踩过坑、哪些约定是血泪教训</strong>。如果什么上下文都不给，它只能做出泛泛的、不痛不痒的审查；而一旦你把项目的规范、架构特点、历史踩坑写清楚，它的表现会质变。</p>
+<p>这恰恰意味着：<strong>为 AI 建设的知识体系，天然就是最好的新人文档。</strong></p>
+<ul>
+<li><strong>AGENTS.md</strong> 沉淀了项目的架构设计理念、编码规范、常见陷阱和历史决策 —— 新人读完就能快速理解”项目为什么是这样的”，而不是靠口口相传。</li>
+<li><strong>Skills（SOP）</strong> 将获取上下文、调用工具、执行审查等流程固化为可复用的标准操作 —— 新人照着就能上手，不再依赖老人手把手带。</li>
+<li><strong>审查提示词（prompt.md）</strong> 明确了代码审查的关注点和评判标准 —— 新人可以从中直接学到”这个项目最在意什么”。</li>
+<li><strong>反馈闭环持续沉淀的高频问题</strong> 本身就是一份活的 FAQ —— 新人可以提前了解团队最常犯的错误，避免重蹈覆辙。</li>
+</ul>
+<p>换句话说，打磨 AI 代码审查的过程，其实是在倒逼团队<strong>把隐性知识显性化</strong>。过去散落在老人脑子里的经验，现在变成了结构化的、可机读也可人读的文档。AI 用这些文档做审查，新人用这些文档学上手 —— 一套投入，两份回报。</p>
+<p>与其把它看作”给 AI 写文档”，不如说是在为整个团队建设一个持续进化的知识库。<strong>AI 越强，文档越完善；文档越完善，新人上手越快，AI 审查也越准</strong> —— 这是一个正向飞轮。</p>
+<hr>
+<h1 id="附：Q-amp-A"><a href="#附：Q-amp-A" class="headerlink" title="附：Q&amp;A"></a>附：Q&amp;A</h1><p><strong>Q1：接入 AI 代码审查需要多少人力？技术门槛高吗？</strong><br>参照 SOP，1 人 1 天即可完成全流程部署。主要工作是配置 CI/CD、IM 机器人和部署脚本，无需额外开发。Git 和 Svn 项目均有现成模板。</p>
+<p><strong>Q2：AI 审查一次提交需要多长时间？会阻塞开发吗？</strong><br>和选用模型强相关，单次审查约 3-5 分钟，<strong>异步执行</strong>，完全不阻塞开发流程。开发者正常提交代码，有问题时通过 IM 私聊通知。</p>
+<p><strong>Q3：70% 有效率意味着还有 30% 误报，如何看待？</strong><br>AI 审查定位为辅助工具而非最终裁判。30% 的无效推送成本远低于漏掉一个线上问题的代价。同时通过 Subagent 过滤、提示词优化、推送分级等手段，有效率仍在持续提升。</p>
+<p><strong>Q4：我的项目用的语言/框架不在已验证列表中，能接入吗？</strong><br>核心架构不限语言。只需调整 AGENTS.md 中的项目描述和审查提示词，适配新语言/框架。CLI 型 Agent 本身支持主流编程语言。</p>
+<p><strong>Q5：AGENTS.md 怎么写？需要投入多少精力维护？</strong><br>初始版本可由 AI 根据项目代码自动生成，后续根据审查反馈中的”无效”案例逐步沉淀即可。维护成本低，但对代码审查等项目下所有 AI 任务的效果提升显著。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-03-27</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/AI/'>
+                            AI
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ai-thinking/'>关于AI和工作的一些思考</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ue-linux-arm/">交叉编译DS LinuxArm64</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第五部分：从过滤类别、UNetObjectFilter、GridFilter、Group Filtering 到 UE 5.5 内部执行流水线。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-5/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第五部分：过滤系统 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: var(--iris);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+    }
+
+    a:hover {
+      color: var(--signal);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, 0.42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, 0.2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "IRIS";
+      position: absolute;
+      right: -0.04em;
+      bottom: -0.39em;
+      color: rgba(255, 255, 255, 0.045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -0.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner {
+      position: relative;
+      max-width: 1000px;
+      z-index: 1;
+    }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 28px;
+      color: #f3c3ae;
+      font: 700 0.76rem/1 var(--mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 42px;
+      height: 2px;
+      background: var(--signal);
+    }
+
+    h1 {
+      max-width: 1100px;
+      margin: 0;
+      font: 800 clamp(2.5rem, 5.4vw, 5rem) / 1.08 var(--serif);
+      letter-spacing: -0.04em;
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    .hero__deck {
+      max-width: 760px;
+      margin: 28px 0 0;
+      color: rgba(255, 253, 248, 0.75);
+      font: 400 clamp(1rem, 1.9vw, 1.25rem) / 1.8 var(--sans);
+    }
+
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 30px;
+      margin-top: 38px;
+      color: rgba(255, 253, 248, 0.8);
+      font: 600 0.84rem/1.6 var(--mono);
+    }
+
+    .hero__meta a {
+      color: #fff;
+    }
+
+    .hero__meta span {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hero__meta span::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 880px);
+      gap: clamp(44px, 6vw, 92px);
+      width: min(1260px, calc(100% - 56px));
+      margin: 0 auto;
+      padding: 68px 0 90px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 28px;
+      max-height: calc(100vh - 56px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.72);
+      box-shadow: 0 18px 50px rgba(25, 35, 58, 0.07);
+      backdrop-filter: blur(18px);
+    }
+
+    .toc__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toc__head strong {
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .toc__head span {
+      color: var(--signal);
+      font: 700 0.68rem/1 var(--mono);
+      letter-spacing: 0.1em;
+    }
+
+    .toc ol {
+      max-height: calc(100vh - 116px);
+      margin: 0;
+      padding: 10px 0 20px;
+      overflow: auto;
+      list-style: none;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .toc li {
+      margin: 0;
+    }
+
+    .toc a {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      padding: 9px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: 140ms ease;
+    }
+
+    .toc a:hover,
+    .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.08);
+      border-left-color: var(--signal);
+    }
+
+    .toc a span {
+      padding-top: 0.2em;
+      color: var(--signal);
+      font: 700 0.66rem/1.5 var(--mono);
+    }
+
+    .toc a b {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .toc-mobile {
+      display: none;
+    }
+
+    .article-shell {
+      min-width: 0;
+    }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin: 0 0 46px;
+      padding: 18px 20px;
+      background: var(--signal-soft);
+      border-left: 5px solid var(--signal);
+    }
+
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      color: #fff;
+      background: var(--signal);
+      border-radius: 50%;
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .source-note p {
+      margin: 0;
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .source-note p strong {
+      display: block;
+      color: var(--iris-dark);
+    }
+
+    .source-note > a {
+      white-space: nowrap;
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    article {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    article > p,
+    article > ul,
+    article > blockquote,
+    article > .table-scroll,
+    article > figure,
+    article > .reading-link-wrap {
+      max-width: 790px;
+    }
+
+    article p {
+      margin: 1rem 0;
+    }
+
+    article h2 {
+      position: relative;
+      margin: 5.8rem 0 2rem;
+      padding: 0.8rem 0 1rem 56px;
+      color: var(--iris-dark);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font: 800 clamp(1.65rem, 3.2vw, 2.5rem) / 1.28 var(--serif);
+      letter-spacing: -0.025em;
+      scroll-margin-top: 28px;
+    }
+
+    article h2::before {
+      content: counter(chapter, decimal-leading-zero);
+      counter-increment: chapter;
+      position: absolute;
+      left: 0;
+      top: 1.15rem;
+      color: var(--signal);
+      font: 800 0.74rem/1 var(--mono);
+      letter-spacing: 0.08em;
+    }
+
+    article {
+      counter-reset: chapter;
+    }
+
+    article h3 {
+      margin: 3.2rem 0 1.15rem;
+      padding-left: 18px;
+      color: var(--ink);
+      border-left: 4px solid var(--iris);
+      font: 750 clamp(1.18rem, 2.1vw, 1.48rem) / 1.45 var(--serif);
+      scroll-margin-top: 28px;
+    }
+
+    article h2:first-of-type {
+      margin-top: 3rem;
+    }
+
+    article ul {
+      margin: 0.9rem 0 1.4rem;
+      padding-left: 1.35rem;
+    }
+
+    article ul ul {
+      margin: 0.45rem 0 0.7rem;
+      padding-left: 1.6rem;
+      border-left: 1px dashed var(--line);
+    }
+
+    article li {
+      margin: 0.32rem 0;
+      padding-left: 0.18rem;
+    }
+
+    article li::marker {
+      color: var(--signal);
+    }
+
+    article blockquote {
+      margin: 1.8rem 0;
+      padding: 20px 24px;
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.075);
+      border-left: 5px solid var(--iris);
+      font-family: var(--serif);
+      font-size: 1.05rem;
+    }
+
+    article blockquote p {
+      margin: 0;
+    }
+
+    article hr {
+      width: 90px;
+      height: 8px;
+      margin: 5.5rem 0 0;
+      background:
+        linear-gradient(90deg, var(--signal) 0 26px, transparent 26px 32px, var(--iris) 32px 90px);
+      border: 0;
+    }
+
+    article code {
+      padding: 0.12em 0.38em;
+      color: #aa3f27;
+      background: #ece3d6;
+      border: 1px solid #d9ccbb;
+      border-radius: 3px;
+      font: 0.84em/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+
+    article strong {
+      color: var(--iris-dark);
+    }
+
+    article figure {
+      margin: 2rem 0 3rem;
+      padding: 10px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    article img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .reading-link-wrap {
+      margin: 1rem 0 2.4rem;
+    }
+
+    .reading-link {
+      display: grid;
+      gap: 5px;
+      padding: 22px 24px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--iris-dark);
+      border-right: 7px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(39, 53, 111, 0.2);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .reading-link:hover {
+      color: var(--white);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 42px rgba(39, 53, 111, 0.25);
+    }
+
+    .reading-link__label,
+    .reading-link__url {
+      color: rgba(255, 255, 255, 0.6);
+      font: 700 0.7rem/1.5 var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .reading-link strong {
+      color: var(--white);
+      font: 700 1.1rem/1.4 var(--serif);
+    }
+
+    .table-scroll {
+      margin: 2rem 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--white);
+      box-shadow: 0 14px 38px rgba(25, 35, 58, 0.07);
+    }
+
+    table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th,
+    td {
+      padding: 13px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      color: var(--white);
+      background: var(--iris-dark);
+      font-family: var(--serif);
+    }
+
+    .article-footer {
+      margin-top: 76px;
+      padding: 38px 0 0;
+      border-top: 3px solid var(--ink);
+    }
+
+    .article-footer__grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+    }
+
+    .article-footer h2 {
+      margin: 0 0 8px;
+      padding: 0;
+      border: 0;
+      font-size: 1.35rem;
+    }
+
+    .article-footer h2::before {
+      display: none;
+    }
+
+    .article-footer p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.86rem;
+    }
+
+    .article-footer a {
+      display: inline-block;
+      padding: 12px 16px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--signal);
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 12px 32px rgba(25, 35, 58, 0.23);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: 160ms ease;
+    }
+
+    .back-top.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        display: block;
+        width: min(860px, calc(100% - 40px));
+        padding-top: 36px;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .toc-mobile {
+        display: block;
+        margin-bottom: 28px;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.85);
+      }
+
+      .toc-mobile summary {
+        padding: 15px 18px;
+        color: var(--iris-dark);
+        cursor: pointer;
+        font: 750 0.9rem/1.4 var(--serif);
+      }
+
+      .toc-mobile ol {
+        max-height: 52vh;
+        margin: 0;
+        padding: 8px 18px 18px 48px;
+        overflow: auto;
+      }
+
+      .toc-mobile li {
+        margin: 0.4rem 0;
+      }
+
+      .toc-mobile a {
+        font-size: 0.8rem;
+      }
+
+      .toc-mobile a span {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 16px;
+      }
+
+      h1 {
+        font-size: 2.18rem;
+        letter-spacing: -0.045em;
+      }
+
+      .hero {
+        padding: 54px 22px 52px;
+      }
+
+      .hero::before {
+        font-size: 50vw;
+        bottom: -0.23em;
+      }
+
+      .kicker {
+        margin-bottom: 22px;
+      }
+
+      .hero__meta {
+        display: grid;
+        gap: 8px;
+      }
+
+      .layout {
+        width: min(100% - 32px, 860px);
+        padding-bottom: 64px;
+      }
+
+      .source-note {
+        grid-template-columns: auto 1fr;
+      }
+
+      .source-note > a {
+        grid-column: 2;
+      }
+
+      article h2 {
+        margin-top: 4.6rem;
+        padding-left: 44px;
+      }
+
+      article h3 {
+        margin-top: 2.8rem;
+      }
+
+      .article-footer__grid {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .back-top {
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+
+    @media print {
+      .reading-progress,
+      .toc,
+      .toc-mobile,
+      .back-top {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+      }
+
+      .hero {
+        padding: 32px 0;
+        color: #000;
+        background: #fff;
+        border-bottom: 2px solid #000;
+      }
+
+      .hero::before {
+        display: none;
+      }
+
+      .hero__deck,
+      .hero__meta,
+      .hero__meta a {
+        color: #333;
+      }
+
+      .layout {
+        display: block;
+        width: 100%;
+        padding: 24px 0;
+      }
+
+      article h2,
+      article h3 {
+        break-after: avoid;
+      }
+
+      article a {
+        color: #000;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+
+    .hero--part h1 {
+      max-width: 1180px;
+      font-size: clamp(2.45rem, 4.5vw, 4.45rem);
+    }
+
+    article pre {
+      max-width: 100%;
+      margin: 1.4rem 0 1.8rem;
+      padding: 20px 22px;
+      overflow-x: auto;
+      color: #e9edf8;
+      background: #17203a;
+      border: 1px solid #303d68;
+      border-left: 5px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(25, 35, 58, 0.13);
+      tab-size: 4;
+    }
+
+    article pre code {
+      display: block;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      white-space: pre;
+      overflow-wrap: normal;
+      font-size: 0.78rem;
+      line-height: 1.68;
+    }
+
+    @media (max-width: 640px) {
+      .hero--part h1 {
+        font-size: 2.05rem;
+      }
+
+      article pre {
+        margin-right: -4px;
+        padding: 16px;
+      }
+    }
+
+
+    article > ol {
+      max-width: 790px;
+    }
+
+    article ol {
+      margin: 0.9rem 0 1.4rem;
+      padding-left: 1.6rem;
+    }
+
+    article ol ol,
+    article ol ul,
+    article ul ol {
+      margin: 0.45rem 0 0.7rem;
+      padding-left: 1.6rem;
+      border-left: 1px dashed var(--line);
+    }
+
+
+    .article-callout {
+      margin: 2rem 0;
+      padding: 1.25rem 1.4rem;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--signal);
+      background: rgba(242, 214, 202, 0.38);
+    }
+
+    .article-callout strong {
+      color: var(--iris-dark);
+      font-family: var(--serif);
+      font-size: 1.08rem;
+    }
+
+    .article-callout p:last-child {
+      margin-bottom: 0;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.5 · Iris Replication System</p>
+      <h1>
+        <span>UE5-Iris 网络复制系统技术分析</span>
+        <span>第五部分：过滤系统</span>
+      </h1>
+      <p class="hero__deck">从“哪些对象值得送到这条连接”出发，深入 Owner、Connection、Group 与 Dynamic Filtering，并结合 GridFilter、组覆盖语义和 UE 5.5 源码还原完整过滤流水线。</p>
+      <div class="hero__meta" aria-label="文章信息">
+        <span>作者 Jossy Zhang</span>
+        <span>发布 2026-07-24</span>
+        <span>基于 Unreal Engine 5.5</span>
+        <span>13 个章节 · 29 个小节</span>
+        <span><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-filtering-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head">
+        <strong>内容索引</strong>
+        <span>CONTENTS</span>
+      </div>
+      <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>🎯 第五部分：过滤系统</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🧭 5.1 过滤系统概述</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>🧱 5.2 UNetObjectFilter 基类</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🧰 5.3 内置过滤器</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>🗺️ 5.4 空间过滤器详解（GridFilter）</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>👥 5.5 组过滤（Group Filtering）</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>⚙️ 5.6 过滤器配置与完整实战</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-08" data-section="section-08">
+          <span>08</span>
+          <b>🔬 5.7 过滤系统内部实现</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-09" data-section="section-09">
+          <span>09</span>
+          <b>🧯 常见问题与排查</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-10" data-section="section-10">
+          <span>10</span>
+          <b>⚡ 性能建议</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-11" data-section="section-11">
+          <span>11</span>
+          <b>📁 关键源码文件索引</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-12" data-section="section-12">
+          <span>12</span>
+          <b>🎯 本章小结</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-13" data-section="section-13">
+          <span>13</span>
+          <b>💡 下一步</b>
+        </a>
+      </li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 13 个章节</summary>
+        <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>🎯 第五部分：过滤系统</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🧭 5.1 过滤系统概述</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>🧱 5.2 UNetObjectFilter 基类</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🧰 5.3 内置过滤器</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>🗺️ 5.4 空间过滤器详解（GridFilter）</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>👥 5.5 组过滤（Group Filtering）</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>⚙️ 5.6 过滤器配置与完整实战</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-08" data-section="section-08">
+          <span>08</span>
+          <b>🔬 5.7 过滤系统内部实现</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-09" data-section="section-09">
+          <span>09</span>
+          <b>🧯 常见问题与排查</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-10" data-section="section-10">
+          <span>10</span>
+          <b>⚡ 性能建议</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-11" data-section="section-11">
+          <span>11</span>
+          <b>📁 关键源码文件索引</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-12" data-section="section-12">
+          <span>12</span>
+          <b>🎯 本章小结</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-13" data-section="section-13">
+          <span>13</span>
+          <b>💡 下一步</b>
+        </a>
+      </li>
+        </ol>
+      </details>
+
+      <div class="source-note" role="note">
+        <span class="source-note__mark" aria-hidden="true">据</span>
+        <p><strong>技术依据</strong>本文为原创技术整理，以 Unreal Engine 5.5 Iris 官方文档与本机 5.5 引擎源码为准；Iris 位于 Experimental 模块，升级时请核对目标版本 API。</p>
+        <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-filtering-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">查看官方过滤文档 ↗</a>
+      </div>
+
+      <article><h2 id="section-01" tabindex="-1">🎯 第五部分：过滤系统</h2>
+      <blockquote>
+        如果把 Iris 看成一家实时配送公司，序列化解决的是“包裹怎么打包”，过滤系统解决的则是更早、也更重要的问题：<strong>这个包裹今天到底要不要送到这位玩家手里？</strong>
+      </blockquote>
+      <p>在一局百人规模的战术竞技游戏里，服务器同时管理玩家、载具、掉落物、队伍标记、私人任务、背包数据和全局比赛状态。若把所有对象都交给每条连接，后面的优先级和带宽预算再聪明，也只能在一座已经堆满包裹的仓库里救火。</p>
+      <p>Iris 的过滤系统会为每条连接计算对象作用域（scope）：对象在作用域内，才有机会继续进入轮询、优先级、序列化和发送阶段；对象被移出作用域时，远端对应实例也可能被销毁。因此，过滤不只是“省一点流量”，而是在定义每位玩家眼中的网络世界。</p>
+      <div class="article-callout">
+        <strong>本章阅读目标</strong>
+        <p>读完后，你应该能判断一个对象适合 Owner、Connection、Group 还是 Dynamic Filter；能配置并调用 GridFilter；也能从 <code>FReplicationFiltering::Filter()</code> 的执行顺序解释“为什么它明明在组里，却仍然被复制了”。</p>
+      </div>
+      <p>本文以 <strong>Unreal Engine 5.5</strong> 的 Iris 官方文档和本机引擎源码为基准。Iris 仍位于 Experimental 模块，升级版本时请以目标版本头文件为准，不要照搬函数名和配置项。</p>
+    
+<h2 id="section-02" tabindex="-1">🧭 5.1 过滤系统概述</h2>
+      <h3 id="section-02-01" tabindex="-1">先回答“谁能看见”，再回答“先发给谁”</h3>
+      <p><strong>过滤（Filtering）</strong>与<strong>优先级（Prioritization）</strong>最容易混淆。过滤做二元决策：某对象是否属于某连接的复制作用域；优先级则只在通过过滤的对象中决定带宽紧张时谁先发送。</p>
+      <div><pre><code>服务器中的全部网络对象
+        │
+        ├─ Owner / Connection / Group 过滤
+        │          ↓
+        ├─ Dynamic Filter（例如 GridFilter）
+        │          ↓
+        ├─ 得到每条连接的 ObjectsInScope
+        │          ↓
+        └─ 轮询 → 优先级 → 序列化 → 发送</code></pre></div>
+
+      <h3 id="section-02-02" tabindex="-1">四类过滤手段</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>类别</th><th>适合的问题</th><th>典型对象</th><th>成本与特点</th></tr></thead>
+        <tbody>
+          <tr><td>Owner Filtering</td><td>只复制给拥有者</td><td>私人背包、个人任务状态</td><td>规则简单，依赖正确的 Owning Connection</td></tr>
+          <tr><td>Connection Filtering</td><td>明确指定允许或禁止的连接集合</td><td>小规模观战数据、管理员对象</td><td>连接集合较稳定、对象较少时最合适</td></tr>
+          <tr><td>Group Filtering</td><td>一批对象共用同一套连接规则</td><td>队伍标记、队伍任务、阶段性事件</td><td>批量管理，适合大量对象</td></tr>
+          <tr><td>Dynamic Filtering</td><td>规则需要逐连接、逐帧计算</td><td>玩家、载具、掉落物</td><td>最灵活，但 CPU 成本最高；一个对象同时只能挂一个动态过滤器</td></tr>
+        </tbody>
+      </table></div>
+      <p>官方文档的建议很实用：如果允许列表比较固定、受影响对象又少，优先使用 Connection Filtering；如果很多对象共享规则，用 Group Filtering；只有规则确实依赖实时状态时，再进入 Dynamic Filter。</p>
+
+      <h3 id="section-02-03" tabindex="-1">战术竞技项目的第一版映射</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>业务对象</th><th>首选策略</th><th>原因</th></tr></thead>
+        <tbody>
+          <tr><td>玩家、载具、地面掉落物</td><td>GridFilter</td><td>是否相关主要由观察位置和剔除距离决定</td></tr>
+          <tr><td>队伍信标、队伍任务</td><td>Inclusion Group</td><td>队友即使相距很远也必须看见，可覆盖空间过滤结果</td></tr>
+          <tr><td>私人背包、个人任务</td><td>Owner Filter</td><td>天然只属于一个拥有者连接</td></tr>
+          <tr><td>仅若干裁判可见的数据</td><td>Connection Filter</td><td>允许连接集合明确且对象数量有限</td></tr>
+          <tr><td>比赛阶段、毒圈状态、公共计时</td><td>不过滤或保持全局相关</td><td>每条连接都需要，空间过滤没有意义</td></tr>
+        </tbody>
+      </table></div>
+      <p>这张表不是绝对答案，而是一个“从便宜规则开始”的决策顺序。业务规则变化时，可以组合组过滤与动态过滤，但要先理解它们的执行先后。</p>
+    
+<h2 id="section-03" tabindex="-1">🧱 5.2 UNetObjectFilter 基类</h2>
+      <h3 id="section-03-01" tabindex="-1">动态过滤器的生命周期</h3>
+      <p><code>UNetObjectFilter</code> 是自定义动态过滤器的基类。它不直接接触 Actor 指针来做全量扫描，而是围绕 Iris 的内部对象索引、位数组和批量回调工作。官方 API 与 UE 5.5 头文件暴露的关键阶段如下：</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>回调</th><th>何时发生</th><th>应该做什么</th></tr></thead>
+        <tbody>
+          <tr><td><code>OnInit / OnDeinit</code></td><td>过滤器创建和销毁</td><td>读取配置、建立或释放缓存</td></tr>
+          <tr><td><code>AddObject / RemoveObject</code></td><td>对象进入或离开该过滤器</td><td>分配轻量内部信息，不要做昂贵全局查询</td></tr>
+          <tr><td><code>AddConnection / RemoveConnection</code></td><td>网络连接变化</td><td>扩缩每连接状态</td></tr>
+          <tr><td><code>UpdateObjects</code></td><td>对象状态需要刷新时</td><td>更新位置、标签或自定义缓存</td></tr>
+          <tr><td><code>PreFilter</code></td><td>本帧所有连接过滤之前一次</td><td>准备共享数据</td></tr>
+          <tr><td><code>Filter</code></td><td>按连接执行</td><td>把允许对象写进 <code>OutAllowedObjects</code></td></tr>
+          <tr><td><code>PostFilter</code></td><td>本帧所有连接完成后一次</td><td>收尾或交换双缓冲</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="section-03-02" tabindex="-1">两个 Trait 决定系统如何配合你</h3>
+      <p>UE 5.5 的 <code>ENetFilterTraits</code> 有两个关键标记：</p>
+      <ul>
+        <li><code>Spatial</code>：过滤器依赖世界位置。引擎可以据此把它识别为空间过滤器。</li>
+        <li><code>NeedsUpdate</code>：过滤器需要接收 <code>UpdateObjects</code>，用于同步会变化的对象信息。</li>
+      </ul>
+      <p>这不是装饰性元数据。如果自定义空间过滤器漏报 Trait，系统可能不会按你期望的路径向它提供更新。</p>
+
+      <h3 id="section-03-03" tabindex="-1">最小自定义过滤器骨架</h3>
+      <p><strong>解释性骨架，非可直接编译的完整类：</strong></p>
+      <div><pre><code>class UMySquadRangeFilter : public UNetObjectFilter
+{
+protected:
+    void OnInit(const FNetObjectFilterInitParams&amp; Params) override
+    {
+        // 读取配置、设置 Traits、建立紧凑缓存
+    }
+
+    bool AddObject(uint32 ObjectIndex,
+                   FNetObjectFilterAddObjectParams&amp; Params) override
+    {
+        // 为对象登记过滤所需的最少信息
+        return true;
+    }
+
+    void PreFilter(FNetObjectPreFilteringParams&amp; Params) override
+    {
+        // 每帧一次：准备所有连接共享的数据
+    }
+
+    void Filter(FNetObjectFilteringParams&amp; Params) override
+    {
+        Params.OutAllowedObjects.ClearAllBits();
+
+        // 只遍历候选集合；满足当前连接规则的对象置位
+        // Params.OutAllowedObjects.SetBit(ObjectIndex);
+    }
+};</code></pre></div>
+      <p>性能原则只有一句话：<strong>把能在 <code>PreFilter</code> 或 <code>UpdateObjects</code> 做一次的事情，不要在每个连接的 <code>Filter</code> 里重复做。</strong>因为 100 条连接会把一次看似便宜的查询放大 100 倍。</p>
+
+      <h3 id="section-03-04" tabindex="-1">动态过滤器并不是万能挂钩</h3>
+      <p><code>SetFilter</code> 为对象设置动态过滤器；再次调用 <code>SetFilter</code> 或 <code>SetConnectionFilter</code> 会替换之前的设置。也就是说，不能给同一个对象同时挂“空间过滤器”和“阵营动态过滤器”，然后期待二者自动 AND。需要复合规则时，应把逻辑合并进一个动态过滤器，或把稳定的阵营规则转为 Group Filtering。</p>
+    
+<h2 id="section-04" tabindex="-1">🧰 5.3 内置过滤器</h2>
+      <h3 id="section-04-01" tabindex="-1">UNetObjectGridWorldLocFilter：按世界位置筛选</h3>
+      <p>UE 5.5 的默认 <code>Spatial</code> 定义指向 <code>UNetObjectGridWorldLocFilter</code>，配置类为 <code>UNetObjectGridFilterConfig</code>。它把对象登记到二维网格，再按连接的 Replication View 找候选单元格；开启精确距离后，还会对候选对象做距离平方判断。</p>
+
+      <h3 id="section-04-02" tabindex="-1">UFilterOutNetObjectFilter：全部拒绝</h3>
+      <p>它的实现非常直接：<code>Filter()</code> 清空 <code>OutAllowedObjects</code>。BaseEngine.ini 里用名称 <code>NotRouted</code> 注册它，可把某类对象彻底挡在常规复制路径之外。注意：名字叫 NotRouted 不代表类名也是 NotRouted。</p>
+      <p><strong>UE 5.5 源码节选（语义保持，省略签名细节）：</strong></p>
+      <div><pre><code>void UFilterOutNetObjectFilter::Filter(FNetObjectFilteringParams&amp; Params)
+{
+    Params.OutAllowedObjects.ClearAllBits();
+}</code></pre></div>
+
+      <h3 id="section-04-03" tabindex="-1">UNopNetObjectFilter：全部允许</h3>
+      <p>Nop 的行为正好相反，它把允许位数组全部置位，效果等同于动态过滤阶段不剔除任何对象。它适合测试自定义过滤器接线、对比性能或作为最小参考实现；UE 5.5 默认 BaseEngine.ini 并未给它注册名称，若要通过 <code>GetFilterHandle</code> 获取，需要自行配置定义。</p>
+      <div><pre><code>void UNopNetObjectFilter::Filter(FNetObjectFilteringParams&amp; Params)
+{
+    Params.OutAllowedObjects.SetAllBits();
+}</code></pre></div>
+
+      <h3 id="section-04-04" tabindex="-1">UNetObjectConnectionFilter 与 SetConnectionFilter 不是一回事</h3>
+      <p>这是最值得单独强调的命名陷阱：</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>方案</th><th>性质</th><th>适用场景</th></tr></thead>
+        <tbody>
+          <tr><td><code>UReplicationSystem::SetConnectionFilter</code></td><td>内建的静态连接位集过滤</td><td>对象较少、允许连接集合较稳定；通常优先使用</td></tr>
+          <tr><td><code>UNetObjectConnectionFilter</code></td><td>动态 pre-poll 过滤器</td><td>对象可能是 Dependent Object 等必须依赖动态过滤语义的情况</td></tr>
+        </tbody>
+      </table></div>
+      <p>UE 5.5 头文件明确说明，动态连接过滤器并非为海量对象设计，默认配置的 <code>MaxObjectCount</code> 为 4096。若只是“这 20 个管理对象只给 3 个裁判连接”，轻量的 <code>SetConnectionFilter</code> 更清晰。</p>
+    
+<h2 id="section-05" tabindex="-1">🗺️ 5.4 空间过滤器详解（GridFilter）</h2>
+      <h3 id="section-05-01" tabindex="-1">为什么先用网格，而不是每连接扫描全世界</h3>
+      <p>假设场上有 50,000 个可复制对象和 100 条连接。朴素做法每帧要做 500 万次距离判断。GridFilter 先通过网格把候选集合缩到观察位置周围的若干单元格，再做精确判断，计算量从“全世界 × 所有连接”变成“局部候选 × 所有视图”。</p>
+      <div><pre><code>世界对象
+  └─ 按 CullDistance 覆盖范围登记到一个或多个二维 Cell
+
+连接的 Replication View
+  └─ 找到当前 Cell 和最近经过的 Cell
+       └─ 收集候选对象
+            ├─ bUseExactCullDistance = false → 单元格内直接允许
+            └─ bUseExactCullDistance = true  → 再做 DistSquared 检查</code></pre></div>
+
+      <h3 id="section-05-02" tabindex="-1">UE 5.5 源码里的实际步骤</h3>
+      <ol>
+        <li><code>OnInit</code> 添加 <code>Spatial</code> Trait，读取 Grid 配置并建立每连接缓存。</li>
+        <li><code>AddObject</code> 读取对象世界位置与剔除距离，计算它覆盖的单元格；对象可能跨多个 Cell。</li>
+        <li><code>PreFilter</code> 推进帧计数。</li>
+        <li><code>Filter</code> 遍历连接的每个 Replication View，收集相关 Cell。</li>
+        <li>若启用精确距离，对候选对象执行距离平方判断，并更新短期保留计数。</li>
+        <li><code>UNetObjectGridWorldLocFilter::PreFilter</code> 更新位置已变脏对象的 Cell 信息。</li>
+      </ol>
+      <p>源码还包含一个容易忽略的保护：对象的 Cull Distance 若超过配置的 <code>MaxCullDistance</code>，会从 GridFilter 移除并按 always relevant 处理。若误把 Max 设置得过小，结果可能不是“更积极地裁剪”，而是对象反而全局相关。</p>
+
+      <h3 id="section-05-03" tabindex="-1">核心参数怎么理解</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>参数</th><th>作用</th><th>调优思路</th></tr></thead>
+        <tbody>
+          <tr><td><code>CellSizeX / CellSizeY</code></td><td>二维网格尺寸</td><td>太小会让对象跨很多 Cell、维护成本上升；太大则候选对象过多</td></tr>
+          <tr><td><code>DefaultCullDistance</code></td><td>没有对象级覆盖时的默认剔除距离</td><td>按游戏信息密度和移动速度设基线</td></tr>
+          <tr><td><code>MaxCullDistance</code></td><td>过滤器能处理的最大距离</td><td>必须覆盖业务允许的最大值；0 在默认配置中表示不设上限</td></tr>
+          <tr><td><code>bUseExactCullDistance</code></td><td>是否在 Cell 候选后做精确距离检查</td><td>更准确但增加 CPU；密集场景通常值得开启</td></tr>
+          <tr><td><code>ViewPosRelevancyFrameCount</code></td><td>非精确模式下保留近期视图 Cell</td><td>减轻高速移动造成的边界闪烁</td></tr>
+          <tr><td><code>DefaultFrameCountBeforeCulling</code></td><td>精确模式下对象越界后的短期保留帧数</td><td>在稳定性与“多留几帧”的成本间折中</td></tr>
+          <tr><td><code>FilterProfiles</code></td><td>按 Profile 覆盖行为</td><td>玩家、载具、掉落物可用不同保留帧数</td></tr>
+        </tbody>
+      </table></div>
+      <p>UE 5.5 源码构造时的默认值包括：Cell 约 20000×20000、DefaultCullDistance 15000、精确距离开启、默认保留 4 帧。它们是引擎默认，不是项目最佳值。厘米制世界里，20000 代表 200 米；你的地图密度、速度和服务器 TickRate 会改变最优点。</p>
+
+      <h3 id="section-05-04" tabindex="-1">边界抖动与两层滞后</h3>
+      <p>玩家在 Cell 边界或 Cull Distance 附近高速移动时，如果“进一帧、出一帧”，远端对象可能反复创建和销毁。GridFilter 自身通过近期 Cell / 对象帧计数缓和空间边界；过滤系统还提供 Object Scope Hysteresis，在动态过滤器判定出界后继续保留若干帧。二者都能抗抖，但叠加过大也会让对象在视野外滞留太久。</p>
+    
+<h2 id="section-06" tabindex="-1">👥 5.5 组过滤（Group Filtering）</h2>
+      <h3 id="section-06-01" tabindex="-1">组不是标签，而是一条批量规则</h3>
+      <p>Group Filtering 的价值在于：连接规则改变时，不必逐对象修改。你可以把所有蓝队信标、任务点、复活倒计时加入同一个组，然后只对组设置“蓝队连接允许”。新对象加入组后自动继承这条连接规则。</p>
+
+      <h3 id="section-06-02" tabindex="-1">Exclusion 与 Inclusion 的方向相反</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>组类型</th><th>默认状态</th><th>执行位置</th><th>典型用途</th></tr></thead>
+        <tbody>
+          <tr><td>Exclusion Group</td><td>默认拒绝组内对象</td><td>动态过滤器之前</td><td>隐藏尚未开放的活动对象、隔离测试对象</td></tr>
+          <tr><td>Inclusion Group</td><td>默认不覆盖动态过滤</td><td>动态过滤器之后</td><td>让队伍对象无视距离，强制对队友可见</td></tr>
+        </tbody>
+      </table></div>
+      <p>Inclusion Group 是解决“队伍标记在地图另一端也要看见”的关键：GridFilter 可能把它判为距离过远，但后执行的 Inclusion 状态可以把对象重新纳入指定连接的作用域。</p>
+
+      <h3 id="section-06-03" tabindex="-1">UE 5.5 组过滤示例</h3>
+      <p><strong>API 组合示例，句柄获取与错误处理已简化：</strong></p>
+      <div><pre><code>using namespace UE::Net;
+
+FNetObjectGroupHandle BlueTeamGroup =
+    ReplicationSystem-&gt;CreateGroup(TEXT("BlueTeamMarkers"));
+
+ReplicationSystem-&gt;AddInclusionFilterGroup(BlueTeamGroup);
+
+for (FNetRefHandle MarkerHandle : BlueTeamMarkerHandles)
+{
+    ReplicationSystem-&gt;AddToGroup(BlueTeamGroup, MarkerHandle);
+}
+
+for (uint32 ConnectionId : BlueTeamConnectionIds)
+{
+    ReplicationSystem-&gt;SetGroupFilterStatus(
+        BlueTeamGroup,
+        ConnectionId,
+        ENetFilterStatus::Allow);
+}</code></pre></div>
+      <p>组不再使用时要先取消过滤影响并销毁组；成员阵营变化时及时 <code>RemoveFromGroup</code> / <code>AddToGroup</code>。连接重连会获得新的 ConnectionId，不要把旧 ID 当成永久玩家身份。</p>
+
+      <h3 id="section-06-04" tabindex="-1">子对象的特殊规则</h3>
+      <p>UE 5.5 头文件明确说明：加入 Inclusion Group 的 SubObject 在处理时会被忽略，它的状态由 Root Object 决定。需要单独过滤子对象时，应使用 SubObject Filter API。把武器组件塞进 Inclusion Group，却没有处理所属角色 Root，很容易得到与预期相反的结果。</p>
+    
+<h2 id="section-07" tabindex="-1">⚙️ 5.6 过滤器配置与完整实战</h2>
+      <h3 id="section-07-01" tabindex="-1">第一层：注册动态过滤器定义</h3>
+      <p>名称是运行时 API 与实现类之间的桥。UE 5.5 的 BaseEngine.ini 默认注册 <code>Spatial</code> 与 <code>NotRouted</code>：</p>
+      <p><strong>配置示例：</strong></p>
+      <div><pre><code>[/Script/IrisCore.NetObjectFilterDefinitions]
++NetObjectFilterDefinitions=(FilterName=Spatial, ClassName=/Script/IrisCore.NetObjectGridWorldLocFilter, ConfigClassName=/Script/IrisCore.NetObjectGridFilterConfig)
++NetObjectFilterDefinitions=(FilterName=NotRouted, ClassName=/Script/IrisCore.FilterOutNetObjectFilter, ConfigClassName=/Script/IrisCore.FilterOutNetObjectFilterConfig)</code></pre></div>
+
+      <h3 id="section-07-02" tabindex="-1">第二层：给类分配过滤器</h3>
+      <p><code>UObjectReplicationBridgeConfig</code> 可按类路径绑定 <code>DynamicFilterName</code> 和可选的 <code>FilterProfile</code>。更具体的类配置优先；实例自身的 Always Relevant / Only Relevant To Owner 语义也会影响是否采用类配置，除非设置 <code>bForceEnableOnAllInstances</code>。</p>
+      <div><pre><code>[/Script/IrisCore.ObjectReplicationBridgeConfig]
+DefaultSpatialFilterName=Spatial
+!FilterConfigs=ClearArray
++FilterConfigs=(ClassName=/Script/MyGame.BRLootActor, DynamicFilterName=Spatial, FilterProfile=Loot)
++FilterConfigs=(ClassName=/Script/MyGame.BRVehicle, DynamicFilterName=Spatial, FilterProfile=Vehicle)
++FilterConfigs=(ClassName=/Script/MyGame.BRGlobalMatchState, DynamicFilterName=None)</code></pre></div>
+
+      <h3 id="section-07-03" tabindex="-1">第三层：配置 Grid 与滞后</h3>
+      <p><strong>项目起点示例，不是通用推荐值：</strong></p>
+      <div><pre><code>[/Script/IrisCore.NetObjectGridFilterConfig]
+CellSizeX=20000
+CellSizeY=20000
+DefaultCullDistance=15000
+MaxCullDistance=100000
+bUseExactCullDistance=true
+DefaultFrameCountBeforeCulling=4
+ViewPosRelevancyFrameCount=2
++FilterProfiles=(FilterProfileName=Loot, FrameCountBeforeCulling=2)
++FilterProfiles=(FilterProfileName=Vehicle, FrameCountBeforeCulling=8)
+
+[/Script/IrisCore.ReplicationFilteringConfig]
+bEnableObjectScopeHysteresis=true
+DefaultHysteresisFrameCount=6
+HysteresisUpdateConnectionThrottling=1</code></pre></div>
+      <p>若升级引擎后配置不生效，第一件事不是继续猜数值，而是打开目标版本的 Config UCLASS / USTRUCT，确认 Section、属性名以及数组写法。Experimental API 的变化风险要显式纳入升级检查表。</p>
+
+      <h3 id="section-07-04" tabindex="-1">第四层：运行时设置</h3>
+      <p><strong>运行时 API 示例：</strong></p>
+      <div><pre><code>// 给玩家或载具设置已注册的 Spatial 动态过滤器
+const FNetObjectFilterHandle SpatialHandle =
+    ReplicationSystem-&gt;GetFilterHandle(TEXT("Spatial"));
+
+const bool bApplied =
+    ReplicationSystem-&gt;SetFilter(ObjectHandle, SpatialHandle, TEXT("Vehicle"));
+
+// 私人背包：先设置拥有连接，再使用特殊的 ToOwnerFilterHandle
+ReplicationSystem-&gt;SetOwningNetConnection(InventoryHandle, OwnerConnectionId);
+ReplicationSystem-&gt;SetFilter(
+    InventoryHandle,
+    UE::Net::ToOwnerFilterHandle);
+
+// 裁判对象：使用轻量连接位集过滤
+TBitArray&lt;&gt; AllowedConnections;
+AllowedConnections.Init(false, MaxConnectionCount);
+AllowedConnections[ObserverConnectionId] = true;
+
+ReplicationSystem-&gt;SetConnectionFilter(
+    RefereeDataHandle,
+    AllowedConnections,
+    UE::Net::ENetFilterStatus::Allow);</code></pre></div>
+      <p>务必检查 <code>GetFilterHandle</code> 和 <code>SetFilter</code> 结果。<code>SetFilter</code> 失败后，官方头文件说明对象过滤状态可能保持旧值，也可能没有过滤，不能假设失败等同于“安全地全部拒绝”。</p>
+
+      <h3 id="section-07-05" tabindex="-1">完整战术竞技方案</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>对象</th><th>实现</th><th>状态变化时的操作</th></tr></thead>
+        <tbody>
+          <tr><td>玩家 / 载具 / 掉落物</td><td>类配置 Spatial；按类型选择 Profile</td><td>位置变脏由 WorldLoc 过滤器刷新；改变剔除距离时同步对象过滤信息</td></tr>
+          <tr><td>队伍标记 / 队伍任务</td><td>加入对应队伍的 Inclusion Group</td><td>换队时迁移组；连接加入队伍时设置 Allow</td></tr>
+          <tr><td>背包 / 私人任务</td><td>Owning Connection + ToOwnerFilterHandle</td><td>所有权转移时更新 Owning Connection</td></tr>
+          <tr><td>裁判数据</td><td>SetConnectionFilter 允许位集</td><td>裁判加入/退出时重建位集</td></tr>
+          <tr><td>全局比赛状态</td><td>DynamicFilterName=None</td><td>保持全局相关，交给后续优先级与带宽系统</td></tr>
+        </tbody>
+      </table></div>
+    
+<h2 id="section-08" tabindex="-1">🔬 5.7 过滤系统内部实现</h2>
+      <h3 id="section-08-01" tabindex="-1">FReplicationFiltering::Filter() 的真实流水线</h3>
+      <p>UE 5.5 的 <code>ReplicationFiltering.cpp</code> 中，顶层过滤流程按以下顺序组织：</p>
+      <div><pre><code>ResetRemovedConnections
+InitNewConnections
+UpdateObjectsInScope
+UpdateGroupExclusionFiltering
+UpdateGroupInclusionFiltering
+UpdateOwnerAndConnectionFiltering
+UpdateSubObjectFilters
+PreUpdateObjectScopeHysteresis
+UpdateDynamicFilters
+FilterNonRelevantObjects</code></pre></div>
+      <p>不要把这个列表误读成“每一步都直接覆盖上一步”。系统会维护多组位数组：连接过滤、组排除、动态过滤前作用域、组包含、动态过滤结果和滞后调整结果。最终通过位运算组合，形成每条连接的 <code>ObjectsInScope</code>。</p>
+
+      <h3 id="section-08-02" tabindex="-1">动态过滤内部又分四步</h3>
+      <div><pre><code>NotifyFiltersOfDirtyObjects
+        ↓
+PreUpdateDynamicFiltering
+        ↓
+UpdateDynamicFiltering（逐连接调用 Filter）
+        ↓
+PostUpdateDynamicFiltering</code></pre></div>
+      <p>每个动态过滤器只负责分配给自己的对象。它把允许对象写入 <code>OutAllowedObjects</code>，过滤系统再将这些位合并到该连接的动态过滤结果中。没有分配给动态过滤器的对象不会凭空被它处理。</p>
+
+      <h3 id="section-08-03" tabindex="-1">为什么 Inclusion Group 能“救回”远距离对象</h3>
+      <p>源码组合动态过滤结果时，会用 Group Included Objects 去清除相应的 filtered-out 位。因此 Inclusion 语义是对动态过滤结果的覆盖，而不是在 GridFilter 之前给对象贴一个普通标签。队伍标记的业务需求正好利用了这个顺序。</p>
+      <div><pre><code>// 解释性伪代码：表达位数组关系，不是源码逐字复制
+PreDynamicScope =
+    GlobalScope
+    - OwnerOrConnectionFilteredOut
+    - ExclusionGroupObjects
+    - SubObjectFilteredOut;
+
+DynamicFilteredOut =
+    RunAssignedDynamicFilters(PreDynamicScope);
+
+DynamicFilteredOut -= InclusionGroupAllowedObjects;
+
+ObjectsInScope =
+    ApplyHysteresis(PreDynamicScope - DynamicFilteredOut);</code></pre></div>
+
+      <h3 id="section-08-04" tabindex="-1">全局 Relevant List 的最后收口</h3>
+      <p><code>FilterNonRelevantObjects()</code> 会把 always relevant 对象与各连接作用域做汇总，形成全局 relevant 列表。源码构建 always relevant 列表时，会排除已经使用 Owner、Connection、Dynamic 或 Group Filter 的对象，避免把有明确过滤规则的对象错误地当作全局相关。</p>
+
+      <h3 id="section-08-05" tabindex="-1">Shared Connection 的合并语义</h3>
+      <p>父子连接（例如分屏连接）会共享过滤状态。UE 5.5 的 <code>FSharedConnectionFilterStatus</code> 默认不允许；只要父或任一子连接允许，合并状态就允许。调试时若发现“主连接被禁用但仍在复制”，要检查同组的 Child Connection 是否仍为 Allow。</p>
+    
+<h2 id="section-09" tabindex="-1">🧯 常见问题与排查</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>现象</th><th>优先检查</th><th>常见原因</th></tr></thead>
+        <tbody>
+          <tr><td><code>GetFilterHandle("Spatial")</code> 无效</td><td>NetObjectFilterDefinitions 与模块路径</td><td>名称未注册、Section 错误、类未加载</td></tr>
+          <tr><td><code>SetFilter</code> 返回 false</td><td>对象句柄、过滤器 AddObject 条件、Profile 名</td><td>对象不被过滤器支持；失败后状态不保证</td></tr>
+          <tr><td>远距离对象仍然复制</td><td>Inclusion Group、MaxCullDistance、Always Relevant</td><td>被包含组救回；距离超上限后离开 Grid；实例语义覆盖类配置</td></tr>
+          <tr><td>近距离对象不复制</td><td>Exclusion / Connection / Owner 过滤与 View</td><td>在动态过滤前已出作用域；Replication View 位置不正确</td></tr>
+          <tr><td>边界对象反复创建销毁</td><td>精确距离、Grid 保留帧、Scope Hysteresis</td><td>抗抖帧数过小或高速移动跨 Cell</td></tr>
+          <tr><td>换队后仍能看到旧队标记</td><td>组成员迁移与 ConnectionId 生命周期</td><td>只加入新组，没从旧组移除；复用了旧连接 ID</td></tr>
+          <tr><td>SubObject 的 Inclusion 不生效</td><td>Root Object 与 SubObject Filter</td><td>Inclusion Group 会忽略 SubObject 成员</td></tr>
+          <tr><td>配置在新版本失效</td><td>目标版本头文件与 BaseEngine.ini</td><td>Experimental API、属性名或默认定义变化</td></tr>
+        </tbody>
+      </table></div>
+      <p>排查顺序建议固定为：<strong>对象是否进入 Iris → 句柄是否有效 → 静态/组过滤后的 pre-dynamic scope → 动态过滤结果 → Inclusion 覆盖 → Hysteresis → 最终 ObjectsInScope</strong>。直接从“网络没包”倒推，通常会绕远路。</p>
+    
+<h2 id="section-10" tabindex="-1">⚡ 性能建议</h2>
+      <ol>
+        <li><strong>先用便宜规则缩小集合。</strong>Owner、Connection 和 Group 能表达的业务，不要强行写成逐连接动态过滤。</li>
+        <li><strong>动态过滤器只缓存必要数据。</strong>把 UObject 查询转换为紧凑数组或位集，在 <code>UpdateObjects</code> 更新。</li>
+        <li><strong>避免 Filter 内分配。</strong>逐连接热路径中不要创建临时 UObject、TMap 或大数组。</li>
+        <li><strong>测候选数量，不只测最终数量。</strong>Grid 的最终过滤率很高，不代表 Cell 候选集合就小；Cell 过大仍会浪费距离判断。</li>
+        <li><strong>按对象类型分 Profile。</strong>高速载具需要更长抗抖，静态掉落物可以更快剔除。</li>
+        <li><strong>把 Hysteresis 当稳定性预算。</strong>保留帧越多，创建销毁越平滑，但作用域和带宽占用也越久。</li>
+        <li><strong>用真实人数和地图密度压测。</strong>10 个机器人下的参数，不能代表 100 人、50,000 个对象的服务器。</li>
+      </ol>
+      <p>最终优化目标不是“过滤率越高越好”，而是服务器 CPU、对象创建销毁频率、连接带宽和玩家感知之间的平衡。过滤过狠造成关键对象晚出现，同样是网络体验问题。</p>
+    
+<h2 id="section-11" tabindex="-1">📁 关键源码文件索引</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>文件</th><th>阅读重点</th></tr></thead>
+        <tbody>
+          <tr><td><code>Filtering/NetObjectFilter.h</code></td><td>动态过滤器接口、参数结构与 Traits</td></tr>
+          <tr><td><code>Filtering/ReplicationFiltering.h/.cpp</code></td><td>过滤流水线、各类位数组的组合顺序</td></tr>
+          <tr><td><code>Filtering/NetObjectGridFilter.h/.cpp</code></td><td>网格登记、View Cell、精确距离与保留帧</td></tr>
+          <tr><td><code>Filtering/NetObjectConnectionFilter.h/.cpp</code></td><td>动态连接过滤器及对象容量限制</td></tr>
+          <tr><td><code>Filtering/FilterOutNetObjectFilter.h/.cpp</code></td><td>全部拒绝的最小实现</td></tr>
+          <tr><td><code>Filtering/NopNetObjectFilter.h/.cpp</code></td><td>全部允许的最小实现</td></tr>
+          <tr><td><code>Filtering/ObjectScopeHysteresisUpdater.h/.cpp</code></td><td>出作用域后的帧级滞后</td></tr>
+          <tr><td><code>Filtering/SharedConnectionFilterStatus.h/.cpp</code></td><td>父子连接过滤状态合并</td></tr>
+          <tr><td><code>ReplicationSystem.h</code></td><td>SetFilter、SetConnectionFilter 与 Group API</td></tr>
+          <tr><td><code>ObjectReplicationBridgeConfig.h</code></td><td>按类绑定 DynamicFilterName 和 Profile</td></tr>
+        </tbody>
+      </table></div>
+      <p>本机 UE 5.5 路径位于 <code>Engine/Source/Runtime/Experimental/Iris/Core</code>。阅读其他版本源码时，请先对比这些文件的声明，再对照本文流程。</p>
+      <p>官方资料：</p>
+      <ul>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-filtering-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">Iris Filtering（UE 5.5）</a></li>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/Iris/ReplicationSystem/Filtering/UNetObjectFilter?application_version=5.5" target="_blank" rel="noopener noreferrer">UNetObjectFilter API（UE 5.5）</a></li>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/Iris/ReplicationSystem/Filtering/UNetObjectGridFilterConfig?application_version=5.5" target="_blank" rel="noopener noreferrer">UNetObjectGridFilterConfig API（UE 5.5）</a></li>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/Iris/ReplicationSystem/UReplicationSystem/SetFilter?application_version=5.5" target="_blank" rel="noopener noreferrer">UReplicationSystem::SetFilter API（UE 5.5）</a></li>
+      </ul>
+    
+<h2 id="section-12" tabindex="-1">🎯 本章小结</h2>
+      <ul>
+        <li>过滤决定对象是否属于某条连接的复制作用域；优先级只决定通过过滤后谁先发送。</li>
+        <li>Owner、Connection、Group、Dynamic 是四类主要手段，应优先选择成本更低、语义更稳定的方案。</li>
+        <li><code>UNetObjectFilter</code> 用批量回调和位数组工作；<code>PreFilter</code> 每帧一次，<code>Filter</code> 按连接执行。</li>
+        <li>GridFilter 先按 Cell 缩小候选集合，再可选地做精确距离判断，并用帧计数与 Scope Hysteresis 抗抖。</li>
+        <li>Exclusion Group 在动态过滤前排除；Inclusion Group 在动态过滤后允许，可让队伍对象覆盖空间距离结果。</li>
+        <li><code>UNetObjectConnectionFilter</code> 与 <code>SetConnectionFilter</code> 是不同方案；海量对象不要误用前者。</li>
+        <li>调试必须尊重源码组合顺序，尤其关注 Inclusion、SubObject、Shared Connection 和 MaxCullDistance 的特殊语义。</li>
+      </ul>
+    
+<h2 id="section-13" tabindex="-1">💡 下一步</h2>
+      <p>过滤系统把“不该送的包裹”移出仓库，但通过过滤的对象仍可能远超单帧带宽。下一部分将进入 <strong>Prioritization（优先级系统）</strong>：空间优先级如何计算、不同对象如何使用自定义 Prioritizer，以及 Iris 如何在带宽预算下决定本帧真正发送哪些对象。</p>
+      <p><a href="/html-articles/ue5-iris-guide-outline/">返回系列大纲 →</a></p>
+    
+      </article>
+
+      <footer class="article-footer">
+        <p><strong>文章来源：</strong>Jossy Zhang 原创整理，技术依据为 Unreal Engine 5.5 Iris 官方文档与引擎源码。</p>
+        <p><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-filtering-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">Epic Games：Iris Filtering（UE 5.5）</a></p>
+        <a class="back-home" href="/">← 返回博客首页</a>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="返回页面顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const sectionLinks = Array.from(document.querySelectorAll(".toc a[data-section]"));
+      const sections = sectionLinks
+        .map((link) => document.getElementById(link.dataset.section))
+        .filter(Boolean);
+
+      const updateScroll = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+
+        const activationLine = Math.min(180, window.innerHeight * 0.18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= activationLine) {
+            activeId = section.id;
+          } else {
+            break;
+          }
+        }
+
+        sectionLinks.forEach((link) => {
+          if (link.dataset.section === activeId) {
+            link.setAttribute("aria-current", "true");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      window.addEventListener("scroll", updateScroll, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      updateScroll();
+    })();
+  </script>
+
+
+
+</body>
+</html>

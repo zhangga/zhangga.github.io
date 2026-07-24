@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="分布式 Actor 分片路由与迁移机制详解" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    分布式 Actor 分片路由与迁移机制详解
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-07-24</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：5.7k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：23分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F-Actor-%E5%88%86%E7%89%87%E8%B7%AF%E7%94%B1%E4%B8%8E%E8%BF%81%E7%A7%BB%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3"><span class="post-toc-text">分布式 Actor 分片路由与迁移机制详解</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="post-toc-text">目录</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF%EF%BC%9A%E6%9C%89%E7%8A%B6%E6%80%81-Actor-%E7%9A%84%E5%AE%9A%E4%BD%8D%E9%9A%BE%E9%A2%98"><span class="post-toc-text">1. 问题背景：有状态 Actor 的定位难题</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%EF%BC%9AactorId-%E2%86%92-shard-%E2%86%92-node-%E4%B8%A4%E7%BA%A7%E6%98%A0%E5%B0%84"><span class="post-toc-text">2. 核心设计：actorId → shard → node 两级映射</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-%E5%88%86%E7%89%87%E8%B7%AF%E7%94%B1%E5%8E%9F%E7%90%86%EF%BC%9A%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%8E%AF"><span class="post-toc-text">3. 分片路由原理：一致性哈希环</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E8%A6%81-400-%E4%B8%AA%E8%99%9A%E6%8B%9F%E8%8A%82%E7%82%B9"><span class="post-toc-text">4. 为什么每个节点要 400 个虚拟节点</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-Actor-%E5%AF%BB%E5%9D%80%EF%BC%9A%E4%BB%8E-actorId-%E6%89%BE%E5%88%B0%E8%8A%82%E7%82%B9"><span class="post-toc-text">5. Actor 寻址：从 actorId 找到节点</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-%E8%B7%AF%E7%94%B1%E6%95%B0%E6%8D%AE%E5%9C%A8-Etcd-%E4%B8%AD%E6%80%8E%E4%B9%88%E5%AD%98"><span class="post-toc-text">6. 路由数据在 Etcd 中怎么存</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#7-%E7%BD%91%E5%85%B3%E5%A6%82%E4%BD%95%E6%8A%8A%E6%B6%88%E6%81%AF%E8%B7%AF%E7%94%B1%E5%88%B0%E5%AF%B9%E5%BA%94%E8%8A%82%E7%82%B9"><span class="post-toc-text">7. 网关如何把消息路由到对应节点</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#8-amp-9-%E8%8A%82%E7%82%B9%E5%8F%98%E5%8C%96-Actor-%E8%BF%81%E7%A7%BB%E7%9A%84%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%EF%BC%88%E9%87%8D%E7%82%B9%EF%BC%89"><span class="post-toc-text">8 &amp; 9. 节点变化 + Actor 迁移的完整流程（重点）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-1-%E8%A7%A6%E5%8F%91%EF%BC%9A%E8%8A%82%E7%82%B9%E5%8F%98%E5%8C%96-%E2%86%92-%E7%8E%AF%E6%9B%B4%E6%96%B0-%E2%86%92-%E5%AE%9A%E6%97%B6%E6%89%AB%E6%8F%8F"><span class="post-toc-text">8.1 触发：节点变化 → 环更新 → 定时扫描</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8A%A0%E8%8A%82%E7%82%B9%E9%9C%80%E8%A6%81%E5%AE%9A%E6%97%B6%E6%89%AB%E6%8F%8F%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E3%80%8CEtcd-%E6%84%9F%E7%9F%A5%E5%90%8E%E7%AB%8B%E5%8D%B3%E6%94%B9-forward-%E5%9C%B0%E5%9D%80%E3%80%8D"><span class="post-toc-text">8.1.1 为什么加节点需要定时扫描，而不是「Etcd 感知后立即改 forward 地址」</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-1-2-%E5%AF%B9%E6%AF%94%EF%BC%9A%E5%8A%A0%E8%8A%82%E7%82%B9-vs-%E5%88%A0%E8%8A%82%E7%82%B9%EF%BC%88%E8%AE%BE%E8%AE%A1%E7%B2%BE%E9%AB%93%EF%BC%89"><span class="post-toc-text">8.1.2 对比：加节点 vs 删节点（设计精髓）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-2-%E4%B8%8A%E5%B1%82%E7%BC%96%E6%8E%92%EF%BC%9AActorShard-%E7%9A%84%E4%B8%89%E9%98%B6%E6%AE%B5%E8%BF%81%E7%A7%BB"><span class="post-toc-text">8.2 上层编排：ActorShard 的三阶段迁移</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-3-%E4%B8%8B%E5%B1%82%E7%8A%B6%E6%80%81%E6%9C%BA%EF%BC%9AMigrateComponent-%E7%9A%84-migDest-%E4%B8%89%E6%80%81"><span class="post-toc-text">8.3 下层状态机：MigrateComponent 的 migDest 三态</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-4-%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%97%B6%E5%BA%8F"><span class="post-toc-text">8.4 端到端时序</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#8-5-%E8%BF%81%E7%A7%BB%E7%9A%84%E4%B8%89%E5%A4%A7%E4%BF%9D%E8%AF%81"><span class="post-toc-text">8.5 迁移的三大保证</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#10-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E3%80%8C%E5%8D%95%E7%82%B9%E5%BD%92%E5%B1%9E%E3%80%8D"><span class="post-toc-text">10. 如何保证「单点归属」</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#11-%E5%85%B3%E9%94%AE%E5%B8%B8%E9%87%8F%E4%B8%8E%E6%80%BB%E7%BB%93"><span class="post-toc-text">11. 关键常量与总结</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E4%B8%B2%E8%B5%B7%E6%9D%A5"><span class="post-toc-text">一句话串起来</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E8%AE%BE%E8%AE%A1%E4%BA%AE%E7%82%B9%E5%9B%9E%E9%A1%BE"><span class="post-toc-text">设计亮点回顾</span></a></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="分布式-Actor-分片路由与迁移机制详解"><a href="#分布式-Actor-分片路由与迁移机制详解" class="headerlink" title="分布式 Actor 分片路由与迁移机制详解"></a>分布式 Actor 分片路由与迁移机制详解</h1><blockquote>
+<p>本文整理自一套「全区全服」分布式游戏服务器的核心寻址子系统，讲清楚一个 Actor（玩家、房间等有状态实体）在集群里<strong>如何被定位、如何被路由、节点增删时如何在线迁移，以及如何始终保证「单点归属」</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF">问题背景：有状态 Actor 的定位难题</a></li>
+<li><a href="#2-%E4%B8%A4%E7%BA%A7%E6%98%A0%E5%B0%84">核心设计：actorId → shard → node 两级映射</a></li>
+<li><a href="#3-%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C%E7%8E%AF">分片路由原理：一致性哈希环</a></li>
+<li><a href="#4-%E8%99%9A%E6%8B%9F%E8%8A%82%E7%82%B9">为什么每个节点要 400 个虚拟节点</a></li>
+<li><a href="#5-actor-%E5%AF%BB%E5%9D%80">Actor 寻址：从 actorId 找到节点</a></li>
+<li><a href="#6-etcd-%E5%AD%98%E5%82%A8">路由数据在 Etcd 中怎么存</a></li>
+<li><a href="#7-%E7%BD%91%E5%85%B3%E8%B7%AF%E7%94%B1">网关如何把消息路由到对应节点</a></li>
+<li><a href="#8-%E8%8A%82%E7%82%B9%E5%8F%98%E5%8C%96%E6%B5%81%E7%A8%8B">节点数量变化时的完整流程</a></li>
+<li><a href="#9-%E8%BF%81%E7%A7%BB%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B">Actor 迁移的完整流程（重点）</a></li>
+<li><a href="#10-%E5%8D%95%E7%82%B9%E5%BD%92%E5%B1%9E">如何保证「单点归属」</a></li>
+<li><a href="#11-%E6%80%BB%E7%BB%93">关键常量与总结</a></li>
+</ol>
+<hr>
+<p><a name="1-问题背景"></a></p>
+<h2 id="1-问题背景：有状态-Actor-的定位难题"><a href="#1-问题背景：有状态-Actor-的定位难题" class="headerlink" title="1. 问题背景：有状态 Actor 的定位难题"></a>1. 问题背景：有状态 Actor 的定位难题</h2><p>Actor 模型里，每个有状态实体（玩家、队伍、房间…）是一个 <strong>Actor</strong>：拥有独立的串行执行队列，同一时刻只在<strong>一个线程</strong>上处理消息，内部状态无需加锁。</p>
+<p>在<strong>单机</strong>上这很简单。但在<strong>多节点集群</strong>里，就冒出三个必须回答的问题：</p>
+<ol>
+<li><strong>定位</strong>：一个 <code>actorId</code> 现在活在<strong>哪台</strong>节点上？</li>
+<li><strong>路由</strong>：网关 / 其它服务想给它发消息，怎么找到那台节点？</li>
+<li><strong>归属唯一性</strong>：扩容、缩容、宕机时，怎么保证同一个 Actor <strong>全集群只有一个活跃实例</strong>，绝不出现「双写」？</li>
+</ol>
+<p>朴素做法是「<code>actorId</code> 直接哈希到节点」。但这会导致：<strong>每次增删一台节点，几乎所有 Actor 的归属都要重算</strong>，迁移量爆炸。于是引入了中间层。</p>
+<hr>
+<p><a name="2-两级映射"></a></p>
+<h2 id="2-核心设计：actorId-→-shard-→-node-两级映射"><a href="#2-核心设计：actorId-→-shard-→-node-两级映射" class="headerlink" title="2. 核心设计：actorId → shard → node 两级映射"></a>2. 核心设计：actorId → shard → node 两级映射</h2><p>系统<strong>不让 actorId 直接映射到节点</strong>，而是插入一个固定的中间层 <strong>shard（分片）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">actorId  ──(纯计算, 永不变)──►  shard  ──(随拓扑变)──►  node</span><br><span class="line">   玩家id                     0~10006             具体机器地址</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>映射方式</th>
+<th>是否随集群拓扑变化</th>
+<th>是否需要存储</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>actorId → shard</strong></td>
+<td><code>abs(murmur3(actorId) % 10007)</code> 纯计算</td>
+<td>❌ 永不变</td>
+<td>只做本地缓存</td>
+</tr>
+<tr>
+<td><strong>shard → node</strong></td>
+<td>一致性哈希环决定，权威值落 Etcd</td>
+<td>✅ 唯一会变的一层</td>
+<td>Etcd 持久化</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 第一层：actorId → shard（纯函数，与集群无关）</span></span><br><span class="line"><span class="comment">// 10007 是质数，取模分布更均匀；结果用 LRU 缓存</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">getActorShard</span><span class="params">(<span class="type">long</span> actorId)</span> &#123;</span><br><span class="line">    <span class="type">Integer</span> <span class="variable">shard</span> <span class="operator">=</span> cache.getIfPresent(actorId);</span><br><span class="line">    <span class="keyword">if</span> (shard == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="type">long</span> <span class="variable">hash</span> <span class="operator">=</span> murmur3_128().hashLong(actorId);</span><br><span class="line">        shard = (<span class="type">int</span>) Math.abs(hash % MAX_SHARD_COUNT); <span class="comment">// MAX_SHARD_COUNT = 10007</span></span><br><span class="line">        cache.put(actorId, shard);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> shard;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二层：shard → node（查一致性哈希环 / Etcd 路由表）</span></span><br><span class="line">String <span class="title function_">getActorNode</span><span class="params">(ActorType type, <span class="type">long</span> actorId)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> getShardNode(type.service, getActorShard(actorId));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么多这一层 shard？</strong></p>
+<ul>
+<li><code>actor → shard</code> 永远不变，可以放心缓存，且<strong>天然分散</strong>了 Actor（10007 个桶）。</li>
+<li>节点增删时，只有哈希环上<strong>局部区间</strong>的少数 shard 换归属，<code>actor → shard</code> 完全不动。</li>
+<li>迁移的最小单位从「单个 Actor」变成「整个 shard」，批量迁移更高效。</li>
+</ul>
+<p>shard 就像一个<strong>减震层</strong>：把「海量 Actor」和「少量节点」解耦，节点抖动被吸收在这一层内。</p>
+<hr>
+<p><a name="3-一致性哈希环"></a></p>
+<h2 id="3-分片路由原理：一致性哈希环"><a href="#3-分片路由原理：一致性哈希环" class="headerlink" title="3. 分片路由原理：一致性哈希环"></a>3. 分片路由原理：一致性哈希环</h2><p><code>shard → node</code> 由<strong>一致性哈希环</strong>决定。环用一棵有序树（<code>TreeMap&lt;Long, String&gt;</code>，key=哈希值，value=节点地址）表示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ConsistentHashRouter</span> &#123;</span><br><span class="line">    <span class="comment">// 有序环：哈希值 → 节点地址</span></span><br><span class="line">    NavigableMap&lt;Long, String&gt; ring = <span class="keyword">new</span> <span class="title class_">TreeMap</span>&lt;&gt;();</span><br><span class="line">    <span class="type">int</span> <span class="variable">virtualNodeCount</span> <span class="operator">=</span> <span class="number">400</span>; <span class="comment">// 每个物理节点在环上放 400 个虚拟节点</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 节点上线：为它生成 400 个虚拟节点撒到环上</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">onNodeAdded</span><span class="params">(Set&lt;String&gt; nodes)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (String node : nodes)</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; virtualNodeCount; i++) &#123;</span><br><span class="line">                <span class="type">long</span> <span class="variable">h</span> <span class="operator">=</span> murmur3_128().hashString(node + <span class="string">&quot;#&quot;</span> + i);</span><br><span class="line">                ring.put(h, node);</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="comment">// ... 触发迁移扫描（见后文）</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 节点下线：移除它所有的虚拟节点</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">onNodeDeleted</span><span class="params">(Collection&lt;String&gt; nodes)</span> &#123;</span><br><span class="line">        ring.values().removeIf(nodes::contains);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查找：给定 shard 的哈希值，顺时针找环上第一个虚拟节点</span></span><br><span class="line">    String <span class="title function_">getNode</span><span class="params">(<span class="type">long</span> hash)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (ring.isEmpty()) <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="type">var</span> <span class="variable">e</span> <span class="operator">=</span> ring.ceilingEntry(hash); <span class="comment">// 顺时针 ≥ hash 的第一个</span></span><br><span class="line">        <span class="keyword">if</span> (e == <span class="literal">null</span>) e = ring.firstEntry(); <span class="comment">// 闭合环：绕回头部</span></span><br><span class="line">        <span class="keyword">return</span> e.getValue();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键区分</strong>（初学者最容易混淆的一点）：</p>
+<ul>
+<li>环上<strong>存放的</strong>是「节点的虚拟节点」。</li>
+<li>查询用的 <strong>key</strong> 是「shard 的哈希值」。</li>
+<li>语义是：<strong>「拿 shard 的哈希值，在节点环上顺时针命中的第一台节点，就是这个 shard 的归属节点」</strong>。</li>
+</ul>
+<p>一致性哈希的价值：<strong>增删一台节点，只影响它相邻区间的 shard，其余 shard 全部不动。</strong></p>
+<hr>
+<p><a name="4-虚拟节点"></a></p>
+<h2 id="4-为什么每个节点要-400-个虚拟节点"><a href="#4-为什么每个节点要-400-个虚拟节点" class="headerlink" title="4. 为什么每个节点要 400 个虚拟节点"></a>4. 为什么每个节点要 400 个虚拟节点</h2><p>如果每个物理节点在环上<strong>只放 1 个点</strong>，会出现严重的<strong>负载倾斜</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">只放 1 个点（3 台节点）              放 400 个虚拟节点</span><br><span class="line">┌──────────────────────┐           ┌──────────────────────┐</span><br><span class="line">│  A 占据 72% 的弧长   │           │  A ≈ 33%             │</span><br><span class="line">│  B 占据 16%          │           │  B ≈ 33%             │</span><br><span class="line">│  C 占据 12%          │           │  C ≈ 34%             │</span><br><span class="line">└──────────────────────┘           └──────────────────────┘</span><br><span class="line">    分布随机 → 极不均匀              大数定律 → 趋于均匀</span><br></pre></td></tr></table></figure>
+
+<p>因为节点的哈希落点是随机的，3 个点很容易碰巧挤在一起，导致某台节点承接了环上绝大部分弧长。</p>
+<p><strong>虚拟节点的作用</strong>：把 1 台物理节点拆成 400 个随机落点，均匀撒满整个环。由<strong>大数定律</strong>，落点越多，每台节点占据的总弧长越接近 <code>1/N</code>，负载自然被拉平。</p>
+<p><strong>为什么恰好是 400？</strong> 这是一个折中：</p>
+<table>
+<thead>
+<tr>
+<th>虚拟节点数</th>
+<th>均匀性</th>
+<th>环（TreeMap）规模 &amp; 查询开销</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>太少（如 1~10）</td>
+<td>倾斜严重</td>
+<td>很小，但没用</td>
+</tr>
+<tr>
+<td><strong>400</strong></td>
+<td>足够均匀</td>
+<td>4 节点 = 1600 个 key，<code>ceilingEntry</code> 是 O(log n)，可忽略</td>
+</tr>
+<tr>
+<td>太多（如 10000）</td>
+<td>收益递减</td>
+<td>TreeMap 巨大，内存和查询成本上升</td>
+</tr>
+</tbody></table>
+<p>额外好处：<strong>迁移也更均匀</strong>。新增一台节点时，它插入的 400 个虚拟节点分散在环上各处，会从<strong>每一台</strong>老节点各匀走一小段，而不是把某一台的负载整块搬走。</p>
+<hr>
+<p><a name="5-actor-寻址"></a></p>
+<h2 id="5-Actor-寻址：从-actorId-找到节点"><a href="#5-Actor-寻址：从-actorId-找到节点" class="headerlink" title="5. Actor 寻址：从 actorId 找到节点"></a>5. Actor 寻址：从 actorId 找到节点</h2><p>寻址入口 <code>getShardNode(svc, shard)</code> 不只是「查表」，还承担<strong>路由表的懒构建 + 故障重建</strong>。核心是一段 <strong>Etcd CAS 事务</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">String <span class="title function_">getShardNode</span><span class="params">(Service svc, <span class="type">int</span> shard)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (etcdFault) <span class="keyword">return</span> <span class="literal">null</span>;               <span class="comment">// Etcd 异常，拒绝寻址</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// ① 先查本地缓存（由 Etcd watch 维护，见第 6 节）</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">node</span> <span class="operator">=</span> localCache.get(svc, shard);</span><br><span class="line">    <span class="keyword">if</span> (node != <span class="literal">null</span> &amp;&amp; isAlive(node)) <span class="keyword">return</span> node;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ② 缓存没有 / 节点已死 → 用哈希环重新算一个目标节点</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">newNode</span> <span class="operator">=</span> router(svc).getNode(shardHash(shard));</span><br><span class="line">    <span class="keyword">if</span> (newNode == <span class="literal">null</span>) <span class="keyword">return</span> <span class="literal">null</span>;         <span class="comment">// 无可用节点</span></span><br><span class="line">    <span class="keyword">if</span> (newNode.equals(node)) <span class="keyword">return</span> node;    <span class="comment">// 环也指向同一个（可能只是连接抖动）</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// ③ 用 CAS 事务把权威归属写进 Etcd（关键：保证全集群只有一个写入成功）</span></span><br><span class="line">    <span class="type">var</span> <span class="variable">key</span> <span class="operator">=</span> <span class="string">&quot;shard/&quot;</span> + svc + <span class="string">&quot;/&quot;</span> + shard;</span><br><span class="line">    <span class="type">Cmp</span> <span class="variable">cmp</span> <span class="operator">=</span> (node != <span class="literal">null</span>)</span><br><span class="line">        ? <span class="keyword">new</span> <span class="title class_">Cmp</span>(key, EQUAL, node)      <span class="comment">// 旧节点失效：期望值还是旧节点才覆盖</span></span><br><span class="line">        : <span class="keyword">new</span> <span class="title class_">Cmp</span>(key, VERSION_LESS, <span class="number">1</span>); <span class="comment">// 首次分配：期望 key 尚不存在</span></span><br><span class="line">    <span class="type">TxnResponse</span> <span class="variable">resp</span> <span class="operator">=</span> etcd.txn()</span><br><span class="line">        .If(cmp)</span><br><span class="line">        .Then(put(key, newNode))         <span class="comment">// 条件成立 → 写入新归属</span></span><br><span class="line">        .Else(get(key))                  <span class="comment">// 条件不成立 → 读回别人已写的值</span></span><br><span class="line">        .commit();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ④ 事务成功用自己算的，失败用别人已写入的 —— 无论如何全集群收敛到同一个值</span></span><br><span class="line">    <span class="keyword">return</span> resp.isSucceeded() ? newNode : resp.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>这段 CAS 是「单点归属」的第一道闸门</strong>：多台节点可能同时想给同一个 shard 分配归属，但 Etcd 事务保证<strong>只有一个 <code>put</code> 成功</strong>，其余全部走 <code>Else</code> 分支读回同一个权威值。</p>
+<hr>
+<p><a name="6-etcd-存储"></a></p>
+<h2 id="6-路由数据在-Etcd-中怎么存"><a href="#6-路由数据在-Etcd-中怎么存" class="headerlink" title="6. 路由数据在 Etcd 中怎么存"></a>6. 路由数据在 Etcd 中怎么存</h2><p><strong>关键认知：Etcd 里存的不是「每个 actor 在哪」，而是「每个 shard 在哪」。</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Etcd key-value 布局：</span><br><span class="line">  shard/gs/0      = 10.0.0.3:9001</span><br><span class="line">  shard/gs/1      = 10.0.0.5:9001</span><br><span class="line">  shard/gs/342    = 10.0.0.3:9001</span><br><span class="line">  ...</span><br><span class="line">  shard/gs/10006  = 10.0.0.5:9001</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>key 格式：<code>shard/&#123;服务类型&#125;/&#123;shardIndex&#125;</code>，value = 节点地址。</li>
+<li>每个分片服务最多 <strong>10007</strong> 条记录，全量约 <strong>300KB</strong>，完全放得下。</li>
+<li>因为 <code>actor → shard</code> 是纯计算，<strong>Etcd 完全不需要知道任何 actorId</strong>，数据量与在线玩家数无关，只与 shard 总数有关。这是「两级映射」在存储层的巨大红利。</li>
+</ul>
+<p>每个节点启动时<strong>全量拉一次 + 持续 watch 增量</strong>，在本地维护一份 <code>shard → node</code> 缓存：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">etcdWatch</span><span class="params">(Service svc)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">prefix</span> <span class="operator">=</span> <span class="string">&quot;shard/&quot;</span> + svc + <span class="string">&quot;/&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (localVersion == <span class="number">0</span>) &#123;                       <span class="comment">// 首次：全量拉取</span></span><br><span class="line">        <span class="type">GetResponse</span> <span class="variable">resp</span> <span class="operator">=</span> etcd.get(prefix, isPrefix);</span><br><span class="line">        <span class="keyword">if</span> (resp == <span class="literal">null</span>) System.exit(<span class="number">21</span>);         <span class="comment">// 初次拉取不允许失败，直接退出</span></span><br><span class="line">        localVersion = resp.revision();</span><br><span class="line">        resp.getKvs().forEach(kv -&gt; cache.put(shardOf(kv), nodeOf(kv)));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    etcdFault = <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// 从 version+1 开始 watch，保证不漏事件、不重复</span></span><br><span class="line">    etcd.watch(prefix, fromRevision(localVersion + <span class="number">1</span>),</span><br><span class="line">        events -&gt; &#123;</span><br><span class="line">            localVersion = events.revision();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> e : events) &#123;</span><br><span class="line">                <span class="keyword">if</span> (e.type == PUT) &#123;</span><br><span class="line">                    <span class="type">String</span> <span class="variable">old</span> <span class="operator">=</span> cache.put(shardOf(e), nodeOf(e));</span><br><span class="line">                    <span class="comment">// 归属变了 → 通知本地做相应处理（如网关重绑，见第 7 节）</span></span><br><span class="line">                    <span class="keyword">if</span> (old != <span class="literal">null</span> &amp;&amp; !old.equals(nodeOf(e)))</span><br><span class="line">                        onShardNodeChange(shardOf(e), old, nodeOf(e));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        onError,</span><br><span class="line">        () -&gt; &#123; etcdFault = <span class="literal">true</span>; retryAfter(<span class="number">20</span>, SECONDS); &#125;); <span class="comment">// watch 断开 → 标记故障并重连</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>onShardNodeChange(shard, old, new)</code> 是整个系统感知「某分片换家了」的统一回调 —— 网关据此重绑，业务据此止血。</p>
+<hr>
+<p><a name="7-网关路由"></a></p>
+<h2 id="7-网关如何把消息路由到对应节点"><a href="#7-网关如何把消息路由到对应节点" class="headerlink" title="7. 网关如何把消息路由到对应节点"></a>7. 网关如何把消息路由到对应节点</h2><p>网关（客户端长连接接入层）的目标：把玩家上行消息 <strong>O(1)</strong> 转发到玩家 Actor 所在节点。做法是<strong>「登录时绑定一次，之后走缓存」</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ClientSession</span> &#123;</span><br><span class="line">    <span class="keyword">volatile</span> String gsAddr;   <span class="comment">// 绑定的目标节点地址（缓存）</span></span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">long</span>   userId;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ① 登录成功时：算一次归属，缓存地址，登记反向索引</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">onLogin</span><span class="params">(<span class="type">long</span> userId)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.userId = userId;</span><br><span class="line">        <span class="type">String</span> <span class="variable">addr</span> <span class="operator">=</span> getActorNode(PLAYER, userId); <span class="comment">// actorId → shard → node</span></span><br><span class="line">        <span class="keyword">if</span> (addr == <span class="literal">null</span>) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="comment">// 把 (shard → 本 session) 登记进反向索引，供节点变化时快速找回</span></span><br><span class="line">        gateway.addShardSession(getActorShard(userId), <span class="built_in">this</span>.sessionId);</span><br><span class="line">        updateGsChannel(addr);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ② 之后每条上行消息：直接用缓存地址，O(1) 转发</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">forward</span><span class="params">(Message msg)</span> &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">ch</span> <span class="operator">=</span> innerServer.getChannel(gsAddr); <span class="comment">// 用缓存的绑定地址</span></span><br><span class="line">        <span class="keyword">if</span> (ch == <span class="literal">null</span>) &#123; close(); <span class="keyword">return</span>; &#125;     <span class="comment">// 目标不可达 → 断开，触发重连重绑</span></span><br><span class="line">        ch.writeAndFlush(msg);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ③ 绑定 / 换绑目标节点</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">updateGsChannel</span><span class="params">(String addr)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (addr.equals(gsAddr)) <span class="keyword">return</span>;</span><br><span class="line">        <span class="type">var</span> <span class="variable">ch</span> <span class="operator">=</span> innerServer.getChannel(addr);</span><br><span class="line">        <span class="keyword">if</span> (ch == <span class="literal">null</span>) &#123; close(); <span class="keyword">return</span>; &#125;</span><br><span class="line">        gsAddr = addr;</span><br><span class="line">        ch.writeAndFlush(CONNECT_NOTIFY); <span class="comment">// 通知目标节点建立/修复到本客户端的链路</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>网关侧维护一个<strong>反向索引</strong> <code>shardMap: shard → Set&lt;sessionId&gt;</code>，专门用于「某分片换节点了，赶紧把绑在这个分片上的在线玩家全部重绑」：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 分片归属变化（来自第 6 节的 onShardNodeChange 回调）</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">onShardNodeChange</span><span class="params">(<span class="type">int</span> shard, String oldNode, String newNode)</span> &#123;</span><br><span class="line">    <span class="type">var</span> <span class="variable">sessions</span> <span class="operator">=</span> shardMap.get(shard);</span><br><span class="line">    <span class="keyword">if</span> (sessions == <span class="literal">null</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> sid : sessions) &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">session</span> <span class="operator">=</span> getSession(sid);</span><br><span class="line">        <span class="keyword">if</span> (session != <span class="literal">null</span>) session.updateGsChannel(newNode); <span class="comment">// 换绑到新节点</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 节点宕机（Etcd 感知到删除）：在线玩家等不得，立刻主动重建路由</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">onNodeDeleted</span><span class="params">(Service svc, Collection&lt;String&gt; deadNodes)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (svc != GS) <span class="keyword">return</span>;</span><br><span class="line">    deadNodes.forEach(addr -&gt; closeChannel(addr)); <span class="comment">// 以 Etcd 为准，关闭旧连接</span></span><br><span class="line">    shardMap.forEach((shard, sessions) -&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (sessions.isEmpty()) <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">// 主动触发一次 getShardNode，重算并写回新归属，加速恢复</span></span><br><span class="line">        executor.execute(() -&gt; getShardNode(GS, shard));</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>要点</strong>：网关<strong>不长期硬编码</strong>目标地址，而是把地址当作可失效的缓存。归属一旦变化，就通过 <code>onShardNodeChange</code> 统一换绑；节点宕机则主动重算。转发路径本身保持 O(1)。</p>
+<hr>
+<p><a name="9-迁移完整流程"></a></p>
+<h2 id="8-amp-9-节点变化-Actor-迁移的完整流程（重点）"><a href="#8-amp-9-节点变化-Actor-迁移的完整流程（重点）" class="headerlink" title="8 &amp; 9. 节点变化 + Actor 迁移的完整流程（重点）"></a>8 &amp; 9. 节点变化 + Actor 迁移的完整流程（重点）</h2><p>这是整个系统最精妙的部分。分成两层来看：<strong>上层编排（ActorShard）</strong> 和 <strong>下层单体状态机（MigrateComponent）</strong>。</p>
+<h3 id="8-1-触发：节点变化-→-环更新-→-定时扫描"><a href="#8-1-触发：节点变化-→-环更新-→-定时扫描" class="headerlink" title="8.1 触发：节点变化 → 环更新 → 定时扫描"></a>8.1 触发：节点变化 → 环更新 → 定时扫描</h3><p>系统<strong>不在扩容瞬间同步迁移</strong>，而是<strong>定时扫描</strong>（每 13 分钟一轮）。原因：</p>
+<ul>
+<li>实现简单，无需处理「短时间多次扩容」的复杂时序。</li>
+<li>兼容「停服扩容后重启补迁移」的场景。</li>
+<li>迁移实时性无要求，间隔足够大时性能影响可忽略。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 节点上线/下线 → 更新环 + 把扫描计数置 2（保证拓扑变化后多扫几轮，防漏）</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">onNodeAdded</span><span class="params">(...)</span>  &#123; ring.putAll(...); scanCount.set(<span class="number">2</span>); &#125;</span><br><span class="line"><span class="keyword">void</span> <span class="title function_">onNodeDeleted</span><span class="params">(...)</span>&#123; ring.removeAll(...); scanCount.set(<span class="number">2</span>); &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每 13 分钟一轮：找出「不再属于本节点」的 shard，逐个发起迁移</span></span><br><span class="line">scheduleAtFixedRate(() -&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (scanCount.get() &lt; <span class="number">1</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="type">String</span> <span class="variable">self</span> <span class="operator">=</span> localAddress();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> entry : localShards.entrySet()) &#123;   <span class="comment">// 只遍历本机持有的 shard</span></span><br><span class="line">        <span class="type">var</span> <span class="variable">shard</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">        <span class="keyword">if</span> (shard.inMigrating()) <span class="keyword">continue</span>;         <span class="comment">// 已在迁移中，跳过</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">target</span> <span class="operator">=</span> ring.getNode(shardHash(entry.getKey()));</span><br><span class="line">        <span class="keyword">if</span> (target == <span class="literal">null</span>) &#123; log(<span class="string">&quot;no node!&quot;</span>); <span class="keyword">return</span>; &#125; <span class="comment">// Etcd 严重异常，中断本轮</span></span><br><span class="line">        <span class="keyword">if</span> (self.equals(target)) <span class="keyword">continue</span>;         <span class="comment">// 仍属于自己，不动</span></span><br><span class="line">        shard.migrate(target);                     <span class="comment">// 该走了 → 发起迁移</span></span><br><span class="line">    &#125;</span><br><span class="line">    scanCount.decrementAndGet();</span><br><span class="line">&#125;, <span class="number">13</span>, <span class="number">13</span>, MINUTES);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>用 <code>scanCount</code>（计数而非布尔）是因为 <code>localShards</code> 可能被并发写入，多扫几轮能兜住个别漏掉的 shard。</p>
+</blockquote>
+<h3 id="8-1-1-为什么加节点需要定时扫描，而不是「Etcd-感知后立即改-forward-地址」"><a href="#8-1-1-为什么加节点需要定时扫描，而不是「Etcd-感知后立即改-forward-地址」" class="headerlink" title="8.1.1 为什么加节点需要定时扫描，而不是「Etcd 感知后立即改 forward 地址」"></a>8.1.1 为什么加节点需要定时扫描，而不是「Etcd 感知后立即改 forward 地址」</h3><p>这是最容易产生的误解：<strong>「新增一台节点，Etcd 感知到后，不是会立即改写 actor 的 forward 地址吗？」答案是不会。</strong> 加节点改的是<strong>内存里的哈希环</strong>，不是 <strong>Etcd 路由表</strong>，二者是两个不同的东西：</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>是什么</th>
+<th>加节点时的行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>一致性哈希环</strong></td>
+<td>内存里的「计算规则」，<code>getNode(hash)</code> 算出理论归属</td>
+<td><code>onNodeAdded</code> <strong>立即</strong>把新节点 400 个虚拟节点撒进环，计算结果变了</td>
+</tr>
+<tr>
+<td><strong>Etcd 路由表</strong> <code>shard/&#123;svc&#125;/&#123;shard&#125;</code></td>
+<td>持久化的「权威归属」，网关/节点据此 forward</td>
+<td><strong>不会自动改</strong>，只能被 CAS 写入触发；没人写它就不变</td>
+</tr>
+</tbody></table>
+<p><strong>关键在于 <code>getShardNode</code> 被刻意设计成「归属还活着就绝不重算」</strong>（回看第 5 节那段代码的前几行）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">String <span class="title function_">getShardNode</span><span class="params">(svc, shard)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">node</span> <span class="operator">=</span> localCache.get(svc, shard);</span><br><span class="line">    <span class="keyword">if</span> (node != <span class="literal">null</span> &amp;&amp; isAlive(node))</span><br><span class="line">        <span class="keyword">return</span> node;                    <span class="comment">// ★ 归属还活着 → 直接返回老节点，根本不看环！</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">newNode</span> <span class="operator">=</span> router(svc).getNode(shardHash(shard)); <span class="comment">// 只有归属为空/已死才重算</span></span><br><span class="line">    <span class="comment">// ... CAS 写 Etcd ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以加节点后，一个<strong>归属节点仍存活</strong>的 shard，<code>getShardNode</code> 会一直返回老节点，网关的 forward 地址纹丝不动。<strong>这是故意的。</strong></p>
+<p><strong>为什么不能加节点就立即改地址？</strong> 因为 Actor 是<strong>有状态、正在运行</strong>的实体，不是一个纯路由指针：</p>
+<ul>
+<li>老节点上的 Actor 内存里装着从 DB 加载的状态、运行时数据，队列里可能还有没跑完的任务、没提交的事务。</li>
+<li>若加节点瞬间就把 forward 指向新节点：新节点上<strong>根本没有这个 Actor</strong>，它会去 DB 重新加载；而老节点内存里那份还活着、状态还在变——<strong>同一实体出现两个活跃实例，直接破坏「单点归属」、数据错乱。</strong></li>
+</ul>
+<p>因此搬家必须由老节点<strong>主动做一次受控交接</strong>（冻结 → 传状态 → 切 Etcd 路由 → 解冻），也就是 8.2/8.3 的迁移三阶段，绝不是改个地址那么简单。而这个「贵且不紧急」的交接，就用 13 分钟定时扫描 + 每 shard 再随机延迟 10~180 秒，把迁移<strong>摊平</strong>到时间轴上，避免扩容瞬间的迁移风暴。</p>
+<h3 id="8-1-2-对比：加节点-vs-删节点（设计精髓）"><a href="#8-1-2-对比：加节点-vs-删节点（设计精髓）" class="headerlink" title="8.1.2 对比：加节点 vs 删节点（设计精髓）"></a>8.1.2 对比：加节点 vs 删节点（设计精髓）</h3><p>「Etcd 感知到就立即改」这个直觉，<strong>对删节点成立，对加节点不成立</strong>——这正是路由更新策略的精髓：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>老归属状态</th>
+<th>路由更新方式</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>删节点 / 宕机</strong></td>
+<td>老节点<strong>已死</strong></td>
+<td><strong>立即、按需重算</strong>：<code>getShardNode</code> 发现 <code>isAlive==false</code> → 当场重算 + CAS 写新归属；网关 <code>onNodeDeleted</code> 还会主动触发重建</td>
+<td>老 Actor 已经没了，没有 live 状态要保护，必须尽快恢复服务</td>
+</tr>
+<tr>
+<td><strong>加节点 / 扩容</strong></td>
+<td>老节点<strong>还活着</strong></td>
+<td><strong>延迟、扫描驱动</strong>：<code>getShardNode</code> 坚持返回老节点，靠 13 分钟定时扫描做受控迁移</td>
+<td>老 Actor 带着 live 状态，必须走冻结交接；且不紧急，要摊平</td>
+</tr>
+</tbody></table>
+<p>一句话总结：<strong>宕机是「被动即时重路由」（归属没了，当场补）；扩容是「主动延迟迁移」（归属还在且活着，得体面地搬）。定时扫描正是扩容这条路唯一的搬迁触发器。</strong></p>
+<h3 id="8-2-上层编排：ActorShard-的三阶段迁移"><a href="#8-2-上层编排：ActorShard-的三阶段迁移" class="headerlink" title="8.2 上层编排：ActorShard 的三阶段迁移"></a>8.2 上层编排：ActorShard 的三阶段迁移</h3><p><code>ActorShard.migrate(dest)</code> 先<strong>随机延迟 10~180 秒</strong>（打散大量分片的迁移峰值），再进入 <code>migrate0()</code> 的三阶段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">migrate</span><span class="params">(String dest)</span> &#123;</span><br><span class="line">    scheduleAfter(random(<span class="number">10</span>, <span class="number">180</span>), SECONDS, () -&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (!isAlive(dest)) <span class="keyword">return</span>;   <span class="comment">// 目标已失效，放弃</span></span><br><span class="line">        <span class="keyword">if</span> (inMigrating()) <span class="keyword">return</span>;    <span class="comment">// 已在迁移，避免重入</span></span><br><span class="line">        migDest = dest;</span><br><span class="line">        migrate0();</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">migrate0</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// ── 阶段 1：冻结本 shard 内所有 Actor，等它们进入「冻结」态 ──</span></span><br><span class="line">    List&lt;Future&gt; futures = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    forEachLocalActor(actor -&gt; &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">f</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SettableFuture</span>();</span><br><span class="line">        futures.add(f);</span><br><span class="line">        actor.migrateComponent().startMigrate(migDest, f); <span class="comment">// 冻结 + 创建影子</span></span><br><span class="line">    &#125;);</span><br><span class="line">    Futures.successfulAsList(futures).get(<span class="number">4</span>, SECONDS);      <span class="comment">// 最多等 4 秒</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// ── 阶段 2：CAS 事务切换 Etcd 路由表（权威归属转移，重试 3 次）──</span></span><br><span class="line">    <span class="type">TxnResponse</span> <span class="variable">resp</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123;</span><br><span class="line">        resp = etcd.txn()</span><br><span class="line">            .If(<span class="keyword">new</span> <span class="title class_">Cmp</span>(key, EQUAL, selfAddress))  <span class="comment">// 期望：当前归属还是自己</span></span><br><span class="line">            .Then(put(key, migDest))               <span class="comment">// 成立 → 改写为目标节点</span></span><br><span class="line">            .Else(get(key))</span><br><span class="line">            .commit();</span><br><span class="line">        <span class="keyword">if</span> (resp != <span class="literal">null</span>) <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (resp == <span class="literal">null</span>) <span class="keyword">return</span>; <span class="comment">// Etcd 异常，中止（现存 actor 会被清理，无需解冻）</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// ── 阶段 3：从本地摘除 shard + 通知每个 Actor 完成迁移 ──</span></span><br><span class="line">    <span class="keyword">if</span> (!localShards.remove(shardIndex, <span class="built_in">this</span>))     <span class="comment">// 值比较，防止重复迁移</span></span><br><span class="line">        <span class="keyword">return</span>; <span class="comment">// 已被别的流程迁走了</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">address</span> <span class="operator">=</span> resp.isSucceeded() ? migDest : resp.getValue();</span><br><span class="line">    forEachLocalActor(actor -&gt;</span><br><span class="line">        actor.migrateComponent().finishMigrate(address));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>三阶段严格有序：<strong>先冻结源端 → 再切换权威路由 → 最后摘除源端并收尾</strong>。<code>localShards.remove(shardIndex, this)</code> 用<strong>值比较</strong>（只有 value 仍是「本对象」才删除并返回 true），是防止同一 shard 被并发迁移两次的关键。</p>
+<h3 id="8-3-下层状态机：MigrateComponent-的-migDest-三态"><a href="#8-3-下层状态机：MigrateComponent-的-migDest-三态" class="headerlink" title="8.3 下层状态机：MigrateComponent 的 migDest 三态"></a>8.3 下层状态机：MigrateComponent 的 migDest 三态</h3><p>每个 Actor 挂一个 <code>MigrateComponent</code>，用一个字段 <code>migDest</code> 表达三种状态：</p>
+<table>
+<thead>
+<tr>
+<th><code>migDest</code> 取值</th>
+<th>含义</th>
+<th>对新消息的处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>null</code></td>
+<td><strong>正常</strong>，未迁移</td>
+<td>直接执行（<code>interceptExecute</code> 返回 false）</td>
+</tr>
+<tr>
+<td><code>&quot;&quot;</code>（空串）</td>
+<td><strong>冻结中</strong>，正在迁移</td>
+<td>RPC 消息缓存进 <code>delayRpcs</code>，暂不执行</td>
+</tr>
+<tr>
+<td>非空地址</td>
+<td><strong>已迁走</strong></td>
+<td>拒绝执行，打错误日志</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 消息执行前的拦截钩子</span></span><br><span class="line"><span class="type">boolean</span> <span class="title function_">interceptExecute</span><span class="params">(ActorTask t)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (isShadow) &#123;                          <span class="comment">// 我是「影子」→ 缓存等待主体迁入</span></span><br><span class="line">        <span class="keyword">if</span> (!shadowTimer) &#123;</span><br><span class="line">            shadowTimer = <span class="literal">true</span>;</span><br><span class="line">            schedule(() -&gt; cancelShadow(<span class="literal">null</span>), <span class="number">4</span>, SECONDS); <span class="comment">// 防止无限等待</span></span><br><span class="line">        &#125;</span><br><span class="line">        delayTasks.add(t);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (migDest == <span class="literal">null</span>) <span class="keyword">return</span> <span class="literal">false</span>;       <span class="comment">// 正常：放行</span></span><br><span class="line">    <span class="keyword">if</span> (migDest.isEmpty()) <span class="keyword">return</span> checkDelay(t); <span class="comment">// 冻结：缓存 RPC 到 delayRpcs</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;                             <span class="comment">// 已迁走：拒绝</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 源端：进入冻结，创建影子</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">startMigrate</span><span class="params">(String dest, Future done)</span> &#123;</span><br><span class="line">    owner.execute(() -&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (migDest != <span class="literal">null</span>) &#123; done.set(); <span class="keyword">return</span>; &#125; <span class="comment">// 幂等</span></span><br><span class="line">        owner.stopSchedule();      <span class="comment">// 停掉定时任务</span></span><br><span class="line">        onStartMigrate();          <span class="comment">// 业务钩子（如落库前置处理）</span></span><br><span class="line">        migDest = <span class="string">&quot;&quot;</span>;              <span class="comment">// → 冻结态：新 RPC 开始缓存</span></span><br><span class="line">        createShadowActor(dest);   <span class="comment">// 在目标节点创建影子 Actor + 传输状态/缓存</span></span><br><span class="line">        done.set();</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 源端：完成迁移，标记已迁走</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">finishMigrate</span><span class="params">(String dest)</span> &#123;</span><br><span class="line">    owner.execute(() -&gt; &#123;</span><br><span class="line">        migDest = dest;            <span class="comment">// → 已迁走态</span></span><br><span class="line">        onFinishMigrate(dest);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 目标端影子：解除影子态，回放期间积压的消息</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">cancelShadow</span><span class="params">(List&lt;DelayRpc&gt; migratedRpcs)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (isShadow) &#123; isShadow = <span class="literal">false</span>; recoverRuntime(); &#125;</span><br><span class="line">    <span class="comment">// 回放源端冻结期间缓存的 RPC</span></span><br><span class="line">    <span class="keyword">if</span> (migratedRpcs != <span class="literal">null</span>)</span><br><span class="line">        migratedRpcs.stream().map(<span class="built_in">this</span>::delay2Task).forEach(owner::executeDirectly);</span><br><span class="line">    <span class="comment">// 回放影子期间自己积压的 task</span></span><br><span class="line">    delayTasks.forEach(owner::executeDirectly);</span><br><span class="line">    delayTasks.clear();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-4-端到端时序"><a href="#8-4-端到端时序" class="headerlink" title="8.4 端到端时序"></a>8.4 端到端时序</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">      源节点 A                    Etcd 路由表                 目标节点 B</span><br><span class="line">┌──────────────────┐                                    ┌──────────────────┐</span><br><span class="line">│ ① 扫描发现 shard  │                                    │                  │</span><br><span class="line">│    该归 B 了      │                                    │                  │</span><br><span class="line">│ ② startMigrate:   │                                    │ createShadow →   │</span><br><span class="line">│    stopSchedule   │                                    │  ③ 建影子 Actor  │</span><br><span class="line">│    migDest=&quot;&quot;     │─── 传状态 + 缓存的 delayRpcs ─────►│    isShadow=true │</span><br><span class="line">│    (新RPC开始缓存) │                                    │    (新消息缓存)   │</span><br><span class="line">│ ④ CAS 改路由 ─────┼──► shard/gs/342 = B  (权威切换) ──┐│                  │</span><br><span class="line">│ ⑤ localShards     │                                  ││                  │</span><br><span class="line">│    .remove(this)  │                                  │└─► onShardNodeChange│</span><br><span class="line">│ ⑥ finishMigrate:  │                                  │   网关换绑到 B     │</span><br><span class="line">│    migDest=B      │                                  │ ⑦ cancelShadow:   │</span><br><span class="line">│    (后续消息拒绝)  │                                  │    回放 delayRpcs  │</span><br><span class="line">└──────────────────┘                                  │    + delayTasks   │</span><br><span class="line">                                                       │    正常服务       │</span><br><span class="line">                                                       └──────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-5-迁移的三大保证"><a href="#8-5-迁移的三大保证" class="headerlink" title="8.5 迁移的三大保证"></a>8.5 迁移的三大保证</h3><ol>
+<li><strong>不丢消息</strong>：源端冻结期间的 RPC 存入 <code>delayRpcs</code> 随影子一起传给目标端；目标影子期间的消息存入 <code>delayTasks</code>。两者最终在 <code>cancelShadow</code> 里按序<strong>回放</strong>（<code>delay2Task</code> 把缓存的字节流重建成可执行的 RPC handler）。</li>
+<li><strong>不双跑</strong>：<code>Etcd CAS</code> 保证路由权威只切换一次；<code>localShards.remove(shardIndex, this)</code> 的<strong>值比较</strong>保证同一 shard 不被并发迁移两次；<code>migDest</code>「已迁走」态直接拒绝后续消息。</li>
+<li><strong>不卡死</strong>：影子 Actor 带一个 <strong>4 秒兜底定时器</strong>，即使源端迁移消息因异常没送达，影子也会自动 <code>cancelShadow</code> 解冻并回放已积压消息，避免玩家被永久卡住。</li>
+</ol>
+<hr>
+<p><a name="10-单点归属"></a></p>
+<h2 id="10-如何保证「单点归属」"><a href="#10-如何保证「单点归属」" class="headerlink" title="10. 如何保证「单点归属」"></a>10. 如何保证「单点归属」</h2><p>「同一个 Actor 全集群只有一个活跃实例」由<strong>四层机制</strong>共同兜底：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>机制</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>权威存储</strong></td>
+<td>Etcd 单条 <code>shard/&#123;svc&#125;/&#123;shard&#125;</code> 记录 + CAS 事务</td>
+<td>归属只有一个权威值，写入靠 CAS 天然互斥</td>
+</tr>
+<tr>
+<td><strong>源端冻结迁移</strong></td>
+<td><code>migDest</code> 三态状态机（正常 / 冻结 / 已迁走）</td>
+<td>切换路由前先冻结源端，迁走后拒绝旧节点上的消息</td>
+</tr>
+<tr>
+<td><strong>网关重绑</strong></td>
+<td><code>onShardNodeChange</code> → <code>updateGsChannel</code></td>
+<td>归属一变，在线玩家的上行立刻改发新节点</td>
+</tr>
+<tr>
+<td><strong>创建兜底</strong></td>
+<td><code>addLocalActor</code> 时校验 <code>getShardNode == 自己</code></td>
+<td>并发「创建 Actor」与「迁移」时，若归属已不是本机则拒绝落地</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建本地 Actor 前的最后一道校验：确认这个 shard 此刻确实归自己</span></span><br><span class="line">String <span class="title function_">addLocalActor</span><span class="params">(ActorType type, <span class="type">long</span> actorId)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">shard</span> <span class="operator">=</span> getActorShard(actorId);</span><br><span class="line">    <span class="type">String</span> <span class="variable">node</span> <span class="operator">=</span> getShardNode(type.service, shard);</span><br><span class="line">    <span class="keyword">if</span> (!localAddress().equals(node)) &#123;</span><br><span class="line">        <span class="comment">// 归属已经不是本机（可能正在迁移）→ 拒绝，返回真实归属节点</span></span><br><span class="line">        <span class="keyword">return</span> node;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 归属确认是自己 → 落地</span></span><br><span class="line">    localShards.computeIfAbsent(shard, ...).add(type, actorId);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>; <span class="comment">// null 表示创建成功</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>核心思想：<strong>Etcd 里的那一条 CAS 记录是唯一「物理锚点」</strong>，任何节点想接管一个 shard，都必须先赢下这条记录的 CAS 写入；同时源端用「冻结 → 切路由 → 摘除」的顺序保证交接期不会两端同时处理。</p>
+<hr>
+<p><a name="11-总结"></a></p>
+<h2 id="11-关键常量与总结"><a href="#11-关键常量与总结" class="headerlink" title="11. 关键常量与总结"></a>11. 关键常量与总结</h2><table>
+<thead>
+<tr>
+<th>常量</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分片总数 <code>MAX_SHARD_COUNT</code></td>
+<td><strong>10007</strong></td>
+<td>质数，取模分布更均匀</td>
+</tr>
+<tr>
+<td>每节点虚拟节点数</td>
+<td><strong>400</strong></td>
+<td>均匀性与环规模的折中</td>
+</tr>
+<tr>
+<td>迁移扫描间隔</td>
+<td><strong>13 分钟</strong></td>
+<td>定时扫描而非扩容瞬间触发</td>
+</tr>
+<tr>
+<td>迁移随机延迟</td>
+<td><strong>10~180 秒</strong></td>
+<td>打散大量分片的迁移峰值</td>
+</tr>
+<tr>
+<td>影子兜底定时器</td>
+<td><strong>4 秒</strong></td>
+<td>防止影子 Actor 永久卡死</td>
+</tr>
+<tr>
+<td>Etcd 路由表容量</td>
+<td>~10007 条 / ≈300KB</td>
+<td>与在线人数无关，只与 shard 数有关</td>
+</tr>
+<tr>
+<td>哈希算法</td>
+<td>murmur3_128</td>
+<td>分布均匀、计算快</td>
+</tr>
+</tbody></table>
+<h3 id="一句话串起来"><a href="#一句话串起来" class="headerlink" title="一句话串起来"></a>一句话串起来</h3><blockquote>
+<p><strong><code>actorId</code> 经纯计算落到 10007 个 <code>shard</code> 之一（永不变）；<code>shard</code> 经 400 虚拟节点的一致性哈希环落到某台 <code>node</code>，权威值以单条 CAS 记录存于 Etcd；网关登录时绑定一次、之后 O(1) 转发；节点增删时定时扫描找出该搬家的 shard，用「冻结源端 → CAS 切路由 → 摘除源端 + 影子回放积压消息」的三阶段完成在线迁移，全程靠 Etcd 单条 CAS 记录 + 源端冻结 + 网关重绑 + 创建校验四层机制，保证任一 Actor 全集群始终只有一个活跃实例。</strong></p>
+</blockquote>
+<h3 id="设计亮点回顾"><a href="#设计亮点回顾" class="headerlink" title="设计亮点回顾"></a>设计亮点回顾</h3><ul>
+<li><strong>两级映射</strong>把「海量 Actor」与「少量节点」解耦，shard 是吸收拓扑抖动的减震层。</li>
+<li><strong>一致性哈希 + 虚拟节点</strong>让增删节点只影响局部区间，且负载与迁移都均匀。</li>
+<li><strong>存储只记 shard 归属</strong>，数据量与在线人数无关，Etcd 压力恒定。</li>
+<li><strong>定时扫描式迁移</strong>比触发式简单、健壮，天然兼容停服扩容与多次扩容。</li>
+<li><strong>三态状态机 + 影子 Actor + 消息缓存回放</strong>，实现了「不丢消息、不双跑、不卡死」的在线无损迁移。</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-07-07</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/fulltext-search/'>支持多语言的全文检索</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/timebased-bucket/">令牌桶限流：一个 long 字段搞定的时间戳法实现详解</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="iris-baseline" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    iris-baseline
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-07-24</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.4k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：6分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%A4%E4%B8%AA%E8%BF%9E%E6%8E%A5%E3%80%81%E5%90%8C%E4%B8%80%E5%AF%B9%E8%B1%A1%E2%80%94%E2%80%94%E5%9F%BA%E7%BA%BF%E5%88%86%E5%8F%89%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8C%96%E5%AE%9E%E6%88%98"><span class="post-toc-text">两个连接、同一对象——基线分叉与序列化实战</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%8D%94-%E7%94%9F%E6%B4%BB%E7%B1%BB%E6%AF%94%EF%BC%9A%E7%BB%99%E4%B8%A4%E4%B8%AA%E6%9C%8B%E5%8F%8B%E5%AF%84%E2%80%9D%E6%94%B9%E5%8A%A8%E6%B8%85%E5%8D%95%E2%80%9D"><span class="post-toc-text">🍔 生活类比：给两个朋友寄”改动清单”</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%AF%B9%E8%B1%A1%E8%AE%BE%E5%AE%9A"><span class="post-toc-text">对象设定</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E2%96%B6-%E9%80%90%E5%B8%A7%E6%BC%94%E7%A4%BA"><span class="post-toc-text">▶ 逐帧演示</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#FRAME-0-%E2%80%94-%E5%88%9D%E5%A7%8B"><span class="post-toc-text">FRAME 0 — 初始</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#FRAME-10-%E2%80%94-Health-100%E2%86%9280"><span class="post-toc-text">FRAME 10 — Health 100→80</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#FRAME-11-%C2%B7-%E7%A1%AE%E8%AE%A4-%E2%80%94-%E5%88%86%E5%8F%89%E5%8F%91%E7%94%9F-%E2%9A%A1"><span class="post-toc-text">FRAME 11 · 确认 — 分叉发生 ⚡</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#FRAME-11-%C2%B7-%E5%8F%91%E9%80%81-%E2%80%94-Ammo-30%E2%86%9225-%E2%9A%A1"><span class="post-toc-text">FRAME 11 · 发送 — Ammo 30→25 ⚡</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#FRAME-11-%C2%B7-%E5%AE%A2%E6%88%B7%E7%AB%AF-%E2%80%94-%E6%94%B6%E6%95%9B-%E2%9C%93"><span class="post-toc-text">FRAME 11 · 客户端 — 收敛 ✓</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%A7%A0-%E6%BC%94%E7%A4%BA%E9%87%8C%E5%8F%91%E7%94%9F%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%88%E5%AF%B9%E7%85%A7%E6%BA%90%E7%A0%81%EF%BC%89"><span class="post-toc-text">🧠 演示里发生了什么（对照源码）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%94%8E-%E6%AF%94%E7%89%B9%E6%B5%81%E7%BB%93%E6%9E%84%EF%BC%88SerializeObjectStateDelta-cpp-2259-2281%EF%BC%89"><span class="post-toc-text">🔎 比特流结构（SerializeObjectStateDelta, cpp:2259-2281）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E2%9C%A6-%E6%9C%AC%E8%AF%BE%E8%AE%B0%E4%BD%8F"><span class="post-toc-text">✦ 本课记住</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%F0%9F%8E%AF-%E8%87%AA%E6%B5%8B"><span class="post-toc-text">🎯 自测</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%99%84%EF%BC%9A%E6%B6%89%E5%8F%8A%E7%9A%84%E5%BC%95%E6%93%8E%E6%BA%90%E7%A0%81%E4%BD%8D%E7%BD%AE%EF%BC%88UE5-7%EF%BC%89"><span class="post-toc-text">附：涉及的引擎源码位置（UE5.7）</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="两个连接、同一对象——基线分叉与序列化实战"><a href="#两个连接、同一对象——基线分叉与序列化实战" class="headerlink" title="两个连接、同一对象——基线分叉与序列化实战"></a>两个连接、同一对象——基线分叉与序列化实战</h1><blockquote>
+<p>Iris 原理精讲 · 进阶篇 · 多连接基线（Multi-Connection Baseline）</p>
+</blockquote>
+<p>用一个 <code>ABot</code> 对象、两个连接 A/B，逐帧演示：<strong>当一个连接丢包、导致基线进度分叉后，同一个对象在同一帧要发出两条完全不同的比特流。</strong></p>
+<hr>
+<h2 id="🍔-生活类比：给两个朋友寄”改动清单”"><a href="#🍔-生活类比：给两个朋友寄”改动清单”" class="headerlink" title="🍔 生活类比：给两个朋友寄”改动清单”"></a>🍔 生活类比：给两个朋友寄”改动清单”</h2><p>你在装修，要把每次改动告诉两个朋友。朋友 A 每封信都收到了，所以你只需告诉他”这次又改了啥”。朋友 B 上一封信丢了，你得把”上次那封 + 这次”的改动<strong>一起补给他</strong>。同一次装修，寄给两人的信内容不一样——因为你得<strong>记住每个人上次看到的是哪个版本（基线）</strong>。</p>
+<hr>
+<h2 id="对象设定"><a href="#对象设定" class="headerlink" title="对象设定"></a>对象设定</h2><p><code>ABot</code> 的复制状态描述符里有 3 个成员，ChangeMask 共 3 位：</p>
+<table>
+<thead>
+<tr>
+<th>成员</th>
+<th>ChangeMask 位</th>
+<th>序列化位宽</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Health</code>（int）</td>
+<td>bit0</td>
+<td>16 bit</td>
+</tr>
+<tr>
+<td><code>Ammo</code>（int）</td>
+<td>bit1</td>
+<td>8 bit</td>
+</tr>
+<tr>
+<td><code>Location</code>（FVector）</td>
+<td>bit2</td>
+<td>本例不改，始终不发</td>
+</tr>
+</tbody></table>
+<p>初始两个连接都已确认（ACK）<strong>基线索引 0</strong>，对应快照 <code>S0 = &#123;Health=100, Ammo=30&#125;</code>。</p>
+<hr>
+<h2 id="▶-逐帧演示"><a href="#▶-逐帧演示" class="headerlink" title="▶ 逐帧演示"></a>▶ 逐帧演示</h2><p>观察连接 A / B 各自的<strong>已确认基线</strong>、<strong>累积 ChangeMask</strong>（🔴=脏）、以及本帧真正写出的<strong>比特流</strong>如何随基线分叉而不同。</p>
+<h3 id="FRAME-0-—-初始"><a href="#FRAME-0-—-初始" class="headerlink" title="FRAME 0 — 初始"></a>FRAME 0 — 初始</h3><p>A、B 都确认基线0 = <code>S0&#123;H=100, A=30&#125;</code>。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>连接 A 🔵</th>
+<th>连接 B 🟠</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>已确认基线 (LastAcked)</td>
+<td>索引0 · S0{H=100, A=30}</td>
+<td>索引0 · S0{H=100, A=30}</td>
+</tr>
+<tr>
+<td>累积 ChangeMask</td>
+<td><code>000</code></td>
+<td><code>000</code></td>
+</tr>
+<tr>
+<td>本帧比特流</td>
+<td><em>（本帧无变化，不发送）</em></td>
+<td><em>（本帧无变化，不发送）</em></td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="FRAME-10-—-Health-100→80"><a href="#FRAME-10-—-Health-100→80" class="headerlink" title="FRAME 10 — Health 100→80"></a>FRAME 10 — Health 100→80</h3><p>A、B 都基于 S0 发增量，各建 pending 基线1 = S1。<strong>此刻 A、B 完全同步（同帧共享 S1 快照）。</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>连接 A 🔵</th>
+<th>连接 B 🟠</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>已确认基线</td>
+<td>索引0 · S0{H=100, A=30}</td>
+<td>索引0 · S0{H=100, A=30}</td>
+</tr>
+<tr>
+<td>累积 ChangeMask</td>
+<td>🔴<code>Health</code> <code>001</code></td>
+<td>🔴<code>Health</code> <code>001</code></td>
+</tr>
+<tr>
+<td>本帧比特流</td>
+<td><code>[对象句柄]</code><br><code>[基线索引=00]</code> // 基于 S0 解压<br><code>[ChangeMask=001]</code> // Health 脏<br><code>[Health=80]</code> // 16 bit</td>
+<td>与 A <strong>完全相同</strong></td>
+</tr>
+<tr>
+<td>载荷</td>
+<td>≈ <strong>21 bit</strong>（句柄外：2+3+16）</td>
+<td>≈ <strong>21 bit</strong>（与 A 相同）</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="FRAME-11-·-确认-—-分叉发生-⚡"><a href="#FRAME-11-·-确认-—-分叉发生-⚡" class="headerlink" title="FRAME 11 · 确认 — 分叉发生 ⚡"></a>FRAME 11 · 确认 — 分叉发生 ⚡</h3><p>A 的包被 ACK → <code>A.LastAcked=1</code>；B 丢包 → <code>LostBaseline</code>，Health 脏位合并回 B。</p>
+<blockquote>
+<p>⚡ <strong>基线分叉发生</strong>：A 停在 S1，B 退回 S0（且 Health 脏位复活）。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>连接 A 🔵</th>
+<th>连接 B 🟠</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>已确认基线</td>
+<td>索引1 · S1{H=80, A=30} ✓ACK</td>
+<td>索引0 · S0{H=100, A=30} ✗丢包</td>
+</tr>
+<tr>
+<td>累积 ChangeMask</td>
+<td><code>000</code></td>
+<td>🔴<code>Health</code> <code>001</code></td>
+</tr>
+<tr>
+<td>说明</td>
+<td>已确认，等待下次变化</td>
+<td>LostBaseline：Health 脏位合并回累积 mask</td>
+</tr>
+<tr>
+<td>确认进度</td>
+<td>LastAcked 0→<strong>1</strong></td>
+<td>LastAcked <strong>仍=0</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="FRAME-11-·-发送-—-Ammo-30→25-⚡"><a href="#FRAME-11-·-发送-—-Ammo-30→25-⚡" class="headerlink" title="FRAME 11 · 发送 — Ammo 30→25 ⚡"></a>FRAME 11 · 发送 — Ammo 30→25 ⚡</h3><p>目标同为 <code>S2&#123;H=80, A=25&#125;</code>，但 A/B 基线不同 → 增量不同。</p>
+<blockquote>
+<p>⚡ <strong>同一对象同一帧，A 发 13 bit，B 发 29 bit。</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>连接 A 🔵</th>
+<th>连接 B 🟠</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>已确认基线</td>
+<td>索引1 · S1{H=80, A=30}</td>
+<td>索引0 · S0{H=100, A=30}</td>
+</tr>
+<tr>
+<td>累积 ChangeMask</td>
+<td>🔴<code>Ammo</code> <code>010</code></td>
+<td>🔴<code>Health</code> 🔴<code>Ammo</code> <code>011</code></td>
+</tr>
+<tr>
+<td>本帧比特流</td>
+<td><code>[对象句柄]</code><br><code>[基线索引=01]</code> // 基于 S1 解压<br><code>[ChangeMask=010]</code> // 仅 Ammo 脏<br><code>[Ammo=25]</code> // 8 bit</td>
+<td><code>[对象句柄]</code><br><code>[基线索引=00]</code> // 基于 S0 解压<br><code>[ChangeMask=011]</code> // Health+Ammo 脏<br><code>[Health=80]</code> // 16 bit（补发）<br><code>[Ammo=25]</code> // 8 bit</td>
+</tr>
+<tr>
+<td>载荷</td>
+<td>≈ <strong>13 bit</strong>（2+3+8）· 新基线索引 (1+1)%2=0</td>
+<td>≈ <strong>29 bit</strong>（2+3+16+8）· 新基线索引 (0+1)%2=1</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="FRAME-11-·-客户端-—-收敛-✓"><a href="#FRAME-11-·-客户端-—-收敛-✓" class="headerlink" title="FRAME 11 · 客户端 — 收敛 ✓"></a>FRAME 11 · 客户端 — 收敛 ✓</h3><p>客户端各按包里基线索引找本地快照叠加增量，收敛到 S2。</p>
+<blockquote>
+<p>✓ <strong>殊途同归：两端最终都是 <code>S2&#123;H=80, A=25&#125;</code>。</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>客户端 A 🔵</th>
+<th>客户端 B 🟠</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>解压过程</td>
+<td>本地基线 S1{H=80,A=30}<br>+ Ammo=25<br>= <strong>S2{H=80, A=25}</strong> ✓</td>
+<td>本地基线 S0{H=100,A=30}<br>+ Health=80, Ammo=25<br>= <strong>S2{H=80, A=25}</strong> ✓</td>
+</tr>
+<tr>
+<td>Location</td>
+<td>bit2=0 未发，沿用旧值</td>
+<td>bit2=0 未发，沿用旧值</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="🧠-演示里发生了什么（对照源码）"><a href="#🧠-演示里发生了什么（对照源码）" class="headerlink" title="🧠 演示里发生了什么（对照源码）"></a>🧠 演示里发生了什么（对照源码）</h2><ol>
+<li><strong>Frame 10 改 Health</strong>：A、B 都基于 S0 发增量，各自新建 pending 基线1=S1。同帧同对象的 state 快照靠引用计数<strong>共享</strong>（<code>FBaselineSharingContext</code>）。</li>
+<li><strong>Frame 11 确认分叉</strong>：A 的包被 ACK → <code>A.LastAcked=1</code>（<code>ProcessDelivered</code>, <code>ReplicationWriter.cpp:1217-1230</code>）；B 丢包 → <code>LostBaseline</code>（<code>cpp:1730-1736</code>）把 Health 脏位<strong>合并回</strong> B 的累积 mask（<code>EChangeMaskBehavior::Merge</code>），B.LastAcked 仍停在 0。</li>
+<li><strong>Frame 11 改 Ammo</strong>：目标同为 S2，但 A 基于 S1 只需发 Ammo；B 基于 S0 必须补发 Health+Ammo。基线索引按 <code>(LastAcked+1)%2</code> 轮换（<code>cpp:2528</code>）。</li>
+<li><strong>客户端解压</strong>：各自按包里的基线索引（2bit）找本地快照叠加增量，殊途同归收敛到 S2。</li>
+</ol>
+<hr>
+<h2 id="🔎-比特流结构（SerializeObjectStateDelta-cpp-2259-2281）"><a href="#🔎-比特流结构（SerializeObjectStateDelta-cpp-2259-2281）" class="headerlink" title="🔎 比特流结构（SerializeObjectStateDelta, cpp:2259-2281）"></a>🔎 比特流结构（SerializeObjectStateDelta, cpp:2259-2281）</h2><p>每个脏对象的包体：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[对象句柄] → [基线索引 2bit] → [ChangeMask] → [各脏成员的量化值]</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>基线索引</strong> 告诉客户端”基于你本地哪个快照解压”；</li>
+<li><strong>ChangeMask</strong> 里为 0 的成员（如本例 Location）双方都不发，客户端沿用旧值。</li>
+</ul>
+<hr>
+<h2 id="✦-本课记住"><a href="#✦-本课记住" class="headerlink" title="✦ 本课记住"></a>✦ 本课记住</h2><ul>
+<li>同一对象、同一帧，不同连接因<strong>基线不同</strong>会发出<strong>不同长度/内容的比特流</strong>。</li>
+<li>丢包连接靠 <code>LostBaseline</code> 把脏位<strong>合并回累积 mask</strong>，保证不漏字段（本例 B 补发 Health）。</li>
+<li>基线是 <strong>0↔1 双缓冲轮换</strong>，不是无限版本号；索引随 ACK 前进。</li>
+<li>量化只做一次，A/B <strong>复用同一份量化值</strong>，只是”发不发、相对谁发”不同。</li>
+</ul>
+<hr>
+<h2 id="🎯-自测"><a href="#🎯-自测" class="headerlink" title="🎯 自测"></a>🎯 自测</h2><p><strong>问：</strong> B 连接丢包后，下一帧只改了 Ammo，为什么 B 的比特流里 Health 也出现了？</p>
+<details>
+<summary>点击查看答案</summary>
+
+<p><strong>答：</strong> 丢包使 Health 脏位被合并回 B 的累积 mask，且 B 基线里 Health 仍是旧值，必须补发。</p>
+<p>B 的基线还停在 S0（Health=100），<code>LostBaseline</code> 把 Health 脏位合并回来，所以要相对 S0 补发 Health=80。</p>
+</details>
+
+<hr>
+<h2 id="附：涉及的引擎源码位置（UE5-7）"><a href="#附：涉及的引擎源码位置（UE5-7）" class="headerlink" title="附：涉及的引擎源码位置（UE5.7）"></a>附：涉及的引擎源码位置（UE5.7）</h2><table>
+<thead>
+<tr>
+<th>机制</th>
+<th>文件</th>
+<th>位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACK 处理 <code>ProcessDelivered</code></td>
+<td><code>ReplicationWriter.cpp</code></td>
+<td>1217-1230</td>
+</tr>
+<tr>
+<td>丢包 <code>LostBaseline</code> 合并脏位</td>
+<td><code>ReplicationWriter.cpp</code></td>
+<td>1730-1736</td>
+</tr>
+<tr>
+<td>基线索引轮换 <code>(LastAcked+1)%2</code></td>
+<td><code>ReplicationWriter.cpp</code></td>
+<td>2528</td>
+</tr>
+<tr>
+<td>增量序列化 <code>SerializeObjectStateDelta</code></td>
+<td><code>ReplicationWriter.cpp</code></td>
+<td>2259-2281</td>
+</tr>
+<tr>
+<td>同帧快照共享 <code>FBaselineSharingContext</code></td>
+<td><code>DeltaCompressionBaselineManager.h</code></td>
+<td>167-172</td>
+</tr>
+<tr>
+<td><code>MaxBaselineCount = 2</code>（双缓冲）</td>
+<td><code>DeltaCompressionBaselineManager.h</code></td>
+<td>56-58</td>
+</tr>
+</tbody></table>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-07-24</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/agones-note/'>Agones 经验记录</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ue5-iris-guide/">UE5-Iris 网络复制系统技术分析指南</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

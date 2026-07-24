@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="令牌桶限流：一个 long 字段搞定的时间戳法实现详解" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    令牌桶限流：一个 long 字段搞定的时间戳法实现详解
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-07-24</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.6k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：9分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%99%90%E6%B5%81"><span class="post-toc-text">一、为什么需要限流</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81%E4%BB%A4%E7%89%8C%E6%A1%B6%E7%9A%84%E4%B8%89%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="post-toc-text">二、令牌桶的三种实现思路</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0"><span class="post-toc-text">三、配置参数</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%EF%BC%9AlastRecvTime-%E7%9A%84%E8%AF%AD%E4%B9%89"><span class="post-toc-text">四、核心算法：lastRecvTime 的语义</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E9%80%90%E8%A1%8C%E6%8B%86%E8%A7%A3"><span class="post-toc-text">逐行拆解</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%80%E5%9B%BE%E7%90%86%E8%A7%A3%E3%80%8C%E8%B5%9B%E8%B7%91%E3%80%8D%E6%A8%A1%E5%9E%8B"><span class="post-toc-text">一图理解「赛跑」模型</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%94%E3%80%81%E6%BB%A1%E6%A1%B6%E9%87%8D%E7%BD%AE%EF%BC%9A%E5%96%84%E5%BE%85%E6%AD%A3%E5%B8%B8%E7%8E%A9%E5%AE%B6"><span class="post-toc-text">五、满桶重置：善待正常玩家</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AD%E3%80%81%E6%95%B0%E5%AD%A6%E6%A8%A1%E5%9E%8B%E5%B0%8F%E7%BB%93"><span class="post-toc-text">六、数学模型小结</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%83%E3%80%81%E4%BC%98%E5%8A%BF"><span class="post-toc-text">七、优势</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AB%E3%80%81%E5%B1%80%E9%99%90%E4%B8%8E%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="post-toc-text">八、局限与注意点</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%8E%E7%BB%8F%E5%85%B8%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="post-toc-text">九、与经典实现的对比</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%8D%81%E3%80%81%E7%BB%93%E8%AF%AD"><span class="post-toc-text">十、结语</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><blockquote>
+<p>本文以分布式游戏服务器网关（TCP 长连接接入层）为例，详细拆解<strong>时间戳法（Timestamp-based）令牌桶</strong>的原理、代码、数学模型，以及它相对经典实现的优劣。</p>
+</blockquote>
+<h2 id="一、为什么需要限流"><a href="#一、为什么需要限流" class="headerlink" title="一、为什么需要限流"></a>一、为什么需要限流</h2><p>在长连接网关上，每个客户端连接都可能因为<strong>外挂、脚本、抓包重放、协议攻击</strong>而在短时间内狂发协议包。如果不加约束，单个恶意连接就能把后端游戏服（GameServer）的消息队列打爆，拖垮整个区服。</p>
+<p>因此接入层需要一个<strong>每连接（per-connection）级别</strong>的限流器，目标是：</p>
+<ul>
+<li>允许<strong>正常玩家的突发</strong>（比如刚进游戏时集中拉数据），不误伤；</li>
+<li>限制<strong>长期的高频率发包</strong>（稳态速率），拦住脚本与攻击；</li>
+<li>开销要极小——网关要扛几万甚至几十万连接，每个连接的限流状态<strong>不能占太多内存，更不能起定时器</strong>。</li>
+</ul>
+<p>令牌桶（Token Bucket）天然满足「突发 + 稳态」双重语义，是这类场景的首选。</p>
+<h2 id="二、令牌桶的三种实现思路"><a href="#二、令牌桶的三种实现思路" class="headerlink" title="二、令牌桶的三种实现思路"></a>二、令牌桶的三种实现思路</h2><p>令牌桶的核心模型是：一个容量为 <code>N</code> 的桶，以固定速率往里放令牌，每处理一个请求消耗一个令牌，桶空则拒绝。它同时表达了两件事：</p>
+<ul>
+<li><strong>桶容量 <code>N</code></strong> —— 允许的最大突发量；</li>
+<li><strong>填充速率 <code>r</code></strong> —— 允许的长期平均速率。</li>
+</ul>
+<p>实现上通常有三种做法：</p>
+<table>
+<thead>
+<tr>
+<th>实现方式</th>
+<th>核心数据</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>定时器填充法</strong></td>
+<td>令牌计数 + 定时任务</td>
+<td>起一个定时器周期性给桶加令牌。语义直观，但每个桶一个定时器，海量连接下调度开销爆炸。</td>
+</tr>
+<tr>
+<td><strong>惰性计算法</strong></td>
+<td>令牌数 + 上次填充时间戳</td>
+<td>不用定时器，每次请求时根据「距上次的时间差 × 速率」补算令牌。需要存 2 个字段并做乘除。</td>
+</tr>
+<tr>
+<td><strong>时间戳法（本文）</strong></td>
+<td>仅一个虚拟时间戳 <code>lastRecvTime</code></td>
+<td>连令牌数都不存，用<strong>一个 <code>long</code> 时间戳同时表达「桶里还剩多少令牌」</strong>。无定时器、每连接仅 1 个字段、逻辑极简。</td>
+</tr>
+</tbody></table>
+<p>本文的服务器采用了<strong>第三种：时间戳法</strong>。这是三者中内存与计算开销最低的方案，非常适合网关这种超高连接数的场景。</p>
+<h2 id="三、配置参数"><a href="#三、配置参数" class="headerlink" title="三、配置参数"></a>三、配置参数</h2><p>限流参数由一个全局单例 <code>TokenBucketLimiter</code> 持有（所有连接共享同一套阈值）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TokenBucketLimiter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">tokenCount</span> <span class="operator">=</span> <span class="number">200</span>;   <span class="comment">// 令牌桶容量 N</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">interval</span> <span class="operator">=</span> <span class="number">200</span>;     <span class="comment">// 每个令牌的生成间隔，单位 ms（速率 r = 1/interval）</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> bucketFillTime;        <span class="comment">// 装满整桶所需时间 = N * interval</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(<span class="type">int</span> tokenCount, <span class="type">int</span> interval)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (tokenCount &gt; <span class="number">0</span>) <span class="built_in">this</span>.tokenCount = tokenCount;</span><br><span class="line">        <span class="keyword">if</span> (interval &gt; <span class="number">0</span>)   <span class="built_in">this</span>.interval = interval;</span><br><span class="line">        bucketFillTime = <span class="built_in">this</span>.tokenCount * <span class="built_in">this</span>.interval; <span class="comment">// 200 * 200 = 40000ms</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getBucketFillTime</span><span class="params">()</span> &#123; <span class="keyword">return</span> bucketFillTime; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getInterval</span><span class="params">()</span>    &#123; <span class="keyword">return</span> interval; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关键量：</p>
+<ul>
+<li>**容量 <code>N = 200 </code>**：最多允许攒 200 个令牌，即最大突发 200 条消息。</li>
+<li>**间隔 <code>interval = 200ms</code>**：每 200ms 生成 1 个令牌，稳态速率 = <strong>5 条/秒</strong>。</li>
+<li>**装满时间 <code>bucketFillTime = N × interval = 200 × 200 = 40000ms</code>**：从空桶到满桶需要 40 秒。这个派生量是整个算法的关键常量。</li>
+</ul>
+<h2 id="四、核心算法：lastRecvTime-的语义"><a href="#四、核心算法：lastRecvTime-的语义" class="headerlink" title="四、核心算法：lastRecvTime 的语义"></a>四、核心算法：<code>lastRecvTime</code> 的语义</h2><p>限流状态存在每条连接的 Handler 上，<strong>只有一个字段</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">long</span> lastRecvTime;</span><br></pre></td></tr></table></figure>
+
+<p>它<strong>不是</strong>「上次真正收到消息的时间」，而是一个精心维护的<strong>虚拟时间戳</strong>。它的语义是：</p>
+<blockquote>
+<p><strong><code>now − lastRecvTime</code> 这段时间差，就代表桶里当前可用的令牌量（换算成时间）。</strong></p>
+</blockquote>
+<p>也就是说，令牌数被隐式编码成了「当前时刻与 <code>lastRecvTime</code> 的距离」：</p>
+<ul>
+<li><code>lastRecvTime</code> 离 <code>now</code> <strong>越远</strong>（差越大）→ 令牌<strong>越多</strong>；</li>
+<li><code>lastRecvTime</code> <strong>追上</strong> <code>now</code>（差为 0）→ 桶<strong>空</strong>，拒绝；</li>
+<li>令牌上限对应 <code>now − lastRecvTime ≤ bucketFillTime</code>，即 <code>lastRecvTime</code> 最多退到 <code>now − bucketFillTime</code>（满桶线）。</li>
+</ul>
+<p>完整代码只有十几行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">checkTokenBucketLimiter</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">var</span> <span class="variable">timeNow</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ① 首次调用：把 lastRecvTime 设成&quot;满桶&quot;状态，直接放行</span></span><br><span class="line">    <span class="keyword">if</span> (lastRecvTime == <span class="number">0</span>) &#123;</span><br><span class="line">        lastRecvTime = timeNow - TokenBucketLimiter.getInstance().getBucketFillTime();</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ② 消费一个令牌 = 把 lastRecvTime 往前推 interval</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">newTime</span> <span class="operator">=</span> lastRecvTime + TokenBucketLimiter.getInstance().getInterval();</span><br><span class="line">    <span class="keyword">if</span> (newTime &lt;= timeNow) &#123;</span><br><span class="line">        <span class="comment">// ③ 令牌上限封顶：防止长期不发攒出超过 N 的令牌</span></span><br><span class="line">        lastRecvTime = Math.max(newTime, timeNow - TokenBucketLimiter.getInstance().getBucketFillTime());</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ④ newTime &gt; now：令牌不足，拒绝</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="逐行拆解"><a href="#逐行拆解" class="headerlink" title="逐行拆解"></a>逐行拆解</h3><table>
+<thead>
+<tr>
+<th>代码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lastRecvTime == 0</code>（首次）</td>
+<td>未初始化。设为 <code>now − bucketFillTime</code>，即<strong>满桶</strong>，第一条消息必然放行。</td>
+</tr>
+<tr>
+<td><code>newTime = lastRecvTime + interval</code></td>
+<td>试图<strong>消费一个令牌</strong>：把虚拟时间戳往前推一个 <code>interval</code>。</td>
+</tr>
+<tr>
+<td><code>if (newTime &lt;= timeNow)</code></td>
+<td>判断桶里<strong>是否还有令牌</strong>。推进后若仍不超过 <code>now</code>，说明令牌够用，放行。</td>
+</tr>
+<tr>
+<td><code>lastRecvTime = Math.max(newTime, now − bucketFillTime)</code></td>
+<td><strong>最精妙的一行</strong>：正常情况下 <code>lastRecvTime = newTime</code>；但若连接长期空闲，<code>newTime</code> 会远小于 <code>now − bucketFillTime</code>，用 <code>max</code> 把它<strong>钳制在满桶线</strong>，防止攒出超过 <code>N</code> 的令牌——这就是「桶容量上限」的实现。</td>
+</tr>
+<tr>
+<td><code>return false</code>（<code>newTime &gt; now</code>）</td>
+<td>令牌不足。虚拟时间戳已经追上甚至超过了真实时间，桶空，拒绝。</td>
+</tr>
+</tbody></table>
+<h3 id="一图理解「赛跑」模型"><a href="#一图理解「赛跑」模型" class="headerlink" title="一图理解「赛跑」模型"></a>一图理解「赛跑」模型</h3><p>把时间轴想象成一条直线，<code>now</code>（真实时间）和 <code>lastRecvTime</code>（虚拟时间戳）在上面赛跑：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">时间轴 ───────────────────────────────────────────►</span><br><span class="line">        │◄──────── 可用令牌 (now - lastRecvTime) ───────►│</span><br><span class="line">        │                                                │</span><br><span class="line">   lastRecvTime                                         now</span><br><span class="line">   (桶状态)                                          (真实时间)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>每放行一条消息</strong>：<code>lastRecvTime += interval</code>，虚拟戳向右追一步（令牌 −1）。</li>
+<li><strong>真实时间流逝</strong>：<code>now</code> 自然向右移，相当于<strong>自动补令牌</strong>（让 <code>lastRecvTime</code> 相对”落后”，差变大）。</li>
+<li><strong>两者赛跑</strong>：<ul>
+<li>发得慢 → <code>lastRecvTime</code> 追不上 <code>now</code>，令牌越攒越多（但被 <code>now − bucketFillTime</code> 挡在满桶线）；</li>
+<li>发得太快 → <code>lastRecvTime</code> 越过 <code>now</code>，<code>newTime &gt; now</code>，拒绝。</li>
+</ul>
+</li>
+</ul>
+<p><strong>这就是为什么不需要定时器</strong>：真实时间本身就是免费的、连续的令牌发生器。</p>
+<h2 id="五、满桶重置：善待正常玩家"><a href="#五、满桶重置：善待正常玩家" class="headerlink" title="五、满桶重置：善待正常玩家"></a>五、满桶重置：善待正常玩家</h2><p>除了首次进入，代码还在一个业务时机主动重置为满桶：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 收到进入游戏协议时</span></span><br><span class="line"><span class="keyword">if</span> (msgId == Msg_CEnterGame) &#123;</span><br><span class="line">    resetTokenBucketLimiter();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">resetTokenBucketLimiter</span><span class="params">()</span> &#123;</span><br><span class="line">    lastRecvTime = System.currentTimeMillis()</span><br><span class="line">                 - TokenBucketLimiter.getInstance().getBucketFillTime(); <span class="comment">// 满桶</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么要重置？</strong> 玩家刚进入游戏（<code>Msg_CEnterGame</code>）的一瞬间，客户端往往会<strong>集中发一批初始化请求</strong>——拉背包、拉任务、同步好友、加载场景等。这波请求是完全正常的突发。通过在进游戏时刷满令牌桶，让这波突发顺利通过，<strong>避免误伤正常玩家</strong>，同时进游戏之后又回到稳态限速，继续拦截异常高频发包。</p>
+<p>这体现了令牌桶「突发容量」与「稳态速率」解耦的价值：容量给正常突发留足空间，速率守住长期底线。</p>
+<h2 id="六、数学模型小结"><a href="#六、数学模型小结" class="headerlink" title="六、数学模型小结"></a>六、数学模型小结</h2><p>设初始满桶，令牌数 <code>tokens = (now − lastRecvTime) / interval</code>：</p>
+<ul>
+<li><strong>稳态吞吐</strong>：长期平均放行速率 = <code>1 / interval</code> = 5 条/秒（不管怎么攒，平均线守得住）。</li>
+<li><strong>最大突发</strong>：桶满时可瞬间连续放行 <code>N = 200</code> 条（<code>now − lastRecvTime = bucketFillTime = 40000ms</code>，恰好 200 个 200ms）。</li>
+<li><strong>恢复时间</strong>：从空桶回到满桶需要 <code>bucketFillTime = 40s</code>；恢复到 1 个令牌只需 <code>interval = 200ms</code>。</li>
+</ul>
+<h2 id="七、优势"><a href="#七、优势" class="headerlink" title="七、优势"></a>七、优势</h2><ul>
+<li><strong>极致省内存</strong>：每条连接只需 <strong>1 个 <code>long</code>（8 字节）</strong>，没有独立的令牌计数器、时间戳对、锁或队列。几十万连接的网关能轻松扛住。</li>
+<li><strong>零定时器</strong>：不依赖任何调度线程或周期任务补令牌，用「真实时间流逝」天然充当令牌发生器。避免了海量定时任务的调度开销和 GC 压力。</li>
+<li><strong>无锁、逻辑极简</strong>：整个判断就是一次读、几次加减和一个 <code>Math.max</code>，纯算术、无阻塞。每个连接的 Handler 单线程处理，天然线程安全，连 CAS 都不需要。</li>
+<li><strong>突发与稳态解耦</strong>：<code>N</code>（容量）控制突发，<code>interval</code>（速率）控制稳态，两个维度独立可调；配合业务时机重置，能精细地”善待正常玩家、卡死异常流量”。</li>
+<li><strong>惰性计算</strong>：只在消息到来时计算，空闲连接<strong>零成本</strong>——不发消息就完全不占 CPU。</li>
+</ul>
+<h2 id="八、局限与注意点"><a href="#八、局限与注意点" class="headerlink" title="八、局限与注意点"></a>八、局限与注意点</h2><ul>
+<li>**依赖墙钟 <code>System.currentTimeMillis()</code>**：如果系统时钟被回拨（NTP 校时、手动改时间），<code>now</code> 变小可能导致短时间内判断异常（虚拟戳”超前”于真实时间，令牌短暂冻结）。生产上需保证时钟单调或容忍这种边界。</li>
+<li><strong>只做「是否放行」，不做排队/整流</strong>：这是<strong>拒绝式</strong>限流（超了直接 <code>ctx.close()</code> 断连），不是<strong>平滑排队</strong>。它适合网关”拦攻击”，不适合需要”削峰填谷、请求缓冲”的场景——后者应选漏桶（Leaky Bucket）或带队列的实现。</li>
+<li><strong>精度受 <code>interval</code> 粒度限制</strong>：令牌以 <code>interval</code>（200ms）为最小时间单位换算，无法表达亚毫秒级的精细速率。对游戏协议 QPS 足够，但不适合超高频、要求微秒级精度的场景。</li>
+<li><strong>单机、per-connection，非分布式配额</strong>：这是每条连接各自独立的桶，不是「一个玩家跨多台网关的全局配额」。若要做跨节点的全局限流，需引入 Redis 等共享存储（代价是网络往返，失去本方案的零开销优势）。</li>
+<li><strong>参数为全局共享</strong>：所有连接共用同一套 <code>N / interval</code> 阈值，无法按玩家等级/VIP 差异化限流。若有此需求需扩展为多套配置。</li>
+</ul>
+<h2 id="九、与经典实现的对比"><a href="#九、与经典实现的对比" class="headerlink" title="九、与经典实现的对比"></a>九、与经典实现的对比</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>时间戳法（本文）</th>
+<th>定时器填充法</th>
+<th>惰性计算法（令牌数+时间戳）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>每连接内存</td>
+<td><strong>1 个 long</strong></td>
+<td>计数器 + 定时器句柄</td>
+<td>2 个字段（令牌数 + 时间戳）</td>
+</tr>
+<tr>
+<td>是否需定时器</td>
+<td><strong>否</strong></td>
+<td>是（海量时开销大）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>计算复杂度</td>
+<td>加减 + 一次 max</td>
+<td>定时回调</td>
+<td>乘除补算令牌</td>
+</tr>
+<tr>
+<td>突发支持</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>平滑排队</td>
+<td>否（拒绝式）</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td>适用规模</td>
+<td><strong>超高连接数网关</strong></td>
+<td>少量对象</td>
+<td>中高连接数</td>
+</tr>
+</tbody></table>
+<h2 id="十、结语"><a href="#十、结语" class="headerlink" title="十、结语"></a>十、结语</h2><p>这个实现的精髓在于一次<strong>语义转换</strong>：把「桶里还剩多少令牌」这个状态，等价编码成「一个虚拟时间戳距当前时间有多远」。这一步转换换来了<strong>零定时器、单字段、无锁</strong>的极致轻量，非常契合长连接网关”连接数巨大、单连接状态必须极小”的约束。</p>
+<p>它不是万能的——不做整流、依赖墙钟、精度有限——但在「用最小代价拦住异常高频发包、同时不误伤正常突发」这个明确目标下，是一个教科书级的工程取舍范例。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-07-06</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/actor-shared-node/'>分布式 Actor 分片路由与迁移机制详解</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/sharedbuffer/">一个基于「引用计数 + 前缀头部」的共享缓冲区设计</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>
