@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十五部分：基于 Unreal Engine 5.7.4 源码，讲解 IrisDebugHelper、PrintNetInfoOfObject、Unreal Insights、CSV、NetStats、LLM 与网络仿真。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M12 42h40v6H12zM16 34h6v8h-6zm13-9h6v17h-6zm13-10h6v27h-6z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-15/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十五部分：调试与性能分析 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --amber: #9b6923;
+      --amber-soft: #f2e5c9;
+      --red: #a83d32;
+      --red-soft: #f4ded9;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, .11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, .035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, .028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a, article h2, article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 16%, rgba(245, 177, 142, .2), transparent 28%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "EVIDENCE";
+      position: absolute;
+      right: -.035em;
+      bottom: -.19em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(80px, 15vw, 220px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 940px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__deck strong { color: #fff; }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; color: #d9def7; font-size: 13px; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .92);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] { color: var(--iris-dark); background: #eef0fb; border-left-color: var(--signal); }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile {
+      display: none;
+      margin-bottom: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .toc-mobile summary { cursor: pointer; padding: 14px 17px; color: var(--iris-dark); font-weight: 800; }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 24px;
+      margin-bottom: 34px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(25, 35, 58, .05);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      color: var(--white);
+      background: var(--iris-dark);
+      font: 800 19px/1 var(--mono);
+    }
+    .source-note p { margin: 0; line-height: 1.45; }
+    .source-note strong, .source-note small { display: block; }
+    .source-note small { margin-top: 4px; color: var(--ink-soft); }
+    .source-note > a { font-size: 13px; font-weight: 800; white-space: nowrap; }
+
+    article {
+      background: rgba(255, 253, 248, .94);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article section { padding: 52px 58px; scroll-margin-top: 30px; }
+    article section + section { border-top: 1px solid var(--line); }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--signal);
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    h2 {
+      margin: 0 0 24px;
+      color: var(--iris-dark);
+      font: 800 clamp(28px, 4vw, 45px) / 1.17 var(--serif);
+      letter-spacing: -.025em;
+    }
+    .chapter-no {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--ink-soft);
+      font: 650 13px/1.4 var(--sans);
+      letter-spacing: .02em;
+    }
+    h3 { margin: 34px 0 12px; color: var(--iris-dark); font: 800 22px/1.35 var(--serif); }
+    p { margin: 0 0 18px; }
+    .lead { color: #293650; font-size: 19px; line-height: 1.8; }
+    strong { color: #202d50; }
+    code {
+      padding: .13em .34em;
+      color: #283675;
+      background: #e9ebf5;
+      border: 1px solid #d2d6e9;
+      border-radius: 3px;
+      font: .88em/1.45 var(--mono);
+      overflow-wrap: anywhere;
+    }
+    pre, .codeblock, .tree {
+      margin: 22px 0;
+      padding: 20px 22px;
+      overflow: auto;
+      color: #e8ecff;
+      background: #17213a;
+      border-left: 5px solid var(--signal);
+      font: 13px/1.75 var(--mono);
+      white-space: pre;
+    }
+
+    .pullquote {
+      margin: 30px 0;
+      padding: 25px 28px;
+      color: var(--iris-dark);
+      background: linear-gradient(90deg, #eceef9, var(--white));
+      border-left: 6px solid var(--iris);
+      font: 800 22px/1.55 var(--serif);
+    }
+    .callout {
+      margin: 28px 0;
+      padding: 21px 23px;
+      background: var(--green-soft);
+      border: 1px solid #b7d4c6;
+      border-left: 5px solid var(--green);
+    }
+    .callout--warn { background: var(--amber-soft); border-color: #dfca9d; border-left-color: var(--amber); }
+    .callout--danger { background: var(--red-soft); border-color: #ddb7b0; border-left-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 5px; }
+    .callout p:last-child { margin-bottom: 0; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 25px 0;
+    }
+    .card {
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .card--green { border-top-color: var(--green); background: linear-gradient(180deg, var(--green-soft), var(--white) 52%); }
+    .card--signal { border-top-color: var(--signal); background: linear-gradient(180deg, var(--signal-soft), var(--white) 52%); }
+    .card--warn { border-top-color: var(--amber); background: linear-gradient(180deg, var(--amber-soft), var(--white) 52%); }
+    .card small { color: var(--signal); font: 800 10px/1.4 var(--mono); letter-spacing: .09em; }
+    .card h3 { margin: 8px 0 7px; font-size: 19px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+
+    .ladder {
+      display: grid;
+      gap: 8px;
+      margin: 28px 0;
+    }
+    .ladder__step {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 15px;
+      align-items: center;
+      width: calc(72% + var(--i) * 7%);
+      max-width: 100%;
+      padding: 13px 17px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--iris);
+    }
+    .ladder__step b { color: var(--iris-dark); }
+    .ladder__step span { color: var(--ink-soft); font-size: 14px; }
+    .ladder__step:last-child { border-left-color: var(--green); background: var(--green-soft); }
+
+    .table-wrap, .scroll-frame {
+      margin: 24px 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--white);
+    }
+    table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 14px; line-height: 1.55; }
+    th { padding: 12px 14px; color: var(--white); background: var(--iris-dark); text-align: left; }
+    td { padding: 12px 14px; vertical-align: top; border-top: 1px solid var(--line); }
+    tbody tr:nth-child(even) { background: #f7f4ed; }
+
+    .pipeline {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(190px, 1fr);
+      min-width: 1380px;
+    }
+    .pipeline__step {
+      position: relative;
+      padding: 19px 18px 21px;
+      border-right: 1px solid var(--line);
+      background: var(--white);
+    }
+    .pipeline__step::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      top: 22px;
+      right: -10px;
+      color: var(--signal);
+      background: var(--white);
+      font-weight: 900;
+    }
+    .pipeline__step:last-child::after { display: none; }
+    .pipeline__step small { color: var(--signal); font: 800 10px/1.4 var(--mono); }
+    .pipeline__step b { display: block; margin: 6px 0 8px; color: var(--iris-dark); }
+    .pipeline__step p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+
+    .command {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      margin: 12px 0;
+      padding: 16px 18px;
+      background: #18233d;
+      border-left: 5px solid var(--signal);
+    }
+    .command code { color: #f2f4ff; background: transparent; border: 0; padding: 0; }
+    .command span { color: #bcc5e8; font-size: 12px; text-align: right; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 25px 0;
+    }
+    .lens {
+      padding: 23px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border-top: 6px solid #9eabe9;
+    }
+    .lens + .lens { background: #71352c; border-top-color: #f0a37e; }
+    .lens small { color: #cbd2f5; font: 800 10px/1.4 var(--mono); letter-spacing: .08em; }
+    .lens h3 { margin: 8px 0 12px; color: var(--white); }
+    .lens p { margin: 0; color: #e3e6f4; font-size: 14px; }
+
+    .triangle {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin: 28px 0;
+      border: 1px solid var(--line);
+    }
+    .triangle > div { padding: 23px; background: var(--white); }
+    .triangle > div + div { border-left: 1px solid var(--line); }
+    .triangle small { color: var(--signal); font: 800 10px/1.4 var(--mono); }
+    .triangle b { display: block; margin: 7px 0; color: var(--iris-dark); font: 800 22px/1.2 var(--serif); }
+    .triangle p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+
+    .severity {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(82px, 1fr));
+      min-width: 700px;
+    }
+    .severity div {
+      padding: 15px 8px;
+      text-align: center;
+      border-right: 1px solid rgba(255, 255, 255, .35);
+      color: var(--white);
+      background: var(--iris);
+    }
+    .severity div:nth-child(1) { background: #721f25; }
+    .severity div:nth-child(2) { background: #97362e; }
+    .severity div:nth-child(3) { background: #b66b27; }
+    .severity div:nth-child(4) { background: #4d6b87; }
+    .severity div:nth-child(5) { background: #3f4fa0; }
+    .severity div:nth-child(6) { background: #34427d; }
+    .severity div:nth-child(7) { background: #27356f; }
+    .severity b { display: block; font-size: 12px; }
+    .severity small { font-size: 9px; opacity: .82; }
+
+    .runbook {
+      margin: 26px 0;
+      border: 1px solid var(--line);
+      background: var(--white);
+    }
+    .runbook__head {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      padding: 17px 20px;
+      color: var(--white);
+      background: var(--iris-dark);
+    }
+    .runbook__head span { color: #f5b18e; font: 850 12px/1 var(--mono); }
+    .runbook__head h3 { margin: 0; color: var(--white); }
+    .runbook ol { margin: 0; padding: 20px 26px 20px 48px; }
+    .runbook li { margin: 8px 0; padding-left: 5px; }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .checklist > div { padding: 20px; background: var(--white); border: 1px solid var(--line); }
+    .checklist h3 { margin: 0 0 12px; font-size: 19px; }
+    .checklist ul { margin: 0; padding-left: 19px; color: var(--ink-soft); font-size: 14px; }
+
+    .sources { display: flex; flex-wrap: wrap; gap: 9px; margin: 17px 0 28px; }
+    .sources a {
+      padding: 8px 11px;
+      color: var(--iris-dark);
+      background: #e9ebf5;
+      border: 1px solid #cbd0e7;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .sources a:hover { color: var(--white); background: var(--signal); border-color: var(--signal); }
+
+    .chapter-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 13px;
+      margin-top: 35px;
+    }
+    .chapter-nav a, .chapter-nav div {
+      display: block;
+      padding: 17px 18px;
+      color: var(--ink);
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .chapter-nav a:last-child, .chapter-nav div:last-child { text-align: right; }
+    .chapter-nav a:hover { border-color: var(--signal); }
+    .chapter-nav span { display: block; color: var(--signal); font: 800 9px/1.4 var(--mono); letter-spacing: .1em; }
+    .chapter-nav b { display: block; margin-top: 5px; color: var(--iris-dark); font-size: 14px; }
+
+    footer {
+      padding: 35px 24px 50px;
+      color: #d8ddf4;
+      background: var(--iris-dark);
+      text-align: center;
+      font-size: 13px;
+    }
+    footer p { margin: 5px 0; }
+    footer a { color: #f5b18e; }
+    .back-top {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 20;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      color: var(--white);
+      background: var(--signal);
+      box-shadow: 0 10px 28px rgba(36, 35, 52, .25);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(14px);
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+    }
+    .back-top.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: minmax(0, 1fr); width: min(900px, calc(100% - 32px)); margin-top: 30px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .source-note { grid-template-columns: 50px minmax(0, 1fr); }
+      .source-note > a { grid-column: 2; white-space: normal; }
+    }
+    @media (max-width: 700px) {
+      body { font-size: 16px; }
+      .hero { padding: 56px 22px 48px; }
+      .hero::before { bottom: -.08em; font-size: 25vw; }
+      .hero h1 { font-size: clamp(37px, 12vw, 58px); }
+      .layout { width: min(100% - 20px, 900px); }
+      article section { padding: 38px 22px; }
+      .source-note { padding: 17px; gap: 13px; }
+      .cards, .checklist, .triangle, .split { grid-template-columns: 1fr; }
+      .triangle > div + div { border-left: 0; border-top: 1px solid var(--line); }
+      .ladder__step { width: 100%; grid-template-columns: 74px minmax(0, 1fr); }
+      .command { grid-template-columns: 1fr; }
+      .command span { text-align: left; }
+      .chapter-nav { grid-template-columns: 1fr; }
+      .chapter-nav a:last-child, .chapter-nav div:last-child { text-align: left; }
+      h2 { font-size: 31px; }
+      .pullquote { font-size: 19px; padding: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">UE5 IRIS NETWORK REPLICATION · PART 15</p>
+      <h1>
+        <span>调试与性能分析</span>
+        <span>把“偶发不同步”变成证据链</span>
+      </h1>
+      <p class="hero__deck">网络复制故障最难的地方，不是没有工具，而是症状发生在客户端，根因可能留在服务端的过滤、条件、预算、数据包或接收应用阶段。本篇基于 <strong>Unreal Engine 5.7.4</strong> 源码，把日志、对象命令、断点、Insights、CSV、NetStats、LLM 与网络仿真排成一条可复现、可定位、可比较的调查路径。</p>
+      <div class="hero__meta">
+        <span>技术基线：Unreal Engine 5.7.4</span>
+        <span>源码分析 + 官方工具契约核对</span>
+        <span>更新：2026-07-25</span>
+        <span><a href="#sources">来源与源码</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>本篇目录</strong><span>13 CHAPTERS</span></div>
+      <ol>
+        <li><a href="#evidence-chain"><span>01</span><b>调试是一条证据链</b></a></li>
+        <li><a href="#tool-map"><span>02</span><b>工具分工地图</b></a></li>
+        <li><a href="#checkpoints"><span>03</span><b>复制更新七检查点</b></a></li>
+        <li><a href="#symptoms"><span>04</span><b>15.1 症状与最小复现</b></a></li>
+        <li><a href="#logging"><span>05</span><b>15.2 日志系统</b></a></li>
+        <li><a href="#debug-helper"><span>06</span><b>IrisDebugHelper</b></a></li>
+        <li><a href="#object-commands"><span>07</span><b>对象命令与单点下钻</b></a></li>
+        <li><a href="#insights"><span>08</span><b>Insights 双镜头</b></a></li>
+        <li><a href="#csv-netstats"><span>09</span><b>15.4 CSV 与 NetStats</b></a></li>
+        <li><a href="#waste"><span>10</span><b>Waste、预算与归因</b></a></li>
+        <li><a href="#memory"><span>11</span><b>15.5 内存与 LLM</b></a></li>
+        <li><a href="#runbooks"><span>12</span><b>15.6 三套排障 Runbook</b></a></li>
+        <li><a href="#practice"><span>13</span><b>仿真、清单与速查</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开本篇目录（13 章）</summary>
+        <ol>
+          <li><a href="#evidence-chain"><span>01</span><b>调试是一条证据链</b></a></li>
+          <li><a href="#tool-map"><span>02</span><b>工具分工地图</b></a></li>
+          <li><a href="#checkpoints"><span>03</span><b>复制更新七检查点</b></a></li>
+          <li><a href="#symptoms"><span>04</span><b>15.1 症状与最小复现</b></a></li>
+          <li><a href="#logging"><span>05</span><b>15.2 日志系统</b></a></li>
+          <li><a href="#debug-helper"><span>06</span><b>IrisDebugHelper</b></a></li>
+          <li><a href="#object-commands"><span>07</span><b>对象命令与单点下钻</b></a></li>
+          <li><a href="#insights"><span>08</span><b>Insights 双镜头</b></a></li>
+          <li><a href="#csv-netstats"><span>09</span><b>15.4 CSV 与 NetStats</b></a></li>
+          <li><a href="#waste"><span>10</span><b>Waste、预算与归因</b></a></li>
+          <li><a href="#memory"><span>11</span><b>15.5 内存与 LLM</b></a></li>
+          <li><a href="#runbooks"><span>12</span><b>15.6 三套排障 Runbook</b></a></li>
+          <li><a href="#practice"><span>13</span><b>仿真、清单与速查</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note">
+        <div class="source-note__mark">15</div>
+        <p><strong>文章来源</strong><small>本篇由 Jossy Zhang 根据系列大纲原创扩写；技术结论以本地 UE 5.7.4 源码与 Epic Games 5.7 官方文档为依据。</small></p>
+        <a href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">查看系列大纲原文 →</a>
+      </div>
+
+      <article>
+        <section id="evidence-chain">
+          <p class="eyebrow">Chapter 01 · Mental Model</p>
+          <h2><span class="chapter-no">症状不是结论</span>调试不是猜 CVar，而是建立一条证据链</h2>
+          <p class="lead">“敌人在 Client 1 偶发消失”只是用户看到的现象。它既可能没有进入这条连接的 relevant 集合，也可能属性没有变脏、条件屏蔽了成员、预算没写进去、包丢了，甚至数据已经到达，只是客户端应用或 RepNotify 出了问题。</p>
+
+          <div class="ladder" aria-label="从症状到结论的证据阶梯">
+            <div class="ladder__step" style="--i:0"><b>SYMPTOM</b><span>客户端看到敌人消失，生命值偶尔过期。</span></div>
+            <div class="ladder__step" style="--i:1"><b>OBSERVE</b><span>固定实例、连接、对象与复现时间，保留日志和 trace。</span></div>
+            <div class="ladder__step" style="--i:2"><b>LOCATE</b><span>证明阻断发生在 identity、relevant、dirty、write、packet 还是 apply。</span></div>
+            <div class="ladder__step" style="--i:3"><b>EXPLAIN</b><span>用源码契约解释为什么这一层拒绝、跳过、积压或浪费。</span></div>
+            <div class="ladder__step" style="--i:4"><b>PROVE</b><span>只改变一个变量，用相同场景做修改前后对照。</span></div>
+          </div>
+
+          <div class="pullquote">“服务器上对象存在”不等于“它对 Client 1 relevant”；“包里写过属性”也不等于“客户端已经应用”。每跨一层，都要补一份证据。</div>
+
+          <p>最危险的排障方式是看到对象消失就提高 Cull Distance，看到更新慢就抬 Priority，看到丢包就增加带宽。这些调整可能暂时遮住症状，却让真实错误和容量成本一起进入生产环境。正确顺序是：先找到断点，再改控制断点的机制。</p>
+
+          <div class="cards">
+            <div class="card card--signal"><small>CORRECTNESS</small><h3>功能正确性</h3><p>对象、属性或 RPC 是否沿完整链路到达正确连接，并在正确上下文中应用。</p></div>
+            <div class="card"><small>PERFORMANCE</small><h3>单位工作成本</h3><p>过滤、轮询、量化、优先级和写入各花多少时间，是否与有效产出匹配。</p></div>
+            <div class="card card--green"><small>CAPACITY</small><h3>规模与增长</h3><p>对象数、连接数、KBytes、队列与内存增加时，成本是否线性且可回落。</p></div>
+          </div>
+        </section>
+
+        <section id="tool-map">
+          <p class="eyebrow">Chapter 02 · Observability Stack</p>
+          <h2><span class="chapter-no">先问问题，再选仪器</span>日志、快照、时间线与聚合各自看见什么</h2>
+          <p>同一个工具不可能回答所有问题。对象打印命令提供某一时刻的快照；日志提供有顺序的离散事件；Insights 还原时间线和 packet 内容；CSV 擅长长时间聚合与版本对比；LLM 负责内存归属。把工具用错尺度，通常只会得到更多噪声。</p>
+
+          <div class="table-wrap" role="region" aria-label="调试问题与首选工具" tabindex="0">
+            <table>
+              <thead><tr><th>问题</th><th>首选工具</th><th>得到的证据</th><th>不能直接证明</th></tr></thead>
+              <tbody>
+                <tr><td>对象是否注册、句柄是什么</td><td><code>PrintNetInfoOfObject</code></td><td>对象、类、NetRefHandle、协议与依赖</td><td>过去某一帧是否发出</td></tr>
+                <tr><td>为何只对某连接消失</td><td>对象命令 + <code>ConnectionId</code></td><td>relevant、filter、cull、priority</td><td>数据包是否到达客户端</td></tr>
+                <tr><td>哪一阶段 CPU 高</td><td>Timing Insights</td><td>线程、scope、持续时间与调用关系</td><td>哪个属性占了最多 bits</td></tr>
+                <tr><td>包里到底写了什么</td><td>Networking Insights</td><td>connection、packet、object、property、RPC</td><td>压缩后真实 wire bytes</td></tr>
+                <tr><td>哪个类型长期昂贵</td><td>Iris CSV / NetStats</td><td>按类型的 time、count、KBytes、waste</td><td>单个对象某一帧的完整因果链</td></tr>
+                <tr><td>内存增长记到哪里</td><td>LLM / Memory Insights</td><td>Iris 标签、时间曲线、allocation query</td><td>仅凭标签上涨认定泄漏</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>三种观察尺度</h3>
+          <div class="cards">
+            <div class="card"><small>SNAPSHOT</small><h3>现在是什么</h3><p>对象命令和调试器状态适合回答“这一刻的相关性、内部状态和依赖是什么”。</p></div>
+            <div class="card card--signal"><small>TIMELINE</small><h3>什么时候发生</h3><p>日志与 Insights 用于还原事件先后、帧尖峰、packet 到达和线程执行。</p></div>
+            <div class="card card--green"><small>AGGREGATE</small><h3>长期花在哪里</h3><p>CSV 与 LLM 适合比较场景、版本、对象类型、连接规模和稳态斜率。</p></div>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>推荐的缩放顺序</strong>
+            <p>先用对象名找到 <code>NetRefHandle</code>，再锁定 <code>RepSystemId</code> 与 <code>ConnectionId</code>，最后才扩大到 trace 和聚合。不要先打印整场所有对象的 VeryVerbose 日志，再从海量文本里碰运气。</p>
+          </div>
+        </section>
+
+        <section id="checkpoints">
+          <p class="eyebrow">Chapter 03 · End-to-End</p>
+          <h2><span class="chapter-no">每一层只证明一件事</span>一次属性更新的七个检查点</h2>
+          <p>下面这条流水线是本篇的总地图。某一检查点成立，只允许继续调查下一站；不允许越过它直接宣布“网络层没问题”。</p>
+
+          <div class="scroll-frame" role="region" aria-label="复制更新七检查点" tabindex="0">
+            <div class="pipeline">
+              <div class="pipeline__step"><small>01 · IDENTITY</small><b>注册与身份</b><p>对象已注册到正确 ReplicationSystem，具有有效 NetRefHandle 与 Protocol。</p></div>
+              <div class="pipeline__step"><small>02 · SCOPE</small><b>连接相关性</b><p>目标 Connection 有效，对象通过 owner、group、dynamic filter 与 cull。</p></div>
+              <div class="pipeline__step"><small>03 · CHANGE</small><b>变化被发现</b><p>dirty、poll 与成员 condition 共同产生本连接可见的 ChangeMask。</p></div>
+              <div class="pipeline__step"><small>04 · SCHEDULE</small><b>调度与预算</b><p>prioritizer 给出 priority，对象在 packet budget 内获得发送机会。</p></div>
+              <div class="pipeline__step"><small>05 · WRITE</small><b>量化与写入</b><p>状态 quantize，引用和 creation info 准备完成，内容进入 outgoing packet。</p></div>
+              <div class="pipeline__step"><small>06 · RECEIVE</small><b>接收与解析</b><p>客户端收到 packet，引用可解析，reader 接受对象状态。</p></div>
+              <div class="pipeline__step"><small>07 · APPLY</small><b>应用与通知</b><p>dequantize 到外部状态，属性写回，必要的 RepNotify 在正确时机执行。</p></div>
+            </div>
+          </div>
+
+          <div class="table-wrap" role="region" aria-label="检查点、首选证据与失败含义" tabindex="0">
+            <table>
+              <thead><tr><th>检查点</th><th>首选证据</th><th>失败时优先调查</th></tr></thead>
+              <tbody>
+                <tr><td>Identity</td><td><code>PrintNetInfoOfObject</code> 找到对象与句柄</td><td>注册时机、bridge、对象生命周期</td></tr>
+                <tr><td>Scope</td><td>指定 Connection 的 relevant / filter 输出</td><td>owner、group、dynamic filter、cull</td></tr>
+                <tr><td>Change</td><td>quantized state、dirty/poll/condition 日志</td><td>Push Model 标记、poll frequency、成员条件</td></tr>
+                <tr><td>Schedule</td><td>priority、writer info、scheduled/replicated 统计</td><td>prioritizer、budget、队列、依赖</td></tr>
+                <tr><td>Write</td><td>Networking Insights outgoing Packet Content</td><td>ChangeMask、引用导出、writer / huge object</td></tr>
+                <tr><td>Receive</td><td>incoming packet、reader info、解析日志</td><td>丢包、引用未解析、creation dependency</td></tr>
+                <tr><td>Apply</td><td>客户端状态、RepNotify/RPC CSV 与断点</td><td>dequantize、apply、RepNotify、Gameplay 覆盖</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pullquote">一个对象“relevant”只说明它有资格进入后续调度；它不承诺本帧必发，也不承诺属性条件允许，更不承诺客户端已收到。</div>
+        </section>
+
+        <section id="symptoms">
+          <p class="eyebrow">Chapter 04 · 15.1</p>
+          <h2><span class="chapter-no">网络游戏的“隐形杀手”</span>先把偶发问题变成可重复实验</h2>
+          <p class="lead">功能缺陷往往只在某个连接、某个相对位置、某种对象生命周期和一次网络抖动下出现；性能问题则常被平均帧时间淹没。最小复现不是缩短测试步骤，而是固定会改变证据含义的变量。</p>
+
+          <h3>常见问题清单</h3>
+          <div class="cards">
+            <div class="card card--signal"><small>OBJECT</small><h3>对象级</h3><p>只对部分连接缺失、进入距离不出现、离开后不销毁、SubObject 生命周期错位。</p></div>
+            <div class="card card--warn"><small>MEMBER</small><h3>成员级</h3><p>属性值过期、Push Model 漏标 dirty、条件复制屏蔽、RepNotify 不触发。</p></div>
+            <div class="card"><small>BUDGET</small><h3>容量级</h3><p>候选对象远多于实际写入、Poll/Write Waste、可靠窗口或 huge object 队列阻塞。</p></div>
+          </div>
+
+          <h3>一张合格的复现卡</h3>
+          <div class="codeblock">Scenario     = Enemy enters cover volume and loses line of sight
+Build        = Development Editor / UE 5.7.4
+Topology     = Dedicated Server + 2 Clients
+RepSystemId  = 0
+ConnectionId = 1
+Object       = BP_Enemy_C_2147482471
+NetRefHandle = 2010
+Trigger      = Client 1 crosses marker A at frame 18420
+Window       = 10 seconds before / 15 seconds after
+Emulation    = Off
+Expected     = enemy stays relevant; Health reaches 65
+Observed     = enemy hidden for 2.1 s; Health remains 80</div>
+
+          <p>PIE 中可能同时存在多个复制系统；不记录 <code>RepSystemId</code>，很容易在错误的 Server/Client 实例上打印。多连接会话不记录 <code>ConnectionId</code>，则“对任意连接 relevant”会掩盖目标玩家的独有问题。</p>
+
+          <h3>关键源码入口</h3>
+          <div class="tree">Engine/Source/Runtime/Net/Iris/
+├─ Public/Iris/Core/
+│  ├─ IrisDebugging.h
+│  ├─ IrisLog.h
+│  ├─ IrisProfiler.h
+│  ├─ IrisCsv.h
+│  └─ IrisMemoryTracker.h
+└─ Private/Iris/
+   ├─ Core/IrisDebugging.cpp
+   ├─ Core/IrisProfiler.cpp
+   ├─ Core/IrisMemoryTracker.cpp
+   ├─ Stats/NetStats.h / .cpp
+   ├─ Stats/NetStatsContext.h
+   └─ ReplicationSystem/
+      ├─ ObjectReplicationBridgeDebugging.cpp
+      ├─ ReplicationSystem.cpp
+      ├─ ReplicationWriter.cpp
+      └─ ReplicationReader.cpp</div>
+        </section>
+
+        <section id="logging">
+          <p class="eyebrow">Chapter 05 · 15.2</p>
+          <h2><span class="chapter-no">网络复制的“黑匣子”</span>日志要围绕对象、连接和时间窗口采集</h2>
+          <p>UE 日志既能在 Output Log 中查看，也会写入项目的 <code>Saved/Logs</code>。Iris 的基础公开类别包括 <code>LogIris</code>、<code>LogIrisFiltering</code>、<code>LogIrisNetCull</code>、<code>LogIrisFilterConfig</code> 与 <code>LogNetStats</code>。</p>
+
+          <p>源码内部还存在 <code>LogIrisRepNotify</code>、<code>LogIrisConditionals</code>、<code>LogIrisGroup</code>、<code>LogIrisRpc</code>、<code>LogIrisReferences</code>、<code>LogIrisChunkedDataStream</code> 和 <code>LogIrisDirtyTracker</code>。其中部分是静态类别，且输出受编译期 verbosity 影响；不要把每个内部名字都当作长期稳定的公开诊断接口。</p>
+
+          <h3>七档有效 verbosity</h3>
+          <div class="scroll-frame" role="region" aria-label="日志级别阶梯" tabindex="0">
+            <div class="severity">
+              <div><b>Fatal</b><small>终止</small></div>
+              <div><b>Error</b><small>错误</small></div>
+              <div><b>Warning</b><small>警告</small></div>
+              <div><b>Display</b><small>控制台 + 日志</small></div>
+              <div><b>Log</b><small>日志</small></div>
+              <div><b>Verbose</b><small>详细</small></div>
+              <div><b>VeryVerbose</b><small>极详细</small></div>
+            </div>
+          </div>
+          <p><code>All</code> 常用于类别的编译期上限或配置，不是第八种普通消息严重度。</p>
+
+          <h3>运行时与启动时配置</h3>
+          <div class="command"><code>log LogIris VeryVerbose</code><span>运行时调整基础 Iris 类别</span></div>
+          <div class="command"><code>log LogIrisFiltering Verbose</code><span>缩到过滤决策</span></div>
+          <div class="command"><code>-LogCmds="LogIris VeryVerbose,LogIrisFiltering Verbose"</code><span>从启动阶段开始采集</span></div>
+
+          <div class="callout callout--warn">
+            <strong>VeryVerbose 不是“信息更多所以更好”</strong>
+            <p>它可能产生显著日志 I/O 和大量无关行。先在普通级别确认对象与连接，再只为短复现窗口提高目标类别；采集完成后恢复级别。Shipping 中可用输出还受编译裁剪与控制台策略限制。</p>
+          </div>
+
+          <h3>敌人消失案例怎么读日志</h3>
+          <ol>
+            <li>以复现卡的服务器时间或帧为中心截取窗口；</li>
+            <li>搜索对象名与 NetRefHandle，确认是同一个实例而不是同类对象；</li>
+            <li>搜索目标 ConnectionId，区分全局状态与逐连接决策；</li>
+            <li>把 filter、condition、writer、reader 行按顺序排回七检查点；</li>
+            <li>保存完整原始日志，并单独记录做过的筛选条件。</li>
+          </ol>
+
+          <div class="pullquote">日志最有价值的不是某一行“看起来像错误”，而是它能把同一个对象在同一连接上的决策按时间重新串起来。</div>
+        </section>
+
+        <section id="debug-helper">
+          <p class="eyebrow">Chapter 06 · 15.3</p>
+          <h2><span class="chapter-no">精准停在那个对象或 RPC 上</span><code>IrisDebugHelper</code> 把海量调用缩成条件断点</h2>
+          <p class="lead"><code>IrisDebugging.h/.cpp</code> 提供了对象名、RPC 名、NetRefHandle 与内部索引四种筛选入口。主要实现位于 <code>#if !UE_BUILD_SHIPPING</code>，定位是开发构建调试，而不是 Shipping 线上诊断。</p>
+
+          <div class="table-wrap" role="region" aria-label="IrisDebugHelper 条件入口" tabindex="0">
+            <table>
+              <thead><tr><th>入口</th><th>匹配对象</th><th>行为</th><th>关闭</th></tr></thead>
+              <tbody>
+                <tr><td><code>Net.Iris.DebugName</code></td><td>对象名或类名 substring</td><td><code>BreakOnObjectName</code> 触发断点，也可用于 filter</td><td>设为空字符串</td></tr>
+                <tr><td><code>Net.Iris.DebugRPCName</code></td><td>RPC plain name substring</td><td><code>BreakOnRPCName</code> 触发断点</td><td>设为空字符串</td></tr>
+                <tr><td><code>Net.Iris.DebugNetRefHandle 2010</code></td><td>句柄 ID</td><td><code>BreakOnNetRefHandle</code> 触发断点</td><td>命令不带参数</td></tr>
+                <tr><td><code>Net.Iris.DebugNetInternalIndex 42</code></td><td>内部 object index</td><td><code>BreakOnInternalNetRefIndex</code></td><td>命令不带参数</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout">
+            <strong>名称匹配是 contains，不是正则</strong>
+            <p><code>DebugName=Enemy</code> 会匹配名称中包含 Enemy 的对象或类。如果场景中实例很多，先用 <code>PrintNetInfoOfObject</code> 找句柄，再切到 <code>DebugNetRefHandle</code>，通常更精确。</p>
+          </div>
+
+          <h3>调试器里可以直接调用什么</h3>
+          <div class="cards">
+            <div class="card"><small>OBJECT</small><h3>对象与句柄</h3><p><code>DebugNetObject</code>、<code>DebugNetObjectById</code>、<code>DebugNetRefHandle</code>、<code>DebugNetRefHandleById</code>。</p></div>
+            <div class="card card--signal"><small>STATE</small><h3>内部量化状态</h3><p><code>DebugOutputNetObjectState</code> 与 <code>DebugNetObjectStateToString</code> 输出 Iris 内部 state。</p></div>
+            <div class="card card--green"><small>PROTOCOL</small><h3>协议与引用</h3><p><code>DebugOutputNetObjectProtocolReferences</code> 用于检查协议引用和使用者。</p></div>
+          </div>
+
+          <p>内部量化状态不是 Gameplay 对象内存的逐字节镜像。它使用 Replication Protocol、Instance Protocol 与序列化上下文解释 state，适合验证“引擎认为当前待复制值是什么”。字符串版本使用调试缓冲区，不应作为线程安全或长期持有的业务 API。</p>
+
+          <div class="codeblock">推荐断点流程
+1. PrintNetInfoOfObject FindByName=... → 得到 NetRefHandle
+2. Net.Iris.DebugNetRefHandle 2010
+3. 在 BreakOnNetRefHandle / 目标 phase 附近附加调试器
+4. 复现一次
+5. 调用 DebugNetRefHandleById(2010, 0) 查看对象信息
+6. 命令不带参数，关闭 handle 条件</div>
+        </section>
+
+        <section id="object-commands">
+          <p class="eyebrow">Chapter 07 · Object Drill-Down</p>
+          <h2><span class="chapter-no">UE 5.7.4 的单对象入口</span>先用 <code>PrintNetInfoOfObject</code>，再扩大到全局清单</h2>
+          <p><code>ObjectReplicationBridgeDebugging.cpp</code> 收集了多组对象诊断命令。旧式流程常先打印所有 replicated/relevant objects；在 UE 5.7.4 中，信息更密集的 <code>Net.Iris.PrintNetInfoOfObject</code> 更适合作为第一站。</p>
+
+          <div class="command"><code>Net.Iris.PrintNetInfoOfObject FindByName=BP_Enemy_C_2147482471 RepSystemId=0 ConnectionId=1</code><span>按实例名 + 指定复制系统与连接</span></div>
+          <div class="command"><code>Net.Iris.PrintNetInfoOfObject FindByClass=BP_Enemy_C RepSystemId=0 ConnectionId=1,2</code><span>按类 substring，包含继承关系</span></div>
+          <div class="command"><code>Net.Iris.PrintNetInfoOfObject FindById=2010 RepSystemId=0 ConnectionId=1</code><span>已知 NetRefHandle 时精确查询</span></div>
+
+          <h3>一条命令能给出哪些切面</h3>
+          <div class="cards">
+            <div class="card"><small>IDENTITY</small><h3>对象与 State</h3><p>NetRefHandle、Protocol、量化状态，以及服务端或客户端 bridge 侧信息。</p></div>
+            <div class="card card--signal"><small>CONNECTION</small><h3>逐连接资格</h3><p>relevant 状态、filter、priority、ReplicationWriter / Reader 信息。</p></div>
+            <div class="card card--green"><small>CONTEXT</small><h3>空间与依赖</h3><p>world location、cull distance、delta compression、parent/child 与 creation dependencies。</p></div>
+          </div>
+
+          <h3>大纲命令的准确用法</h3>
+          <div class="table-wrap" role="region" aria-label="Iris 对象诊断命令" tabindex="0">
+            <table>
+              <thead><tr><th>命令</th><th>适合回答</th><th>常用参数</th></tr></thead>
+              <tbody>
+                <tr><td><code>Net.Iris.PrintReplicatedObjects</code></td><td>哪些对象已注册到 Iris</td><td><code>RepSystemId</code>、<code>WithSubObjects</code>、排序参数</td></tr>
+                <tr><td><code>Net.Iris.PrintRelevantObjects</code></td><td>哪些对象对任意连接 relevant</td><td><code>RepSystemId</code>、<code>WithSubObjects</code></td></tr>
+                <tr><td><code>Net.Iris.PrintRelevantObjectsToConnection</code></td><td>目标连接看见哪些对象</td><td><code>ConnectionId=1,5,7</code>、<code>WithFilter</code></td></tr>
+                <tr><td><code>Net.Iris.PrintAlwaysRelevantObjects</code></td><td>全连接 always relevant 集合</td><td><code>RepSystemId</code></td></tr>
+                <tr><td><code>Net.Iris.PrintNetCullDistances</code></td><td>类与对象的当前 cull distance</td><td><code>NumClasses=20</code></td></tr>
+                <tr><td><code>Net.Iris.PrintPushBasedStatuses</code></td><td>哪些类/属性没有采用 Push Based</td><td><code>RepSystemId</code></td></tr>
+                <tr><td><code>Net.Iris.PrintDynamicFilterClassConfig</code></td><td>类会分配哪个 dynamic filter</td><td><code>RepSystemId</code></td></tr>
+                <tr><td><code>Net.Iris.PrintDynamicFilterClassConfigIssues</code></td><td>配置类、子类和 Blueprint 潜在问题</td><td><code>SkipBPIssueDetection</code> 等</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>多数命令支持 <code>RepSystemId=X</code>、<code>WithSubObjects</code>、<code>SortByClass</code> 与 <code>SortByNetRefHandle</code>。<code>ConnectionId</code> 可接受逗号分隔列表；未指定时，连接型信息通常扩展到有效连接集合。</p>
+
+          <div class="callout callout--danger">
+            <strong><code>PrintPushBasedStatuses</code> 不能证明某次写入已经标脏</strong>
+            <p>它能指出类或属性是否配置为 Push Based，却不能证明具体 mutation 调用了正确的 <code>MARK_PROPERTY_DIRTY</code>。具体属性不同步仍要沿 dirty → condition → ChangeMask → packet → apply 检查。</p>
+          </div>
+        </section>
+
+        <section id="insights">
+          <p class="eyebrow">Chapter 08 · Trace</p>
+          <h2><span class="chapter-no">时间与内容是两副镜头</span>Timing Insights 找 CPU，Networking Insights 找 bits</h2>
+          <p class="lead"><code>IrisProfiler</code> 在默认配置下把宏映射到 CPU Profiler Trace scope，它不是独立 GUI。CPU 调查进入 Timing Insights；包、对象、属性和 RPC 的网络内容调查进入 Networking Insights。</p>
+
+          <div class="split">
+            <div class="lens">
+              <small>CPU LENS</small>
+              <h3>Timing Insights</h3>
+              <p>观察线程、帧与 scope：过滤是否突然变慢，PollAndCopy 是否扩张，Quantize 或 UpdateDataStreams 是否形成尖峰。</p>
+            </div>
+            <div class="lens">
+              <small>BIT LENS</small>
+              <h3>Networking Insights</h3>
+              <p>选择 game instance、connection 与 incoming/outgoing，查看 packet 时间线、对象、属性、RPC 和 Net Stats Counters。</p>
+            </div>
+          </div>
+
+          <h3>启动 NetTrace</h3>
+          <div class="command"><code>-trace=net -NetTrace=1 -tracehost=localhost</code><span>Editor/本机 Trace Server 的常用入口</span></div>
+          <div class="command"><code>NetTrace.SetTraceVerbosity 2</code><span>运行时调到 Verbose</span></div>
+
+          <div class="table-wrap" role="region" aria-label="NetTrace verbosity" tabindex="0">
+            <table>
+              <thead><tr><th>值</th><th>枚举</th><th>建议用途</th><th>边界</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td><code>None</code></td><td>关闭 NetTrace</td><td>没有网络 trace 事件</td></tr>
+                <tr><td>1</td><td><code>Trace</code></td><td>常规 packet/content 调查</td><td>首选起点</td></tr>
+                <tr><td>2</td><td><code>Verbose</code></td><td>需要更深层事件与计数器</td><td>数据量上升</td></tr>
+                <tr><td>3</td><td><code>VeryVerbose</code></td><td>对象级 poll/quantize/write 深挖</td><td>非 Shipping/Test 默认编译上限</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>UE 5.7.4 源码中，非 Shipping/Test 的 NetTrace 编译期上限默认是 <code>VeryVerbose</code>，Shipping/Test 默认是 <code>Verbose</code>；运行时设置会被编译期上限裁剪。</p>
+
+          <h3>Networking Insights 的五个观察面</h3>
+          <ol>
+            <li><strong>Packet Overview：</strong>包的时间、大小、序号与 dropped 状态；</li>
+            <li><strong>Packet Content：</strong>对象、属性、RPC 与层级事件占用的 bits；</li>
+            <li><strong>Connection Selection：</strong>PIE/NetDriver 实例、连接与 incoming/outgoing；</li>
+            <li><strong>Net Stats：</strong>选区内事件的 total/max 与 inclusive/exclusive bits；</li>
+            <li><strong>Net Stats Counters：</strong>frame stats 与 packet stats，例如候选对象和实际装包对象。</li>
+          </ol>
+
+          <div class="callout callout--warn">
+            <strong>Packet Overview 的大小是压缩前统计</strong>
+            <p>Epic 5.7 文档明确说明，界面报告的 packet size 是压缩前内容，实际 wire data 可能更小。它非常适合做对象/属性相对归因，但不能直接替代平台抓包或压缩后带宽测量。</p>
+          </div>
+
+          <h3>常见 Iris CPU phase</h3>
+          <div class="codeblock">ReplicationSystem_NetUpdate
+├─ ReplicationSystem_UpdateWorldLocations
+├─ ReplicationSystem_UpdateFiltering
+├─ ReplicationBridge_PreUpdate
+├─ ReplicationBridge_PollAndCopy
+│  └─ ReplicationPollAndCopyTask
+├─ ReplicationSystem_UpdateConditionals
+├─ ReplicationSystem_QuantizeDirtyStateData
+├─ ReplicationSystem_PropagateDirtyChanges
+├─ ReplicationSystem_UpdatePrioritization
+├─ ReplicationSystem_UpdateDataStreams
+└─ ReplicationSystem_PostSendUpdate</div>
+        </section>
+
+        <section id="csv-netstats">
+          <p class="eyebrow">Chapter 09 · 15.4</p>
+          <h2><span class="chapter-no">时间 × 数量 × 数据量</span>CSV 与 <code>NetStatsContext</code> 把尖峰变成可比较指标</h2>
+          <p>Timing Insights 擅长逐帧和调用关系，CSV 更适合较长窗口、自动化场景和版本回归。Iris 的 CSV 统计不是只给一个总耗时，而是把 time、count 与 KBytes 分开；三者必须一起读。</p>
+
+          <div class="triangle">
+            <div><small>TIME</small><b>MS</b><p>PreUpdate、Poll、Quantize、Write 花了多少 CPU 时间。</p></div>
+            <div><small>SCALE</small><b>COUNT</b><p>处理了多少对象、写了多少状态、连接规模多大。</p></div>
+            <div><small>OUTPUT</small><b>KBYTES</b><p>写入、creation info 与 waste 转化成多少数据。</p></div>
+          </div>
+
+          <div class="command"><code>CsvProfile Start</code><span>开始采集</span></div>
+          <div class="command"><code>CsvProfile Stop</code><span>结束并写入 Saved/Profiling/CSV</span></div>
+          <div class="command"><code>CsvProfile Frames=600</code><span>固定帧数采集，适合对照</span></div>
+
+          <h3>Iris 按类型 CSV 类别</h3>
+          <div class="table-wrap" role="region" aria-label="Iris CSV 类别" tabindex="0">
+            <table>
+              <thead><tr><th>阶段</th><th>时间</th><th>数量</th><th>数据量</th></tr></thead>
+              <tbody>
+                <tr><td>PreUpdate</td><td><code>IrisPreUpdateMS</code></td><td><code>IrisPreUpdateCount</code></td><td>—</td></tr>
+                <tr><td>Poll</td><td><code>IrisPollMS</code></td><td><code>IrisPollCount</code></td><td>—</td></tr>
+                <tr><td>Poll Waste</td><td><code>IrisPollWasteMS</code></td><td><code>IrisPollWasteCount</code></td><td>—</td></tr>
+                <tr><td>Quantize</td><td><code>IrisQuantizeMS</code></td><td><code>IrisQuantizeCount</code></td><td>—</td></tr>
+                <tr><td>Write</td><td><code>IrisWriteMS</code></td><td><code>IrisWriteCount</code></td><td><code>IrisWriteKBytes</code></td></tr>
+                <tr><td>Write Waste</td><td><code>IrisWriteWasteMS</code></td><td><code>IrisWriteWasteCount</code></td><td><code>IrisWriteWasteKBytes</code></td></tr>
+                <tr><td>Creation Info</td><td>—</td><td><code>IrisWriteCreationInfoCount</code></td><td><code>IrisWriteCreationInfoKBytes</code></td></tr>
+                <tr><td>Exports</td><td>—</td><td><code>IrisWriteExportsCount</code></td><td>结合 packet 内容分析</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>客户端详细统计</h3>
+          <p>客户端类别包括 <code>IrisClient</code>、<code>IrisClientDetailObjectCreate</code>、<code>IrisClientDetailRepNotify</code>、<code>IrisClientDetailRPC</code> 与 <code>IrisClientBlockedByAsyncLoading</code>。后者能记录对象等待异步资源加载的阻塞事件。</p>
+          <div class="command"><code>net.Iris.EnableDetailedClientProfiler 1</code><span>按对象名、RepNotify 或 RPC 名细分；默认不面向 Shipping</span></div>
+
+          <h3><code>FNetTypeStats</code> 如何处理并行</h3>
+          <p>并行 phase 中，每个工作单元从 <code>FNetTypeStats</code> 取得 child <code>FNetStatsContext</code>，完成后归还；帧末把 child 累加到 parent，再输出 CSV。这样能保留按类型归因，又避免所有任务竞争同一个非线程安全上下文。</p>
+
+          <div class="callout">
+            <strong>SubObject 默认归入 Root 类型</strong>
+            <p><code>net.Iris.Stats.ShouldIncludeSubObjectWithRoot</code> 默认是 true。需要单独观察 SubObject 类型时可设为 0，但修改统计口径后，前后两次 CSV 不能直接混比。</p>
+          </div>
+
+          <h3>分析比率，而不是新的引擎 Stat</h3>
+          <div class="codeblock">单位 Poll 成本 = PollMS / PollCount
+单位 Write 成本 = WriteMS / WriteCount
+每连接成本     = TotalCost / ReplicatingConnectionCount
+调度转化率     = ReplicatedRootObjectCount / ScheduledRootObjectCount
+有效写入率     = 1 - (WriteWasteKBytes / TotalAttemptedWriteKBytes)</div>
+          <p>这些是调查时计算的派生比率，不是 UE 内置同名指标。它们的价值在于区分“对象变多导致总时间上涨”和“每个对象变贵了”。</p>
+        </section>
+
+        <section id="waste">
+          <p class="eyebrow">Chapter 10 · Cost Attribution</p>
+          <h2><span class="chapter-no">昂贵不一定浪费，浪费也不一定是 Bug</span>用产出解释 Poll、Write 与预算</h2>
+          <p class="lead">如果只看到 <code>PollMS</code> 或 <code>WriteMS</code> 高，很容易误判。必须再问：处理量是否同步上涨？产生了多少有效状态？是否真正写进包？是否因为连接预算、mask 或对象作用域反复做无效工作？</p>
+
+          <div class="table-wrap" role="region" aria-label="Iris waste 信号解释" tabindex="0">
+            <table>
+              <thead><tr><th>信号</th><th>常见含义</th><th>下一份证据</th><th>可能的行动</th></tr></thead>
+              <tbody>
+                <tr><td>Poll Waste 高</td><td>轮询了对象但没有有效变化</td><td>按类型 PollWaste、poll frequency、PushBased status</td><td>降低静态类型轮询，正确使用 Push Model</td></tr>
+                <tr><td>Write Waste 高</td><td>尝试写入但状态被 mask、预算或 scope 排除</td><td>write count/KBytes、writer info、packet counters</td><td>减少无效候选，检查 condition 与预算</td></tr>
+                <tr><td>Scheduled ≫ Replicated</td><td>候选规模远大于每帧实际可装包规模</td><td>priority 分布、connection budget、积压时间</td><td>改善过滤、优先级或状态频率</td></tr>
+                <tr><td>Creation/Export 突发</td><td>大量对象首次出现或引用首次导出</td><td>场景事件、Packet Content、对象创建数</td><td>平滑生成、减少引用图或预热</td></tr>
+                <tr><td>Huge wait/stall</td><td>大对象等待 ACK 或阻塞发送队列</td><td>Active/Waiting/Stalling、可靠窗口、丢包</td><td>拆分状态、降低可靠大负载、验证丢包恢复</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3><code>FNetSendStats</code> 与 <code>FReplicationStats</code></h3>
+          <p>UE 5.7.4 会报告每连接平均 scheduled / replicated root objects、replicated objects、destruction infos、masked-out states、delta compressed objects 和 active connections；同时跟踪 huge object 的 active、waiting、stall 数量与时间。复制系统还输出 pending objects、pending dependencies 与 huge object send queue 的平均值和峰值。</p>
+
+          <div class="cards">
+            <div class="card card--signal"><small>SCALE PROBLEM</small><h3>Count 与时间同涨</h3><p>总成本主要由规模驱动。优先减少候选、轮询频率或每连接 relevant 集合。</p></div>
+            <div class="card card--warn"><small>UNIT COST</small><h3>时间涨，Count 不涨</h3><p>单对象更贵。检查协议复杂度、动态数组、引用、任务并行与缓存行为。</p></div>
+            <div class="card card--green"><small>LOW YIELD</small><h3>时间涨，KBytes 不涨</h3><p>有效产出低。重点看 Poll/Write Waste、condition、mask 和预算拒绝。</p></div>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>Waste 是调查入口，不是自动优化目标</strong>
+            <p>某些对象必须定期 poll 才能保证正确性；某些候选会因逐连接预算而合理延后。只有在同一业务负载、相同连接数与相同统计口径下，Waste 的持续上涨才有可比较意义。</p>
+          </div>
+        </section>
+
+        <section id="memory">
+          <p class="eyebrow">Chapter 11 · 15.5</p>
+          <h2><span class="chapter-no">先按标签归属，再追分配调用栈</span><code>IrisMemoryTracker</code> 与 LLM 的正确读法</h2>
+          <p><code>IrisMemoryTracker.cpp</code> 用 LLM 标签标注 Iris 相关分配，并把它们汇总到 Networking summary。标签回答“这块内存记到哪一类”，不会自动回答“为什么没有释放”。</p>
+
+          <div class="tree">Iris
+├─ State                 [unique: IrisState]
+├─ Initialization        [unique: IrisInitialization]
+├─ Connection            [unique: IrisConnection]
+└─ NetTokenStructState   [unique: NetTokenStructState]</div>
+
+          <div class="command"><code>-LLM</code><span>启用 Low-Level Memory Tracker</span></div>
+          <div class="command"><code>-LLMCSV</code><span>启用并持续写入 Saved/Profiling/LLM</span></div>
+          <div class="command"><code>stat LLMFULL</code><span>显示全部 LLM 统计</span></div>
+          <div class="command"><code>DumpLLM</code><span>把当前与峰值标签大小写入日志</span></div>
+
+          <p>CSV 写入间隔可由 <code>LLM.LLMWriteInterval</code> 调整。Epic 5.7 文档说明 LLM 在 Shipping 中完全禁用；它应在 Development/Test 诊断流程中使用，而不是假设生产 Shipping 默认保留。</p>
+
+          <h3>标签上涨怎么解释</h3>
+          <div class="table-wrap" role="region" aria-label="Iris LLM 标签分析" tabindex="0">
+            <table>
+              <thead><tr><th>标签</th><th>先与什么归一化</th><th>健康信号</th><th>异常信号</th></tr></thead>
+              <tbody>
+                <tr><td><code>IrisState</code></td><td>active replicated objects / protocols</td><td>对象销毁或场景卸载后回落</td><td>对象数稳定但 State 持续爬升</td></tr>
+                <tr><td><code>IrisConnection</code></td><td>valid / replicating connections</td><td>断连后按连接回落</td><td>反复连接后基线阶梯式上升</td></tr>
+                <tr><td><code>IrisInitialization</code></td><td>初始化批次、descriptor/protocol 数</td><td>加载完成后趋稳</td><td>稳态 Gameplay 中持续增长</td></tr>
+                <tr><td><code>NetTokenStructState</code></td><td>token / struct state 数量</td><td>规模变化能解释曲线</td><td>token 规模不变但内存上升</td></tr>
+                <tr><td><code>Iris</code></td><td>先拆子标签</td><td>父标签由可解释子项构成</td><td>父标签上涨但子项与工作负载不匹配</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>从归属到泄漏证据</h3>
+          <ol>
+            <li>建立空场景、目标场景和卸载后稳态三段基线；</li>
+            <li>同时记录对象数、连接数和 token 规模；</li>
+            <li>确认增长来自哪个 Iris 子标签；</li>
+            <li>断连、销毁或卸载后观察是否回落；</li>
+            <li>在 Memory Insights 中对增长区间做 allocation query，并检查 callstack；</li>
+            <li>用相同循环次数验证修复前后的稳态基线。</li>
+          </ol>
+
+          <div class="pullquote">“IrisConnection 上涨”只是一条归属证据。只有连接数已恢复、等待窗口结束，而同类 allocation 仍跨循环存活，才开始接近泄漏结论。</div>
+        </section>
+
+        <section id="runbooks">
+          <p class="eyebrow">Chapter 12 · 15.6</p>
+          <h2><span class="chapter-no">让团队按同一顺序排查</span>对象、属性与性能三套标准 Runbook</h2>
+
+          <div class="runbook">
+            <div class="runbook__head"><span>RUN 01</span><h3>对象没有复制到目标客户端</h3></div>
+            <ol>
+              <li>确认服务器对象存在且生命周期未结束；</li>
+              <li>执行 <code>PrintNetInfoOfObject FindByName=... RepSystemId=... ConnectionId=...</code>；</li>
+              <li>找不到句柄：调查 bridge 注册、支持类型和创建/销毁时机；</li>
+              <li>句柄有效但不 relevant：调查 owner、group、dynamic filter、cull 与 dependency；</li>
+              <li>relevant 但未写：查看 priority、writer、scheduled/replicated 与 packet budget；</li>
+              <li>outgoing 有对象：在 Networking Insights 切到目标客户端 incoming；</li>
+              <li>incoming 有数据但未创建：调查引用解析、creation dependency、factory/bridge receive。</li>
+            </ol>
+          </div>
+
+          <div class="runbook">
+            <div class="runbook__head"><span>RUN 02</span><h3>对象存在，但属性没有同步</h3></div>
+            <ol>
+              <li>在服务端确认 Gameplay 值确实改变，而且不是随后被本地逻辑覆盖；</li>
+              <li>确认属性进入 Replication Descriptor，Push Based 属性是否正确标 dirty；</li>
+              <li>检查 poll frequency、dirty tracker 与 quantized internal state；</li>
+              <li>对目标 Connection 检查成员 condition、owner/autonomous/custom 条件；</li>
+              <li>在 outgoing Packet Content 查找对象与属性；</li>
+              <li>在 incoming 侧确认 packet 到达且 reader 接受；</li>
+              <li>在客户端检查 dequantize/apply、RepNotify 与 Gameplay 后续覆盖。</li>
+            </ol>
+          </div>
+
+          <div class="runbook">
+            <div class="runbook__head"><span>RUN 03</span><h3>复制功能正确，但服务器出现性能尖峰</h3></div>
+            <ol>
+              <li>用 Timing Insights 定位慢 phase，而不是先猜对象类型；</li>
+              <li>用 CSV 的 time + count 判断是规模增加还是单位成本增加；</li>
+              <li>按类型查看 PreUpdate、Poll、Quantize、Write 与 Waste；</li>
+              <li>检查 scheduled/replicated 转化、连接数、pending 与 huge object 队列；</li>
+              <li>用 Networking Insights 验证高成本是否转化成有效 packet content；</li>
+              <li>必要时用 LLM 检查连接与状态容量是否同时异常；</li>
+              <li>固定场景、连接数和统计口径，做修改前后对照。</li>
+            </ol>
+          </div>
+
+          <h3>快速分流</h3>
+          <div class="table-wrap" role="region" aria-label="复制问题快速分流" tabindex="0">
+            <table>
+              <thead><tr><th>已知证据</th><th>先不要查</th><th>下一站</th></tr></thead>
+              <tbody>
+                <tr><td>对象没有 NetRefHandle</td><td>packet、带宽、RepNotify</td><td>注册、bridge、生命周期</td></tr>
+                <tr><td>对象对 Connection 不 relevant</td><td>属性 ChangeMask</td><td>filter、group、owner、cull</td></tr>
+                <tr><td>relevant，服务端 quantized state 仍旧</td><td>丢包</td><td>dirty、poll、condition 前置</td></tr>
+                <tr><td>outgoing packet 已含属性</td><td>服务端 priority</td><td>incoming、丢包、解析、apply</td></tr>
+                <tr><td>Timing 显示 Poll 高且 PollWaste 高</td><td>提高带宽</td><td>按类型 poll、Push Model、频率</td></tr>
+                <tr><td>Connection LLM 随断连不回落</td><td>直接宣布泄漏</td><td>稳定窗口、allocation query、callstack</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="practice">
+          <p class="eyebrow">Chapter 13 · 15.7</p>
+          <h2><span class="chapter-no">把正确性带进坏网络与发布流程</span>网络仿真、检查清单与命令速查</h2>
+          <p class="lead">理想本机网络只能证明“零延迟、零丢包的一次运行正常”。要验证复制协议的恢复能力，必须把延迟、丢包、乱序与不可靠 RPC 丢弃变成可重复实验。</p>
+
+          <h3>UE 5.7.4 网络仿真</h3>
+          <div class="table-wrap" role="region" aria-label="NetEmulation 命令" tabindex="0">
+            <table>
+              <thead><tr><th>命令</th><th>作用</th><th>示例</th></tr></thead>
+              <tbody>
+                <tr><td><code>NetEmulation.PktLoss</code></td><td>出站丢包百分比</td><td><code>NetEmulation.PktLoss 5</code></td></tr>
+                <tr><td><code>NetEmulation.PktLag</code></td><td>固定出站延迟，毫秒</td><td><code>NetEmulation.PktLag 80</code></td></tr>
+                <tr><td><code>NetEmulation.PktLagVariance</code></td><td>延迟随机波动</td><td><code>NetEmulation.PktLagVariance 20</code></td></tr>
+                <tr><td><code>NetEmulation.PktOrder</code></td><td>模拟乱序</td><td><code>NetEmulation.PktOrder 1</code></td></tr>
+                <tr><td><code>NetEmulation.PktDup</code></td><td>重复包百分比</td><td><code>NetEmulation.PktDup 2</code></td></tr>
+                <tr><td><code>NetEmulation.PktIncomingLoss</code></td><td>入站丢包百分比</td><td><code>NetEmulation.PktIncomingLoss 5</code></td></tr>
+                <tr><td><code>NetEmulation.DropUnreliableRPC</code></td><td>按 RPC 名 substring 随机丢弃</td><td><code>NetEmulation.DropUnreliableRPC MulticastFireFX 50</code></td></tr>
+                <tr><td><code>NetEmulation.Off</code></td><td>关闭 packet 仿真</td><td><code>NetEmulation.Off</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>还可使用 <code>DropAnyUnreliable</code>、<code>DropUnreliableOfActorClass</code>、<code>DropUnreliableOfSubObjectClass</code> 与 <code>DropNothing</code> 做 RPC 专项实验。<code>DO_ENABLE_NET_TEST</code> 在 UE 5.7.4 定义为非 Shipping，因此不要把这些命令当作 Shipping 线上控制面。</p>
+
+          <div class="callout callout--danger">
+            <strong>一次只改变一个网络变量</strong>
+            <p>先单独测 80ms lag，再单独测 5% loss，最后才组合。若一开始同时加 lag、loss、order、duplication，就无法知道哪个条件触发了失败，也无法证明修复针对了什么。</p>
+          </div>
+
+          <h3>开发、测试、发布检查清单</h3>
+          <div class="checklist">
+            <div>
+              <h3>开发阶段</h3>
+              <ul>
+                <li>为关键对象记录可搜索名称</li>
+                <li>知道如何取得 RepSystemId / ConnectionId</li>
+                <li>状态、事件和权威边界明确</li>
+                <li>Push Model mutation 有统一封装</li>
+                <li>关键错误具备最小复现卡</li>
+              </ul>
+            </div>
+            <div>
+              <h3>测试阶段</h3>
+              <ul>
+                <li>Dedicated Server 与多客户端覆盖</li>
+                <li>固定 trace / CSV capture 窗口</li>
+                <li>逐项 lag、loss、order 测试</li>
+                <li>连接扩容与对象扩容分开测试</li>
+                <li>比较 time、count、KBytes 与 LLM</li>
+              </ul>
+            </div>
+            <div>
+              <h3>发布阶段</h3>
+              <ul>
+                <li>确认 Shipping 中可用诊断面</li>
+                <li>关闭临时 VeryVerbose 与断点 CVar</li>
+                <li>保留版本、CVar 和场景元数据</li>
+                <li>设置性能与容量回归阈值</li>
+                <li>把复现和采集流程纳入 Runbook</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3>命令速查</h3>
+          <div class="codeblock"># 对象身份与连接资格
+Net.Iris.PrintNetInfoOfObject FindByName=&lt;name&gt; RepSystemId=0 ConnectionId=1
+Net.Iris.PrintRelevantObjectsToConnection RepSystemId=0 ConnectionId=1 WithFilter
+Net.Iris.PrintPushBasedStatuses RepSystemId=0
+
+# 条件断点（非 Shipping）
+Net.Iris.DebugName &lt;substring&gt;
+Net.Iris.DebugRPCName &lt;substring&gt;
+Net.Iris.DebugNetRefHandle &lt;id&gt;
+
+# 日志
+log LogIris VeryVerbose
+log LogIrisFiltering Verbose
+
+# Trace / CSV
+-trace=net -NetTrace=1 -tracehost=localhost
+NetTrace.SetTraceVerbosity 2
+CsvProfile Frames=600
+
+# 内存
+-LLM -LLMCSV
+stat LLMFULL
+DumpLLM
+
+# 网络仿真
+NetEmulation.PktLag 80
+NetEmulation.PktLoss 5
+NetEmulation.Off</div>
+
+          <h3 id="sources">文章来源与技术依据</h3>
+          <p>本篇由 Jossy Zhang 根据系列大纲原创扩写。技术行为以本地 Unreal Engine 5.7.4 源码为准；官方文档用于日志、Insights、LLM 与网络测试工具的公开使用契约。本次未编译 UE，也未执行 ReplicationSystemTestPlugin 自动化测试或真实项目 trace。</p>
+
+          <h3>Epic Games 官方资料</h3>
+          <div class="sources">
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/logging-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Logging in Unreal Engine</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/networking-insights-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Networking Insights</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-insights-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Unreal Insights</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/using-the-low-level-memory-tracker-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Low-Level Memory Tracker</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/memory-insights-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Memory Insights</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/testing-and-debugging-networked-games-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Testing Networked Games</a>
+            <a href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">系列大纲原文</a>
+          </div>
+
+          <h3>UE 5.7.4 关键源码</h3>
+          <div class="tree">Engine/Source/Runtime/Net/Iris/
+├─ Public/Iris/Core/
+│  ├─ IrisDebugging.h
+│  ├─ IrisLog.h
+│  ├─ IrisProfiler.h
+│  ├─ IrisCsv.h
+│  └─ IrisMemoryTracker.h
+└─ Private/Iris/
+   ├─ Core/IrisDebugging.cpp
+   ├─ Core/IrisProfiler.cpp
+   ├─ Core/IrisMemoryTracker.cpp
+   ├─ Stats/NetStats.h / .cpp / NetStatsContext.h
+   └─ ReplicationSystem/
+      ├─ ObjectReplicationBridgeDebugging.cpp
+      ├─ ReplicationSystem.cpp
+      ├─ ReplicationWriter.cpp
+      └─ ReplicationReader.cpp
+
+Engine/Source/Runtime/Net/Core/.../Trace/
+├─ NetTraceConfig.h
+└─ NetTraceInternal.cpp
+
+Engine/Source/Runtime/Engine/
+├─ Classes/Engine/NetDriver.h
+└─ Private/Net/NetEmulationHelper.cpp</div>
+
+          <h3>本篇结论</h3>
+          <div class="cards">
+            <div class="card card--green"><small>PROOF</small><h3>逐层证明</h3><p>身份、连接资格、变化、调度、写入、接收、应用，每层都有自己的证据。</p></div>
+            <div class="card"><small>MEASURE</small><h3>三维度量</h3><p>性能必须同时看时间、数量和数据量，再用对象类型与连接规模归因。</p></div>
+            <div class="card card--signal"><small>REPEAT</small><h3>可重复实验</h3><p>固定场景与采集窗口，一次改变一个变量，用相同证据验证修改前后。</p></div>
+          </div>
+
+          <div class="pullquote">成熟的网络调试不是“我试了一个命令，问题好像没了”，而是团队能回答：哪一层阻断、证据是什么、修改改变了什么、坏网络下是否仍成立。</div>
+
+          <p>下一部分将进入配置与集成：怎样把 Iris 的启用条件、对象桥接、过滤器与优先级配置、DataStream/NetBlob Handler 注册，以及项目迁移检查固化到工程启动路径中。</p>
+
+          <nav class="chapter-nav" aria-label="系列文章导航">
+            <a href="/html-articles/ue5-iris-guide-part-14/"><span>← PREVIOUS</span><b>第十四部分：RPC 系统</b></a>
+            <div><span>NEXT →</span><b>第十六部分：配置与集成（后续）</b></div>
+          </nav>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <p>UE5 Iris 网络复制系统技术分析 · 第十五部分</p>
+    <p>原创扩写与整理：Jossy Zhang · 技术基线：Unreal Engine 5.7.4</p>
+    <p><a href="/ue5-iris-guide/">返回系列目录</a> · <a href="/">返回博客首页</a></p>
+  </footer>
+
+  <button class="back-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.reading-progress');
+      const backTop = document.querySelector('.back-top');
+      const sections = [...document.querySelectorAll('article section[id]')];
+      const tocLinks = [...document.querySelectorAll('.toc a')];
+      const mobileToc = document.querySelector('.toc-mobile');
+
+      const updateScrollUI = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = `${maxScroll > 0 ? Math.min(100, scrollTop / maxScroll * 100) : 0}%`;
+        backTop.classList.toggle('is-visible', scrollTop > 650);
+
+        if (sections.length) {
+          const firstSectionTop = sections[0].getBoundingClientRect().top + scrollTop;
+          if (scrollTop < firstSectionTop - window.innerHeight * .18) {
+            tocLinks.forEach((link, index) => {
+              if (index === 0) link.setAttribute('aria-current', 'true');
+              else link.removeAttribute('aria-current');
+            });
+          }
+        }
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+
+        if (!visible) return;
+        tocLinks.forEach((link) => {
+          const active = link.getAttribute('href') === `#${visible.target.id}`;
+          if (active) link.setAttribute('aria-current', 'true');
+          else link.removeAttribute('aria-current');
+        });
+      }, { rootMargin: '-18% 0px -66% 0px', threshold: [0, .05, .2] });
+
+      sections.forEach((section) => observer.observe(section));
+      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      window.addEventListener('resize', updateScrollUI);
+      updateScrollUI();
+
+      backTop.addEventListener('click', () => {
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+      });
+
+      document.querySelectorAll('.toc-mobile a').forEach((link) => {
+        link.addEventListener('click', () => { mobileToc.open = false; });
+      });
+    })();
+  </script>
+</body>
+</html>

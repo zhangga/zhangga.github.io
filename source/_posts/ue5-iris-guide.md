@@ -1,7 +1,7 @@
 ---
 title: UE5-Iris 网络复制系统技术分析指南
 date: 2026-07-24 10:34:32
-updated: 2026-07-24 18:10:00
+updated: 2026-07-25 15:44:53
 tags:
   - UE
   - Iris
@@ -11,7 +11,7 @@ categories:
   - 笔记
 ---
 
-本页是《UE5 Iris 网络复制系统技术分析指南》的统一入口。目前已发布系列大纲和第 1～12 部分，内容从整体架构、核心数据结构一路深入到过滤、优先级、序列化、数据流、NetBlob、增量压缩、脏数据检测以及对象引用与依赖。
+本页是《UE5 Iris 网络复制系统技术分析指南》的统一入口。目前已发布系列大纲和第 1～15 部分，内容从整体架构、核心数据结构一路深入到过滤、优先级、序列化、数据流、NetBlob、增量压缩、脏数据检测、对象引用与依赖、条件复制、RPC 系统以及调试与性能分析。
 
 各部分的完整正文仍以独立 HTML 形式保留；后续新增章节也会继续汇总到本页，不再为每一部分单独创建简短 Post。
 
@@ -37,6 +37,9 @@ categories:
 | 第十部分 | 增量压缩 | [打开 HTML](/html-articles/ue5-iris-guide-part-10/) |
 | 第十一部分 | 轮询与脏数据检测 | [打开 HTML](/html-articles/ue5-iris-guide-part-11/) |
 | 第十二部分 | 对象引用与依赖 | [打开 HTML](/html-articles/ue5-iris-guide-part-12/) |
+| 第十三部分 | 条件复制 | [打开 HTML](/html-articles/ue5-iris-guide-part-13/) |
+| 第十四部分 | RPC 系统 | [打开 HTML](/html-articles/ue5-iris-guide-part-14/) |
+| 第十五部分 | 调试与性能分析 | [打开 HTML](/html-articles/ue5-iris-guide-part-15/) |
 
 ## 内容简介
 
@@ -111,6 +114,24 @@ categories:
 沿引用采集、身份导出、远端解析或排队、Factory 创建和依赖调度的链路，分析 `ObjectReferenceCache`、`NetDependencyData`、`NetTokenStore` 与 `NetObjectFactory`。
 
 [阅读第十二部分](/html-articles/ue5-iris-guide-part-12/)
+
+### 第十三部分：条件复制
+
+区分对象过滤、脏状态与成员条件，讲解 `ELifetimeCondition`、`FReplicationConditionals`、Owner 与 Autonomous 角色条件、Custom / Dynamic 运行时机制，以及每连接 ChangeMask 裁剪、条件缓存和基线失效。
+
+[阅读第十三部分](/html-articles/ue5-iris-guide-part-13/)
+
+### 第十四部分：RPC 系统
+
+沿一次远程调用从 `UNetDriver::ProcessRemoteFunction`、`UReplicationSystem::SendRPC`、`FNetRPC` 和 Attachment 队列进入接收端 `ProcessEvent` 的完整路径，讲解单播与多播、可靠性与顺序、OOB 调度、参数量化和反序列化、SubObject 安全边界，以及 `UNetRPCHandler`、Partial Handler 与 `UNetObjectBlobHandler` 的真实职责。
+
+[阅读第十四部分](/html-articles/ue5-iris-guide-part-14/)
+
+### 第十五部分：调试与性能分析
+
+以“敌人在某个客户端偶发消失、属性偶尔过期”为贯穿案例，建立身份、连接相关性、变化发现、优先级与预算、写入、接收和应用七级证据链；系统讲解 Iris 日志、`IrisDebugHelper`、`PrintNetInfoOfObject`、Timing / Networking Insights、CSV、`NetStatsContext`、LLM 标签和网络仿真，并给出对象不复制、属性不同步与性能尖峰三套标准排障流程。
+
+[阅读第十五部分](/html-articles/ue5-iris-guide-part-15/)
 
 ## 文章来源
 
