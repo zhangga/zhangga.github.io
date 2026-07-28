@@ -1,7 +1,7 @@
 ---
 title: UE5-Iris 网络复制系统技术分析指南
 date: 2026-07-24 10:34:32
-updated: 2026-07-25 15:44:53
+updated: 2026-07-28 12:35:40
 tags:
   - UE
   - Iris
@@ -11,7 +11,7 @@ categories:
   - 笔记
 ---
 
-本页是《UE5 Iris 网络复制系统技术分析指南》的统一入口。目前已发布系列大纲和第 1～15 部分，内容从整体架构、核心数据结构一路深入到过滤、优先级、序列化、数据流、NetBlob、增量压缩、脏数据检测、对象引用与依赖、条件复制、RPC 系统以及调试与性能分析。
+本页是《UE5 Iris 网络复制系统技术分析指南》的统一入口。目前已发布系列大纲和第 1～18 部分，内容从整体架构、核心数据结构一路深入到过滤、优先级、序列化、数据流、NetBlob、增量压缩、脏数据检测、对象引用与依赖、条件复制、RPC 系统、调试与性能分析、配置与集成、高级定制，以及最终的最佳实践、实战案例与迁移发布。
 
 各部分的完整正文仍以独立 HTML 形式保留；后续新增章节也会继续汇总到本页，不再为每一部分单独创建简短 Post。
 
@@ -40,6 +40,9 @@ categories:
 | 第十三部分 | 条件复制 | [打开 HTML](/html-articles/ue5-iris-guide-part-13/) |
 | 第十四部分 | RPC 系统 | [打开 HTML](/html-articles/ue5-iris-guide-part-14/) |
 | 第十五部分 | 调试与性能分析 | [打开 HTML](/html-articles/ue5-iris-guide-part-15/) |
+| 第十六部分 | 配置与集成 | [打开 HTML](/html-articles/ue5-iris-guide-part-16/) |
+| 第十七部分 | 高级主题 | [打开 HTML](/html-articles/ue5-iris-guide-part-17/) |
+| 第十八部分 | 最佳实践与实战案例 | [打开 HTML](/html-articles/ue5-iris-guide-part-18/) |
 
 ## 内容简介
 
@@ -132,6 +135,24 @@ categories:
 以“敌人在某个客户端偶发消失、属性偶尔过期”为贯穿案例，建立身份、连接相关性、变化发现、优先级与预算、写入、接收和应用七级证据链；系统讲解 Iris 日志、`IrisDebugHelper`、`PrintNetInfoOfObject`、Timing / Networking Insights、CSV、`NetStatsContext`、LLM 标签和网络仿真，并给出对象不复制、属性不同步与性能尖峰三套标准排障流程。
 
 [阅读第十五部分](/html-articles/ue5-iris-guide-part-15/)
+
+### 第十六部分：配置与集成
+
+把 Iris 接入拆成编译可见、插件装载、NetDriver 能力许可、启动策略选择与 ReplicationSystem 创建五道门，说明 CVar、GameMode / GameInstance、PIE 跟随和命令行的真实优先级；系统梳理 `UObjectReplicationBridgeConfig`、Poll / Filter / Prioritizer / Delta、Grid、Hysteresis 与 Descriptor 配置，并给出 NetDriver 构造流程、PIE 多实例隔离、FPS / 开放世界 RPG / 竞速三套起步配置和五阶段迁移方案。
+
+[阅读第十六部分](/html-articles/ue5-iris-guide-part-16/)
+
+### 第十七部分：高级主题
+
+从“最窄扩展点”决策开始，系统讲解自定义 `UNetObjectFilter`、`UNetObjectPrioritizer` 与 `FReplicationFragment` 的真实生命周期、批处理契约、配置注册和失败回退；以隐身系统、战斗排序及 GameplayAbilities 自带 Fragment 为案例，纠正 Dynamic Filter 成本、优先级 1.0 阈值与量化 StateBuffer 等常见误区，并进一步拆解千人规模的 CPU / 带宽 / 内存乘法模型，以及 Iris 与 GAS、网络物理、AI 和服务器分片的职责边界。
+
+[阅读第十七部分](/html-articles/ue5-iris-guide-part-17/)
+
+### 第十八部分：最佳实践与实战案例
+
+把前十七篇的机制收束为一条可运营的工程闭环：从场景合同、对象漏斗和 Networking Insights 证据开始，系统比较 Push Model、轮询、Dormancy、Delta 与多层 Filtering 的成本和正确性；以 FPS、开放世界 RPG、百人大逃杀和 MMO 四类案例展示如何建立对象分层、预算演算、边界回归与扩容边界，并给出从传统复制系统迁移到 Iris 的五阶段跑道、发布闸门和安全回退清单。
+
+[阅读第十八部分](/html-articles/ue5-iris-guide-part-18/)
 
 ## 文章来源
 
