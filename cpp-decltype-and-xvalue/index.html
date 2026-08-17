@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="decltype 与将亡值（xvalue）详解" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    decltype 与将亡值（xvalue）详解
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-08-17</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.7k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：6分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#C-%E8%BF%9B%E9%98%B6%EF%BC%9Adecltype-%E4%B8%8E%E5%B0%86%E4%BA%A1%E5%80%BC%EF%BC%88xvalue%EF%BC%89%E8%AF%A6%E8%A7%A3"><span class="post-toc-text">C++ 进阶：decltype 与将亡值（xvalue）详解</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="post-toc-text">目录</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E7%BD%AE%EF%BC%9A%E5%80%BC%E7%B1%BB%E5%88%AB%E4%BD%93%E7%B3%BB"><span class="post-toc-text">一、前置：值类别体系</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81decltype-%E8%AF%A6%E8%A7%A3"><span class="post-toc-text">二、decltype 详解</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-1-%E4%B8%A4%E7%A7%8D%E6%8E%A8%E5%AF%BC%E5%BD%A2%E6%80%81"><span class="post-toc-text">2.1 两种推导形态</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-2-%E6%A0%B8%E5%BF%83%E8%A7%84%E5%88%99"><span class="post-toc-text">2.2 核心规则</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-3-%E7%BB%8F%E5%85%B8%E9%99%B7%E9%98%B1%EF%BC%9A%E5%A4%9A%E5%8A%A0%E4%B8%80%E5%B1%82%E6%8B%AC%E5%8F%B7"><span class="post-toc-text">2.3 经典陷阱：多加一层括号</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-4-decltype-%E4%B8%8E-auto-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="post-toc-text">2.4 decltype 与 auto 的区别</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-5-decltype-auto-%EF%BC%88C-14%EF%BC%89"><span class="post-toc-text">2.5 decltype(auto)（C++14）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-6-%E4%B8%BB%E8%A6%81%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="post-toc-text">2.6 主要使用场景</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81%E5%B0%86%E4%BA%A1%E5%80%BC%EF%BC%88xvalue%EF%BC%89%E8%AF%A6%E8%A7%A3"><span class="post-toc-text">三、将亡值（xvalue）详解</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-1-%E5%90%8D%E5%AD%97%E7%9A%84%E5%90%AB%E4%B9%89"><span class="post-toc-text">3.1 名字的含义</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-2-%E4%BB%80%E4%B9%88%E4%BC%9A%E4%BA%A7%E7%94%9F%E5%B0%86%E4%BA%A1%E5%80%BC"><span class="post-toc-text">3.2 什么会产生将亡值</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-3-%E6%A0%B8%E5%BF%83%E6%84%8F%E4%B9%89%EF%BC%9A%E7%A7%BB%E5%8A%A8%E8%AF%AD%E4%B9%89"><span class="post-toc-text">3.3 核心意义：移动语义</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E9%80%9F%E6%9F%A5%E6%80%BB%E7%BB%93"><span class="post-toc-text">四、速查总结</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="C-进阶：decltype-与将亡值（xvalue）详解"><a href="#C-进阶：decltype-与将亡值（xvalue）详解" class="headerlink" title="C++ 进阶：decltype 与将亡值（xvalue）详解"></a>C++ 进阶：decltype 与将亡值（xvalue）详解</h1><blockquote>
+<p>本文从值类别（左值 / 右值）体系出发，系统讲解 C++ 中的 <code>decltype</code> 类型推导与将亡值（xvalue），并配有代码示例与对比表格，适合有一定 C++ 基础的读者阅读与分享。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E4%B8%80%E5%89%8D%E7%BD%AE%E5%80%BC%E7%B1%BB%E5%88%AB%E4%BD%93%E7%B3%BB">一、前置：值类别体系</a></li>
+<li><a href="#%E4%BA%8Cdecltype-%E8%AF%A6%E8%A7%A3">二、decltype 详解</a></li>
+<li><a href="#%E4%B8%89%E5%B0%86%E4%BA%A1%E5%80%BCxvalue%E8%AF%A6%E8%A7%A3">三、将亡值（xvalue）详解</a></li>
+<li><a href="#%E5%9B%9B%E9%80%9F%E6%9F%A5%E6%80%BB%E7%BB%93">四、速查总结</a></li>
+</ul>
+<hr>
+<h2 id="一、前置：值类别体系"><a href="#一、前置：值类别体系" class="headerlink" title="一、前置：值类别体系"></a>一、前置：值类别体系</h2><p>要理解 <code>decltype</code> 和将亡值，先要建立 C++11 之后的<strong>值类别（value category）</strong> 概念。所有表达式按两个维度划分：</p>
+<ul>
+<li><strong>是否有身份（identity）</strong>：能否标识一个确定的、有地址的对象。</li>
+<li><strong>是否可移动（movable）</strong>：其资源能否被安全地「窃取」。</li>
+</ul>
+<p>由此得到三种基本值类别，以及两个复合类别：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">                    expression（表达式）</span><br><span class="line">                   /                    \</span><br><span class="line">         glvalue（泛左值）            rvalue（右值）</span><br><span class="line">         有身份                       可移动</span><br><span class="line">        /        \                  /        \</span><br><span class="line">lvalue 左值    xvalue 将亡值    xvalue 将亡值   prvalue 纯右值</span><br><span class="line">有身份         有身份·可移动                   无身份·可移动</span><br><span class="line">不可移动</span><br></pre></td></tr></table></figure>
+
+<p>关系式：</p>
+<ul>
+<li><code>lvalue + xvalue = glvalue</code>（都有身份）</li>
+<li><code>xvalue + prvalue = rvalue</code>（都可移动）</li>
+<li><strong>xvalue（将亡值）是 glvalue 与 rvalue 的交集</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>值类别</th>
+<th align="center">有身份</th>
+<th align="center">可移动</th>
+<th>典型示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>lvalue</strong> 左值</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td>变量名 <code>x</code>、<code>arr[i]</code>、<code>*p</code></td>
+</tr>
+<tr>
+<td><strong>xvalue</strong> 将亡值</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td><code>std::move(x)</code>、<code>static_cast&lt;T&amp;&amp;&gt;(x)</code></td>
+</tr>
+<tr>
+<td><strong>prvalue</strong> 纯右值</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td>字面量 <code>42</code>、<code>a + b</code>、<code>foo()</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、decltype-详解"><a href="#二、decltype-详解" class="headerlink" title="二、decltype 详解"></a>二、decltype 详解</h2><p><code>decltype</code> 是 C++11 引入的类型推导关键字，能在<strong>编译期</strong>获取一个表达式的类型。与 <code>auto</code> 不同，它会<strong>原样保留</strong>引用和 cv 限定符（<code>const</code> / <code>volatile</code>）。可以理解为：「问编译器——这个东西到底是什么类型？」</p>
+<h3 id="2-1-两种推导形态"><a href="#2-1-两种推导形态" class="headerlink" title="2.1 两种推导形态"></a>2.1 两种推导形态</h3><p><code>decltype</code> 的推导方式取决于括号里放的是「变量名」还是「表达式」：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> x = <span class="number">0</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span>&amp; rx = x;</span><br><span class="line"></span><br><span class="line"><span class="keyword">decltype</span>(x)     a;      <span class="comment">// int         —— 变量名：取“声明类型”</span></span><br><span class="line"><span class="keyword">decltype</span>(rx)    b = x;  <span class="comment">// const int&amp;  —— 完整保留 const 和 &amp;</span></span><br><span class="line"><span class="keyword">decltype</span>(x + <span class="number">1</span>) c;      <span class="comment">// int         —— 表达式：结果是 prvalue → int</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-核心规则"><a href="#2-2-核心规则" class="headerlink" title="2.2 核心规则"></a>2.2 核心规则</h3><p><code>decltype(e)</code> 先判断 <code>e</code> 的形态：</p>
+<p><strong>规则一：无括号的标识符 / 成员访问</strong><br>如 <code>decltype(x)</code>、<code>decltype(obj.m)</code>，结果为该实体<strong>声明时的类型</strong>，一字不差（完整保留 <code>const</code> 与 <code>&amp;</code>）。</p>
+<p><strong>规则二：其他任意表达式</strong><br>根据表达式的<strong>值类别</strong>加工基础类型 <code>T</code>：</p>
+<table>
+<thead>
+<tr>
+<th>值类别</th>
+<th>推导结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>prvalue（纯右值）</td>
+<td><code>T</code></td>
+</tr>
+<tr>
+<td>lvalue（左值）</td>
+<td><code>T&amp;</code></td>
+</tr>
+<tr>
+<td>xvalue（将亡值）</td>
+<td><code>T&amp;&amp;</code></td>
+</tr>
+</tbody></table>
+<h3 id="2-3-经典陷阱：多加一层括号"><a href="#2-3-经典陷阱：多加一层括号" class="headerlink" title="2.3 经典陷阱：多加一层括号"></a>2.3 经典陷阱：多加一层括号</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> x = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">decltype</span>(x)    a;      <span class="comment">// int   —— 规则一：变量名</span></span><br><span class="line"><span class="keyword">decltype</span>((x))  b = x;  <span class="comment">// int&amp;  —— 规则二：(x) 是左值表达式 → T&amp;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>(x)</code> 不再是「标识符」，而是一个求值为左值的表达式，于是套用规则二得到 <code>int&amp;</code>。这一区别在实际代码中经常导致意外的引用类型。</p>
+<h3 id="2-4-decltype-与-auto-的区别"><a href="#2-4-decltype-与-auto-的区别" class="headerlink" title="2.4 decltype 与 auto 的区别"></a>2.4 decltype 与 auto 的区别</h3><p><code>auto</code> 会像值传递那样<strong>退化</strong>（丢弃引用、顶层 const，数组退化为指针），而 <code>decltype</code> <strong>精确保留</strong>原始类型。</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th><code>auto</code> 的结果</th>
+<th><code>decltype(expr)</code> 的结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>const int&amp; r</code></td>
+<td><code>int</code>（丢掉 <code>const</code> 和 <code>&amp;</code>）</td>
+<td><code>const int&amp;</code>（完整保留）</td>
+</tr>
+<tr>
+<td>数组 <code>int arr[10]</code></td>
+<td><code>int*</code>（退化为指针）</td>
+<td><code>int[10]</code>（保留数组类型）</td>
+</tr>
+<tr>
+<td>表达式 <code>x + 1</code></td>
+<td><code>int</code></td>
+<td><code>int</code>（prvalue）</td>
+</tr>
+<tr>
+<td>带括号 <code>(x)</code></td>
+<td><code>int</code></td>
+<td><code>int&amp;</code>（左值）</td>
+</tr>
+</tbody></table>
+<h3 id="2-5-decltype-auto-（C-14）"><a href="#2-5-decltype-auto-（C-14）" class="headerlink" title="2.5 decltype(auto)（C++14）"></a>2.5 decltype(auto)（C++14）</h3><p><code>decltype(auto)</code> 结合两者优点：用 <code>auto</code> 的写法<strong>触发初始化器推导</strong>，但用 <code>decltype</code> 的<strong>精确规则</strong>去推导，因此能完美保留引用和 cv 限定。最典型的用途是<strong>完美转发返回类型</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> F, <span class="keyword">typename</span>... Args&gt;</span><br><span class="line"><span class="function"><span class="keyword">decltype</span>(<span class="keyword">auto</span>) <span class="title">wrapper</span><span class="params">(F f, Args&amp;&amp;... args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">f</span>(std::forward&lt;Args&gt;(args)...); <span class="comment">// 原样保留 f 的返回类型（值/引用都不变）</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span>  <span class="title">g</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span>&amp; <span class="title">h</span><span class="params">()</span></span>;</span><br><span class="line"><span class="keyword">decltype</span>(<span class="keyword">auto</span>) a = <span class="built_in">g</span>(); <span class="comment">// int</span></span><br><span class="line"><span class="keyword">decltype</span>(<span class="keyword">auto</span>) b = <span class="built_in">h</span>(); <span class="comment">// int&amp;</span></span><br></pre></td></tr></table></figure>
+
+<p>若改用普通 <code>auto</code> 作返回类型，<code>h()</code> 的引用会被退化为 <code>int</code>，无法透传引用。</p>
+<h3 id="2-6-主要使用场景"><a href="#2-6-主要使用场景" class="headerlink" title="2.6 主要使用场景"></a>2.6 主要使用场景</h3><p><code>decltype</code> 最常见于<strong>模板与泛型编程</strong>——当返回类型依赖模板参数、编译期还不知道具体类型时使用。C++11 里常配合尾置返回类型（trailing return type）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> U&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">add</span><span class="params">(T t, U u)</span> -&gt; <span class="title">decltype</span><span class="params">(t + u)</span> </span>&#123;   <span class="comment">// 返回类型 = t + u 的类型</span></span><br><span class="line">    <span class="keyword">return</span> t + u;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其他常见用途：</p>
+<ul>
+<li>声明与某表达式同类型的变量；</li>
+<li>在 SFINAE / concepts 中做类型探测；</li>
+<li>配合 <code>std::declval</code> 在<strong>不真正构造对象</strong>的前提下推导成员函数返回类型。</li>
+</ul>
+<blockquote>
+<p>一句话：凡是需要「精确复刻某个表达式的类型（含引用与 const）」的地方，就用 <code>decltype</code>。</p>
+</blockquote>
+<hr>
+<h2 id="三、将亡值（xvalue）详解"><a href="#三、将亡值（xvalue）详解" class="headerlink" title="三、将亡值（xvalue）详解"></a>三、将亡值（xvalue）详解</h2><p><strong>将亡值（xvalue，eXpiring value）</strong> 是 C++11 引入的值类别，指「一个即将销毁、但其资源可以被安全『窃取』（移动）的对象」。它是连接左值和纯右值的桥梁：既像左值一样标识着一个具体对象（<strong>有身份</strong>），又像右值一样允许被移动（<strong>可移动</strong>）。</p>
+<h3 id="3-1-名字的含义"><a href="#3-1-名字的含义" class="headerlink" title="3.1 名字的含义"></a>3.1 名字的含义</h3><ul>
+<li>它标识一个真实存在的对象 → 所以是「值」；</li>
+<li>这个对象即将结束生命 → 所以「将亡」；</li>
+<li>因此可以放心地把它的资源移动走。</li>
+</ul>
+<h3 id="3-2-什么会产生将亡值"><a href="#3-2-什么会产生将亡值" class="headerlink" title="3.2 什么会产生将亡值"></a>3.2 什么会产生将亡值</h3><table>
+<thead>
+<tr>
+<th>表达式</th>
+<th align="center">是否将亡值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::move(x)</code></td>
+<td align="center">✅</td>
+<td>本质是把左值强制转换为右值引用，结果是 xvalue</td>
+</tr>
+<tr>
+<td><code>static_cast&lt;T&amp;&amp;&gt;(x)</code></td>
+<td align="center">✅</td>
+<td>转换为右值引用类型的表达式</td>
+</tr>
+<tr>
+<td>返回 <code>T&amp;&amp;</code> 的函数调用</td>
+<td align="center">✅</td>
+<td>如 <code>std::move</code> 的返回值</td>
+</tr>
+<tr>
+<td><code>std::move(obj).member</code></td>
+<td align="center">✅</td>
+<td>将亡对象的非引用成员</td>
+</tr>
+<tr>
+<td><code>42</code>、<code>a + b</code>（字面量 / 运算结果）</td>
+<td align="center">❌</td>
+<td>是 prvalue（纯右值，无身份）</td>
+</tr>
+<tr>
+<td>变量名 <code>x</code></td>
+<td align="center">❌</td>
+<td>是 lvalue（有身份但不可移动）</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-核心意义：移动语义"><a href="#3-3-核心意义：移动语义" class="headerlink" title="3.3 核心意义：移动语义"></a>3.3 核心意义：移动语义</h3><p>将亡值存在的根本目的，是为<strong>移动语义（move semantics）</strong> 提供依据。当编译器判断表达式是右值（prvalue 或 xvalue）时，可调用<strong>移动构造 / 移动赋值</strong>而非拷贝，从而「窃取」资源（如堆内存指针）而不做深拷贝。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">std::string a = <span class="string">&quot;hello world&quot;</span>;</span><br><span class="line">std::string b = a;              <span class="comment">// a 是左值 → 拷贝构造（复制整块内存）</span></span><br><span class="line">std::string c = std::<span class="built_in">move</span>(a);   <span class="comment">// std::move(a) 是将亡值 → 移动构造（窃取指针）</span></span><br><span class="line"><span class="comment">// 此后 a 处于“有效但未指定”的状态，因为资源已被移走</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：<code>std::move(a)</code> 本身<strong>不移动任何东西</strong>，它只是把左值 <code>a</code> 转成将亡值（右值引用），从而让重载决议<strong>选中移动构造函数</strong>。真正的资源转移发生在移动构造函数内部。</p>
+<hr>
+<h2 id="四、速查总结"><a href="#四、速查总结" class="headerlink" title="四、速查总结"></a>四、速查总结</h2><p><strong>decltype</strong></p>
+<ul>
+<li>变量名 / 成员访问 → 声明类型（保留 <code>const</code> 与 <code>&amp;</code>）；</li>
+<li>其他表达式 → 按值类别：prvalue→<code>T</code>，lvalue→<code>T&amp;</code>，xvalue→<code>T&amp;&amp;</code>；</li>
+<li><code>decltype((x))</code> 会多得到一层引用，是常见陷阱；</li>
+<li>与 <code>auto</code> 的区别：<code>auto</code> 退化，<code>decltype</code> 精确保留；</li>
+<li><code>decltype(auto)</code>（C++14）用于完美转发返回类型。</li>
+</ul>
+<p><strong>将亡值（xvalue）</strong></p>
+<ul>
+<li>定义：有身份 + 可移动，是 glvalue 与 rvalue 的交集；</li>
+<li>来源：<code>std::move</code>、<code>static_cast&lt;T&amp;&amp;&gt;</code>、返回 <code>T&amp;&amp;</code> 的函数等；</li>
+<li>意义：让编译器选中移动构造 / 移动赋值，实现高效资源转移；</li>
+<li>是 C++11 移动语义的基石。</li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-07-28</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/vptrtable/'>C++ 虚函数与虚函数表机制笔记</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/agones-note/">Agones 经验记录</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

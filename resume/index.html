@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>张泽强 - 主程 / 技术专家</title>
+  <style>
+    :root {
+      --ink: #24272c;
+      --muted: #69707a;
+      --line: #d9dde3;
+      --paper: #fbfcfd;
+      --panel: #eef4f3;
+      --panel-strong: #e8edf6;
+      --teal: #007d86;
+      --teal-dark: #075e65;
+      --green: #407a52;
+      --clay: #a8573f;
+      --gold: #b78021;
+      --white: #ffffff;
+      --shadow: 0 18px 48px rgba(36, 39, 44, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(0, 125, 134, 0.08), transparent 34rem),
+        linear-gradient(315deg, rgba(168, 87, 63, 0.08), transparent 32rem),
+        var(--paper);
+      font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      line-height: 1.72;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration-color: rgba(0, 125, 134, 0.45);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+
+    a:hover {
+      color: var(--teal-dark);
+      text-decoration-color: var(--teal);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 32px auto;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(217, 221, 227, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.45fr 0.55fr;
+      min-height: 340px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-main {
+      position: relative;
+      padding: clamp(30px, 5vw, 64px);
+      isolation: isolate;
+    }
+
+    .hero-main::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 8px;
+      background: linear-gradient(180deg, var(--teal), var(--green), var(--clay));
+      z-index: -1;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      color: var(--teal-dark);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      display: inline-block;
+      width: 34px;
+      height: 2px;
+      background: var(--teal);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(3rem, 8vw, 6.2rem);
+      line-height: 0.95;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .role {
+      margin: 18px 0 0;
+      color: var(--clay);
+      font-size: clamp(1.24rem, 2.6vw, 2rem);
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .summary {
+      max-width: 720px;
+      margin: 24px 0 0;
+      color: #394048;
+      font-size: clamp(1.02rem, 1.45vw, 1.18rem);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 18px;
+      max-width: 740px;
+      margin-top: 30px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .contact-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .contact-item svg {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      stroke: var(--teal-dark);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .contact-item span,
+    .contact-item a {
+      overflow-wrap: anywhere;
+    }
+
+    .hero-side {
+      position: relative;
+      min-height: 340px;
+      background:
+        linear-gradient(165deg, rgba(0, 125, 134, 0.1), transparent 48%),
+        #202328;
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 28px;
+      overflow: hidden;
+    }
+
+    .hero-side::before {
+      content: "";
+      position: absolute;
+      inset: 26px 26px auto auto;
+      width: 86px;
+      height: 86px;
+      border-top: 2px solid rgba(255, 255, 255, 0.22);
+      border-right: 2px solid rgba(255, 255, 255, 0.22);
+    }
+
+    .metric-stack {
+      display: grid;
+      gap: 18px;
+      width: 100%;
+      margin-top: 0;
+    }
+
+    .metric {
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding-top: 14px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      line-height: 1;
+    }
+
+    .metric span {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.92rem;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: clamp(24px, 4vw, 56px);
+      padding: clamp(28px, 5vw, 60px);
+    }
+
+    .sidebar {
+      align-self: start;
+      position: sticky;
+      top: 18px;
+      display: grid;
+      gap: 28px;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      gap: 36px;
+    }
+
+    section {
+      min-width: 0;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 18px;
+      font-size: 1.28rem;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    h2::before {
+      content: "";
+      width: 6px;
+      height: 1.4em;
+      background: var(--teal);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: clamp(1.08rem, 1.7vw, 1.28rem);
+      line-height: 1.35;
+      font-weight: 900;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .intent {
+      padding: 20px;
+      background: var(--panel);
+      border: 1px solid rgba(0, 125, 134, 0.16);
+      border-radius: 8px;
+    }
+
+    .intent .label {
+      color: var(--teal-dark);
+      font-weight: 900;
+      font-size: 0.9rem;
+    }
+
+    .intent p {
+      margin-top: 8px;
+      color: #344047;
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .side-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .side-list li {
+      padding-left: 18px;
+      position: relative;
+      color: #3e454d;
+    }
+
+    .side-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.72em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 5px 11px;
+      color: #263139;
+      background: #f5f7f8;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .highlight-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .highlight {
+      padding: 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--teal);
+      border-radius: 8px;
+    }
+
+    .highlight:nth-child(2n) {
+      border-left-color: var(--green);
+    }
+
+    .highlight:nth-child(3n) {
+      border-left-color: var(--clay);
+    }
+
+    .highlight strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .highlight span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.62;
+    }
+
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .impact {
+      min-height: 126px;
+      padding: 18px;
+      color: var(--white);
+      background:
+        linear-gradient(145deg, rgba(0, 125, 134, 0.92), rgba(36, 39, 44, 0.96)),
+        var(--teal-dark);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .impact strong {
+      display: block;
+      font-size: 1.65rem;
+      line-height: 1.05;
+      font-weight: 900;
+    }
+
+    .impact span {
+      display: block;
+      margin-top: 12px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 22px;
+    }
+
+    .job {
+      display: grid;
+      grid-template-columns: 148px minmax(0, 1fr);
+      gap: 22px;
+      padding: 0 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .job:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .date {
+      color: var(--teal-dark);
+      font-weight: 900;
+      line-height: 1.35;
+    }
+
+    .job-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 7px;
+    }
+
+    .job-title {
+      color: var(--clay);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .bullets {
+      display: grid;
+      gap: 6px;
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bullets li {
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .bullets li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.72em;
+      width: 6px;
+      height: 6px;
+      background: var(--teal);
+      transform: rotate(45deg);
+    }
+
+    .education {
+      display: grid;
+      gap: 12px;
+      padding: 20px;
+      background: var(--panel-strong);
+      border: 1px solid rgba(64, 122, 82, 0.14);
+      border-radius: 8px;
+    }
+
+    .education-row {
+      display: grid;
+      grid-template-columns: 145px 1fr;
+      gap: 16px;
+    }
+
+    .education-row strong {
+      color: var(--teal-dark);
+    }
+
+    .footer-note {
+      padding: 18px clamp(28px, 5vw, 60px) 28px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+      text-align: right;
+    }
+
+    .print-button {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 0 16px;
+      color: var(--white);
+      background: var(--teal-dark);
+      border: 0;
+      border-radius: 999px;
+      box-shadow: 0 12px 28px rgba(7, 94, 101, 0.25);
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .print-button svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2.1;
+      fill: none;
+    }
+
+    .print-button:hover {
+      background: var(--teal);
+    }
+
+    @media (max-width: 920px) {
+      .page {
+        width: 100%;
+        margin: 0;
+        border-left: 0;
+        border-right: 0;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-side {
+        display: grid;
+        align-items: end;
+        min-height: auto;
+      }
+
+      .metric-stack {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 0;
+      }
+
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .intent {
+        grid-column: 1 / -1;
+      }
+
+      .highlight-grid,
+      .impact-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 15.5px;
+      }
+
+      .hero-main,
+      .content {
+        padding: 26px 20px;
+      }
+
+      .contact-grid,
+      .sidebar,
+      .highlight-grid,
+      .impact-grid,
+      .education-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-side {
+        padding: 20px;
+      }
+
+      .metric strong {
+        font-size: 1.5rem;
+      }
+
+      .job {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .job-head {
+        display: grid;
+        gap: 4px;
+      }
+
+      .job-title {
+        white-space: normal;
+      }
+
+      .print-button {
+        display: none;
+      }
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        font-size: 12px;
+      }
+
+      a {
+        text-decoration: none;
+      }
+
+      .page {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        box-shadow: none;
+      }
+
+      .hero {
+        min-height: 0;
+        grid-template-columns: 1.6fr 0.4fr;
+      }
+
+      .hero-main,
+      .content {
+        padding: 24px;
+      }
+
+      .hero-side {
+        padding: 18px;
+      }
+
+      .content {
+        grid-template-columns: 220px 1fr;
+        gap: 24px;
+      }
+
+      .sidebar {
+        position: static;
+        gap: 18px;
+      }
+
+      .main {
+        gap: 22px;
+      }
+
+      .highlight-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .impact-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .job {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .print-button,
+      .footer-note {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button" type="button" onclick="window.print()" aria-label="打印或保存为 PDF">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 9V3h12v6"></path>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+      <path d="M6 14h12v7H6z"></path>
+    </svg>
+    打印 / PDF
+  </button>
+
+  <article class="page">
+    <header class="hero">
+      <div class="hero-main">
+        <div class="kicker">Personal Resume</div>
+        <h1>张泽强</h1>
+        <p class="role">主程 / 技术专家 / 游戏服务器架构</p>
+        <p class="summary">14+ 年游戏服务器研发经验，长期负责 SLG / UE DS 等服务器框架、中台服务、性能调优和技术攻坚。熟悉 Java、Go、JVM、Linux、分布式框架、微服务与游戏核心系统开发，近期聚焦 UE DS 性能优化、战场管理服务、云端成本控制与 AI 工程提效。</p>
+
+        <div class="contact-grid" aria-label="联系方式">
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.77.62 2.61a2 2 0 0 1-.45 2.11L8 9.72a16 16 0 0 0 6.28 6.28l1.28-1.28a2 2 0 0 1 2.11-.45c.84.29 1.71.5 2.61.62A2 2 0 0 1 22 16.92z"></path></svg>
+            <a href="tel:18515940338">18515940338</a>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><path d="m22 6-10 7L2 6"></path></svg>
+            <a href="mailto:383523842@qq.com">383523842@qq.com</a>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-5.14 7-11a7 7 0 1 0-14 0c0 5.86 7 11 7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            <span>北京 · 海淀</span>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93"></path><path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07"></path></svg>
+            <a href="https://zhangga.github.io/list">技术博客</a>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93"></path><path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07"></path></svg>
+            <a href="https://zhangga.github.io/resume">在线简历</a>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.1-6-2.5"></path><path d="M15 22v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.1-1.5 6.1-6.7a5.2 5.2 0 0 0-1.4-3.6 4.8 4.8 0 0 0-.1-3.6s-1.1-.3-3.7 1.4a12.8 12.8 0 0 0-6.8 0C5.6.8 4.5 1.1 4.5 1.1a4.8 4.8 0 0 0-.1 3.6A5.2 5.2 0 0 0 3 8.3c0 5.2 3.1 6.4 6.1 6.7a3.4 3.4 0 0 0-.9 2.6V22"></path></svg>
+            <a href="https://github.com/zhangga">github.com/zhangga</a>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero-side" aria-label="个人概览">
+        <div class="metric-stack">
+          <div class="metric">
+            <strong>14+ 年</strong>
+            <span>游戏服务器研发</span>
+          </div>
+          <div class="metric">
+            <strong>主程</strong>
+            <span>框架、中台、技术攻坚</span>
+          </div>
+        </div>
+      </aside>
+    </header>
+
+    <div class="content">
+      <aside class="sidebar">
+        <section class="intent">
+          <div class="label">求职意向</div>
+          <p>主程、技术专家；架构迭代、性能优化、工具链和技术管理方向。</p>
+        </section>
+
+        <section>
+          <h2>核心技术</h2>
+          <div class="chips">
+            <span class="chip">Java</span>
+            <span class="chip">Go</span>
+            <span class="chip">JVM</span>
+            <span class="chip">Linux</span>
+            <span class="chip">Netty</span>
+            <span class="chip">MySQL</span>
+            <span class="chip">Redis</span>
+            <span class="chip">MongoDB</span>
+            <span class="chip">微服务</span>
+            <span class="chip">分布式框架</span>
+            <span class="chip">NavMesh / AOI</span>
+            <span class="chip">Unity / UE5</span>
+            <span class="chip">UE DS</span>
+            <span class="chip">Agones</span>
+            <span class="chip">Iris</span>
+            <span class="chip">ARM</span>
+            <span class="chip">AI</span>
+          </div>
+        </section>
+
+        <section>
+          <h2>教育背景</h2>
+          <div class="education">
+            <div class="education-row">
+              <strong>2008.09 - 2012.06</strong>
+              <span>大连民族大学 · 软件工程 · 本科</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>证书荣誉</h2>
+          <ul class="side-list">
+            <li>英语 CET-4</li>
+            <li>首届 Hackathon 最佳用户体验奖</li>
+            <li>朝夕光年 2025 Spot Bonus（个人）</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>个人特点</h2>
+          <ul class="side-list">
+            <li>热爱技术，对新事物保持学习和实践热情。</li>
+            <li>有管理、沟通、组织协调和新人培养经验。</li>
+            <li>具备全栈开发与线上项目交付经验。</li>
+          </ul>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section>
+          <h2>关键成果</h2>
+          <div class="impact-grid">
+            <div class="impact">
+              <strong>从 0 到 1</strong>
+              <span>主导搭建 UE DS 战场管理服务，覆盖 DS 生命周期、发布、调度、扩缩容和滚更链路。</span>
+            </div>
+            <div class="impact">
+              <strong>50%+</strong>
+              <span>接入 Agones 自动扩缩容、原地滚动更新和 ARM 版本，谷峰期服务器成本降低 50% 以上。</span>
+            </div>
+            <div class="impact">
+              <strong>5 倍</strong>
+              <span>营地 DS 支持多实例模式，单核负载提升 5 倍，内存占用降低 50%。</span>
+            </div>
+            <div class="impact">
+              <strong>20%</strong>
+              <span>接入 Iris 优化网络复制链路，CPU 消耗降低 20%，并配合 fork 模式提升战场负载。</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>能力亮点</h2>
+          <div class="highlight-grid">
+            <div class="highlight">
+              <strong>服务器架构</strong>
+              <span>负责 SLG 框架迭代与优化，并覆盖 MMO、沙盒、H5、休闲游戏、UE DS 等多类型服务器设计和技术攻坚。</span>
+            </div>
+            <div class="highlight">
+              <strong>中台与通用服务</strong>
+              <span>落地网关、货币、社交等通用服务，推进框架迭代、容器化、日志平台和数据埋点接入。</span>
+            </div>
+            <div class="highlight">
+              <strong>性能与成本优化</strong>
+              <span>负责 UE DS 性能优化和成本控制，结合弹性伸缩、ARM、多实例、fork 和 Iris 等方案降低资源消耗。</span>
+            </div>
+            <div class="highlight">
+              <strong>工程效能</strong>
+              <span>建设项目脚手架、游戏数据配置工具等效能工具，提升研发流程的标准化和交付效率。</span>
+            </div>
+            <div class="highlight">
+              <strong>团队建设</strong>
+              <span>承担技术招聘、新人培训和项目组技术公开课，能在工程实践中推动团队成长。</span>
+            </div>
+            <div class="highlight">
+              <strong>技术探索</strong>
+              <span>有 AIGC 生成游戏玩法、前后端开发、Unity/UE5 等探索和项目实践经历。</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>工作经历</h2>
+          <div class="timeline">
+            <article class="job">
+              <div class="date">2025.01 - 至今</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京字节跳动科技有限公司</h3>
+                  <span class="job-title">DS 负责人</span>
+                </div>
+                <p class="meta">项目：《雾影猎人》UE DS 战场管理服务、DS 生命周期管理、研发环境调试链路、AI 工程提效</p>
+                <ul class="bullets">
+                  <li>作为 DS 方向负责人，主导 UE Dedicated Server（DS）性能优化与成本控制，从零搭建整套战场管理服务，覆盖 DS 生命周期、发布、调度、扩缩容和滚更链路。</li>
+                  <li>推动 DS 发布接入 Agones，支持自动扩缩容和原地滚动更新，并支持 ARM 版本，谷峰期服务器成本降低 50% 以上。</li>
+                  <li>推进营地 DS 多实例模式与战场 fork 模式：单核负载提升 5 倍，内存占用降低 50%，战场负载提高 30%。</li>
+                  <li>接入 Iris，进一步优化网络复制链路，CPU 消耗降低 20%。</li>
+                  <li>搭建研发环境服务器部署平台，支持不同版本测试；支持 Editor 下运行 DS，减少本地 DS cook 依赖，提升日常开发效率。</li>
+                  <li>接入 AI CodeReview 平台，建立 harness 框架，并扩展研发环境 CLI 工具，提升代码质量和 AI 定位问题效率。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2021.10 - 2025.01</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京趣加科技有限公司</h3>
+                  <span class="job-title">专家 / 主程</span>
+                </div>
+                <p class="meta">岗位：服务器研发中台；支援项目：《State of Survival》、《DC》</p>
+                <ul class="bullets">
+                  <li>负责北京研发中心 SLG 服务器框架迭代及技术攻坚，支援《State of Survival》《DC》等项目的框架接入、问题定位和稳定性优化。</li>
+                  <li>维护并优化 SLG 核心框架，围绕长线运营项目的活动、跨服、数据访问和服务稳定性问题进行持续改造。</li>
+                  <li>推进 MCP 网络库、微服务框架和休闲服务器框架设计，沉淀可复用框架能力，降低新项目接入和玩法开发成本。</li>
+                  <li>参与 AIGC 生成游戏玩法相关探索与落地，推动工具化能力与服务器框架结合。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2020.09 - 2021.10</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京字节跳动科技有限公司</h3>
+                  <span class="job-title">资深开发</span>
+                </div>
+                <p class="meta">项目：服务器中台、休闲游戏等</p>
+                <ul class="bullets">
+                  <li>负责技术中心效能工具开发、通用服务调研落地、服务器框架迭代和性能调优。</li>
+                  <li>建设项目脚手架、游戏数据配置工具，提升项目初始化、配置生产和日常研发效率。</li>
+                  <li>落地网关服务、货币服务、社交服务等通用服务，沉淀休闲游戏可复用的服务能力。</li>
+                  <li>整合公司基础设施，接入容器化、日志平台、数据埋点等工程能力。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2018.05 - 2020.09</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京快手科技有限公司</h3>
+                  <span class="job-title">资深 / 主程</span>
+                </div>
+                <p class="meta">项目：《空岛：创世纪》沙盒手游、《公仔大作战》.io + MOBA</p>
+                <ul class="bullets">
+                  <li>负责技术招聘和新人培训，参与游戏核心系统开发。</li>
+                  <li>优化服务器框架中的分布式、异步调用和事件响应机制，提升复杂玩法下的服务端扩展性。</li>
+                  <li>负责大世界场景底层建模、不同类型场景寻路优化、开放 NPC 系统和性能调优。</li>
+                  <li>支撑沙盒大世界与 .io + MOBA 玩法的核心服务器开发，兼顾功能落地和性能稳定性。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2017.06 - 2018.05</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京完美世界科技有限公司</h3>
+                  <span class="job-title">资深开发</span>
+                </div>
+                <p class="meta">项目：《烈火如歌》MMO 手游、沙盒手游</p>
+                <ul class="bullets">
+                  <li>负责《烈火如歌》服务器端场景 NavMesh 接入、AOI 模块和任务系统开发。</li>
+                  <li>参与沙盒游戏新项目 Demo 期服务器框架优化和核心功能开发。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2016.03 - 2017.06</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京万游畅想科技有限公司</h3>
+                  <span class="job-title">服务器主程</span>
+                </div>
+                <p class="meta">项目：《我叫 MT：山口山战记》H5、《三生三世 十里桃花》H5</p>
+                <ul class="bullets">
+                  <li>初期负责搭建服务器基础框架，支撑 MMOARPG 类型 H5 游戏在爱微游、手Q 等多平台运营。</li>
+                  <li>参与前后端功能开发，重点负责 BOSS 战、跨服战、运营活动等核心玩法。</li>
+                  <li>负责服务器性能调优，并主导运营工具、线上维护工具和合服工具开发。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2013.10 - 2016.03</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京兄弟游科技有限公司</h3>
+                  <span class="job-title">高级 / 主程</span>
+                </div>
+                <p class="meta">项目：《三国英雄联盟》、《英雄小镇》手游</p>
+                <ul class="bullets">
+                  <li>初创团队成员，参与策略卡牌对战和经营战斗冒险 3D 手游研发。</li>
+                  <li>搭建 Netty 服务框架，引入 Redis、MongoDB，负责服务端基础能力建设。</li>
+                  <li>团队成员承担前后端开发，参与核心功能实现、联调和上线支持。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2013.04 - 2013.10</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京呈天游科技有限公司</h3>
+                  <span class="job-title">中级开发</span>
+                </div>
+                <p class="meta">项目：《诸神世界》MMOARPG 页游</p>
+                <ul class="bullets">
+                  <li>负责战斗系统、关卡系统、运营活动等功能开发。</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="job">
+              <div class="date">2011.10 - 2013.04</div>
+              <div>
+                <div class="job-head">
+                  <h3>北京华娱无线科技有限公司</h3>
+                  <span class="job-title">初级开发</span>
+                </div>
+                <p class="meta">项目：《部落农场》微博社交平台页游</p>
+                <ul class="bullets">
+                  <li>参与微博社交平台页游主要功能模块开发。</li>
+                  <li>参与后期服务器性能调优，支持项目线上稳定运行。</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer-note">HTML 简历适配手机、桌面与打印输出。</footer>
+  </article>
+</body>
+</html>

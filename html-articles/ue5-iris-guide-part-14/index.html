@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十四部分：基于 Unreal Engine 5.7.4 源码，讲解 SendRPC、FNetRPC、可靠性与顺序、参数反序列化、RPC 执行上下文和 Partial NetObjectAttachment。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M16 19h23l9 13-9 13H16l9-13z' fill='%23f5b18e'/%3E%3Ccircle cx='34' cy='32' r='5' fill='%2327356f'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-14/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十四部分：RPC 系统 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --amber: #9b6923;
+      --amber-soft: #f2e5c9;
+      --red: #a83d32;
+      --red-soft: #f4ded9;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, .11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, .035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, .028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a, article h2, article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 16%, rgba(245, 177, 142, .2), transparent 28%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "REMOTE CALL";
+      position: absolute;
+      right: -.035em;
+      bottom: -.19em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(80px, 14vw, 210px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 940px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; color: #d9def7; font-size: 13px; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .92);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] { color: var(--iris-dark); background: #eef0fb; border-left-color: var(--signal); }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 18px/1 var(--serif);
+    }
+    .source-note p { margin: 0; font-size: 14px; line-height: 1.65; }
+    .source-note small { display: block; color: var(--ink-soft); }
+    .source-note > a { white-space: nowrap; font-size: 13px; font-weight: 800; }
+
+    article {
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article section { padding: 54px 58px; scroll-margin-top: 24px; }
+    article section + section { border-top: 1px solid var(--line); }
+    article p { margin: 1em 0; }
+    article ul, article ol { padding-left: 1.35em; }
+    article li + li { margin-top: .4em; }
+    article h2 {
+      margin: 0 0 25px;
+      color: var(--iris-dark);
+      font: 800 clamp(29px, 4vw, 43px) / 1.22 var(--serif);
+      letter-spacing: -.025em;
+    }
+    article h3 {
+      margin: 34px 0 12px;
+      color: var(--ink);
+      font: 800 22px/1.35 var(--serif);
+    }
+    .eyebrow { margin: 0 0 8px; color: var(--signal); font-size: 11px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    .chapter-no { display: block; margin-bottom: 7px; color: var(--signal); font: 800 12px/1.3 var(--sans); letter-spacing: .11em; text-transform: uppercase; }
+    .lead { color: var(--ink-soft); font-size: 19px; line-height: 1.78; }
+    code {
+      padding: .12em .32em;
+      color: #26367c;
+      background: #edf0fb;
+      border: 1px solid #d9def3;
+      border-radius: 3px;
+      font: .87em/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+    pre {
+      margin: 21px 0;
+      padding: 23px 25px;
+      overflow: auto;
+      color: #e7eaff;
+      background: #18213b;
+      border-left: 5px solid var(--signal);
+      line-height: 1.62;
+      tab-size: 4;
+    }
+    pre code { padding: 0; color: inherit; background: none; border: 0; font-size: 13px; overflow-wrap: normal; }
+
+    .pullquote {
+      margin: 30px 0;
+      padding: 24px 28px;
+      color: var(--iris-dark);
+      background: linear-gradient(100deg, #eef0fb, #fff7ef);
+      border-left: 6px solid var(--signal);
+      font: 800 clamp(20px, 2.5vw, 27px) / 1.55 var(--serif);
+    }
+    .callout { margin: 24px 0; padding: 20px 23px; border: 1px solid; border-left-width: 5px; }
+    .callout strong { display: block; margin-bottom: 6px; font-size: 15px; }
+    .callout p { margin: .35em 0 0; }
+    .callout--good { background: var(--green-soft); border-color: #98c3ae; }
+    .callout--warn { background: var(--amber-soft); border-color: #d2ad73; }
+    .callout--danger { background: var(--red-soft); border-color: #d6a39b; }
+    .callout--info { background: #e8ebf8; border-color: #b9c1e5; }
+
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 25px 0; }
+    .card { min-width: 0; padding: 21px; background: #f8f5ed; border: 1px solid var(--line); border-top: 4px solid var(--iris); }
+    .card small { color: var(--signal); font: 900 10px/1 var(--mono); letter-spacing: .1em; }
+    .card h3 { margin: 11px 0 8px; font-size: 20px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .card--signal { border-top-color: var(--signal); }
+    .card--green { border-top-color: var(--green); }
+
+    .table-wrap, .scroll-frame { margin: 24px 0; overflow-x: auto; border: 1px solid var(--line); background: #fff; }
+    table { width: 100%; border-collapse: collapse; min-width: 650px; font-size: 14px; line-height: 1.55; }
+    th { padding: 13px 15px; color: #fff; background: var(--iris-dark); text-align: left; font-size: 12px; letter-spacing: .03em; }
+    td { padding: 13px 15px; vertical-align: top; border-top: 1px solid var(--line); }
+    tbody tr:nth-child(even) { background: #f8f5ee; }
+
+    .binary {
+      display: grid;
+      grid-template-columns: 1fr 56px 1fr;
+      gap: 12px;
+      align-items: stretch;
+      margin: 28px 0;
+    }
+    .binary__side { padding: 25px; border: 1px solid var(--line); }
+    .binary__side:first-child { background: var(--green-soft); border-top: 5px solid var(--green); }
+    .binary__side:last-child { background: #e8ebf8; border-top: 5px solid var(--iris); }
+    .binary__side small { font: 900 10px/1 var(--mono); letter-spacing: .11em; }
+    .binary__side h3 { margin: 10px 0 7px; }
+    .binary__side p { margin: 0; font-size: 14px; }
+    .binary__or { display: grid; place-items: center; color: var(--signal); font: 900 13px/1 var(--mono); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      min-width: 850px;
+      padding: 18px;
+    }
+    .pipeline__step {
+      position: relative;
+      min-height: 150px;
+      padding: 19px 17px;
+      background: #f8f5ed;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--iris);
+    }
+    .pipeline__step:nth-child(5n) { border-top-color: var(--signal); }
+    .pipeline__step:not(:nth-child(5n))::after {
+      content: "→";
+      position: absolute;
+      top: 51%;
+      right: -13px;
+      z-index: 2;
+      color: var(--signal);
+      font-weight: 900;
+    }
+    .pipeline__step small { color: var(--signal); font: 900 10px/1 var(--mono); }
+    .pipeline__step b { display: block; margin: 9px 0 6px; line-height: 1.3; }
+    .pipeline__step p { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.55; }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: minmax(145px, 1.2fr) repeat(3, minmax(120px, 1fr));
+      min-width: 650px;
+    }
+    .matrix > div { padding: 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 13px; line-height: 1.5; }
+    .matrix .head { color: #fff; background: var(--iris-dark); font-weight: 800; }
+    .matrix .label { background: #f6f1e7; font-weight: 800; }
+    .matrix .yes { color: #145f44; background: var(--green-soft); font-weight: 800; }
+    .matrix .maybe { color: #78521c; background: var(--amber-soft); font-weight: 800; }
+    .matrix .no { color: #913b32; background: var(--red-soft); font-weight: 800; }
+
+    .lane {
+      display: grid;
+      grid-template-columns: 130px repeat(5, minmax(125px, 1fr));
+      min-width: 850px;
+    }
+    .lane > div { min-height: 72px; padding: 13px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 12px; line-height: 1.45; }
+    .lane .head { color: #fff; background: var(--iris-dark); font-weight: 800; min-height: auto; }
+    .lane .who { background: #eee8db; font-weight: 800; }
+    .lane .work { background: #e8ebf8; }
+    .lane .fast { background: var(--signal-soft); }
+    .lane .wait { background: var(--amber-soft); }
+    .lane .done { background: var(--green-soft); }
+
+    .gates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 25px 0; }
+    .gate { position: relative; padding: 22px 19px; background: #f8f5ed; border: 1px solid var(--line); }
+    .gate::after { content: "PASS →"; display: block; margin-top: 14px; color: var(--green); font: 900 10px/1 var(--mono); letter-spacing: .08em; }
+    .gate:nth-child(6)::after { content: "EXECUTE"; color: var(--signal); }
+    .gate span { display: inline-grid; place-items: center; width: 30px; height: 30px; color: #fff; background: var(--iris); border-radius: 50%; font: 900 12px/1 var(--mono); }
+    .gate b { display: block; margin-top: 12px; }
+    .gate p { margin: 5px 0 0; color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+
+    .handler-tree {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 25px 0;
+    }
+    .handler-root { grid-column: 1 / -1; padding: 19px 22px; color: #fff; background: var(--iris-dark); text-align: center; font-weight: 900; }
+    .handler-branch { padding: 22px; border: 1px solid var(--line); background: #f8f5ed; }
+    .handler-branch h3 { margin: 0 0 9px; font-size: 20px; }
+    .handler-branch p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+    .handler-branch--rpc { border-top: 5px solid var(--signal); }
+    .handler-branch--object { border-top: 5px solid var(--amber); }
+    .handler-partial { grid-column: 1 / -1; padding: 20px 22px; background: #e8ebf8; border: 1px solid #bcc3e4; }
+    .handler-partial b { color: var(--iris-dark); }
+
+    .packet {
+      display: flex;
+      min-width: 740px;
+      margin: 24px;
+      color: #fff;
+      font: 800 12px/1.35 var(--mono);
+    }
+    .packet > div { display: grid; place-items: center; min-height: 86px; padding: 12px; text-align: center; border-right: 2px solid var(--white); }
+    .packet__size { flex: .8; background: var(--signal); }
+    .packet__object { flex: 1.35; background: #5362a9; }
+    .packet__function { flex: 1.5; background: var(--iris-dark); }
+    .packet__params { flex: 2.2; background: var(--green); }
+    .packet__exports { flex: 1.25; background: var(--amber); }
+
+    .source-tree {
+      margin: 22px 0;
+      padding: 24px;
+      overflow-x: auto;
+      color: #e7eaff;
+      background: #18213b;
+      border-left: 5px solid var(--signal);
+      white-space: pre;
+      font: 12px/1.65 var(--mono);
+    }
+    .sources { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+    .sources a { padding: 9px 12px; background: #edf0fb; border: 1px solid #c9cfe9; font-size: 12px; font-weight: 800; text-decoration: none; }
+
+    .checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; padding: 0; list-style: none; }
+    .checklist li { position: relative; margin: 0; padding: 13px 15px 13px 42px; background: #f8f5ed; border: 1px solid var(--line); font-size: 14px; }
+    .checklist li::before { content: "✓"; position: absolute; left: 15px; color: var(--green); font-weight: 900; }
+
+    .chapter-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 42px; }
+    .chapter-nav a, .chapter-nav div { min-width: 0; padding: 18px 20px; color: var(--ink); background: #f6f2e9; border: 1px solid var(--line); text-decoration: none; }
+    .chapter-nav a:hover { border-color: var(--signal); }
+    .chapter-nav span { display: block; margin-bottom: 6px; color: var(--signal); font: 900 10px/1 var(--mono); letter-spacing: .1em; }
+    .chapter-nav b { display: block; overflow-wrap: anywhere; }
+
+    footer { padding: 35px 24px 48px; color: #dfe3f7; background: #18213b; text-align: center; font-size: 13px; }
+    footer p { margin: 5px 0; }
+    footer a { color: #f5b18e; }
+    .back-top {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 20;
+      width: 46px;
+      height: 46px;
+      color: #fff;
+      background: var(--signal);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 8px 25px rgba(25, 35, 58, .25);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+
+    @media (max-width: 980px) {
+      .layout { display: block; width: min(900px, calc(100% - 30px)); margin-top: 28px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      body { font-size: 16px; }
+      .hero { padding: 58px 22px 52px; }
+      .hero::before { font-size: 90px; bottom: -.08em; }
+      .layout { width: min(100% - 18px, 900px); }
+      .source-note { grid-template-columns: 42px minmax(0, 1fr); padding: 16px; }
+      .source-note > a { grid-column: 2; white-space: normal; }
+      article section { padding: 38px 21px; }
+      .binary { grid-template-columns: 1fr; }
+      .binary__or { min-height: 35px; }
+      .gates { grid-template-columns: 1fr; }
+      .handler-tree { grid-template-columns: 1fr; }
+      .handler-root, .handler-partial { grid-column: 1; }
+      .checklist { grid-template-columns: 1fr; }
+      .chapter-nav { grid-template-columns: 1fr; }
+      pre { margin-left: -8px; margin-right: -8px; padding: 19px 17px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">UE5 IRIS NETWORK REPLICATION · PART 14</p>
+      <h1>
+        <span>RPC 系统</span>
+        <span>一次函数调用，如何穿过 Iris</span>
+      </h1>
+      <p class="hero__deck">Gameplay 看见的是一次远程函数调用；Iris 运输的却是一份有目标对象、有函数定位、有量化参数、有可靠性和顺序契约的 <strong>NetObjectAttachment</strong>。本篇沿一发子弹的调用链，追到接收端真正执行 <code>ProcessEvent</code>。</p>
+      <div class="hero__meta">
+        <span>技术基线：Unreal Engine 5.7.4</span>
+        <span>源码分析 + 测试源码核对</span>
+        <span>更新：2026-07-25</span>
+        <span><a href="#sources">来源与源码</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>本篇目录</strong><span>13 CHAPTERS</span></div>
+      <ol>
+        <li><a href="#event-not-state"><span>01</span><b>调用，不是状态</b></a></li>
+        <li><a href="#decision"><span>02</span><b>状态还是事件</b></a></li>
+        <li><a href="#journey"><span>03</span><b>端到端旅程</b></a></li>
+        <li><a href="#overview"><span>04</span><b>14.1 表面兼容，内核换轨</b></a></li>
+        <li><a href="#callspace"><span>05</span><b>Callspace 与 Ownership</b></a></li>
+        <li><a href="#send"><span>06</span><b>14.2 SendRPC</b></a></li>
+        <li><a href="#delivery"><span>07</span><b>可靠、顺序与丢包</b></a></li>
+        <li><a href="#policy"><span>08</span><b>OOB、休眠与 Scope</b></a></li>
+        <li><a href="#payload"><span>09</span><b>FNetRPC Payload</b></a></li>
+        <li><a href="#receive"><span>10</span><b>14.3 接收与执行</b></a></li>
+        <li><a href="#subobject-security"><span>11</span><b>SubObject 与安全</b></a></li>
+        <li><a href="#transport"><span>12</span><b>14.4 Handler 边界</b></a></li>
+        <li><a href="#practice"><span>13</span><b>实战、调优与排错</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开本篇目录（13 章）</summary>
+        <ol>
+          <li><a href="#event-not-state"><span>01</span><b>调用，不是状态</b></a></li>
+          <li><a href="#decision"><span>02</span><b>状态还是事件</b></a></li>
+          <li><a href="#journey"><span>03</span><b>端到端旅程</b></a></li>
+          <li><a href="#overview"><span>04</span><b>14.1 表面兼容，内核换轨</b></a></li>
+          <li><a href="#callspace"><span>05</span><b>Callspace 与 Ownership</b></a></li>
+          <li><a href="#send"><span>06</span><b>14.2 SendRPC</b></a></li>
+          <li><a href="#delivery"><span>07</span><b>可靠、顺序与丢包</b></a></li>
+          <li><a href="#policy"><span>08</span><b>OOB、休眠与 Scope</b></a></li>
+          <li><a href="#payload"><span>09</span><b>FNetRPC Payload</b></a></li>
+          <li><a href="#receive"><span>10</span><b>14.3 接收与执行</b></a></li>
+          <li><a href="#subobject-security"><span>11</span><b>SubObject 与安全</b></a></li>
+          <li><a href="#transport"><span>12</span><b>14.4 Handler 边界</b></a></li>
+          <li><a href="#practice"><span>13</span><b>实战、调优与排错</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note">
+        <div class="source-note__mark">14</div>
+        <p><strong>文章来源</strong><small>本篇由 Jossy Zhang 根据系列大纲原创扩写；结论以本地 UE 5.7.4 源码、ReplicationSystemTestPlugin 测试源码和 Epic Games 官方文档为依据。</small></p>
+        <a href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">查看系列大纲原文 ↗</a>
+      </div>
+
+      <article>
+        <section id="event-not-state">
+          <p class="eyebrow">Chapter 01 · Mental Model</p>
+          <h2><span class="chapter-no">先划边界</span>RPC 是一次调用，不是一份状态</h2>
+          <p class="lead">玩家扣下扳机时，客户端可能向服务器发送“我要开火”；服务器验证后，再让相关客户端播放枪口火焰。这些都是某个时刻发生的动作。至于弹匣还剩几发、门现在开还是关、回合比分是多少，则是应该长期成立的状态。</p>
+
+          <div class="binary">
+            <div class="binary__side">
+              <small>DURABLE TRUTH</small>
+              <h3>Replicated Property</h3>
+              <p>描述“现在是什么”。旧更新可以被新状态覆盖；晚加入连接仍能获得当前结果。</p>
+            </div>
+            <div class="binary__or">OR</div>
+            <div class="binary__side">
+              <small>ONE-SHOT INVOCATION</small>
+              <h3>Remote Procedure Call</h3>
+              <p>描述“现在做一次什么”。它单向、没有返回值，也不会为晚加入者保留历史。</p>
+            </div>
+          </div>
+
+          <p>RPC 全称 Remote Procedure Call。调用端像执行普通函数一样发起它，函数体却在远端的一台或多台机器上执行。UE 的反射和网络代码负责把目标、函数与参数转成网络数据；Gameplay 代码仍需决定调用方向、可靠性和业务权限。</p>
+
+          <div class="pullquote">可靠 RPC 只是保证“这次调用会持续重试直到确认”，不会把过去的调用变成可查询、可补给晚加入者的状态。</div>
+
+          <div class="cards">
+            <div class="card card--green"><small>TRANSIENT</small><h3>适合 RPC</h3><p>播放音效、粒子、动画，提交玩家输入意图，触发一次低频控制动作。</p></div>
+            <div class="card"><small>CURRENT VALUE</small><h3>适合属性复制</h3><p>生命值、弹药、门状态、占点进度，以及任何“后来的人也应看到”的结果。</p></div>
+            <div class="card card--signal"><small>NO RETURN VALUE</small><h3>返回要另行建模</h3><p>用响应 RPC、请求编号或复制状态回传；不要期待网络函数像本地函数一样同步 return。</p></div>
+          </div>
+        </section>
+
+        <section id="decision">
+          <p class="eyebrow">Chapter 02 · Decision Boundary</p>
+          <h2><span class="chapter-no">先问过期后还有没有价值</span>状态还是事件，不由“重要不重要”决定</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>需求</th><th>推荐机制</th><th>原因</th><th>反例</th></tr></thead>
+              <tbody>
+                <tr><td>枪口火焰、脚步声</td><td>Unreliable RPC</td><td>晚到比丢失更糟，下一次事件自然覆盖感知</td><td>每一帧都 Reliable，网络抖动时积压过期表现</td></tr>
+                <tr><td>客户端提交开火意图</td><td>Server RPC + 服务端校验</td><td>传递意图，权威结果仍由服务器计算</td><td>客户端直接上报“命中了谁、扣多少血”</td></tr>
+                <tr><td>当前弹药与生命值</td><td>Replicated Property</td><td>只关心最新真值，晚加入者也需要</td><td>靠一串扣弹/受伤 RPC 重建状态</td></tr>
+                <tr><td>低频且必须执行的确认</td><td>Reliable RPC</td><td>调用本身不可丢，频率足够低</td><td>高频输入、鼠标移动逐次 Reliable</td></tr>
+                <tr><td>跨对象业务事务</td><td>状态机 + Sequence/Epoch</td><td>网络层不保证不同 Actor 的全局调用顺序</td><td>假定 Actor A 的 RPC 永远先于 Actor B</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>一个实用的四问决策法</h3>
+          <ol>
+            <li><strong>晚加入者需要知道吗？</strong>需要，就先考虑状态复制。</li>
+            <li><strong>旧消息被新值覆盖可以吗？</strong>可以，就让最终状态收敛，不要重放全部历史。</li>
+            <li><strong>丢失比迟到更糟吗？</strong>只有答案明确为“是”，才考虑 Reliable。</li>
+            <li><strong>调用方可信么？</strong>客户端永远只能提交意图，服务器必须重新验证并决定结果。</li>
+          </ol>
+
+          <div class="callout callout--warn">
+            <strong>“重要”不是 Reliable 的充分条件</strong>
+            <p>玩家位置很重要，但通常依靠连续状态更新与校正；每一帧位置都可靠重传，反而会让旧数据堵住新数据。可靠性要匹配数据的时间价值，不是匹配产品经理口中的优先级。</p>
+          </div>
+        </section>
+
+        <section id="journey">
+          <p class="eyebrow">Chapter 03 · End-to-End</p>
+          <h2><span class="chapter-no">从扣下扳机到远端执行</span>一次开火 RPC 的十站旅程</h2>
+          <p>下面这条链是全文地图。Gameplay 层仍调用一个生成的网络函数，Iris 则把它转换成对象附件，排入连接专属队列，经过序列化、确认与接收校验后，才真正进入远端对象的 <code>ProcessEvent</code>。</p>
+
+          <div class="scroll-frame" role="region" aria-label="RPC 端到端十步流程" tabindex="0">
+            <div class="pipeline">
+              <div class="pipeline__step"><small>01 · GAMEPLAY</small><b>调用 ServerFire</b><p>生成代码判断 callspace；本地或远端路径由角色、方向与连接决定。</p></div>
+              <div class="pipeline__step"><small>02 · NETDRIVER</small><b>ProcessRemoteFunction</b><p>检查 Actor 生命周期，复制参数，选择 Iris ReplicationSystem。</p></div>
+              <div class="pipeline__step"><small>03 · API</small><b>SendRPC</b><p>multicast 用无 ConnectionId 重载；unicast 指定目标连接。</p></div>
+              <div class="pipeline__step"><small>04 · MANAGER</small><b>验证发送资格</b><p>方向、连接、Root/SubObject、scope 前提与 dormancy。</p></div>
+              <div class="pipeline__step"><small>05 · CREATE</small><b>创建 FNetRPC</b><p>设置 Reliable / Ordered，定位函数，量化参数并收集引用。</p></div>
+              <div class="pipeline__step"><small>06 · QUEUE</small><b>Attachment 入队</b><p>按连接与目标对象进入普通队列或 OOB attachment queue。</p></div>
+              <div class="pipeline__step"><small>07 · WRITER</small><b>连接维度调度</b><p>检查对象是否已复制、是否在 scope、预算和可靠窗口。</p></div>
+              <div class="pipeline__step"><small>08 · PARTIAL</small><b>必要时拆片</b><p>预序列化，单块 shrink-wrap 或拆成有序 partial blobs。</p></div>
+              <div class="pipeline__step"><small>09 · RECEIVE</small><b>解析与 Dequantize</b><p>解析目标、函数和参数，验证方向与 ownership。</p></div>
+              <div class="pipeline__step"><small>10 · EXECUTE</small><b>ProcessEvent</b><p>进入接收 RPC 上下文，调用实际 UFunction，最后析构参数。</p></div>
+            </div>
+          </div>
+
+          <h3>十站中任何一站都可能让调用停止</h3>
+          <div class="cards">
+            <div class="card"><small>BEFORE QUEUE</small><h3>发送资格失败</h3><p>方向错误、连接已关闭、对象尚未复制、SubObject 无法定位。</p></div>
+            <div class="card card--signal"><small>IN TRANSIT</small><h3>不可靠数据丢失</h3><p>包丢了就不重发；对象离开 scope 或已 pending destroy 也可能被丢弃。</p></div>
+            <div class="card card--green"><small>BEFORE EXECUTE</small><h3>接收校验失败</h3><p>函数定位无效、方向不允许、调用连接不拥有目标或对象已停止复制。</p></div>
+          </div>
+        </section>
+
+        <section id="overview">
+          <p class="eyebrow">Chapter 04 · 14.1 Overview</p>
+          <h2><span class="chapter-no">Gameplay 表面兼容，运输内核换轨</span>Iris 中的 RPC 与传统 RPC 有何不同</h2>
+          <p>Epic 的迁移文档明确把 Remote Procedure Calls 列为“未改变”的 Gameplay 特性：声明与执行方式保持兼容。你依旧写 <code>UFUNCTION(Server)</code>、<code>Client</code> 或 <code>NetMulticast</code>，依旧实现 <code>_Implementation</code>。</p>
+
+          <pre><code>UFUNCTION(Server, Unreliable)
+void ServerFire(
+    FVector_NetQuantize Origin,
+    FVector_NetQuantizeNormal Direction);
+
+UFUNCTION(NetMulticast, Unreliable)
+void MulticastFireFX(
+    FVector_NetQuantize Origin,
+    FVector_NetQuantizeNormal Direction);</code></pre>
+
+          <p>改变的是网络层内部载体。传统系统围绕 ActorChannel 与 Bunch 组织 Actor 的属性和 RPC；Iris 把 RPC 表示为 <code>FNetRPC</code>，而它是一种 <code>FNetObjectAttachment</code>。附件随对象或 OOB 队列进入 <code>FReplicationWriter</code> 与 Replication Data Stream。</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>观察层</th><th>通用 / 传统复制路径</th><th>Iris 5.7.4 路径</th></tr></thead>
+              <tbody>
+                <tr><td>Gameplay 声明</td><td><code>UFUNCTION(Server/Client/NetMulticast)</code></td><td>保持兼容</td></tr>
+                <tr><td>Gameplay 调用</td><td>像普通函数一样调用</td><td>保持兼容</td></tr>
+                <tr><td>NetDriver 入口</td><td><code>ProcessRemoteFunction</code></td><td>仍由它进入，但转交 <code>UReplicationSystem</code></td></tr>
+                <tr><td>传输载体</td><td>ActorChannel / Bunch</td><td><code>FNetRPC : FNetObjectAttachment</code></td></tr>
+                <tr><td>排队与写入</td><td>Channel 体系</td><td><code>FNetBlobManager</code> + <code>FReplicationWriter</code></td></tr>
+                <tr><td>大负载</td><td>通用 bunch/partial 机制</td><td><code>UPartialNetObjectAttachmentHandler</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout--info">
+            <strong>迁移时大多数 Gameplay RPC 不必重写</strong>
+            <p>但“调用方式兼容”不等于“内部细节相同”。分析带宽、调度、scope、OOB 或 Handler 时，必须使用 Iris 的 Attachment / NetBlob 模型，不能把 ActorChannel 的实现假设照搬过来。</p>
+          </div>
+        </section>
+
+        <section id="callspace">
+          <p class="eyebrow">Chapter 05 · Callspace &amp; Ownership</p>
+          <h2><span class="chapter-no">先决定在哪执行，再决定发给谁</span>方向、调用空间与 Owning Connection</h2>
+          <p>生成的 RPC stub 会先判断函数应该在本地执行还是交给网络。调用机器、函数 specifier 和 Actor 的 owning connection 共同决定结果。Iris 接手之后还会再次做结构性方向校验，接收端也不会盲目执行。</p>
+
+          <div class="scroll-frame" role="region" aria-label="RPC 方向与收件人矩阵" tabindex="0">
+            <div class="matrix">
+              <div class="head">函数类型</div><div class="head">典型调用方</div><div class="head">远端目标</div><div class="head">关键前提</div>
+              <div class="label">Server</div><div class="yes">Owning Client</div><div class="yes">Server</div><div class="maybe">客户端必须拥有 Actor</div>
+              <div class="label">Client</div><div class="yes">Server</div><div class="yes">Owning Client</div><div class="maybe">Actor 必须有有效 owning connection</div>
+              <div class="label">Remote</div><div class="maybe">Server 或 Owning Client</div><div class="yes">连接的另一端</div><div class="maybe">必须由客户端拥有；不在本地执行</div>
+              <div class="label">NetMulticast</div><div class="yes">Server</div><div class="yes">Server + 当前相关客户端</div><div class="maybe">客户端调用只在调用客户端本地执行</div>
+            </div>
+          </div>
+
+          <h3>Ownership 是安全门，也是路由信息</h3>
+          <p>Server RPC 到达服务端后，<code>FNetRPC::CallFunction</code> 会比较目标对象的 owning connection 与当前接收连接。不是目标 Owner 发来的调用，不会进入 Gameplay 函数。这能挡住“借用别人 Actor 发 Server RPC”的结构性攻击。</p>
+
+          <div class="callout callout--danger">
+            <strong>通过 ownership 检查，不等于业务合法</strong>
+            <p>拥有角色的客户端仍可能谎报射速、位置、目标和弹药。服务端必须把 RPC 当作“不可信的输入意图”，重新检查冷却、弹匣、距离、视线、序号和游戏阶段。</p>
+          </div>
+
+          <h3>NetDriver 是两套内部路径的分岔口</h3>
+          <p>在 UE 5.7.4 的 <code>UNetDriver::ProcessRemoteFunction</code> 中，服务端多播会调用无连接参数的 Iris <code>SendRPC</code>；其余远端调用取得 Actor 的网络连接，再调用带 <code>ConnectionId</code> 的重载。一旦进入 Iris 分支，该次调用就直接返回，不再尝试传统 ActorChannel 路径。</p>
+        </section>
+
+        <section id="send">
+          <p class="eyebrow">Chapter 06 · 14.2 Send</p>
+          <h2><span class="chapter-no">排入正确的连接队列</span><code>SendRPC</code>、单播与多播</h2>
+
+          <pre><code>// Multicast：由目标对象决定候选连接
+bool SendRPC(
+    const UObject* RootObject,
+    const UObject* SubObject,
+    const UFunction* Function,
+    const void* Parameters);
+
+// Unicast：只发给 ConnectionId
+bool SendRPC(
+    uint32 ConnectionId,
+    const UObject* RootObject,
+    const UObject* SubObject,
+    const UFunction* Function,
+    const void* Parameters);</code></pre>
+
+          <div class="pullquote"><code>SendRPC</code> 返回 true 的准确含义是“成功排队等待复制”，不是“已经写包”，更不是“远端已经执行”。</div>
+
+          <h3>发送前的四层资格检查</h3>
+          <ol>
+            <li><strong>全局开关：</strong><code>net.Iris.EnableRPCs</code> 必须大于 0，默认是 1。</li>
+            <li><strong>方向：</strong>客户端不能发送 Client/Multicast 方向的数据，服务端不能反向发送 Server RPC。</li>
+            <li><strong>连接：</strong>单播目标必须有效且仍为 open；正在关闭的连接只冲刷既有 reliable 数据，不接收新 RPC。</li>
+            <li><strong>对象：</strong>RootObject / SubObject 必须映射到可发送的 Net Object；非独立复制子对象可尝试借助 replicated outer 作为 caller。</li>
+          </ol>
+
+          <h3>多播不是“无条件复制 N 份”</h3>
+          <p><code>SendMulticastRPC</code> 在调用时捕获 open connections 作为候选快照，随后每条连接的 writer 仍会检查目标对象是否已经复制、是否在 scope、是否正在销毁。晚加入连接不在当时的快照中，也不会补执行历史多播。</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>问题</th><th>Unicast</th><th>Multicast</th></tr></thead>
+              <tbody>
+                <tr><td>候选连接</td><td>指定的一个 <code>ConnectionId</code></td><td>调用瞬间的 open connections 快照</td></tr>
+                <tr><td>作用域检查</td><td>目标对象必须可投递给该连接</td><td>每个候选连接分别检查</td></tr>
+                <tr><td>函数标志</td><td>Server / Client / Remote</td><td>NetMulticast</td></tr>
+                <tr><td>Ordered 标志</td><td>UE5.7.4 中非 multicast 会设置</td><td>不因该规则设置</td></tr>
+                <tr><td>晚加入者</td><td>调用时连接不存在，无投递</td><td>不会回放过去的多播</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="delivery">
+          <p class="eyebrow">Chapter 07 · Delivery Contract</p>
+          <h2><span class="chapter-no">可靠性是重发契约，顺序是队列契约</span>Reliable、Unreliable、Ordered 与丢包</h2>
+          <p><code>UNetRPCHandler::CreateRPC</code> 读取 <code>UFunction</code> 标志：<code>FUNC_NetReliable</code> 会设置 <code>ENetBlobFlags::Reliable</code>；所有非 <code>FUNC_NetMulticast</code> 的 RPC 还会设置 <code>Ordered</code>。</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>UE5.7.4 Iris 类型</th><th>Reliable</th><th>Ordered</th><th>丢包以后</th><th>典型用途</th></tr></thead>
+              <tbody>
+                <tr><td>Reliable Unicast</td><td>是</td><td>是</td><td>ACK 前持续重发</td><td>低频、必须执行的控制命令</td></tr>
+                <tr><td>Unreliable Unicast</td><td>否</td><td>是</td><td>不重发；若交付则保持相关单播队列顺序</td><td>时效性强的输入或提示</td></tr>
+                <tr><td>Reliable Multicast</td><td>是</td><td>否*</td><td>对已经排入的连接可靠重发</td><td>极少数必须执行的群体调用</td></tr>
+                <tr><td>Unreliable Multicast</td><td>否</td><td>否</td><td>丢失即结束</td><td>音效、粒子、动画等表现</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p><small>* “否”指没有因为“非 multicast”规则获得 Ordered 标志；不能由此推导不同系统层面的所有顺序细节。</small></p>
+
+          <h3>一次丢包如何影响两类调用</h3>
+          <div class="scroll-frame" role="region" aria-label="可靠与不可靠 RPC 丢包时间线" tabindex="0">
+            <div class="lane">
+              <div class="head">队列</div><div class="head">T0 调用</div><div class="head">T1 发包</div><div class="head">T2 丢包</div><div class="head">T3 下一窗口</div><div class="head">T4 结果</div>
+              <div class="who">Reliable</div><div class="work">RPC A 入可靠队列</div><div class="work">发送 A</div><div class="wait">没有 ACK，A 留在窗口</div><div class="fast">重发 A；后续有序数据可能等待</div><div class="done">收到 ACK 后出队</div>
+              <div class="who">Unreliable</div><div class="work">RPC B 入不可靠队列</div><div class="work">发送 B</div><div class="wait">包丢失</div><div class="fast">不重发 B，继续更新</div><div class="done">B 永久缺席</div>
+            </div>
+          </div>
+
+          <h3>Iris 的 Ordered 实现细节要放在正确边界内</h3>
+          <p>测试源码 <code>TestUnreliableRPCIsOrderedWithReliableRPCToClient</code> 和 Server 方向对应测试表明：对非多播 RPC，可靠—不可靠—可靠调用在交付时可维持顺序；<code>TestUnreliableRPCIsNotResentAfterPacketLoss</code> 同时证明其中的不可靠调用丢包后不会重发。</p>
+          <p>这并不提供跨 Actor 全局顺序。Epic 的执行顺序文档明确指出，不同 Actor 上 RPC 的原始调用顺序不会在远端重建。跨对象业务必须携带 sequence / epoch，或者把最终结果放进一个权威状态机。</p>
+
+          <div class="callout callout--warn">
+            <strong>Reliable 的代价不只是多发几个字节</strong>
+            <p>它会占用可靠窗口，并可能让后续相关有序流量等待 ACK。高频 Reliable 输入在丢包环境中最容易形成“过期消息排队，但最新输入到不了”的 head-of-line blocking。</p>
+          </div>
+        </section>
+
+        <section id="policy">
+          <p class="eyebrow">Chapter 08 · Scheduling</p>
+          <h2><span class="chapter-no">更早调度，不是同步送达</span>Send Policy、OOB、休眠与 Scope</h2>
+          <p>Iris 的 Attachment 发送策略位于 <code>ENetObjectAttachmentSendPolicyFlags</code>。默认 RPC 进入对象附件队列；带 OOB 策略的 attachment 走独立队列，以便尽早调度。</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Flag</th><th>行为</th><th>边界</th></tr></thead>
+              <tbody>
+                <tr><td><code>None</code></td><td>默认 attachment 调度</td><td>随复制更新与对象状态写入</td></tr>
+                <tr><td><code>ScheduleAsOOB</code></td><td>走 Out-of-Band queue，尽早发送</td><td>只对 unreliable attachment 有效</td></tr>
+                <tr><td><code>SendInPostTickDispatch</code></td><td>提示在 PostTickDispatch 处理当前 OOB unreliable attachments</td><td>可能使同批 OOB 附件一起提前</td></tr>
+                <tr><td><code>SendImmediate</code></td><td>前两项的组合</td><td>仍是排队提示，不是同步远程调用</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="scroll-frame" role="region" aria-label="默认与 OOB RPC 发送时序" tabindex="0">
+            <div class="lane">
+              <div class="head">策略</div><div class="head">收到网络包</div><div class="head">执行入站 RPC</div><div class="head">PostTickDispatch</div><div class="head">本帧 Net Update</div><div class="head">远端可见时机</div>
+              <div class="who">Default</div><div></div><div class="work">产生响应 RPC</div><div class="wait">留在普通队列</div><div class="fast">随正常更新发送</div><div class="done">通常较晚</div>
+              <div class="who">SendImmediate</div><div></div><div class="work">产生 unreliable multicast</div><div class="fast">OOB 队列被提示发送</div><div class="wait">不必等待常规队列</div><div class="done">可少等一个阶段</div>
+            </div>
+          </div>
+
+          <p>测试源码 <code>TestMultiCastSendImmediateRPC</code> 用行为锁定了这一差异：immediate 多播能在 PostTickDispatch 被客户端收到，而同阶段的普通多播仍在等待后续正常更新。这里的“immediate”是调度含义，不是当前 C++ 调用栈内就让远端执行。</p>
+
+          <h3>UE5.7.4 的公开 API 边界</h3>
+          <p><code>SetRPCSendPolicyFlags</code> 把策略记录到函数映射表。当前本地源码中，无 <code>ConnectionId</code> 的公开 multicast <code>SendRPC</code> 会读取该表；带 <code>ConnectionId</code> 的公开 unicast 重载直接调用 <code>SendUnicastRPC</code>，没有读取它。策略使用还受 <code>net.Iris.Attachments.AllowSendPolicyFlags</code> 控制。</p>
+
+          <h3>休眠不是 RPC 的硬禁区，但可能有隐性成本</h3>
+          <ul>
+            <li><code>net.Iris.RPC.AllowOnDormantObjects</code> 默认 true；</li>
+            <li><code>net.Iris.RPC.AutoNetFlushOnDormantObjects</code> 默认 true；</li>
+            <li>默认在休眠对象上发送 RPC 时，会隐式请求 NetFlush；</li>
+            <li>这可能让应同步的属性状态与 RPC 一起重新进入发送路径。</li>
+          </ul>
+
+          <div class="callout callout--danger">
+            <strong>OOB 不能绕过对象存在性与作用域</strong>
+            <p>目标对象必须已经进入该连接的 replicated state，且不能处于 pending destroy。多播也仍受每连接 scope 约束；“更早调度”不是“无视对象生命周期”。</p>
+          </div>
+        </section>
+
+        <section id="payload">
+          <p class="eyebrow">Chapter 09 · FNetRPC</p>
+          <h2><span class="chapter-no">函数调用被压成一份对象附件</span>定位符、量化参数与引用导出</h2>
+          <p><code>FNetRPC</code> 继承 <code>FNetObjectAttachment</code>。它不是“复制一段函数名字符串加原始内存”，而是借助目标对象的 Replication Protocol 定位函数，用参数描述符量化每个参数，并收集其中需要先让远端认识的对象引用。</p>
+
+          <h3>函数定位：DescriptorIndex + FunctionIndex</h3>
+          <pre><code>struct FFunctionLocator
+{
+    uint16 DescriptorIndex;
+    uint16 FunctionIndex;
+};
+
+struct FReplicationStateMemberFunctionDescriptor
+{
+    const UFunction* Function;
+    const FReplicationStateDescriptor* Descriptor; // 参数布局
+};</code></pre>
+          <p><code>DescriptorIndex</code> 指向对象协议中的某个 Replication State Descriptor，<code>FunctionIndex</code> 再定位其中的 Member Function Descriptor。后者同时持有 <code>UFunction</code> 和参数描述符。因此每次调用无需发送完整函数名；两端依靠一致协议解释索引。</p>
+
+          <h3>参数何时量化</h3>
+          <p><code>FNetRPC::Create</code> 会先追到最顶层 super function，查找 locator，然后立即调用 <code>FReplicationStateOperations::Quantize</code>。这一步把调用栈上的 Gameplay 参数转成 Iris 可长期持有的 quantized state；队列不会在未来某帧再去解引用调用者的临时参数地址。零参数 RPC 则跳过分配和量化。</p>
+
+          <div class="scroll-frame" role="region" aria-label="FNetRPC 网络负载布局" tabindex="0">
+            <div class="packet">
+              <div class="packet__size">24-bit<br>RPC SIZE</div>
+              <div class="packet__object">TARGET<br>OBJECT / SUBOBJECT</div>
+              <div class="packet__function">FUNCTION LOCATOR<br>2-bit nibble count + indices</div>
+              <div class="packet__params">QUANTIZED PARAMETERS</div>
+              <div class="packet__exports">REFERENCE<br>EXPORTS</div>
+            </div>
+          </div>
+
+          <p>目标 attachment 与对象一起序列化时，可以省掉冗余 root 引用，只携带必要的 subobject 信息。函数定位符先用 2 bit 表示后续索引占几个 nibble，再按同一宽度写两个索引，小索引因此更紧凑。</p>
+
+          <h3>24 位长度是安全边界，不是设计预算</h3>
+          <p><code>FNetRPC</code> 在开头预留 24 位长度，写完 payload 后回填最终 bit 数。理论格式上限是 <code>(1 &lt;&lt; 24) - 1</code> bits，约 2 MiB 减 1 bit；这绝不是建议把 2 MiB 数据塞进 RPC。长度主要用于在解析失败时跳过整段，并核对接收后的 bitstream 位置。</p>
+
+          <div class="callout callout--good">
+            <strong>参数中的 UObject 引用也有因果顺序</strong>
+            <p>量化时会收集可导出的对象引用并设置 HasExports。传输层必须让远端先获得引用所需信息，接收端参数才能正确 Dequantize。这是 Part 12“对象引用与依赖”在 RPC 参数上的直接应用。</p>
+          </div>
+        </section>
+
+        <section id="receive">
+          <p class="eyebrow">Chapter 10 · 14.3 Receive</p>
+          <h2><span class="chapter-no">先通过六道门，再进入 ProcessEvent</span>RPC 分发、参数反序列化与执行上下文</h2>
+          <p>attachment 完整到达后，<code>UNetRPCHandler::OnNetBlobReceived</code> 构造 <code>FNetRPCCallContext</code>，再让 <code>FNetRPC::CallFunction</code> 完成解析、校验与执行。接收端绝不会把收到的索引直接当作可信函数调用。</p>
+
+          <div class="gates">
+            <div class="gate"><span>1</span><b>目标对象</b><p>NetObjectReference 有效，目标 UObject 仍能解析。</p></div>
+            <div class="gate"><span>2</span><b>Replication Protocol</b><p>对象仍有 instance protocol，复制尚未停止。</p></div>
+            <div class="gate"><span>3</span><b>函数定位</b><p>DescriptorIndex / FunctionIndex 在范围内，能取得 UFunction。</p></div>
+            <div class="gate"><span>4</span><b>网络方向</b><p>函数带 FUNC_Net，Server / Client 方向允许当前端执行。</p></div>
+            <div class="gate"><span>5</span><b>Ownership</b><p>服务端接收时，发送连接必须拥有目标对象。</p></div>
+            <div class="gate"><span>6</span><b>参数与执行</b><p>Dequantize 成功，在 RPC 上下文中调用实际函数。</p></div>
+          </div>
+
+          <h3>函数或对象缺失时，长度字段帮它安全跳过</h3>
+          <p><code>ResolveFunctionAndObject</code> 如果找不到对象或函数，不会继续猜测参数布局，而是移动 reader 到 <code>PostNetRPCPos</code>。若正常反序列化结束后实际位置与长度头不一致，源码会报告 bitstream mismatch，修正 reader 并设置错误，确保该 RPC 不被执行。</p>
+
+          <h3>Dequantize 之后才得到 UFunction 需要的外部参数内存</h3>
+          <ol>
+            <li>按参数 descriptor 的外部尺寸与对齐分配内存；</li>
+            <li>初始化需要构造的属性值；</li>
+            <li>把 quantized state Dequantize 到外部参数；</li>
+            <li>若 Blueprint 派生类覆盖了同名函数，解析实际的 UFunction；</li>
+            <li>广播可选的 <code>FForwardNetRPCCallMulticastDelegate</code>；</li>
+            <li>建立 <code>FScopedNetContextRPC</code> 和 Receiving 模式；</li>
+            <li>调用 <code>Object-&gt;ProcessEvent(Function, Parameters)</code>；</li>
+            <li>销毁字符串、容器、对象包装等非平凡参数值。</li>
+          </ol>
+
+          <div class="pullquote">网络包带来的不是一个“可直接跳转的函数指针”，而是一份必须在目标对象协议、权限和执行上下文中重新解释的调用描述。</div>
+        </section>
+
+        <section id="subobject-security">
+          <p class="eyebrow">Chapter 11 · Lifetime &amp; Trust</p>
+          <h2><span class="chapter-no">对象先存在，调用才有落点</span>SubObject 生命周期与服务端安全</h2>
+          <p>RPC 可以目标到 RootObject，也可以目标到 replicated SubObject。<code>FNetBlobManager::GetRPCOwner</code> 会同时维护 caller reference、target reference、root index 和 subobject index：</p>
+          <ul>
+            <li>Root RPC：caller 与 target 都是 root；</li>
+            <li>独立复制 SubObject：caller / target 指向 subobject，并找到所属 root；</li>
+            <li>不可独立引用的子对象：可尝试用 replicated outer 作为 caller，但 target 仍保留真实对象引用；</li>
+            <li>root 或 subobject 尚未开始复制时，RPC 可能无法创建或排队。</li>
+          </ul>
+
+          <h3>短生命周期 SubObject 的可靠调用</h3>
+          <p>测试源码 <code>TestShortLivedSubObjectReliableRPC</code> 覆盖了短生命周期子对象上的可靠 RPC。正确性依赖对象创建、attachment 与销毁之间的有序关系，而不是“Reliable 自带对象复活能力”。如果目标已进入 pending destroy 或远端从未建立它，writer / receiver 仍然必须拒绝不成立的调用。</p>
+
+          <h3>SubObject 多播不能绕过受众</h3>
+          <p><code>TestSubObjectMulticastRPCIsNotReplicatedToNonOwningConnection</code> 锁定了一个重要边界：子对象不在某连接的复制范围内，多播不会仅因为名字叫 Multicast 就把调用送过去。连接必须先有合法的目标对象，RPC 才有执行落点。</p>
+
+          <h3>开火请求的服务端校验</h3>
+          <pre><code>void ACombatCharacter::ServerFire_Implementation(
+    FVector_NetQuantize Origin,
+    FVector_NetQuantizeNormal Direction)
+{
+    if (!CanFireNow()) return;                  // 冷却 / 状态
+    if (!HasAmmo()) return;                     // 权威弹药
+    if (!IsPlausibleOrigin(Origin)) return;     // 位置容差
+    if (!IsPlausibleDirection(Direction)) return;
+    if (!AcceptInputSequence(ClientSequence)) return;
+
+    ConsumeAmmoOnServer();
+    ResolveHitOnServer(Origin, Direction);
+    MulticastFireFX(Origin, Direction);
+}</code></pre>
+
+          <div class="callout callout--danger">
+            <strong>RPC 的参数永远不是权威事实</strong>
+            <p>客户端可以拥有 Actor，也可以构造任意参数和调用频率。Ownership 只证明“谁在发”，不证明“他说的是真的”。伤害、掉落、货币和移动结果都必须由服务器状态推导。</p>
+          </div>
+        </section>
+
+        <section id="transport">
+          <p class="eyebrow">Chapter 12 · 14.4 Transport</p>
+          <h2><span class="chapter-no">四个名字，不是一条串行流水线</span>NetRPC、Handler、Partial 与 Object Blob 的责任边界</h2>
+          <p>大纲把四个类型放在同一节，容易让人误以为普通 RPC 会依次经过它们。源码实际是：<code>UNetRPCHandler</code> 负责 RPC；Partial Handler 是大 attachment 的通用拆片辅助；<code>UNetObjectBlobHandler</code> 则是与 RPC 并列的“超大对象状态”路径。</p>
+
+          <div class="handler-tree">
+            <div class="handler-root">FNetBlobManager · 注册并协调不同 NetBlob / Attachment Handler</div>
+            <div class="handler-branch handler-branch--rpc">
+              <h3>UNetRPCHandler → FNetRPC</h3>
+              <p>创建与接收一次远程函数调用。设置 Reliable / Ordered，定位函数，量化参数，接收端校验后执行。</p>
+            </div>
+            <div class="handler-branch handler-branch--object">
+              <h3>UNetObjectBlobHandler → FNetObjectBlob</h3>
+              <p>处理超大的 replicated object state。创建 reliable raw object blob，并走专用装配/反序列化路径；不是普通 RPC Handler。</p>
+            </div>
+            <div class="handler-partial">
+              <b>UPartialNetObjectAttachmentHandler</b> · 为过大的 ObjectAttachment 做预序列化、shrink-wrap、拆片与重组；它可以辅助大 RPC attachment，但不是每个 RPC 都必经。
+            </div>
+          </div>
+
+          <h3>Partial Handler 如何处理大 attachment</h3>
+          <ol>
+            <li>先把 connection-specific attachment 预序列化到临时 bit buffer；</li>
+            <li>若完整 payload 放得下，生成一个 <code>FShrinkWrapNetObjectAttachment</code>；</li>
+            <li>若缓冲区溢出，按序列拆成多个 partial NetBlob；</li>
+            <li>接收端收集并重组完整 attachment；</li>
+            <li>组装后再交给原 handler——对 RPC 来说是 <code>UNetRPCHandler</code>。</li>
+          </ol>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>本地 UE5.7.4 默认值</th><th>约合字节</th><th>正确语境</th></tr></thead>
+              <tbody>
+                <tr><td><code>(128 + 64) * 8 bits</code></td><td>192 bytes</td><td>通用/可靠预序列化与拆分阈值</td></tr>
+                <tr><td>Client unreliable split threshold</td><td>850 bytes</td><td>客户端不可靠 attachment 默认拆分阈值</td></tr>
+                <tr><td>Server unreliable split threshold</td><td>256 bytes</td><td>服务端不可靠 attachment 默认拆分阈值</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>这些值不是网络 MTU，更不是 RPC 参数预算</strong>
+            <p>它们是 Partial Handler 的内部配置默认值。RPC 越大，预序列化、引用导出、拆片、可靠重传和每连接工作越贵。Gameplay 层应该主动让调用参数保持紧凑。</p>
+          </div>
+
+          <h3>为什么 NetObjectBlobHandler 的接收回调“不该被调用”</h3>
+          <p>对象 Blob 代表巨大的复制对象状态，接收后需要由特殊路径组装和反序列化，而不是像普通 handler 一样把完整 blob 直接交给 <code>OnNetBlobReceived</code>。源码对该回调的预期正是“不应到这里”。因此它属于 NetBlob 基础设施的兄弟分支，不能写进普通 RPC 的必经链。</p>
+        </section>
+
+        <section id="practice">
+          <p class="eyebrow">Chapter 13 · Practice, Cost &amp; Debug</p>
+          <h2><span class="chapter-no">让调用及时、紧凑、可验证</span>实战组合、性能预算与排错路线</h2>
+
+          <h3>推荐的开火组合</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>阶段</th><th>机制</th><th>可靠性</th><th>职责</th></tr></thead>
+              <tbody>
+                <tr><td>客户端输入</td><td><code>ServerFire</code></td><td>通常 Unreliable + Sequence</td><td>提交意图；新输入比重发旧输入更有价值</td></tr>
+                <tr><td>服务器判定</td><td>权威 Gameplay 逻辑</td><td>本地状态机</td><td>检查冷却、弹药、位置、命中并生成结果</td></tr>
+                <tr><td>枪口表现</td><td><code>MulticastFireFX</code></td><td>Unreliable</td><td>只发给当前有目标对象的相关连接</td></tr>
+                <tr><td>弹药 / 生命值</td><td>Replicated Property</td><td>状态收敛</td><td>晚加入者与丢包后仍获得最新权威值</td></tr>
+                <tr><td>极少数必须确认动作</td><td>Reliable RPC</td><td>Reliable</td><td>低频，且调用本身不可被后续状态替代</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>性能与带宽检查清单</h3>
+          <ul class="checklist">
+            <li>先统计每类 RPC 的每秒调用次数、平均参数 bits 和目标连接数。</li>
+            <li>高频输入合并、限频并携带 sequence，不逐次 Reliable。</li>
+            <li>使用 NetQuantize 类型，避免把高精度大结构原样塞入 RPC。</li>
+            <li>不要在参数里传可由 ID、枚举或当前状态推导出的冗余字段。</li>
+            <li>Multicast 的成本乘以实际可投递连接数，不能只看单次 payload。</li>
+            <li>让大资产、数组与快照走状态复制、专用 DataStream 或应用层分块。</li>
+            <li>只在确有首帧延迟收益时使用 OOB / SendImmediate，并测额外包成本。</li>
+            <li>关注 dormant RPC 引起的 NetFlush 与属性补发。</li>
+            <li>跨对象时序由业务 sequence / epoch 保证，不依赖网络偶然顺序。</li>
+            <li>所有 Server RPC 都做频率、范围、状态和权限校验。</li>
+          </ul>
+
+          <h3>从“没有执行”向两端夹查</h3>
+          <ol>
+            <li><strong>调用空间：</strong>调用是否真的需要走远端？NetMulticast 是否错误地从客户端发起？</li>
+            <li><strong>Owning Connection：</strong>Client/Server RPC 的目标连接和 Actor ownership 是否正确？</li>
+            <li><strong>对象生命周期：</strong>Root/SubObject 是否已经 BeginReplication，远端是否已创建，是否正在销毁？</li>
+            <li><strong>发送开关：</strong><code>net.Iris.EnableRPCs</code> 是否启用？方向检查是否拒绝？</li>
+            <li><strong>Scope 与 Dormancy：</strong>对象是否对目标连接可投递？休眠是否触发了预期 NetFlush？</li>
+            <li><strong>可靠队列：</strong>是否被旧 Reliable 阻塞，或 ordered unreliable 超出预算？</li>
+            <li><strong>函数协议：</strong>两端 descriptor / protocol 是否一致，函数 locator 是否可解析？</li>
+            <li><strong>参数引用：</strong>参数中的对象引用是否可导出、可解析？</li>
+            <li><strong>接收权限：</strong>方向和 ownership 是否通过？Gameplay 校验是否主动拒绝？</li>
+            <li><strong>执行观察：</strong>用 NetTrace / Iris RPC 日志区分“未到达”“未解析”和“执行后被业务拒绝”。</li>
+          </ol>
+
+          <h3>测试源码给出的行为锚点</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>测试源码</th><th>锁定的行为</th></tr></thead>
+              <tbody>
+                <tr><td>TestBasicObjectRPC</td><td>Client 与 Server 方向的基础参数传递</td></tr>
+                <tr><td>TestMultiCastSendImmediateRPC</td><td>PostTickDispatch 中 immediate 多播早于普通多播</td></tr>
+                <tr><td>TestSubObjectRPC</td><td>复制子对象作为 RPC 目标</td></tr>
+                <tr><td>TestUnreliableRPCIsOrderedWithReliableRPCToClient / ToServer</td><td>非多播 unreliable 与 reliable 的交付顺序</td></tr>
+                <tr><td>TestUnreliableRPCIsNotResentAfterPacketLoss</td><td>不可靠 RPC 丢包后不重发</td></tr>
+                <tr><td>TestShortLivedSubObjectReliableRPC</td><td>短生命周期子对象与可靠调用</td></tr>
+                <tr><td>TestSubObjectMulticastRPCIsNotReplicatedToNonOwningConnection</td><td>多播仍受子对象受众/作用域约束</td></tr>
+                <tr><td>TestOvercommitOrderedUnreliableRPC</td><td>有序不可靠附件在预算超限时的队列边界</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p><small>以上为本地 UE 5.7.4 自动化测试源码的行为依据；本次文章制作没有执行 UE 自动化测试。</small></p>
+
+          <h3 id="sources">UE 5.7.4 源码导航</h3>
+          <div class="source-tree">Engine/Source/Runtime/
+├─ Engine/Private/
+│  └─ NetDriver.cpp
+└─ Net/Iris/
+   ├─ Public/Iris/
+   │  ├─ ReplicationSystem/
+   │  │  ├─ ReplicationSystem.h
+   │  │  └─ ReplicationSystemTypes.h
+   │  └─ ReplicationState/
+   │     └─ ReplicationStateDescriptor.h
+   └─ Private/Iris/
+      ├─ ReplicationState/
+      │  └─ ReplicationStateDescriptorBuilder.cpp
+      └─ ReplicationSystem/
+         ├─ ReplicationSystem.cpp
+         ├─ ReplicationWriter.cpp
+         └─ NetBlob/
+            ├─ NetBlobManager.cpp
+            ├─ NetRPC.h / NetRPC.cpp
+            ├─ NetRPCHandler.h / NetRPCHandler.cpp
+            ├─ PartialNetObjectAttachmentHandler.h / .cpp
+            └─ NetObjectBlobHandler.h / .cpp
+
+Engine/Plugins/Runtime/ReplicationSystemTestPlugin/.../
+└─ Tests/ReplicationSystem/RPC/
+   ├─ TestObjectRPC.cpp
+   ├─ RPCTestFixture.h / .cpp
+   └─ ReplicatedTestObjectWithRPC.h / .cpp</div>
+
+          <h3>Epic Games 官方资料</h3>
+          <div class="sources">
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/remote-procedure-calls-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Remote Procedure Calls</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/replicated-object-execution-order-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Replicated Object Execution Order</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/migrate-to-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Migrate to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UReplicationSystem/SendRPC?application_version=5.7" target="_blank" rel="noopener noreferrer">UReplicationSystem::SendRPC</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UReplicationSystem?application_version=5.7" target="_blank" rel="noopener noreferrer">UReplicationSystem API</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/introduction-to-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Introduction to Iris</a>
+          </div>
+
+          <h3>本篇结论</h3>
+          <div class="cards">
+            <div class="card card--green"><small>MODEL</small><h3>事件不是状态</h3><p>RPC 表示一次调用；权威结果和晚加入者需要的数据仍由复制状态承载。</p></div>
+            <div class="card"><small>TRANSPORT</small><h3>RPC 是 Attachment</h3><p><code>FNetRPC</code> 携带目标、函数定位、量化参数与引用，通过连接队列运输。</p></div>
+            <div class="card card--signal"><small>TRUST</small><h3>执行前逐层验证</h3><p>对象、协议、函数、方向、ownership 与 Gameplay 规则缺一不可。</p></div>
+          </div>
+
+          <div class="pullquote">把 RPC 设计好，要同时回答四件事：这是不是一次事件、应该发给谁、丢了或晚了怎么办、远端凭什么允许它执行。</div>
+
+          <p>下一部分将进入调试与性能分析：如何用 Iris 日志、NetTrace、Unreal Insights、统计数据和网络仿真，把“偶发没同步”变成一条可复现、可量化的证据链。</p>
+
+          <nav class="chapter-nav" aria-label="系列文章导航">
+            <a href="/html-articles/ue5-iris-guide-part-13/"><span>← PREVIOUS</span><b>第十三部分：条件复制</b></a>
+            <a href="/html-articles/ue5-iris-guide-part-15/"><span>NEXT →</span><b>第十五部分：调试与性能分析</b></a>
+          </nav>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <p>UE5 Iris 网络复制系统技术分析 · 第十四部分</p>
+    <p>原创扩写与整理：Jossy Zhang · 技术基线：Unreal Engine 5.7.4</p>
+    <p><a href="/ue5-iris-guide/">返回系列目录</a> · <a href="/">返回博客首页</a></p>
+  </footer>
+
+  <button class="back-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.reading-progress');
+      const backTop = document.querySelector('.back-top');
+      const sections = [...document.querySelectorAll('article section[id]')];
+      const tocLinks = [...document.querySelectorAll('.toc a')];
+      const mobileToc = document.querySelector('.toc-mobile');
+
+      const updateScrollUI = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = `${maxScroll > 0 ? Math.min(100, scrollTop / maxScroll * 100) : 0}%`;
+        backTop.classList.toggle('is-visible', scrollTop > 650);
+
+        if (sections.length) {
+          const firstSectionTop = sections[0].getBoundingClientRect().top + scrollTop;
+          if (scrollTop < firstSectionTop - window.innerHeight * .18) {
+            tocLinks.forEach((link, index) => {
+              if (index === 0) link.setAttribute('aria-current', 'true');
+              else link.removeAttribute('aria-current');
+            });
+          }
+        }
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+
+        if (!visible) return;
+        tocLinks.forEach((link) => {
+          const active = link.getAttribute('href') === `#${visible.target.id}`;
+          if (active) link.setAttribute('aria-current', 'true');
+          else link.removeAttribute('aria-current');
+        });
+      }, { rootMargin: '-18% 0px -66% 0px', threshold: [0, .05, .2] });
+
+      sections.forEach((section) => observer.observe(section));
+      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      window.addEventListener('resize', updateScrollUI);
+      updateScrollUI();
+
+      backTop.addEventListener('click', () => {
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+      });
+
+      document.querySelectorAll('.toc-mobile a').forEach((link) => {
+        link.addEventListener('click', () => { mobileToc.open = false; });
+      });
+    })();
+  </script>
+</body>
+</html>

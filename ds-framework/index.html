@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="DS 中 GameMode / GameState / PlayerController / PlayerState 深入解析" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    DS 中 GameMode / GameState / PlayerController / PlayerState 深入解析
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-08-17</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：4.3k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：17分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#DS-%E4%B8%AD-GameMode-GameState-PlayerController-PlayerState-%E6%B7%B1%E5%85%A5%E8%A7%A3%E6%9E%90"><span class="post-toc-text">DS 中 GameMode &#x2F; GameState &#x2F; PlayerController &#x2F; PlayerState 深入解析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="post-toc-text">目录</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%EF%BC%9A%E5%9B%9B%E7%B1%BB%E7%9A%84%E5%AE%9A%E4%BD%8D%E4%B8%8E%E5%8D%8F%E4%BD%9C"><span class="post-toc-text">1. 核心概念：四类的定位与协作</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-%E7%BD%91%E7%BB%9C%E5%AD%98%E5%9C%A8%E6%80%A7%EF%BC%9A%E8%B0%81%E5%9C%A8%E6%9C%8D%E5%8A%A1%E5%99%A8%E3%80%81%E8%B0%81%E5%9C%A8%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="post-toc-text">2. 网络存在性：谁在服务器、谁在客户端</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-%E9%80%90%E7%B1%BB%E6%B7%B1%E5%85%A5%E8%81%8C%E8%B4%A3%E5%89%96%E6%9E%90"><span class="post-toc-text">3. 逐类深入职责剖析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#AGameModeBase-vs-AGameMode"><span class="post-toc-text">AGameModeBase vs AGameMode</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#AGameStateBase-AGameState-%E2%80%94%E2%80%94-%E7%8A%B6%E6%80%81%E5%B9%BF%E6%92%AD%E4%B8%AD%E6%9E%A2"><span class="post-toc-text">AGameStateBase &#x2F; AGameState —— 状态广播中枢</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#APlayerController-%E2%80%94%E2%80%94-%E6%89%80%E6%9C%89%E6%9D%83%E4%B8%8E-RPC-%E6%9E%A2%E7%BA%BD"><span class="post-toc-text">APlayerController —— 所有权与 RPC 枢纽</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#APlayerState-%E2%80%94%E2%80%94-%E8%B7%A8%E7%AB%AF%E7%8E%A9%E5%AE%B6%E5%90%8D%E7%89%87"><span class="post-toc-text">APlayerState —— 跨端玩家名片</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-%E6%88%98%E5%9C%BA%E5%90%AF%E5%8A%A8%EF%BC%9A%E5%85%B3%E5%8D%A1%E7%BA%A7%E5%88%9D%E5%A7%8B%E5%8C%96%E6%97%B6%E5%BA%8F"><span class="post-toc-text">4. 战场启动：关卡级初始化时序</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%85%B3%E9%94%AE%E9%98%B6%E6%AE%B5%E8%AF%B4%E6%98%8E%EF%BC%88%E6%8C%89%E7%9C%9F%E5%AE%9E%E6%89%A7%E8%A1%8C%E5%85%88%E5%90%8E%EF%BC%89"><span class="post-toc-text">关键阶段说明（按真实执行先后）</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-%E7%8E%A9%E5%AE%B6%E7%99%BB%E5%85%A5%EF%BC%9APreLogin-%E2%86%92-Login-%E2%86%92-PostLogin"><span class="post-toc-text">5. 玩家登入：PreLogin → Login → PostLogin</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E4%B8%89%E4%B8%AA%E5%85%B3%E9%94%AE%E9%92%A9%E5%AD%90%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="post-toc-text">三个关键钩子的边界</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%B1%9E%E4%B8%BB%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BE%A7%E7%9A%84%E5%9B%9E%E5%93%8D"><span class="post-toc-text">属主客户端侧的回响</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-MatchState-%E6%AF%94%E8%B5%9B%E7%8A%B6%E6%80%81%E6%9C%BA%EF%BC%88AGameMode-%E4%B8%93%E6%9C%89%EF%BC%89"><span class="post-toc-text">6. MatchState 比赛状态机（AGameMode 专有）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#7-Actor-%E9%80%9A%E7%94%A8%E5%88%9D%E5%A7%8B%E5%8C%96%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="post-toc-text">7. Actor 通用初始化生命周期</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#8-%E6%97%A0%E7%BC%9D%E6%97%85%E8%A1%8C%EF%BC%88Seamless-Travel%EF%BC%89%E5%AF%B9%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="post-toc-text">8. 无缝旅行（Seamless Travel）对初始化的影响</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#9-%E9%87%8D%E7%82%B9%E6%8C%96%E6%8E%98%EF%BC%9A%E9%99%B7%E9%98%B1%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="post-toc-text">9. 重点挖掘：陷阱与最佳实践</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#GAS-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%8C%82%E8%BD%BD%E6%97%B6%E6%9C%BA%E5%B7%AE%E5%BC%82"><span class="post-toc-text">GAS 组件的挂载时机差异</span></a></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="DS-中-GameMode-GameState-PlayerController-PlayerState-深入解析"><a href="#DS-中-GameMode-GameState-PlayerController-PlayerState-深入解析" class="headerlink" title="DS 中 GameMode / GameState / PlayerController / PlayerState 深入解析"></a>DS 中 GameMode / GameState / PlayerController / PlayerState 深入解析</h1><blockquote>
+<p>目标引擎：UE 5.x ｜ 网络模式：Dedicated Server + Client<br>核心基类：<code>AGameModeBase</code> / <code>AGameStateBase</code> / <code>APlayerController</code> / <code>APlayerState</code><br>文中函数调用行号取自 UE 引擎公开源码（<code>GameModeBase.cpp</code> / <code>GameMode.cpp</code> / <code>PlayerController.cpp</code> / <code>PlayerState.cpp</code> / <code>Controller.cpp</code> / <code>LevelActor.cpp</code> / <code>World.cpp</code>），仅供定位参考，具体以所用引擎版本为准。</p>
+</blockquote>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#ds-%E4%B8%AD-gamemode--gamestate--playercontroller--playerstate-%E6%B7%B1%E5%85%A5%E8%A7%A3%E6%9E%90">DS 中 GameMode / GameState / PlayerController / PlayerState 深入解析</a><ul>
+<li><a href="#%E7%9B%AE%E5%BD%95">目录</a></li>
+<li><a href="#1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E5%9B%9B%E7%B1%BB%E7%9A%84%E5%AE%9A%E4%BD%8D%E4%B8%8E%E5%8D%8F%E4%BD%9C">1. 核心概念：四类的定位与协作</a></li>
+<li><a href="#2-%E7%BD%91%E7%BB%9C%E5%AD%98%E5%9C%A8%E6%80%A7%E8%B0%81%E5%9C%A8%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%B0%81%E5%9C%A8%E5%AE%A2%E6%88%B7%E7%AB%AF">2. 网络存在性：谁在服务器、谁在客户端</a></li>
+<li><a href="#3-%E9%80%90%E7%B1%BB%E6%B7%B1%E5%85%A5%E8%81%8C%E8%B4%A3%E5%89%96%E6%9E%90">3. 逐类深入职责剖析</a><ul>
+<li><a href="#agamemodebase-vs-agamemode">AGameModeBase vs AGameMode</a></li>
+<li><a href="#agamestatebase--agamestate--%E7%8A%B6%E6%80%81%E5%B9%BF%E6%92%AD%E4%B8%AD%E6%9E%A2">AGameStateBase / AGameState —— 状态广播中枢</a></li>
+<li><a href="#aplayercontroller--%E6%89%80%E6%9C%89%E6%9D%83%E4%B8%8E-rpc-%E6%9E%A2%E7%BA%BD">APlayerController —— 所有权与 RPC 枢纽</a></li>
+<li><a href="#aplayerstate--%E8%B7%A8%E7%AB%AF%E7%8E%A9%E5%AE%B6%E5%90%8D%E7%89%87">APlayerState —— 跨端玩家名片</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%88%98%E5%9C%BA%E5%90%AF%E5%8A%A8%E5%85%B3%E5%8D%A1%E7%BA%A7%E5%88%9D%E5%A7%8B%E5%8C%96%E6%97%B6%E5%BA%8F">4. 战场启动：关卡级初始化时序</a><ul>
+<li><a href="#%E5%85%B3%E9%94%AE%E9%98%B6%E6%AE%B5%E8%AF%B4%E6%98%8E%E6%8C%89%E7%9C%9F%E5%AE%9E%E6%89%A7%E8%A1%8C%E5%85%88%E5%90%8E">关键阶段说明（按真实执行先后）</a></li>
+</ul>
+</li>
+<li><a href="#5-%E7%8E%A9%E5%AE%B6%E7%99%BB%E5%85%A5prelogin--login--postlogin">5. 玩家登入：PreLogin → Login → PostLogin</a><ul>
+<li><a href="#%E4%B8%89%E4%B8%AA%E5%85%B3%E9%94%AE%E9%92%A9%E5%AD%90%E7%9A%84%E8%BE%B9%E7%95%8C">三个关键钩子的边界</a></li>
+<li><a href="#%E5%B1%9E%E4%B8%BB%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BE%A7%E7%9A%84%E5%9B%9E%E5%93%8D">属主客户端侧的回响</a></li>
+</ul>
+</li>
+<li><a href="#6-matchstate-%E6%AF%94%E8%B5%9B%E7%8A%B6%E6%80%81%E6%9C%BAagamemode-%E4%B8%93%E6%9C%89">6. MatchState 比赛状态机（AGameMode 专有）</a></li>
+<li><a href="#7-actor-%E9%80%9A%E7%94%A8%E5%88%9D%E5%A7%8B%E5%8C%96%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">7. Actor 通用初始化生命周期</a></li>
+<li><a href="#8-%E6%97%A0%E7%BC%9D%E6%97%85%E8%A1%8Cseamless-travel%E5%AF%B9%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E5%BD%B1%E5%93%8D">8. 无缝旅行（Seamless Travel）对初始化的影响</a></li>
+<li><a href="#9-%E9%87%8D%E7%82%B9%E6%8C%96%E6%8E%98%E9%99%B7%E9%98%B1%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5">9. 重点挖掘：陷阱与最佳实践</a><ul>
+<li><a href="#gas-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%8C%82%E8%BD%BD%E6%97%B6%E6%9C%BA%E5%B7%AE%E5%BC%82">GAS 组件的挂载时机差异</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="1-核心概念：四类的定位与协作"><a href="#1-核心概念：四类的定位与协作" class="headerlink" title="1. 核心概念：四类的定位与协作"></a>1. 核心概念：四类的定位与协作</h2><p>Unreal 的 Gameplay Framework 用一组分工明确的类来承载「一局游戏」的规则、状态与玩家。理解它们最有效的角度不是「它们是什么」，而是 <strong>「它们存在于哪台机器、复制给谁」</strong>——这是 DS 架构下一切初始化时序与数据可见性问题的根源。</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>比喻</th>
+<th>作用域 / 生命周期</th>
+<th>核心职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>UGameInstance</code></td>
+<td>整个应用</td>
+<td>进程级，跨关卡持久</td>
+<td>贯穿整个进程的全局管理器，切图不销毁。承载子系统（Subsystem）、会话、登录态。</td>
+</tr>
+<tr>
+<td><code>AGameModeBase</code> / <code>AGameMode</code></td>
+<td>裁判 / 规则书</td>
+<td>单关卡，<strong>仅服务器</strong></td>
+<td>定义规则：谁能进、出生点、Pawn 类、胜负条件、比赛状态流转。</td>
+</tr>
+<tr>
+<td><code>AGameStateBase</code> / <code>AGameState</code></td>
+<td>记分牌 / 公告栏</td>
+<td>单关卡，<strong>全端复制</strong></td>
+<td>GameMode 想让所有客户端看到的全局状态：比分、比赛阶段、玩家列表、服务器时间。</td>
+</tr>
+<tr>
+<td><code>APlayerController</code></td>
+<td>玩家的意志</td>
+<td>单玩家，Server + 属主端</td>
+<td>把「人的输入」转成「游戏中的指令」，是玩家与服务器之间的 RPC 通道与所有权锚点。</td>
+</tr>
+<tr>
+<td><code>APlayerState</code></td>
+<td>玩家的名片</td>
+<td>单玩家，<strong>全端复制</strong></td>
+<td>需要被所有人看到的玩家数据：名字、分数、队伍、Ping。是跨端玩家信息的唯一可靠载体。</td>
+</tr>
+<tr>
+<td><code>APawn</code> / <code>ACharacter</code></td>
+<td>玩家的化身</td>
+<td>被 PC 占有（Possess）</td>
+<td>世界中的物理实体，可被销毁/重生，与 PlayerController 解耦。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>一句话记忆</strong>：GameMode 是只有服务器知道的规则；GameState 是服务器广播给所有人的公告；PlayerController 是每个人手里的遥控器；PlayerState 是贴在每个人身上、所有人都能看到的名牌。</p>
+</blockquote>
+<p>四类在一局战斗中的持有与协作关系：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">flowchart TB</span><br><span class="line">  GI[&quot;UGameInstance&lt;br/&gt;&lt;i&gt;进程级 · 跨关卡持久&lt;/i&gt;&quot;]</span><br><span class="line">  subgraph W[&quot;当前关卡 World（一局战斗）&quot;]</span><br><span class="line">    GM[&quot;AGameMode&lt;br/&gt;规则 / 裁判&quot;]</span><br><span class="line">    GS[&quot;AGameState&lt;br/&gt;全局广播状态&quot;]</span><br><span class="line">    subgraph P1[&quot;玩家 A&quot;]</span><br><span class="line">      PC1[&quot;PlayerController A&quot;]</span><br><span class="line">      PS1[&quot;PlayerState A&quot;]</span><br><span class="line">      PA[&quot;Pawn A&quot;]</span><br><span class="line">    end</span><br><span class="line">    subgraph P2[&quot;玩家 B&quot;]</span><br><span class="line">      PC2[&quot;PlayerController B&quot;]</span><br><span class="line">      PS2[&quot;PlayerState B&quot;]</span><br><span class="line">      PB[&quot;Pawn B&quot;]</span><br><span class="line">    end</span><br><span class="line">  end</span><br><span class="line">  GI --&gt; W</span><br><span class="line">  GM -. &quot;spawn &amp; 持有&quot; .-&gt; GS</span><br><span class="line">  GM -. &quot;登入时创建&quot; .-&gt; PC1</span><br><span class="line">  GM -. &quot;登入时创建&quot; .-&gt; PC2</span><br><span class="line">  PC1 --&gt; PS1</span><br><span class="line">  PC1 -- &quot;Possess&quot; --&gt; PA</span><br><span class="line">  PC2 --&gt; PS2</span><br><span class="line">  PC2 -- &quot;Possess&quot; --&gt; PB</span><br><span class="line">  GS -- &quot;PlayerArray 汇总&quot; --&gt; PS1</span><br><span class="line">  GS -- &quot;PlayerArray 汇总&quot; --&gt; PS2</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="2-网络存在性：谁在服务器、谁在客户端"><a href="#2-网络存在性：谁在服务器、谁在客户端" class="headerlink" title="2. 网络存在性：谁在服务器、谁在客户端"></a>2. 网络存在性：谁在服务器、谁在客户端</h2><p>这是 DS 开发中 <strong>最容易踩坑、也最重要</strong> 的一张表。在专用服务器上不存在「本地玩家」，服务器是纯粹的权威仲裁者；每个客户端只能看到复制过来的一小部分世界。</p>
+<p>图例：🟡 仅服务器 ｜ 🟢 服务器 + 所有客户端（复制）｜ 🔵 服务器 + 属主客户端</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>存在位置</th>
+<th>是否复制</th>
+<th>数量关系</th>
+<th>关键含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AGameMode</code></td>
+<td>🟡 仅 SERVER</td>
+<td>否</td>
+<td>每 World 一个</td>
+<td>客户端上 <code>GetAuthGameMode()</code> 永远返回 <code>nullptr</code>。规则逻辑绝不能依赖客户端能读到它。</td>
+</tr>
+<tr>
+<td><code>AGameState</code></td>
+<td>🟢 SERVER + ALL</td>
+<td>是</td>
+<td>每 World 一个</td>
+<td>GameMode 与客户端之间的「广播窗口」。客户端读全局状态只能通过它。</td>
+</tr>
+<tr>
+<td><code>APlayerController</code></td>
+<td>🔵 SERVER + 属主端</td>
+<td>特殊</td>
+<td>每玩家一个</td>
+<td>服务器持有<strong>全部</strong> PC；每个客户端<strong>只拥有自己那一个</strong>，看不到别人的 PC。</td>
+</tr>
+<tr>
+<td><code>APlayerState</code></td>
+<td>🟢 SERVER + ALL</td>
+<td>是</td>
+<td>每玩家一个</td>
+<td>所有玩家的 PlayerState 复制到所有客户端。想让别人看到我的名字/队伍/分数，只能放这里。</td>
+</tr>
+<tr>
+<td><code>APawn</code></td>
+<td>🟢 SERVER + ALL*</td>
+<td>是（受相关性影响）</td>
+<td>视玩法而定</td>
+<td>受网络相关性（Relevancy）/剔除距离影响，远处的 Pawn 可能不复制到某客户端。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>核心推论</strong>：在 DS 上，<strong>客户端看不到 GameMode，也看不到其他玩家的 PlayerController</strong>。因此：① 全局状态放 <code>GameState</code>；② 跨端玩家信息放 <code>PlayerState</code>（并通过 <code>GameState::PlayerArray</code> 遍历）；③ 玩家私有的、需下发到属主端的指令走 <code>PlayerController</code> 的 <code>Client_</code> RPC。</p>
+</blockquote>
+<hr>
+<h2 id="3-逐类深入职责剖析"><a href="#3-逐类深入职责剖析" class="headerlink" title="3. 逐类深入职责剖析"></a>3. 逐类深入职责剖析</h2><h3 id="AGameModeBase-vs-AGameMode"><a href="#AGameModeBase-vs-AGameMode" class="headerlink" title="AGameModeBase vs AGameMode"></a>AGameModeBase vs AGameMode</h3><p>UE4.14 起框架拆成两层，务必分清：</p>
+<ul>
+<li>**<code>AGameModeBase</code>**：精简基类。只有登入/登出、Pawn 生成、出生点选择等最小规则集。适合单人、休闲、菜单关卡。</li>
+<li>**<code>AGameMode</code><strong>：继承 Base，额外引入 <strong>MatchState 比赛状态机</strong>（<code>WaitingToStart → InProgress → WaitingPostMatch</code>）、<code>bDelayedStart</code>、比赛开始/结束的显式控制。</strong>多人竞技 / 对战类 DS 几乎都应基于 <code>AGameMode</code>**，因为你需要「所有人就位后统一开赛」这类语义。</li>
+</ul>
+<h3 id="AGameStateBase-AGameState-——-状态广播中枢"><a href="#AGameStateBase-AGameState-——-状态广播中枢" class="headerlink" title="AGameStateBase / AGameState —— 状态广播中枢"></a>AGameStateBase / AGameState —— 状态广播中枢</h3><p>GameState 是 GameMode 在客户端的「代言人」。GameMode 在 <code>InitGameState()</code> 中写入反向引用（注意：GameState 对象本身更早在 <code>PreInitializeComponents</code> 中 SpawnActor，见第 4 节）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AGameModeBase::InitGameState() 内部（简化）</span></span><br><span class="line">GameState-&gt;GameModeClass = <span class="built_in">GetClass</span>();</span><br><span class="line">GameState-&gt;SpectatorClass = SpectatorClass;</span><br><span class="line">GameState-&gt;<span class="built_in">ReceivedGameModeClass</span>();</span><br><span class="line"><span class="comment">// 而 AuthorityGameMode / GameState 的 SpawnActor 发生在更早的 PreInitializeComponents</span></span><br></pre></td></tr></table></figure>
+
+<p>关键成员：<code>PlayerArray</code>（所有 PlayerState 的汇总，客户端遍历玩家的唯一入口）、<code>GetServerWorldTimeSeconds()</code>（网络同步的权威时间）、<code>bReplicatedHasBegunPlay</code>（比赛是否已 BeginPlay 的复制标志）。</p>
+<h3 id="APlayerController-——-所有权与-RPC-枢纽"><a href="#APlayerController-——-所有权与-RPC-枢纽" class="headerlink" title="APlayerController —— 所有权与 RPC 枢纽"></a>APlayerController —— 所有权与 RPC 枢纽</h3><ul>
+<li><strong>所有权锚点</strong>：一个 Actor 的 <code>Owner</code> 链最终指向某个 PlayerController，才决定它的 RPC 走哪条连接、以及 <code>COND_OwnerOnly</code> 复制条件。</li>
+<li><strong>输入 → 指令</strong>：客户端采集输入，通过 <code>Server_</code> RPC 上报服务器仲裁。</li>
+<li><strong>持有 PlayerState 与 Pawn</strong>：<code>PlayerState</code> 在 PC 初始化时创建；<code>Pawn</code> 通过 <code>Possess()</code> 关联，二者生命周期解耦（Pawn 死亡重生，PC 不变）。</li>
+</ul>
+<h3 id="APlayerState-——-跨端玩家名片"><a href="#APlayerState-——-跨端玩家名片" class="headerlink" title="APlayerState —— 跨端玩家名片"></a>APlayerState —— 跨端玩家名片</h3><p>凡是 <strong>「其他客户端也需要看到」</strong> 的玩家数据都应放 PlayerState：昵称、队伍、击杀/死亡、Ping、是否观战。它在无缝旅行中还承担数据搬运职责（见第 8 节 <code>CopyProperties</code>）。GAS 项目常把 <code>AbilitySystemComponent</code> 挂在 PlayerState 上，以获得比 Pawn 更长的生命周期。</p>
+<hr>
+<h2 id="4-战场启动：关卡级初始化时序"><a href="#4-战场启动：关卡级初始化时序" class="headerlink" title="4. 战场启动：关卡级初始化时序"></a>4. 战场启动：关卡级初始化时序</h2><p>当 DS 通过 <code>ServerTravel</code> 或命令行加载一张战斗地图时，引擎按严格顺序创建这局游戏的骨架。<strong>经引擎源码逐行核对，此处纠正一个常见误解</strong>：GameState 并不是在 <code>InitGameState()</code> 里创建的，也不是在 <code>InitGame()</code> 里 —— 它在 GameMode 被 <code>SpawnActor</code> 时触发的 <code>PreInitializeComponents()</code> 中就已生成，且 <code>PreInitializeComponents</code>（含 <code>InitGameState</code>）执行时机 <strong>早于</strong> <code>InitGame</code>。</p>
+<blockquote>
+<p><strong>源码校验 · GameModeBase.cpp</strong><br>真实创建点：<code>PreInitializeComponents</code>（<code>:116</code>）内 —— <code>:132</code> <code>GameState = World-&gt;SpawnActor&lt;AGameStateBase&gt;(GameStateClass)</code>；<code>:133</code> <code>SetGameState(GameState)</code>；<code>:136</code> <code>GameState-&gt;AuthorityGameMode = this</code>；<code>:143</code> 调 <code>InitGameState()</code>。而 <code>InitGameState()</code>（<code>:107</code>）内 <strong>不 SpawnActor</strong>，只做 <code>:109</code> <code>GameState-&gt;GameModeClass = GetClass()</code> 与 <code>ReceivedGameModeClass()</code>。<code>InitGame()</code>（<code>:82</code>）只在 <code>:92</code> 生成 <code>GameSession</code>，由 <code>World.cpp:5980 InitializeActorsForPlay</code> 调用，晚于上述阶段。</p>
+</blockquote>
+<p>关卡加载到 World BeginPlay 的服务器端时序：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">sequenceDiagram</span><br><span class="line">  autonumber</span><br><span class="line">  participant World as UWorld</span><br><span class="line">  participant GM as AGameMode（服务器）</span><br><span class="line">  participant GS as AGameState</span><br><span class="line">  World-&gt;&gt;GM: SetGameMode → SpawnActor(GameModeClass)</span><br><span class="line">  activate GM</span><br><span class="line">  GM-&gt;&gt;GS: PreInitializeComponents :132 SpawnActor(GameStateClass)</span><br><span class="line">  GM-&gt;&gt;GS: :133 SetGameState / :136 AuthorityGameMode = this</span><br><span class="line">  GM-&gt;&gt;GS: :143 InitGameState() → :109 GameModeClass = GetClass()</span><br><span class="line">  deactivate GM</span><br><span class="line">  World-&gt;&gt;GM: InitializeActorsForPlay → :5980 InitGame(Map, Options, Error)</span><br><span class="line">  Note over GM: InitGame 仅 Spawn GameSession(:92)，解析 URL Options</span><br><span class="line">  World-&gt;&gt;World: UWorld::BeginPlay :6099</span><br><span class="line">  World-&gt;&gt;GM: :6120 GameMode-&gt;StartPlay()</span><br><span class="line">  alt AGameModeBase</span><br><span class="line">    GM-&gt;&gt;GS: StartPlay :206 → HandleBeginPlay()</span><br><span class="line">  else AGameMode（竞技）</span><br><span class="line">    GM-&gt;&gt;GM: StartPlay :132 (不调 Super) → MatchState 流转</span><br><span class="line">    GM-&gt;&gt;GM: StartMatch → InProgress → HandleMatchHasStarted :203</span><br><span class="line">    GM-&gt;&gt;GS: :221 GetWorldSettings()-&gt;NotifyBeginPlay()</span><br><span class="line">  end</span><br><span class="line">  Note over GM,GS: World BeginPlay 之后才允许 SpawnActor 玩法实体</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键阶段说明（按真实执行先后）"><a href="#关键阶段说明（按真实执行先后）" class="headerlink" title="关键阶段说明（按真实执行先后）"></a>关键阶段说明（按真实执行先后）</h3><table>
+<thead>
+<tr>
+<th>阶段（先→后）</th>
+<th>发生了什么</th>
+<th>此时可做 / 不可做</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PreInitializeComponents()</code>（最先）</td>
+<td>由 <code>SpawnActor(GameMode)</code> 生命周期触发。<strong>在此 SpawnActor 出 GameState</strong>（<code>:132</code>）、设 <code>AuthorityGameMode</code>（<code>:136</code>），并调 <code>InitGameState()</code>（<code>:143</code>）。</td>
+<td>✅ 初始化 GameState 默认字段。❌ 依赖玩家（尚无 PC/PS）。</td>
+</tr>
+<tr>
+<td><code>InitGameState()</code></td>
+<td>被 <code>PreInitializeComponents</code> 调用。仅设 <code>GameModeClass</code>（<code>:109</code>）、<code>SpectatorClass</code> 等，<strong>不创建 GameState</strong>。</td>
+<td>✅ 全局状态默认值。</td>
+</tr>
+<tr>
+<td><code>InitGame(...)</code></td>
+<td>由 <code>InitializeActorsForPlay</code>（<code>World.cpp:5980</code>）调用，<strong>晚于</strong> PreInitializeComponents。<code>Options</code> 来自 URL（<code>?key=value</code>）。<code>AGameMode</code> 在此 <code>:59</code> 置 MatchState=<code>EnteringMap</code>。</td>
+<td>✅ 解析启动参数、读配置。❌ 访问玩家、❌ SpawnActor 玩法实体（World 未 BeginPlay）。</td>
+</tr>
+<tr>
+<td><code>StartPlay()</code> / <code>HandleBeginPlay()</code></td>
+<td><code>UWorld::BeginPlay</code>（<code>:6099</code>）在 <code>:6120</code> 调 <code>StartPlay</code>。<code>AGameModeBase</code> 直接调 <code>HandleBeginPlay</code>（<code>:206</code>）；**<code>AGameMode</code> 不调 Super**，经 MatchState → <code>HandleMatchHasStarted</code>（<code>:203</code>）→ <code>NotifyBeginPlay</code>（<code>:221</code>）间接触发。</td>
+<td>✅ 从这里开始才能安全 <code>SpawnActor</code> 玩法实体。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>关于 URL Options 的通用约定</strong>：自定义启动参数（如地图标识、匹配标识等）通常经由 URL Options（<code>?key=value</code>）传入，<code>InitGame</code>（<code>GameModeBase.cpp:82</code>）正是解析入口；而玩法实体（怪物、AI 等）的批量生成必须等到 <code>World</code> 完成 <code>BeginPlay</code>（<code>AGameMode</code> 下即 <code>HandleMatchHasStarted</code> / <code>:221 NotifyBeginPlay</code> 后）才启动，严禁在 <code>InitGame</code> 阶段调用 <code>SpawnActor</code>。</p>
+</blockquote>
+<hr>
+<h2 id="5-玩家登入：PreLogin-→-Login-→-PostLogin"><a href="#5-玩家登入：PreLogin-→-Login-→-PostLogin" class="headerlink" title="5. 玩家登入：PreLogin → Login → PostLogin"></a>5. 玩家登入：PreLogin → Login → PostLogin</h2><p>关卡骨架就绪后，每个客户端连入时都会独立走一遍登入流程。这条链决定了 <strong>PlayerController、PlayerState、Pawn 三者的创建先后顺序</strong>——这个顺序是 GAS 初始化、队伍分配、出生逻辑的时序基础。</p>
+<p>单个玩家从连接到占有 Pawn 的服务器端时序：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">sequenceDiagram</span><br><span class="line">  autonumber</span><br><span class="line">  participant World as UWorld</span><br><span class="line">  participant GM as AGameMode（服务器）</span><br><span class="line">  participant PC as PlayerController</span><br><span class="line">  participant PS as PlayerState</span><br><span class="line">  participant P as Pawn</span><br><span class="line">  Note over World,GM: 握手阶段 World::NotifyControlMessage :7517</span><br><span class="line">  World-&gt;&gt;GM: PreLogin(Options, Addr, UniqueId, Error) :684</span><br><span class="line">  Note over GM: 准入闸门：GameSession-&gt;ApproveLogin 设 Error 即拒绝</span><br><span class="line">  World-&gt;&gt;GM: SpawnPlayActor(LevelActor.cpp:1071) → :1086 Login()</span><br><span class="line">  GM-&gt;&gt;PC: Login :721 SpawnPlayerController</span><br><span class="line">  PC-&gt;&gt;PS: PC::PostInitializeComponents :1080 → InitPlayerState → SpawnActor(PlayerState)</span><br><span class="line">  GM-&gt;&gt;GM: InitNewPlayer :787（此处断言 PS 非空 :794）</span><br><span class="line">  World-&gt;&gt;GM: :1110 PostLogin(NewPlayer)</span><br><span class="line">  GM-&gt;&gt;GM: GenericPlayerInitialization :1020 → HandleStartingNewPlayer :1050</span><br><span class="line">  GM-&gt;&gt;GM: RestartPlayer :1256 → FindPlayerStart(内 ChoosePlayerStart) :1263</span><br><span class="line">  GM-&gt;&gt;P: RestartPlayerAtPlayerStart → SpawnDefaultPawnFor :1310 / SetPawn :1313</span><br><span class="line">  GM-&gt;&gt;P: FinishRestartPlayer :1377 → Possess :1379</span><br><span class="line">  GM--&gt;&gt;PC: 复制 PC/PS/Pawn → 客户端 ReceivedPlayer / ClientRestart</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>源码校验 · 调用父子关系纠正</strong><br>常见的「<code>Login</code> 内部调用 <code>SpawnPlayActor</code>」<strong>方向写反了</strong>。真实关系是外层 <code>UWorld::SpawnPlayActor</code>（<code>LevelActor.cpp:1071</code>）在 <code>:1086</code> 调用 <code>GameMode-&gt;Login</code>，<code>:1110</code> 再调 <code>PostLogin</code>。<code>Login</code>（<code>GameModeBase.cpp:707</code>）通过 <code>:721 SpawnPlayerController</code> 生成 PC；<strong>PlayerState 并非 Login 显式创建</strong>，而是 PC 的 <code>PostInitializeComponents</code>（<code>PlayerController.cpp:1080</code>）→ <code>InitPlayerState</code>（<code>Controller.cpp:654 SpawnActor&lt;APlayerState&gt;</code>）附带生成。因果结果（PC 先于 PS）不变。</p>
+</blockquote>
+<h3 id="三个关键钩子的边界"><a href="#三个关键钩子的边界" class="headerlink" title="三个关键钩子的边界"></a>三个关键钩子的边界</h3><table>
+<thead>
+<tr>
+<th>钩子</th>
+<th>时机与用途</th>
+<th>此时对象状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PreLogin()</code>（<code>:684</code>）</td>
+<td><strong>准入判定</strong>：在创建任何 Actor/通道之前调用。<code>GameSession-&gt;ApproveLogin(Options)</code> 校验密码、封禁、容量；设置 <code>ErrorMessage</code> 即拒绝连接。<code>AGameMode</code> 未重写，沿用 Base。</td>
+<td>❌ 尚无 PC、无 PS、无 Pawn。只有连接信息（地址、UniqueId、Options）。</td>
+</tr>
+<tr>
+<td><code>Login()</code>（<code>:707</code>）</td>
+<td>由 <code>SpawnPlayActor</code> 调用（非反向）。<code>:721</code> <code>SpawnPlayerController</code> 生成 PC，PC 的 <code>PostInitializeComponents</code> 附带生成 PS，随后 <code>InitNewPlayer</code> 断言 PS 非空。一般不重写。</td>
+<td>✅ PC 刚生成、PS 刚生成。Pawn 尚未生成。</td>
+</tr>
+<tr>
+<td><code>PostLogin()</code>（<code>:1016</code>）</td>
+<td><strong>玩家完全就位</strong>：最重要的初始化点。<code>:1020 GenericPlayerInitialization</code> 开始复制/注册，<code>:1050 HandleStartingNewPlayer</code> → <code>RestartPlayer</code> 生成并占有 Pawn。<code>AGameMode::PostLogin</code>（<code>:91</code>）在 Super 之前已可访问 <code>PlayerState</code>（<code>:112</code>）。</td>
+<td>✅ PC / PS 有效；Super 完成后 Pawn 就绪并被 Possess。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>顺序铁律（源码确认）</strong>：<strong>PlayerController → PlayerState → （PostLogin 中）Pawn</strong>。Pawn 在 <code>Super::PostLogin</code> → <code>HandleStartingNewPlayer</code>（<code>:1050</code>）→ <code>RestartPlayer</code> → <code>SpawnDefaultPawnFor</code>（<code>:1310</code>）才生成，<code>Possess</code> 由 <code>FinishRestartPlayer</code>（<code>:1379</code>）执行。因此在 <code>AGameMode::PostLogin</code> 的 <code>Super</code> 之前访问 <code>NewPlayer-&gt;GetPawn()</code> 得 <code>nullptr</code>，但 <code>NewPlayer-&gt;PlayerState</code> 已可用（<code>GameMode.cpp:112</code> 直接解引用未判空）。另注：<code>ChoosePlayerStart</code> 在 <code>RestartPlayer</code> → <code>FindPlayerStart</code>（<code>:1263</code>）选点阶段调用，而非被 <code>SpawnDefaultPawnFor</code> 调用。</p>
+</blockquote>
+<h3 id="属主客户端侧的回响"><a href="#属主客户端侧的回响" class="headerlink" title="属主客户端侧的回响"></a>属主客户端侧的回响</h3><p>服务器 <code>PostLogin</code> 完成后，属主客户端会按复制到达顺序陆续触发：<code>APlayerController::ReceivedPlayer()</code> → PC 的客户端 <code>BeginPlay</code> → <code>OnRep_PlayerState</code> → <code>AcknowledgePossession</code> / <code>ClientRestart</code>。<strong>这些回调的相对顺序不保证</strong>，客户端初始化务必用 <code>OnRep_</code> + 有效性检查驱动，而非假定某个对象已到达。</p>
+<hr>
+<h2 id="6-MatchState-比赛状态机（AGameMode-专有）"><a href="#6-MatchState-比赛状态机（AGameMode-专有）" class="headerlink" title="6. MatchState 比赛状态机（AGameMode 专有）"></a>6. MatchState 比赛状态机（AGameMode 专有）</h2><p>若基类选 <code>AGameMode</code>，比赛节奏由一个复制到客户端的状态机驱动，非常适合「等待就位 → 开赛 → 结算」的竞技流程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">stateDiagram-v2</span><br><span class="line">  [*] --&gt; EnteringMap</span><br><span class="line">  EnteringMap --&gt; WaitingToStart: 关卡与Actor就绪</span><br><span class="line">  WaitingToStart --&gt; InProgress: ReadyToStartMatch()&lt;br/&gt;→ StartMatch()</span><br><span class="line">  InProgress --&gt; WaitingPostMatch: EndMatch()</span><br><span class="line">  WaitingPostMatch --&gt; LeavingMap: StartToLeaveMap()</span><br><span class="line">  LeavingMap --&gt; [*]</span><br><span class="line">  WaitingToStart --&gt; Aborted: 异常中止</span><br><span class="line">  InProgress --&gt; Aborted: 异常中止</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>进入回调</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>WaitingToStart</code></td>
+<td><code>HandleMatchIsWaitingToStart()</code></td>
+<td>玩家陆续进入、观战、倒计时；<code>bDelayedStart</code> 控制是否卡在此。</td>
+</tr>
+<tr>
+<td><code>InProgress</code></td>
+<td><code>HandleMatchHasStarted()</code></td>
+<td>正式开赛：此时启动玩法实体生成、开放输入、开始计分。</td>
+</tr>
+<tr>
+<td><code>WaitingPostMatch</code></td>
+<td><code>HandleMatchHasEnded()</code></td>
+<td>结算、冻结玩家、展示战绩。</td>
+</tr>
+<tr>
+<td><code>LeavingMap</code></td>
+<td><code>HandleLeavingMap()</code></td>
+<td>准备切图 / 无缝旅行。</td>
+</tr>
+</tbody></table>
+<p>状态通过 <code>AGameState::MatchState</code> 复制，客户端在 <code>OnRep_MatchState</code> 中同步表现层（如开赛提示、结算界面）。</p>
+<hr>
+<h2 id="7-Actor-通用初始化生命周期"><a href="#7-Actor-通用初始化生命周期" class="headerlink" title="7. Actor 通用初始化生命周期"></a>7. Actor 通用初始化生命周期</h2><p>上述四类本质上都是 Actor，遵循统一的初始化管线。了解它可以精确判断「在哪个回调里做什么」。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">  A[&quot;SpawnActor&quot;] --&gt; B[&quot;PostSpawnInitialize&quot;]</span><br><span class="line">  B --&gt; C[&quot;组件 RegisterComponent&quot;]</span><br><span class="line">  C --&gt; D[&quot;PreInitializeComponents&quot;]</span><br><span class="line">  D --&gt; E[&quot;InitializeComponents&lt;br/&gt;（各组件 InitializeComponent）&quot;]</span><br><span class="line">  E --&gt; F[&quot;PostInitializeComponents&quot;]</span><br><span class="line">  F --&gt; G[&quot;BeginPlay&lt;br/&gt;（World 已就绪时）&quot;]</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>PostInitializeComponents</code>：组件已就绪但尚未 BeginPlay，适合做依赖本 Actor 组件的初始化。</li>
+<li><code>BeginPlay</code>：<strong>跨 Actor 的 BeginPlay 顺序不保证</strong>。不要假设「GameState 的 BeginPlay 一定早于我的 Pawn」。跨对象依赖用复制回调或延迟一帧处理。</li>
+<li><strong>延后一帧的价值</strong>：诸如感知源注册（<code>RegisterPerceptionSource</code>）之类依赖世界/子系统完全就绪的操作，宜通过任务调度延后至少一帧执行，规避初始化竞态。</li>
+</ul>
+<hr>
+<h2 id="8-无缝旅行（Seamless-Travel）对初始化的影响"><a href="#8-无缝旅行（Seamless-Travel）对初始化的影响" class="headerlink" title="8. 无缝旅行（Seamless Travel）对初始化的影响"></a>8. 无缝旅行（Seamless Travel）对初始化的影响</h2><p>DS 从一张地图切到下一张（如大厅 → 战斗，或战斗 → 结算）时，无缝旅行让连接 <strong>不断线</strong> 地过渡。<strong>经源码核对，这里有一处必须纠正的关键误解</strong>：PlayerController 与 PlayerState 在无缝旅行中 <strong>并非同一对象被原样保留</strong>，而是被销毁重建，仅数据通过 <code>CopyProperties</code> / <code>OverrideWith</code> 迁移，底层 <code>UPlayer</code> / <code>NetConnection</code> 经 <code>SwapPlayerControllers</code> 迁移到新 PC。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>无缝旅行中的命运</th>
+<th>源码证据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GameMode</code> / <code>GameState</code></td>
+<td>销毁重建</td>
+<td>仅当 <code>bToTransition==true</code>（过渡地图）临时保留（<code>GameModeBase.cpp:551-555</code>）；到达最终关卡不再保留 → 新建，重新走 <code>PreInitializeComponents</code>/<code>InitGame</code>。</td>
+</tr>
+<tr>
+<td><code>PlayerState</code></td>
+<td>数据保留（对象重建）</td>
+<td><code>GetSeamlessTravelActorList</code> 用 <code>ActorList.Append(GameState-&gt;PlayerArray)</code>（<code>:546</code>）让 PS 穿越过渡关卡不被 GC；但每玩家最终仍生成新 PS，旧 PS 经 <code>CopyProperties</code>（<code>PlayerState.cpp:112</code>）迁移数据后 <code>Destroy()</code>（<code>PlayerController.cpp:3674</code>）。</td>
+</tr>
+<tr>
+<td><code>PlayerController</code></td>
+<td>重建 + 数据迁移</td>
+<td><strong>不在</strong> 保留列表；<code>HandleSeamlessTravelPlayer</code>（<code>:607</code>）在 <code>:615</code> spawn 新 PC，经 <code>SeamlessTravelTo</code>/<code>SeamlessTravelFrom</code>/<code>SwapPlayerControllers</code>（<code>:618-620</code>）迁移连接。</td>
+</tr>
+<tr>
+<td><code>Pawn</code></td>
+<td>销毁</td>
+<td>不在保留列表；<code>HandleStartingNewPlayer</code>（<code>:640</code>）在新关卡重新生成并 Possess。</td>
+</tr>
+</tbody></table>
+<ul>
+<li>始终保留的是 <strong>PlayerState 对象</strong>（穿越过渡关卡），但玩家数据最终仍靠 <code>CopyProperties</code> 迁移到新 PS —— 表述为「数据保留」比「对象保留」更准确。</li>
+<li>重写 <code>AGameModeBase::GetSeamlessTravelActorList()</code>（<code>:539</code>）可扩展需要保留的 Actor。</li>
+<li>**数据搬运走 <code>APlayerState::CopyProperties</code>**（拷贝 <code>Score</code>/<code>PlayerId</code>/<code>UniqueId</code>/<code>PlayerName</code>/<code>StartTime</code> 等）；跨地图必须保留的自定义玩家数据（连胜、货币等）应在此重写拷贝，否则新地图重置。</li>
+<li>开启方式：<code>AGameModeBase::bUseSeamlessTravel = true</code>。</li>
+</ul>
+<hr>
+<h2 id="9-重点挖掘：陷阱与最佳实践"><a href="#9-重点挖掘：陷阱与最佳实践" class="headerlink" title="9. 重点挖掘：陷阱与最佳实践"></a>9. 重点挖掘：陷阱与最佳实践</h2><p><strong>陷阱 1 · 把全局状态只放在 GameMode</strong><br>GameMode 不复制，客户端读不到。任何客户端 UI 需要展示的比分、阶段、倒计时，<strong>必须放 GameState</strong> 并用 <code>OnRep_</code> 驱动 UI。</p>
+<p><strong>陷阱 2 · 用 PlayerController 数组遍历所有玩家</strong><br>客户端只拥有自己的 PC，看不到别人的。<strong>遍历玩家请用 <code>GameState-&gt;PlayerArray</code>（PlayerState 列表）</strong>，这是唯一跨端可靠的玩家集合。</p>
+<p><strong>陷阱 3 · 在 InitGame 阶段 SpawnActor 玩法实体</strong><br>此时 World 尚未 BeginPlay，生成的 Actor 生命周期回调时序异常，且易触发单帧大量生成的性能尖峰。<strong>玩法实体生成应等到 <code>HandleMatchHasStarted</code> 之后，并考虑分帧限额，避免单帧批量 SpawnActor</strong>。</p>
+<p><strong>陷阱 4 · 在 PostLogin 的 Super 之前访问 Pawn</strong><br>Pawn 在 <code>Super::PostLogin</code> → <code>RestartPlayer</code> 中才生成。之前访问 <code>GetPawn()</code> 得到 <code>nullptr</code>。队伍/出生逻辑要么放在 Super 之后，要么重写 <code>SpawnDefaultPawnFor</code> / <code>ChoosePlayerStart</code>。</p>
+<p><strong>陷阱 5 · 假定跨 Actor 的 BeginPlay / OnRep 顺序</strong><br>客户端上 PC、PS、Pawn、GameState 的到达与回调顺序 <strong>不保证</strong>。初始化逻辑要幂等、可重入，用 <code>OnRep_</code> + 有效性检查，而非一次性假设「对方已就绪」。</p>
+<blockquote>
+<p><strong>放置建议 · 数据该放哪一层</strong><br><strong>私有且仅属主端可见</strong> → PlayerController；<strong>需要所有人看到的玩家数据</strong> → PlayerState；<strong>全局比赛状态</strong> → GameState；<strong>纯服务器规则/仲裁</strong> → GameMode；<strong>跨关卡持久</strong> → GameInstance / Subsystem。</p>
+</blockquote>
+<h3 id="GAS-组件的挂载时机差异"><a href="#GAS-组件的挂载时机差异" class="headerlink" title="GAS 组件的挂载时机差异"></a>GAS 组件的挂载时机差异</h3><p>把 <code>AbilitySystemComponent</code> 挂在 <strong>PlayerState</strong> 上（生命周期长、跨 Pawn 重生保留）还是 <strong>Pawn</strong> 上（简单、随 Pawn 销毁），会直接影响初始化时序：前者在登入早期即就绪，需处理 PS 与 Pawn 的 <code>InitAbilityActorInfo</code> 双端时序；后者随 Pawn 生成，重生时需重新初始化。DS 玩家角色通常选 PlayerState 挂载。</p>
+<hr>
+<blockquote>
+<p>本文基于 Unreal Engine 5.x Gameplay Framework 的公开框架行为整理，函数调用链为简化示意，具体实现以所用引擎版本 <code>GameModeBase.cpp</code> / <code>GameMode.cpp</code> / <code>PlayerController.cpp</code> / <code>PlayerState.cpp</code> 源码为准。</p>
+</blockquote>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-08-17</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/iris-optimization-practice/">UE5 Iris 复制系统落地实践：从踩坑到优化的四个阶段</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

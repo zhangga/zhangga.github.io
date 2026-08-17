@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十八部分：基于 Unreal Engine 5.7.4 源码，以证据闭环讲解性能优化、过滤策略、FPS、开放世界、大逃杀、MMO 案例及迁移发布。">
+  <meta name="theme-color" content="#f3f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230e2233'/%3E%3Cpath d='M11 16h42v7H11zm0 13h27v7H11zm0 13h17v7H11z' fill='%23f3f0e7'/%3E%3Cpath d='m39 41 5 5 10-13' fill='none' stroke='%235fb98a' stroke-width='6'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-18/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十八部分：最佳实践与实战案例 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f3f0e7;
+      --paper-deep: #e5dfd1;
+      --ink: #172331;
+      --ink-soft: #4f5d68;
+      --line: #c9c1b2;
+      --navy: #17324d;
+      --navy-deep: #0e2233;
+      --navy-soft: #dbe4e9;
+      --safe: #2e7859;
+      --safe-bright: #5fb98a;
+      --safe-soft: #dce9df;
+      --signal: #e06b3b;
+      --signal-soft: #f4d9ca;
+      --yellow: #b07a17;
+      --yellow-soft: #eee3c7;
+      --red: #a64235;
+      --red-soft: #f0d9d4;
+      --white: #fffdf7;
+      --shadow: 0 22px 70px rgba(14, 34, 51, .11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(23, 50, 77, .035) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(rgba(23, 50, 77, .03) 1px, transparent 1px) 0 0 / 48px 48px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.82;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: var(--navy);
+      text-decoration-thickness: 1px;
+      text-underline-offset: .2em;
+    }
+    a:hover { color: var(--signal); }
+    article a,
+    article h2,
+    article h3,
+    article code,
+    .callout strong,
+    .callout strong code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [tabindex="0"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--safe-bright);
+      box-shadow: 0 0 18px rgba(95, 185, 138, .55);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px) 0 0 / 70px 70px,
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 70px 70px,
+        radial-gradient(circle at 82% 18%, rgba(95, 185, 138, .2), transparent 28%),
+        linear-gradient(135deg, #0b1c2a 0%, #17324d 58%, #244f63 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "SHIP";
+      position: absolute;
+      right: -.025em;
+      bottom: -.21em;
+      color: rgba(255, 255, 255, .047);
+      font: 900 clamp(92px, 19vw, 270px) / 1 var(--sans);
+      letter-spacing: -.09em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: 32px;
+      right: max(28px, calc((100vw - 1260px) / 2));
+      width: 112px;
+      height: 112px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      box-shadow:
+        inset 0 0 0 15px rgba(95,185,138,.055),
+        inset 0 0 0 31px rgba(255,255,255,.025);
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1070px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #cce7d7;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: var(--safe-bright); }
+    .hero h1 {
+      max-width: 900px;
+      margin: 0;
+      font: 800 clamp(38px, 5.4vw, 74px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 10px; color: #f0a17f; font-size: .69em; }
+    .hero__deck {
+      max-width: 780px;
+      margin: 24px 0 0;
+      color: #d7e1e5;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.65;
+    }
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    .hero__meta span {
+      padding: 8px 12px;
+      color: #e7f5ec;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.16);
+      font: 700 10px/1 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .topbar {
+      color: var(--ink-soft);
+      background: rgba(255, 253, 247, .9);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .topbar__inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 12px 28px;
+      font-size: 13px;
+    }
+    .topbar a { font-weight: 750; text-decoration: none; }
+    .topbar__status { color: var(--safe); font: 800 10px/1.8 var(--mono); letter-spacing: .08em; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 258px minmax(0, 1fr);
+      gap: 36px;
+      width: min(1260px, calc(100% - 48px));
+      margin: 42px auto 90px;
+      min-width: 0;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 247, .88);
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 45px rgba(14, 34, 51, .07);
+    }
+    .toc__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 19px 18px 13px;
+      border-bottom: 1px solid var(--line);
+    }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--safe); font: 800 9px/1 var(--mono); letter-spacing: .12em; }
+    .toc ol,
+    .toc-mobile ol { list-style: none; margin: 0; padding: 7px 0 12px; }
+    .toc a,
+    .toc-mobile a {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      gap: 7px;
+      padding: 8px 17px;
+      color: var(--ink-soft);
+      border-left: 3px solid transparent;
+      font-size: 12px;
+      line-height: 1.35;
+      text-decoration: none;
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .toc a span,
+    .toc-mobile a span { color: #8a938f; font: 700 9px/1.5 var(--mono); }
+    .toc a b,
+    .toc-mobile a b { font-weight: 650; }
+    .toc a:hover,
+    .toc a[aria-current="true"] {
+      color: var(--navy-deep);
+      background: var(--safe-soft);
+      border-left-color: var(--safe);
+    }
+    .toc a[aria-current="true"] span { color: var(--safe); }
+
+    .article-shell,
+    .layout,
+    article,
+    article section { min-width: 0; }
+    .article-shell { max-width: 930px; }
+    .toc-mobile {
+      display: none;
+      margin-bottom: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .toc-mobile summary {
+      cursor: pointer;
+      padding: 14px 17px;
+      color: var(--navy);
+      font-weight: 800;
+    }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      margin-bottom: 22px;
+      padding: 19px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 35px rgba(14, 34, 51, .055);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 62px;
+      height: 62px;
+      color: var(--white);
+      background: var(--navy);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 8px rgba(255,255,255,.08);
+      font: 900 20px/1 var(--mono);
+    }
+    .source-note p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.62; }
+    .source-note strong { display: block; margin-bottom: 3px; color: var(--ink); }
+    .source-note__tag {
+      color: var(--safe);
+      font: 800 9px/1 var(--mono);
+      letter-spacing: .1em;
+      white-space: nowrap;
+    }
+
+    article {
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article section {
+      position: relative;
+      padding: 56px clamp(26px, 5.4vw, 66px);
+      border-bottom: 1px solid var(--line);
+    }
+    article section:last-child { border-bottom: 0; }
+    article section:nth-child(even) {
+      background:
+        linear-gradient(135deg, rgba(23, 50, 77, .025), transparent 36%),
+        var(--white);
+    }
+    article p { margin: 0 0 19px; }
+    article ul,
+    article ol { margin: 14px 0 22px; padding-left: 1.35em; }
+    article li { margin: 7px 0; }
+    article h2 {
+      scroll-margin-top: 24px;
+      margin: 0 0 22px;
+      color: var(--navy-deep);
+      font: 800 clamp(30px, 4.5vw, 48px) / 1.16 var(--serif);
+      letter-spacing: -.025em;
+    }
+    article h2::before {
+      content: "SECTION " attr(data-no);
+      display: block;
+      margin-bottom: 12px;
+      color: var(--safe);
+      font: 800 10px/1 var(--mono);
+      letter-spacing: .13em;
+    }
+    article h3 {
+      margin: 37px 0 15px;
+      color: var(--ink);
+      font: 800 23px/1.35 var(--serif);
+    }
+    article h4 { margin: 27px 0 10px; color: var(--navy); font-size: 16px; }
+    article code {
+      color: #80432b;
+      background: #f0e8dc;
+      padding: .12em .34em;
+      border-radius: 3px;
+      font: .91em/1.5 var(--mono);
+    }
+    article p code,
+    article li code,
+    article td code { white-space: normal; }
+
+    .lede {
+      margin-bottom: 30px;
+      color: var(--ink-soft);
+      font: 500 clamp(19px, 2.4vw, 23px) / 1.72 var(--serif);
+    }
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 13px;
+      color: var(--signal);
+      font: 800 10px/1 var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .dropcap::first-letter {
+      float: left;
+      margin: .12em .13em 0 0;
+      color: var(--safe);
+      font: 800 4.2em/.78 var(--serif);
+    }
+    .pullquote {
+      margin: 34px 0;
+      padding: 25px 28px 25px 32px;
+      color: var(--navy-deep);
+      background: linear-gradient(90deg, var(--safe-soft), rgba(220, 233, 223, .25));
+      border-left: 6px solid var(--safe);
+      font: 700 clamp(20px, 2.7vw, 27px) / 1.55 var(--serif);
+    }
+    .callout {
+      margin: 28px 0;
+      padding: 21px 24px;
+      background: var(--navy-soft);
+      border: 1px solid #b7cad3;
+      border-left: 5px solid var(--navy);
+    }
+    .callout strong { display: block; margin-bottom: 5px; color: var(--navy-deep); }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout--safe { background: var(--safe-soft); border-color: #b7d0c0; border-left-color: var(--safe); }
+    .callout--safe strong { color: var(--safe); }
+    .callout--warn { background: var(--yellow-soft); border-color: #d9c69b; border-left-color: var(--yellow); }
+    .callout--warn strong { color: #755112; }
+    .callout--danger { background: var(--red-soft); border-color: #d6ada4; border-left-color: var(--red); }
+    .callout--danger strong { color: var(--red); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+      margin: 29px 0;
+    }
+    .card {
+      padding: 21px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--navy);
+      box-shadow: 0 9px 28px rgba(14, 34, 51, .055);
+    }
+    .card--safe { border-top-color: var(--safe); }
+    .card--signal { border-top-color: var(--signal); }
+    .card--yellow { border-top-color: var(--yellow); }
+    .card small { color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .12em; }
+    .card h3 { margin: 10px 0 8px; font-size: 20px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+
+    .evidence-loop {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin: 33px 0;
+      padding-top: 26px;
+    }
+    .evidence-loop::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 8%;
+      right: 8%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--navy), var(--safe), var(--signal));
+    }
+    .loop-step {
+      position: relative;
+      min-height: 150px;
+      padding: 20px 13px 15px;
+      background: var(--navy-deep);
+      color: var(--white);
+      border-bottom: 5px solid var(--safe-bright);
+    }
+    .loop-step::before {
+      content: "";
+      position: absolute;
+      top: -32px;
+      left: calc(50% - 7px);
+      width: 12px;
+      height: 12px;
+      background: var(--white);
+      border: 2px solid var(--safe);
+      border-radius: 50%;
+    }
+    .loop-step b { display: block; margin-bottom: 8px; font: 800 11px/1.2 var(--mono); letter-spacing: .06em; }
+    .loop-step span { color: #c8d7de; font-size: 12px; line-height: 1.5; }
+    .loop-step:last-child { background: var(--safe); border-bottom-color: var(--signal); }
+
+    .truth-line {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      margin: 30px 0;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .truth-line div { padding: 20px; background: var(--white); }
+    .truth-line span { display: block; color: var(--safe); font: 800 9px/1 var(--mono); letter-spacing: .1em; }
+    .truth-line b { display: block; margin-top: 8px; font-family: var(--serif); font-size: 18px; line-height: 1.35; }
+
+    .table-wrap,
+    .codeblock,
+    .funnel,
+    .filter-stack,
+    .budget-calc,
+    .shard-map,
+    .runway {
+      max-width: 100%;
+    }
+    .table-wrap {
+      margin: 25px 0 31px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+    }
+    table {
+      width: 100%;
+      min-width: 690px;
+      border-collapse: collapse;
+      background: var(--white);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    th,
+    td { padding: 14px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th {
+      color: var(--white);
+      background: var(--navy);
+      font: 800 10px/1.35 var(--mono);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:nth-child(even) td { background: rgba(23, 50, 77, .025); }
+    td:first-child { color: var(--navy-deep); font-weight: 750; }
+
+    .codeblock {
+      margin: 25px 0 31px;
+      padding: 22px 24px;
+      overflow-x: auto;
+      color: #deebe3;
+      background: var(--navy-deep);
+      border-left: 5px solid var(--safe-bright);
+      font: 13px/1.68 var(--mono);
+      white-space: pre;
+      tab-size: 2;
+    }
+    .codeblock code {
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      border-radius: 0;
+      font: inherit;
+      white-space: inherit;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+    .codeblock .muted { color: #7e9aa7; }
+    .codeblock .safe { color: #8fd7ae; }
+    .codeblock .signal { color: #f0a17f; }
+
+    .funnel {
+      margin: 30px 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .funnel__track {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(118px, 1fr));
+      min-width: 760px;
+      padding: 18px;
+    }
+    .funnel__step {
+      position: relative;
+      min-height: 126px;
+      padding: 18px 24px 15px 16px;
+      color: var(--white);
+      background: var(--navy);
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%);
+      margin-left: -9px;
+    }
+    .funnel__step:first-child { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); margin-left: 0; }
+    .funnel__step:nth-child(2) { background: #234a66; }
+    .funnel__step:nth-child(3) { background: #2e625f; }
+    .funnel__step:nth-child(4) { background: #37735f; }
+    .funnel__step:nth-child(5) { background: #4f8060; }
+    .funnel__step:nth-child(6) { background: var(--signal); }
+    .funnel__step small { font: 800 8px/1 var(--mono); letter-spacing: .1em; opacity: .8; }
+    .funnel__step b { display: block; margin-top: 10px; font: 800 14px/1.25 var(--serif); }
+    .funnel__step span { display: block; margin-top: 7px; font-size: 10px; line-height: 1.4; opacity: .8; }
+
+    .gate-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 30px 0;
+    }
+    .gate {
+      position: relative;
+      min-height: 158px;
+      padding: 19px 16px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .gate::after {
+      content: "";
+      position: absolute;
+      right: -8px;
+      top: calc(50% - 7px);
+      width: 14px;
+      height: 14px;
+      background: var(--safe);
+      transform: rotate(45deg);
+      z-index: 2;
+    }
+    .gate:last-child::after { display: none; }
+    .gate small { color: var(--safe); font: 800 9px/1 var(--mono); letter-spacing: .09em; }
+    .gate b { display: block; margin: 9px 0 7px; color: var(--navy-deep); font-family: var(--serif); }
+    .gate span { color: var(--ink-soft); font-size: 12px; line-height: 1.5; }
+
+    .tradeboard {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin: 28px 0;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .tradeboard > div { padding: 23px; background: var(--white); }
+    .tradeboard > div:nth-child(1) { border-top: 6px solid var(--safe); }
+    .tradeboard > div:nth-child(2) { border-top: 6px solid var(--yellow); }
+    .tradeboard > div:nth-child(3) { border-top: 6px solid var(--signal); }
+    .tradeboard h3 { margin: 0 0 10px; font-size: 20px; }
+    .tradeboard p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+
+    .state-line {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      margin: 29px 0;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .state-line div {
+      position: relative;
+      flex: 1 0 132px;
+      padding: 17px 15px;
+      background: var(--navy-deep);
+      color: var(--white);
+      text-align: center;
+    }
+    .state-line div + div::before {
+      content: "→";
+      position: absolute;
+      left: -15px;
+      top: calc(50% - 14px);
+      color: var(--signal);
+      font-size: 19px;
+      z-index: 2;
+    }
+    .state-line b { display: block; font: 800 11px/1.25 var(--mono); letter-spacing: .05em; }
+    .state-line span { display: block; margin-top: 7px; color: #bfd0d7; font-size: 11px; line-height: 1.35; }
+    .state-line div:last-child { background: var(--safe); }
+
+    .filter-stack {
+      margin: 31px 0;
+      overflow-x: auto;
+      background: var(--navy-deep);
+      border: 1px solid var(--navy-deep);
+    }
+    .filter-stack__inner {
+      display: grid;
+      grid-template-columns: 165px minmax(150px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr);
+      min-width: 760px;
+    }
+    .filter-stack__head {
+      color: #b9ced7;
+      background: #081721;
+      font: 800 9px/1.3 var(--mono);
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .filter-stack__inner > div { padding: 16px 18px; border-right: 1px solid rgba(255,255,255,.1); border-bottom: 1px solid rgba(255,255,255,.1); }
+    .filter-stack__inner > div:nth-child(4n) { border-right: 0; }
+    .filter-stack__layer {
+      color: var(--white);
+      background: #17324d;
+      font-weight: 800;
+    }
+    .filter-stack__cell { color: #d5e1e5; font-size: 13px; line-height: 1.5; }
+    .filter-stack__inner > div:nth-last-child(-n+4) { border-bottom: 0; }
+
+    .default-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1px;
+      margin: 26px 0;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .default-strip div { padding: 17px 13px; background: var(--paper); text-align: center; }
+    .default-strip b { display: block; color: var(--navy); font: 800 16px/1.2 var(--mono); }
+    .default-strip span { display: block; margin-top: 7px; color: var(--ink-soft); font-size: 11px; line-height: 1.35; }
+
+    .blueprint-key {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 27px 0;
+    }
+    .blueprint-key div {
+      min-height: 142px;
+      padding: 20px;
+      color: #d8e4e8;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px) 0 0 / 20px 20px,
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px) 0 0 / 20px 20px,
+        var(--navy);
+      border: 1px solid #335774;
+    }
+    .blueprint-key b { display: block; color: var(--white); font: 800 13px/1.25 var(--mono); }
+    .blueprint-key span { display: block; margin-top: 9px; font-size: 12px; line-height: 1.5; }
+
+    .scenario {
+      margin: 26px 0 31px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .scenario__head {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      color: var(--white);
+      background: var(--navy-deep);
+    }
+    .scenario__code {
+      display: grid;
+      place-items: center;
+      min-height: 112px;
+      color: var(--safe-bright);
+      border-right: 1px solid rgba(255,255,255,.13);
+      font: 900 25px/1 var(--mono);
+      letter-spacing: -.05em;
+    }
+    .scenario__title { padding: 20px 22px; }
+    .scenario__title small { color: #a9c6d0; font: 800 9px/1 var(--mono); letter-spacing: .12em; }
+    .scenario__title h3 { margin: 8px 0 4px; color: var(--white); font-size: 25px; }
+    .scenario__title p { margin: 0; color: #c6d4da; font-size: 13px; }
+    .scenario__facts {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+    }
+    .scenario__facts div { padding: 15px; background: var(--white); }
+    .scenario__facts small { display: block; color: var(--signal); font: 800 8px/1 var(--mono); letter-spacing: .08em; }
+    .scenario__facts b { display: block; margin-top: 7px; font-size: 13px; line-height: 1.35; }
+
+    .tier-list {
+      margin: 26px 0;
+      border-left: 3px solid var(--navy);
+    }
+    .tier {
+      display: grid;
+      grid-template-columns: 50px 150px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      padding: 15px 18px;
+      border: 1px solid var(--line);
+      border-left: 0;
+      border-bottom: 0;
+    }
+    .tier:last-child { border-bottom: 1px solid var(--line); }
+    .tier__id {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      color: var(--white);
+      background: var(--safe);
+      border-radius: 50%;
+      font: 900 13px/1 var(--mono);
+    }
+    .tier b { color: var(--navy-deep); font-family: var(--serif); }
+    .tier span { color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+
+    .budget-calc {
+      margin: 29px 0;
+      overflow-x: auto;
+      color: var(--white);
+      background: var(--navy-deep);
+      border: 1px solid var(--navy-deep);
+    }
+    .budget-calc__inner { min-width: 720px; padding: 24px; }
+    .budget-calc__label {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 17px;
+      color: #abc2cc;
+      font: 800 9px/1 var(--mono);
+      letter-spacing: .11em;
+    }
+    .budget-row {
+      display: grid;
+      grid-template-columns: 1.2fr 48px .8fr 48px .8fr 48px 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 0;
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+    .budget-row b { color: #dfeaed; font-size: 13px; }
+    .budget-row span { color: var(--safe-bright); font: 800 14px/1 var(--mono); text-align: center; }
+    .budget-row strong { color: #f0a17f; font: 800 14px/1 var(--mono); text-align: right; }
+    .budget-total {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 14px;
+      padding-top: 18px;
+      border-top: 2px solid var(--safe-bright);
+      font-family: var(--mono);
+    }
+    .budget-total b { color: var(--white); }
+    .budget-total strong { color: var(--safe-bright); }
+
+    .phases {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1px;
+      margin: 27px 0;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .phase { min-height: 150px; padding: 17px; background: var(--white); }
+    .phase small { color: var(--safe); font: 800 9px/1 var(--mono); }
+    .phase b { display: block; margin: 9px 0 7px; color: var(--navy-deep); }
+    .phase span { color: var(--ink-soft); font-size: 11px; line-height: 1.45; }
+
+    .shard-map {
+      margin: 31px 0;
+      overflow-x: auto;
+      background: var(--navy-deep);
+      border: 1px solid var(--navy-deep);
+    }
+    .shard-map__inner {
+      display: grid;
+      grid-template-columns: 170px 70px 220px 90px 220px;
+      grid-template-rows: auto auto auto;
+      gap: 12px;
+      align-items: center;
+      min-width: 850px;
+      padding: 29px;
+      color: var(--white);
+    }
+    .shard-node {
+      padding: 17px;
+      background: #17324d;
+      border: 1px solid #41637c;
+      text-align: center;
+    }
+    .shard-node b { display: block; font: 800 12px/1.3 var(--mono); }
+    .shard-node span { display: block; margin-top: 7px; color: #b9ccd4; font-size: 11px; line-height: 1.4; }
+    .shard-node--safe { background: var(--safe); border-color: var(--safe-bright); }
+    .shard-arrow { color: var(--signal); font: 900 23px/1 var(--mono); text-align: center; }
+    .shard-caption { color: #9eb7c1; font: 700 9px/1.4 var(--mono); text-align: center; }
+
+    .runway {
+      margin: 31px 0;
+      overflow-x: auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+    }
+    .runway__inner {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(160px, 1fr));
+      min-width: 850px;
+      padding: 24px;
+      counter-reset: runway;
+    }
+    .runway-step {
+      position: relative;
+      min-height: 245px;
+      padding: 21px 21px 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-right: 0;
+      counter-increment: runway;
+    }
+    .runway-step:last-child { border-right: 1px solid var(--line); }
+    .runway-step::before {
+      content: "0" counter(runway);
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      margin-bottom: 17px;
+      color: var(--white);
+      background: var(--navy);
+      border-radius: 50%;
+      font: 900 11px/1 var(--mono);
+    }
+    .runway-step::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 5px;
+      background: var(--navy);
+    }
+    .runway-step:nth-child(3)::before,
+    .runway-step:nth-child(3)::after { background: var(--yellow); }
+    .runway-step:nth-child(4)::before,
+    .runway-step:nth-child(4)::after { background: var(--signal); }
+    .runway-step:nth-child(5)::before,
+    .runway-step:nth-child(5)::after { background: var(--safe); }
+    .runway-step b { display: block; color: var(--navy-deep); font-family: var(--serif); }
+    .runway-step span { display: block; margin-top: 9px; color: var(--ink-soft); font-size: 12px; line-height: 1.5; }
+    .runway-step em { display: block; margin-top: 14px; color: var(--safe); font: 700 9px/1.45 var(--mono); font-style: normal; }
+
+    .scorecard {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 29px 0;
+    }
+    .score {
+      padding: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .score__head {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      align-items: center;
+      padding-bottom: 13px;
+      border-bottom: 1px solid var(--line);
+    }
+    .score__head b { font-family: var(--serif); font-size: 19px; }
+    .score__head span {
+      padding: 5px 8px;
+      color: var(--safe);
+      background: var(--safe-soft);
+      font: 800 8px/1 var(--mono);
+      letter-spacing: .09em;
+    }
+    .score ul { margin-bottom: 0; font-size: 13px; }
+
+    .rollback {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+      margin: 28px 0;
+    }
+    .rollback__question,
+    .rollback__answer {
+      padding: 23px;
+      border: 1px solid var(--line);
+    }
+    .rollback__question { background: var(--red-soft); border-left: 5px solid var(--red); }
+    .rollback__answer { background: var(--safe-soft); border-left: 5px solid var(--safe); }
+    .rollback__arrow { display: grid; place-items: center; color: var(--signal); font-size: 28px; }
+    .rollback b { display: block; margin-bottom: 8px; font-family: var(--serif); }
+    .rollback p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 26px 0;
+    }
+    .source-grid a {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 17px;
+      color: var(--navy);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .source-grid a::after { content: "↗"; color: var(--signal); }
+    .source-grid a:hover { color: var(--white); background: var(--navy); border-color: var(--navy); }
+
+    .chapter-nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 36px;
+    }
+    .chapter-nav a {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-height: 96px;
+      padding: 19px;
+      color: var(--navy);
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .chapter-nav a:last-child { text-align: right; }
+    .chapter-nav span { color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .11em; }
+    .chapter-nav b { font-family: var(--serif); }
+    .chapter-nav a:hover { color: var(--white); background: var(--navy-deep); border-color: var(--navy-deep); }
+
+    footer {
+      padding: 48px 28px 60px;
+      color: #b9c8ce;
+      background: var(--navy-deep);
+      border-top: 6px solid var(--safe);
+      text-align: center;
+      font-size: 13px;
+    }
+    footer p { margin: 6px 0; }
+    footer a { color: #dce9df; }
+    footer a:hover { color: #f0a17f; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 40;
+      width: 46px;
+      height: 46px;
+      color: var(--white);
+      background: var(--navy);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 10px 35px rgba(14, 34, 51, .25);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: opacity .2s ease, transform .2s ease, background .2s ease;
+    }
+    .back-top:hover { background: var(--signal); }
+    .back-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); gap: 25px; width: min(100% - 32px, 1040px); }
+      article section { padding-inline: clamp(25px, 4vw, 48px); }
+      .evidence-loop { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 0; }
+      .evidence-loop::before,
+      .loop-step::before { display: none; }
+      .gate-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .gate::after { display: none; }
+      .phases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      body { font-size: 16px; }
+      .hero { padding: 62px 24px 55px; }
+      .hero::after { display: none; }
+      .topbar__inner { padding-inline: 18px; }
+      .topbar__status { display: none; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 24px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .source-note { grid-template-columns: 50px minmax(0, 1fr); padding: 17px; }
+      .source-note__mark { width: 50px; height: 50px; }
+      .source-note__tag { grid-column: 2; }
+      article section { padding: 44px 25px; }
+      .cards,
+      .blueprint-key { grid-template-columns: 1fr; }
+      .truth-line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tradeboard { grid-template-columns: 1fr; }
+      .scenario__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .scorecard { grid-template-columns: 1fr; }
+      .source-grid { grid-template-columns: 1fr; }
+      .chapter-nav { grid-template-columns: 1fr; }
+      .chapter-nav a:last-child { text-align: left; }
+      .default-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .phases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 580px) {
+      .hero { padding-inline: 19px; }
+      .hero h1 { font-size: 38px; }
+      .hero__deck { font-size: 17px; }
+      .hero__meta span { font-size: 8px; }
+      .topbar__inner { font-size: 12px; }
+      .layout { width: min(100% - 16px, 560px); }
+      article section { padding: 40px 20px; }
+      article h2 { font-size: 31px; }
+      article h3 { font-size: 21px; }
+      .evidence-loop { grid-template-columns: 1fr 1fr; }
+      .loop-step { min-height: 132px; }
+      .gate-row { grid-template-columns: 1fr; }
+      .truth-line { grid-template-columns: 1fr; }
+      .scenario__head { grid-template-columns: 82px minmax(0, 1fr); }
+      .scenario__code { min-height: 118px; font-size: 19px; }
+      .scenario__facts { grid-template-columns: 1fr 1fr; }
+      .tier { grid-template-columns: 44px minmax(0, 1fr); gap: 11px; }
+      .tier span { grid-column: 2; }
+      .phases { grid-template-columns: 1fr; }
+      .default-strip { grid-template-columns: 1fr 1fr; }
+      .rollback { grid-template-columns: 1fr; }
+      .rollback__arrow { transform: rotate(90deg); }
+      .codeblock { margin-inline: -8px; padding-inline: 18px; }
+      .table-wrap,
+      .funnel,
+      .filter-stack,
+      .budget-calc,
+      .shard-map,
+      .runway { margin-inline: -1px; }
+      .pullquote { padding: 22px; }
+      .back-top { right: 15px; bottom: 15px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+    }
+
+    @media print {
+      body { background: #fff; color: #000; font-size: 11pt; }
+      .reading-progress,
+      .toc,
+      .toc-mobile,
+      .back-top,
+      .topbar { display: none !important; }
+      .hero { padding: 24px; color: #000; background: #fff; border: 2px solid #000; }
+      .hero h1 span + span,
+      .kicker,
+      .hero__deck { color: #000; }
+      .layout { display: block; width: 100%; margin: 18px 0; }
+      .article-shell { max-width: none; }
+      article { box-shadow: none; border: 0; }
+      article section { break-inside: avoid; padding: 24px 0; }
+      a { color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">Part 18 · Best Practices &amp; Cases</p>
+      <h1>
+        <span>最佳实践</span>
+        <span>与实战案例</span>
+      </h1>
+      <p class="hero__deck">把前十七篇的机制装进一条可执行的发布链：先测量，再缩小复制集合；一次只改变一个杠杆，用正确性和尾延迟证明收益，最后带着回退方案上线。</p>
+      <div class="hero__meta" aria-label="文章元信息">
+        <span>Unreal Engine 5.7.4</span>
+        <span>14 Sections</span>
+        <span>Measure → Narrow → Verify → Ship</span>
+        <span>Series Capstone</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="topbar">
+    <div class="topbar__inner">
+      <span><a href="/ue5-iris-guide/">UE5 Iris 技术分析指南</a> / 第十八部分</span>
+      <span class="topbar__status">FIELD MANUAL · SOURCE VERIFIED</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>发布手册</strong><span>14 SECTIONS</span></div>
+      <ol>
+        <li><a href="#operating-system"><span>01</span><b>从能跑到可运营</b></a></li>
+        <li><a href="#evidence-loop"><span>02</span><b>先建立证据基线</b></a></li>
+        <li><a href="#push-poll"><span>03</span><b>Push 与 Poll</b></a></li>
+        <li><a href="#dormancy-delta"><span>04</span><b>Dormancy 与 Delta</b></a></li>
+        <li><a href="#filter-layers"><span>05</span><b>过滤漏斗</b></a></li>
+        <li><a href="#filter-validation"><span>06</span><b>过滤验证</b></a></li>
+        <li><a href="#case-method"><span>07</span><b>案例阅读方法</b></a></li>
+        <li><a href="#fps-case"><span>08</span><b>FPS 蓝图</b></a></li>
+        <li><a href="#open-world-case"><span>09</span><b>开放世界蓝图</b></a></li>
+        <li><a href="#battle-royale-case"><span>10</span><b>百人大逃杀蓝图</b></a></li>
+        <li><a href="#mmo-case"><span>11</span><b>MMO 蓝图</b></a></li>
+        <li><a href="#migration-runway"><span>12</span><b>五阶段迁移跑道</b></a></li>
+        <li><a href="#release-gates"><span>13</span><b>发布闸门与回退</b></a></li>
+        <li><a href="#quick-reference"><span>14</span><b>快速参考与来源</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开本篇目录 · 14 节</summary>
+        <ol>
+          <li><a href="#operating-system"><span>01</span><b>从能跑到可运营</b></a></li>
+          <li><a href="#evidence-loop"><span>02</span><b>先建立证据基线</b></a></li>
+          <li><a href="#push-poll"><span>03</span><b>Push 与 Poll</b></a></li>
+          <li><a href="#dormancy-delta"><span>04</span><b>Dormancy 与 Delta</b></a></li>
+          <li><a href="#filter-layers"><span>05</span><b>过滤漏斗</b></a></li>
+          <li><a href="#filter-validation"><span>06</span><b>过滤验证</b></a></li>
+          <li><a href="#case-method"><span>07</span><b>案例阅读方法</b></a></li>
+          <li><a href="#fps-case"><span>08</span><b>FPS 蓝图</b></a></li>
+          <li><a href="#open-world-case"><span>09</span><b>开放世界蓝图</b></a></li>
+          <li><a href="#battle-royale-case"><span>10</span><b>百人大逃杀蓝图</b></a></li>
+          <li><a href="#mmo-case"><span>11</span><b>MMO 蓝图</b></a></li>
+          <li><a href="#migration-runway"><span>12</span><b>五阶段迁移跑道</b></a></li>
+          <li><a href="#release-gates"><span>13</span><b>发布闸门与回退</b></a></li>
+          <li><a href="#quick-reference"><span>14</span><b>快速参考与来源</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note">
+        <div class="source-note__mark">18</div>
+        <p><strong>文章来源与技术说明</strong>本篇依据 Smartuil 发布的《UE5-Iris 网络复制系统技术分析指南 - 大纲》原创扩写；接口、默认行为和源码路径以本地 Unreal Engine 5.7.4 为技术基线，并参考 Epic Games 官方 Iris、Networking Insights 与 Network Emulation 文档。</p>
+        <a class="source-note__tag" href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">查看大纲原文 ↗</a>
+      </div>
+
+      <article>
+        <section>
+          <span class="eyebrow">18.0 · Operating Doctrine</span>
+          <h2 id="operating-system" data-no="01" tabindex="-1">从“能跑”到“可运营”</h2>
+          <p class="lede dropcap">最佳实践不是一组永远正确的 CVar，也不是把所有对象改成 Push Model。它是一套把复制正确性、服务器成本、连接预算、网络劣化和回退能力放在同一张验收表上的工程方法。</p>
+
+          <div class="truth-line" aria-label="从能跑到可运营的四层标准">
+            <div><span>LEVEL 01</span><b>能复制<br>不等于复制正确</b></div>
+            <div><span>LEVEL 02</span><b>复制正确<br>不等于满足预算</b></div>
+            <div><span>LEVEL 03</span><b>平均值通过<br>不等于尾延迟通过</b></div>
+            <div><span>LEVEL 04</span><b>一次通过<br>不等于可以发布</b></div>
+          </div>
+
+          <p>一套可运营的复制方案，至少要能持续回答四个问题：</p>
+
+          <div class="cards">
+            <div class="card card--safe">
+              <small>SCOPE</small>
+              <h3>谁应该收到？</h3>
+              <p>Owner、Connection、Level、Group、Grid 与 Dynamic Filter 是否让每条连接只看到授权且相关的对象。</p>
+            </div>
+            <div class="card">
+              <small>DIRTINESS</small>
+              <h3>何时发现变化？</h3>
+              <p>Push 标脏、轮询频率、Dormancy wake 和 Fragment 采集是否覆盖所有真实修改路径。</p>
+            </div>
+            <div class="card card--signal">
+              <small>DELIVERY</small>
+              <h3>何时到达？</h3>
+              <p>优先级、包预算、可靠队列、丢包恢复和依赖是否让关键状态在最大可接受时间内到达。</p>
+            </div>
+          </div>
+
+          <p>第四个问题更容易被忽略：如果新配置让 P99 服务器帧、错误率或最大更新年龄恶化，能否在不改客户端协议、不重启全服的前提下停止灰度并恢复上一组配置？没有观测、版本隔离和回退的“优化”，不具备生产意义。</p>
+
+          <div class="evidence-loop" aria-label="优化证据闭环">
+            <div class="loop-step"><b>01 · BASELINE</b><span>冻结构建、场景、人数、网络档位和采集窗口。</span></div>
+            <div class="loop-step"><b>02 · ONE LEVER</b><span>一次只改变 scope、poll、dormancy、delta 或 priority 中的一项。</span></div>
+            <div class="loop-step"><b>03 · CAPTURE</b><span>记录 CPU、对象漏斗、字节、内存和业务断言。</span></div>
+            <div class="loop-step"><b>04 · COMPARE</b><span>比较同场景 P50 / P95 / P99，而不是只看单帧。</span></div>
+            <div class="loop-step"><b>05 · BREAK IT</b><span>加入 lag、jitter、loss、join、travel 与 reconnect。</span></div>
+            <div class="loop-step"><b>06 · SHIP</b><span>满足闸门才灰度；异常触发回退和证据保留。</span></div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>最危险的反模式：先抄参数，再解释结果</strong>
+            <p>一个项目的 15,000 cm cull distance、30 Hz polling 或 1.0 priority，放到另一个移动速度、武器射程、对象密度和带宽档位不同的项目里，没有任何“最佳”含义。参数必须来自场景约束和测量，不来自截图。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.0 · Measurement Contract</span>
+          <h2 id="evidence-loop" data-no="02" tabindex="-1">先建立证据基线，再碰配置</h2>
+          <p class="lede">性能优化不是在控制台里寻找让数字变绿的开关。第一步是写一份可重复的场景合同，让修改前后面对同一组输入、同一组统计口径和同一组正确性断言。</p>
+
+          <h3>场景合同：让两次采集真正可比</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>维度</th><th>必须记录</th><th>为什么</th><th>常见误判</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>构建</td><td>commit、target、config、CVar snapshot</td><td>开发版、测试版和 Shipping 的统计与检查成本不同</td><td>拿 Editor 与 Dedicated Server 直接比较</td></tr>
+                <tr><td>服务器</td><td>硬件、tick rate、线程、实例密度</td><td>poll 与 filter 的可用毫秒预算由它决定</td><td>把空闲开发机结果当云实例容量</td></tr>
+                <tr><td>负载</td><td>连接数、机器人比例、Root / SubObject 数</td><td>CPU 和内存不是只随玩家数线性变化</td><td>只记录“100 人”，不记录每人可见对象</td></tr>
+                <tr><td>玩法</td><td>地图、阶段、移动模式、技能密度</td><td>大厅、跳伞、缩圈、团战的 dirty 分布完全不同</td><td>只测出生点静止场景</td></tr>
+                <tr><td>网络</td><td>RTT、jitter、loss、bandwidth cap</td><td>丢包会改变可靠队列、baseline 与收敛时间</td><td>用零延迟 PIE 证明生产正确</td></tr>
+                <tr><td>窗口</td><td>warm-up、capture length、P50/P95/P99</td><td>短采样会漏掉 join burst 和 GC / travel 峰值</td><td>用平均值掩盖尾部尖峰</td></tr>
+                <tr><td>断言</td><td>owner、proxy、late join、wake、travel</td><td>性能下降可能来自“少发了本应发送的数据”</td><td>字节更少就判定优化成功</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>把复制链压成六层漏斗</h3>
+          <div class="funnel" aria-label="复制对象漏斗">
+            <div class="funnel__track">
+              <div class="funnel__step"><small>01</small><b>REGISTERED</b><span>系统跟踪的 Root 与 SubObject</span></div>
+              <div class="funnel__step"><small>02</small><b>IN SCOPE</b><span>本连接通过过滤的对象</span></div>
+              <div class="funnel__step"><small>03</small><b>DIRTY</b><span>变化、重发或初始状态</span></div>
+              <div class="funnel__step"><small>04</small><b>SCHEDULED</b><span>达到优先级候选门槛</span></div>
+              <div class="funnel__step"><small>05</small><b>WRITTEN</b><span>真正进入位流和包预算</span></div>
+              <div class="funnel__step"><small>06</small><b>APPLIED</b><span>远端解析、应用并收敛</span></div>
+            </div>
+          </div>
+
+          <p>每一层都对应不同的问题。Registered 太大，先减少对象和 Fragment；In Scope 太大，先查 Filter；Dirty 太大，先查 Push / Poll 和状态设计；Scheduled 到 Written 掉得多，才去看 prioritization、packet budget 和可靠队列；Written 正常但 Applied 错误，则应检查引用、协议、依赖和接收应用。不要用同一个“网络慢”解释所有层。</p>
+
+          <h3>四层证据，而不是一个 stat</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>证据层</th><th>工具</th><th>重点观察</th><th>产出</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>CPU</td><td>Timing Insights / Iris CSV</td><td>PreUpdate、Poll、Filter、Prioritize、Quantize、Write</td><td>P95/P99 毫秒与热点调用</td></tr>
+                <tr><td>Packet</td><td>Networking Insights</td><td>packet、object、property、RPC、connection</td><td>真实 bytes/update 与包内容</td></tr>
+                <tr><td>类型聚合</td><td>TypeStats / CSV</td><td>类级 PollCount、Waste、Write、Count</td><td>应该先处理的对象类型</td></tr>
+                <tr><td>劣化正确性</td><td>Network Emulation + 业务断言</td><td>lag、jitter、loss 下的最终状态与最大延迟</td><td>收敛时间和失败样本</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pre class="codeblock"><code><span class="muted"># Networking Insights 采集起点；根据环境决定 tracehost</span>
+-trace=net -NetTrace=1 -tracehost=localhost
+
+<span class="muted"># 同一用例还需要记录：</span>
+build + map + phase + tick-rate + connections
++ object counts + network profile + capture window
++ gameplay correctness assertions</code></pre>
+
+          <div class="callout callout--warn">
+            <strong>Verbose 统计本身也有成本</strong>
+            <p>本地 5.7.4 的 <code>net.Iris.UseVerboseIrisCsvStats</code> 在非 Shipping 默认开启、Shipping 默认关闭；<code>UseVeryVerboseIrisCsvStats</code> 会让未显式配置的类型也各自生成统计，源码明确提示会造成显著 CSV 膨胀。诊断构建和容量构建要分开。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.1 · Change Discovery</span>
+          <h2 id="push-poll" data-no="03" tabindex="-1">Push Model 与轮询：先修正确性，再谈节省</h2>
+          <p class="lede">Push Model 的价值是让系统跳过“没有变化却仍被检查”的工作；它不减少真实变化本身，也不会替你找到所有修改点。一个漏标脏的属性看起来极其省 CPU，因为它根本没有被发送。</p>
+
+          <h3>不是一个开关，而是五道门</h3>
+          <div class="gate-row" aria-label="Push Model 五道门">
+            <div class="gate"><small>GATE 01</small><b>编译能力</b><span><code>WITH_PUSH_MODEL</code> 可用，目标构建包含相关路径。</span></div>
+            <div class="gate"><small>GATE 02</small><b>全局启用</b><span><code>Net.IsPushModelEnabled</code> 为 true。</span></div>
+            <div class="gate"><small>GATE 03</small><b>Iris 模式</b><span><code>net.Iris.PushModelMode</code> 允许兼容路径使用 Push。</span></div>
+            <div class="gate"><small>GATE 04</small><b>属性声明</b><span>属性或 Fragment 具备 Push-based dirtiness 契约。</span></div>
+            <div class="gate"><small>GATE 05</small><b>修改标脏</b><span>每条服务端修改路径都在正确对象、正确成员上标脏。</span></div>
+          </div>
+
+          <pre class="codeblock"><code><span class="muted">; DefaultEngine.ini — 只是启用条件，不是收益证明</span>
+[SystemSettings]
+Net.IsPushModelEnabled=1
+net.Iris.PushModelMode=2</code></pre>
+
+          <div class="callout callout--safe">
+            <strong>本地 5.7.4 事实</strong>
+            <p><code>net.Iris.PushModelMode</code> 的构造默认值为 <code>2</code>，但 <code>LegacyPushModel.cpp</code> 明确要求全局 Push Model 也已启用。<code>ObjectPoller</code> 中的 <code>net.Iris.Poll.FilterOutNonDirtyPushBasedObjects</code> 会在 poll loop 前屏蔽符合条件且未脏的 fully-push 对象；“部分属性 Push”不能自动获得同样的跳过保证。</p>
+          </div>
+
+          <h3>四种状态，四种发现策略</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>状态来源</th><th>推荐起点</th><th>理由</th><th>必须防住</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>统一 setter 的高频状态</td><td>Push</td><td>修改入口清晰，可以精确标脏</td><td>旁路写、数组内部修改、错误 owner</td></tr>
+                <tr><td>第三方或遗留代码直接写</td><td>Poll</td><td>短期内无法证明所有写路径</td><td>高 PollWaste 和每帧扫描</td></tr>
+                <tr><td>正在迁移的混合类</td><td>Hybrid</td><td>逐属性建立覆盖而不是一次重写</td><td>误标 fully-push 导致静默丢更新</td></tr>
+                <tr><td>外部系统生成快照</td><td>PreUpdate + Push/Poll</td><td>在安全边界集中生成只读复制状态</td><td>重复拷贝、跨线程时序、过度标脏</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3><code>PollFrequency</code> 的单位是“每秒次数”</h3>
+          <p><code>FObjectReplicationBridgePollConfig::PollFrequency</code> 会根据当前 TickRate 换算成 frame period，最大 frame period 为 255；配置为 <code>0</code> 表示每帧轮询。没有命中类级覆盖的 Actor 通常沿用 <code>NetUpdateFrequency</code>。因此“PollFrequency=10”不是“每 10 帧一次”。</p>
+
+          <pre class="codeblock"><code><span class="muted">; 起步示例：数字必须由项目场景替换</span>
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++PollConfigs=(ClassName=/Script/MyGame.HighRateProjectile,PollFrequency=30,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.WorldPickup,PollFrequency=2,bIncludeSubclasses=true)
+
+<span class="muted">; 本地 5.7.4 默认允许这些映射生效</span>
+net.Iris.UseFrequencyBasedPolling=1
+net.Iris.AllowPollPeriodOverrides=1</code></pre>
+
+          <p>正确调频的单位不是“Actor 类型”，而是“最大允许状态年龄”。如果某个状态最多允许 50 ms 过期，那么发现、排队、写入和网络传输共同分享这 50 ms；单纯把 polling 设成 20 Hz 并不保证 50 ms 内到达。反过来，常驻静态招牌即使属于 Actor，也没有理由每帧检查。</p>
+
+          <h3>Push / Poll 上线指标</h3>
+          <div class="cards">
+            <div class="card"><small>WASTE</small><h3>轮询浪费</h3><p>PollCount、PollWasteCount、PollWasteMS，以及每类对象的无变化检查比例。</p></div>
+            <div class="card card--safe"><small>COVERAGE</small><h3>标脏覆盖</h3><p>setter 路径审计、开发构建断言、owner / proxy 值对比和 late join 完整状态。</p></div>
+            <div class="card card--signal"><small>AGE</small><h3>最大状态年龄</h3><p>从服务端修改到目标连接应用的 P95 / P99，而不只看平均更新率。</p></div>
+          </div>
+
+          <div class="pullquote">大纲中的“10 倍提升”应改写为实验问题：在同构建、同场景、同连接数下，fully-push 对象让 PollWaste、服务器帧和最大状态年龄分别变化了多少？</div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.1 · Idle State &amp; Baselines</span>
+          <h2 id="dormancy-delta" data-no="04" tabindex="-1">Dormancy 与 Delta：一个省检查，一个省位流</h2>
+          <p class="lede">Dormancy 解决“对象长时间不变，为什么还要进入常规轮询”；Delta Compression 解决“对象确实要发，为什么每次都发完整状态”。两者作用在不同阶段，也各自带着必须验证的生命周期成本。</p>
+
+          <h3>Dormancy 是显式状态机</h3>
+          <div class="state-line" aria-label="休眠对象生命周期">
+            <div><b>AWAKE</b><span>常规 poll / push 路径</span></div>
+            <div><b>REQUEST</b><span>请求进入 dormant</span></div>
+            <div><b>FINAL STATE</b><span>最后状态有发送机会</span></div>
+            <div><b>FILTER POLL</b><span>常规轮询集合剔除</span></div>
+            <div><b>MUTATION</b><span>玩法再次改变状态</span></div>
+            <div><b>FLUSH / WAKE</b><span>强制 poll 并恢复收敛</span></div>
+          </div>
+
+          <p>本地 5.7.4 中，Actor 的 <code>NetDormancy</code> 变化经 <code>FReplicationSystemUtil::NotifyActorDormancyChange</code> 进入 <code>UObjectReplicationBridge::SetObjectWantsToBeDormant</code>；<code>net.Iris.UseDormancyToFilterPolling</code> 默认开启，用 bitset 把 dormant 对象从常规 poll 集合中剔除。<code>FlushNetDormancy</code> 则通过 <code>NetFlushDormantObject</code> 请求一次强制更新。</p>
+
+          <pre class="codeblock"><code><span class="muted">// 方向示例：先唤醒，再修改，再标脏</span>
+void AWorldChest::SetOpened(bool bNewOpened)
+{
+    if (bOpened == bNewOpened)
+    {
+        return;
+    }
+
+    FlushNetDormancy();
+    bOpened = bNewOpened;
+    MARK_PROPERTY_DIRTY_FROM_NAME(AWorldChest, bOpened, this);
+}</code></pre>
+
+          <div class="callout callout--warn">
+            <strong>Dormant RPC 不能替代属性生命周期</strong>
+            <p>本地还有 <code>net.Iris.RPC.AllowOnDormantObjects</code> 与 <code>net.Iris.RPC.AutoNetFlushOnDormantObjects</code>。它们控制 dormant object 上 RPC 的允许与自动 flush 行为，但不应成为“忘记唤醒属性也没关系”的设计依据。Root 与 SubObject、DORM_Initial、late join 和 RPC 丢失策略都要单独测试。</p>
+          </div>
+
+          <h3>Delta Compression 的三栏账本</h3>
+          <div class="tradeboard">
+            <div><h3>节省什么</h3><p>长寿命对象重复发送大状态时，只写相对已确认 baseline 的变化，减少 state bits。</p></div>
+            <div><h3>增加什么</h3><p>逐连接 baseline、change mask、确认状态、失效管理和额外内存。</p></div>
+            <div><h3>怕什么</h3><p>丢包、role / condition 变化、baseline 失效、短命对象和尚未摊薄的首次状态。</p></div>
+          </div>
+
+          <pre class="codeblock"><code><span class="muted">; 类级允许；并不保证这个类一定得到正收益</span>
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.LongLivedReplicatedState,bEnableDeltaCompression=true)
+
+<span class="muted">; 本地 5.7.4 全局开关与 baseline 节流默认</span>
+net.Iris.EnableDeltaCompression=1
+net.Iris.MinimumNumberOfFramesBetweenBaselines=60</code></pre>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>对象形态</th><th>Delta 候选性</th><th>先看指标</th><th>反例</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>长寿命、大状态、局部变化</td><td>高</td><td>bits/update、baseline hit、memory</td><td>每次几乎全字段改变</td></tr>
+                <tr><td>短命投射物</td><td>低</td><td>initial state 与生命周期</td><td>尚未建立有效 baseline 就销毁</td></tr>
+                <tr><td>PlayerState</td><td>按项目验证</td><td>每连接状态、role / owner 转换</td><td>条件变化导致 baseline 频繁失效</td></tr>
+                <tr><td>大数组</td><td>需分解</td><td>change mask、元素 churn、丢包</td><td>数组重排让 delta 失去局部性</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pullquote">推荐顺序：先减少 scope，再减少 polling；静止对象使用 dormancy，仍然昂贵的长寿命状态才进入 delta A/B。压缩不相关对象，是在更高成本地发送不该发送的数据。</div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.2 · Scope Architecture</span>
+          <h2 id="filter-layers" data-no="05" tabindex="-1">过滤漏斗：只让该发的对象进入热路径</h2>
+          <p class="lede">过滤的第一原则不是“半径设多大”，而是把规则放进成本最低、变化最少、最容易证明正确的那一层。稳定的业务事件应该更新 Connection 或 Group；空间问题交给 Grid；只有对象 × 连接规则频繁变化时，才考虑 Dynamic Filter。</p>
+
+          <div class="filter-stack" aria-label="Iris 过滤层级">
+            <div class="filter-stack__inner">
+              <div class="filter-stack__head">Layer</div><div class="filter-stack__head">Best for</div><div class="filter-stack__head">Update trigger</div><div class="filter-stack__head">Primary risk</div>
+              <div class="filter-stack__layer">Owner / Not Replicated</div><div class="filter-stack__cell">私有状态、服务端对象</div><div class="filter-stack__cell">生命周期或 owner change</div><div class="filter-stack__cell">权限边界写错</div>
+              <div class="filter-stack__layer">Connection</div><div class="filter-stack__cell">固定少量连接</div><div class="filter-stack__cell">订阅、控制权变化</div><div class="filter-stack__cell">join / leave 遗漏</div>
+              <div class="filter-stack__layer">Level / Group</div><div class="filter-stack__cell">关卡、队伍、副本、频道</div><div class="filter-stack__cell">业务事件驱动</div><div class="filter-stack__cell">成员关系漂移</div>
+              <div class="filter-stack__layer">Spatial Grid</div><div class="filter-stack__cell">世界位置和可见半径</div><div class="filter-stack__cell">位置与 cull distance</div><div class="filter-stack__cell">边界 churn / 高速移动</div>
+              <div class="filter-stack__layer">Dynamic Filter</div><div class="filter-stack__cell">频繁对象 × 连接规则</div><div class="filter-stack__cell">每轮批处理</div><div class="filter-stack__cell">CPU 随规模放大</div>
+            </div>
+          </div>
+
+          <h3>关卡流送不是一份虚构的 Filter 配置</h3>
+          <p>本地 <code>UEngineReplicationBridge</code> 会为关卡创建 Group，把 Root Object 加入对应 Level Group，再由 <code>UNetDriver</code> 根据连接的关卡可见状态更新过滤状态。它还处理 Actor 运行时换 Level、Persistent Level、Seamless Travel 和 PlayerController 特例。</p>
+
+          <div class="cards">
+            <div class="card"><small>CREATE</small><h3>关卡出现</h3><p>创建或取得 Level Group，并维护唯一名称与生命周期。</p></div>
+            <div class="card card--safe"><small>MEMBERSHIP</small><h3>对象归组</h3><p>Root Object 随所属 Level 加入或迁移 Group，SubObject 跟随 Root 语义。</p></div>
+            <div class="card card--signal"><small>CONNECTION</small><h3>连接可见</h3><p>NetDriver 更新每条连接的 Group FilterStatus，关卡未加载时排除对象。</p></div>
+          </div>
+
+          <p>因此正确的验证不是“有没有打开 Level Filter CVar”，而是：客户端何时声明 Level ready、Group status 何时变化、Actor 换 Level 后旧 membership 是否移除，以及 travel / unload / late join 时对象是否按预期创建和销毁。</p>
+
+          <h3>Grid 默认值只说明本地源码，不说明你的项目</h3>
+          <div class="default-strip" aria-label="UE 5.7.4 Grid Filter 本地默认值">
+            <div><b>20,000</b><span>CellSizeX<br>cm</span></div>
+            <div><b>20,000</b><span>CellSizeY<br>cm</span></div>
+            <div><b>15,000</b><span>DefaultCullDistance<br>cm</span></div>
+            <div><b>2</b><span>ViewPosRelevancy<br>frames</span></div>
+            <div><b>4</b><span>Object cull<br>frames</span></div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>这些是 UE 5.7.4 类成员默认值，不是推荐配置</strong>
+            <p>Cell 应由对象密度和查询成本决定；Cull Distance 应由可见距离、武器射程、音频／技能反馈与玩法公平决定；hysteresis 应与最大移动速度、teleport、网络延迟和边界穿越一起验证。源码还会在对象 cull distance 超出系统允许范围时警告并让对象回退为 always relevant。</p>
+          </div>
+
+          <pre class="codeblock"><code><span class="muted">; 结构示例：所有数值都必须在目标地图上 profile</span>
+[/Script/IrisCore.NetObjectGridFilterConfig]
+CellSizeX=20000
+CellSizeY=20000
+DefaultCullDistance=15000
+bUseExactCullDistance=true
+ViewPosRelevancyFrameCount=2
+DefaultFrameCountBeforeCulling=4
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++FilterConfigs=(ClassName=/Script/MyGame.WorldNPC,DynamicFilterName=Spatial)</code></pre>
+
+          <h3>Group 优先表达稳定业务规则</h3>
+          <p>队伍、频道、副本、观战权限和阶段门禁通常由离散事件改变。用 Group 把这些事件转换为 membership 和 per-connection status，系统只在事件发生时更新；如果把同样逻辑放进 Dynamic Filter，就会在每轮对每条连接重新计算。</p>
+
+          <pre class="codeblock"><code><span class="muted">// 公共 API 方向：错误处理和生命周期由项目补全</span>
+FNetObjectGroupHandle TeamGroup =
+    ReplicationSystem-&gt;CreateGroup(TEXT("Team.Red"));
+
+ReplicationSystem-&gt;AddExclusionFilterGroup(TeamGroup);
+ReplicationSystem-&gt;AddToGroup(TeamGroup, ObjectHandle);
+
+ReplicationSystem-&gt;SetGroupFilterStatus(
+    TeamGroup,
+    ConnectionId,
+    ENetFilterStatus::Allow);</code></pre>
+
+          <p>Dynamic Filter 仍有价值，但它是最后手段：一个对象同时只能分配一个 Dynamic Filter；它在 Connection 和 Group 之后执行，无法把已经排除的对象“复活”；热路径需要使用缓存、SoA、bit array 和连续批次，不能逐对象做 UObject 查找、射线检测或容器分配。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.2 · Correctness Matrix</span>
+          <h2 id="filter-validation" data-no="06" tabindex="-1">过滤验证：少发必须来自正确规则</h2>
+          <p class="lede">过滤优化最容易制造漂亮但错误的报表：in-scope 对象骤降、带宽下降、CPU 下降——因为敌人、任务物或 SubObject 被错误地排除了。每条性能曲线都必须绑定一张可见性真值表。</p>
+
+          <h3>先写真值，再写 Filter</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>状态</th><th>Owner</th><th>队友</th><th>敌方</th><th>观战</th><th>需要验证的转换</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>同 Level、近距离</td><td>Allow</td><td>Allow</td><td>Allow</td><td>规则决定</td><td>spawn / join</td></tr>
+                <tr><td>同 Level、超出 cull</td><td>通常 Allow</td><td>项目规则</td><td>Filter Out</td><td>项目规则</td><td>高速跨边界</td></tr>
+                <tr><td>目标 Level 未加载</td><td>按系统对象类型</td><td>Filter Out</td><td>Filter Out</td><td>Filter Out</td><td>load / unload / travel</td></tr>
+                <tr><td>隐身未侦测</td><td>Allow</td><td>项目规则</td><td>Filter Out</td><td>安全策略</td><td>detect / expire</td></tr>
+                <tr><td>切换队伍或 Owner</td><td>新 Owner Allow</td><td>重算 Group</td><td>重算 Group</td><td>重算策略</td><td>同 tick 旧权限撤销</td></tr>
+                <tr><td>Root 有效、SubObject 新增</td><td>跟随条件</td><td>跟随 scope</td><td>跟随 scope</td><td>跟随 scope</td><td>late-added subobject</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>边界用例比中心点更重要</h3>
+          <div class="cards">
+            <div class="card card--yellow"><small>SPACE</small><h3>Grid 边缘</h3><p>慢速来回穿越、高速载具、teleport、超大 cull distance、多 View 和观战相机。</p></div>
+            <div class="card card--safe"><small>LIFECYCLE</small><h3>Group 变化</h3><p>join、leave、owner change、team swap、level ready、travel 和 reconnect。</p></div>
+            <div class="card card--signal"><small>DEPENDENCY</small><h3>Root / SubObject</h3><p>先后创建、late add、单独 Filter、Root 被排除、销毁与重建。</p></div>
+          </div>
+
+          <h3>监控过滤的“斜率”</h3>
+          <p>仅记录某一帧 Filter CPU 没有意义。至少要画出随连接数、注册对象数和每连接可见对象数变化的斜率，并把每层过滤后的对象数分开：</p>
+
+          <pre class="codeblock"><code>connections
+registered roots / subobjects
+connection-filtered
+group-filtered
+grid-tested / grid-allowed
+dynamic-filtered / dynamic-allowed
+scope churn per second
+create / destroy burst
+filter CPU P50 / P95 / P99
+expected-visible-but-missing assertions</code></pre>
+
+          <div class="callout callout--safe">
+            <strong>ReplicationSystemTestPlugin 是回归样例库，不是本次测试结果</strong>
+            <p>本地插件包含 <code>TestGridFilter</code>、<code>TestGroups</code>、<code>TestDormancy</code>、<code>TestObjectDeltaSerialization</code> 等测试，可用于学习边界与搭建项目用例。本篇只做静态源码核对，没有执行这些自动化测试。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.3 · Case Blueprint</span>
+          <h2 id="case-method" data-no="07" tabindex="-1">案例不是答案，而是一套评审模板</h2>
+          <p class="lede">下面四个案例不会给出“一键复制”的 DefaultEngine.ini。每个案例都用同一张蓝图审查负载、scope、变化发现、排序、位流、网络劣化和回退，让项目团队能替换输入，而不是继承隐含假设。</p>
+
+          <div class="blueprint-key" aria-label="案例蓝图六个问题">
+            <div><b>01 · LOAD SHAPE</b><span>连接数不是唯一规模；还要记录同一 AOI、Root / SubObject、dirty ratio 和峰值阶段。</span></div>
+            <div><b>02 · SCOPE</b><span>哪些对象必须全局、按 owner、按 group、按 level 或按 grid 可见。</span></div>
+            <div><b>03 · CHANGE</b><span>状态由 setter、物理、AI、外部系统还是遗留代码修改，能否证明 Push 覆盖。</span></div>
+            <div><b>04 · SCHEDULE</b><span>哪些对象的最大状态年龄最短，哪些只需最终进展，如何防止饥饿。</span></div>
+            <div><b>05 · PAYLOAD</b><span>用 NetTrace 实测 bytes/update、RPC、NetBlob、exports 和 resend，而不是猜结构大小。</span></div>
+            <div><b>06 · FAILURE</b><span>在 loss、lag、join、travel、reconnect 与 owner change 下如何证明收敛并回退。</span></div>
+          </div>
+
+          <h3>每个参数都要带三件东西</h3>
+          <div class="truth-line">
+            <div><span>INPUT</span><b>为什么从这个值开始</b></div>
+            <div><span>METRIC</span><b>它应该改变哪条曲线</b></div>
+            <div><span>BOUNDARY</span><b>什么条件下不再成立</b></div>
+            <div><span>ROLLBACK</span><b>恶化时恢复什么</b></div>
+          </div>
+
+          <p>例如，把 NPC PollFrequency 从 10 Hz 降到 2 Hz，不是因为“开放世界 NPC 应该 2 Hz”，而是因为远端表现允许更大的状态年龄；验收要看 PollWaste 与远端动画／位置最大年龄；进入战斗时必须升级 tier；回退则恢复旧 class mapping 或关闭 cohort 配置。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.3 · Case 01</span>
+          <h2 id="fps-case" data-no="08" tabindex="-1">FPS：把尾延迟留给真正的战斗状态</h2>
+          <p class="lede">FPS 的复制预算不是平均分给所有 Actor。Owner movement、武器状态、近距离敌人和命中反馈对尾延迟敏感；远处表现、静态拾取物和记分板只需要不同程度的最终进展。</p>
+
+          <div class="scenario">
+            <div class="scenario__head">
+              <div class="scenario__code">FPS</div>
+              <div class="scenario__title"><small>BLUEPRINT · LATENCY FIRST</small><h3>竞技射击</h3><p>先保护权威命中与 owner 体验，再压缩远处表现和静态世界成本。</p></div>
+            </div>
+            <div class="scenario__facts">
+              <div><small>HOT PATH</small><b>Movement / Weapon / Hit</b></div>
+              <div><small>SCOPE</small><b>Owner + Grid + Spectator</b></div>
+              <div><small>TAIL RISK</small><b>Combat state age</b></div>
+              <div><small>FAILURE</small><b>Visibility leak / starvation</b></div>
+            </div>
+          </div>
+
+          <h3>先按最大允许状态年龄分层</h3>
+          <div class="tier-list">
+            <div class="tier"><div class="tier__id">A</div><b>Owner Pawn / Weapon</b><span>Owner scope、Push 为主、owner boost；验证输入、弹药、换枪、装填、预测接受与拒绝。</span></div>
+            <div class="tier"><div class="tier__id">B</div><b>近距离敌人</b><span>Grid scope、Push / Hybrid、Sphere 或 FOV priority；验证高速横移、遮挡不是安全边界、命中回溯输入完整。</span></div>
+            <div class="tier"><div class="tier__id">C</div><b>拾取物与机关</b><span>Grid + Dormancy；交互前 wake，状态改变显式标脏；验证 late join 和反复拾取／重生。</span></div>
+            <div class="tier"><div class="tier__id">D</div><b>PlayerState / Scoreboard</b><span>全局或 Group，低变化字段 Push，必要时 Count Limiter；验证 owner fast lane 和其他玩家最终进展。</span></div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>玩法事件</th><th>复制断言</th><th>性能指标</th><th>失败信号</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>开火 / 命中</td><td>权威结果、相关 RPC 与状态顺序满足业务约束</td><td>combat max state age、reliable queue</td><td>命中反馈晚于可接受窗口</td></tr>
+                <tr><td>装填 / 换枪</td><td>owner 与 observer 状态最终一致</td><td>property bytes、mark dirty count</td><td>只 owner 正确或重复 RPC</td></tr>
+                <tr><td>重生 / Owner 变化</td><td>旧 owner 权限撤销，新 owner 初始状态完整</td><td>scope churn、create burst</td><td>旧连接继续收到私有状态</td></tr>
+                <tr><td>观战</td><td>View、相关性和优先级按观战目标更新</td><td>spectator scope / age</td><td>只按 PlayerController 位置过滤</td></tr>
+                <tr><td>丢包</td><td>状态收敛，可靠队列不无限增长</td><td>resend、ack latency、P99</td><td>弹药／姿态永久分歧</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>“更高优先级”不等于“保证本帧发送”</strong>
+            <p>Prioritizer 只能在已通过过滤、确实 dirty / resend 的候选中写入更高分数；包预算、依赖和可靠数据仍可能延后发送。FPS 应监控 combat object 的最大更新年龄和饥饿，而不只检查 priority 值。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.3 · Case 02</span>
+          <h2 id="open-world-case" data-no="09" tabindex="-1">开放世界 RPG：让世界分层，而不是让 Grid 独自扛住</h2>
+          <p class="lede">开放世界的第一层相关性来自 Level / World Partition 生命周期，第二层才是空间 Grid。静态交互物用 Dormancy，AI 复制可观察结果，高速移动与 teleport 则专门验证跨 cell 和 hysteresis。</p>
+
+          <div class="scenario">
+            <div class="scenario__head">
+              <div class="scenario__code">OWRPG</div>
+              <div class="scenario__title"><small>BLUEPRINT · WORLD LAYERS</small><h3>开放世界 RPG</h3><p>Level 生命周期先裁掉整个区域，Grid 再处理局部 AOI，Dormancy 负责静态世界。</p></div>
+            </div>
+            <div class="scenario__facts">
+              <div><small>HOT PATH</small><b>Streaming transitions</b></div>
+              <div><small>SCOPE</small><b>Level → Grid → Group</b></div>
+              <div><small>TAIL RISK</small><b>Fast traversal / teleport</b></div>
+              <div><small>FAILURE</small><b>Missing world state</b></div>
+            </div>
+          </div>
+
+          <div class="state-line" aria-label="开放世界过滤与更新顺序">
+            <div><b>LEVEL READY</b><span>连接是否拥有区域</span></div>
+            <div><b>GRID AOI</b><span>位置与 cull 范围</span></div>
+            <div><b>AI TIER</b><span>近、中、远行为结果</span></div>
+            <div><b>DORMANT WORLD</b><span>门、箱、机关</span></div>
+            <div><b>QUEST GROUP</b><span>阶段和副本权限</span></div>
+          </div>
+
+          <h3>对象策略不是按类名一刀切</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>对象</th><th>Scope</th><th>Change discovery</th><th>重点验证</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>玩家与坐骑</td><td>Level + Grid</td><td>Push / 高频 Poll</td><td>高速穿 cell、teleport、View 切换</td></tr>
+                <tr><td>近距离战斗 AI</td><td>Level + Grid</td><td>Push / Hybrid</td><td>仇恨、技能、受击、死亡</td></tr>
+                <tr><td>中距离 AI</td><td>Grid</td><td>低频状态快照</td><td>进入近距离时初始状态完整</td></tr>
+                <tr><td>远距离群落</td><td>聚合代理或不复制</td><td>事件快照</td><td>代理切换不泄漏权威逻辑</td></tr>
+                <tr><td>箱子 / 门 / 机关</td><td>Level + Grid</td><td>Dormancy + wake</td><td>late join、重复交互、持久状态</td></tr>
+                <tr><td>任务阶段对象</td><td>Level + Group</td><td>事件驱动</td><td>组变更和旧权限撤销</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>必须跑的世界边界</h3>
+          <div class="cards">
+            <div class="card card--safe"><small>STREAM</small><h3>Load / Unload</h3><p>Level ready 前不创建，ready 后补全；卸载后结束复制；seamless travel 不丢关键对象。</p></div>
+            <div class="card card--yellow"><small>MOTION</small><h3>Fast / Teleport</h3><p>最大坐骑速度、载具、传送和观战相机不会在 hysteresis 窗口内出现长时间空洞。</p></div>
+            <div class="card card--signal"><small>STATE</small><h3>Dormant Wake</h3><p>世界状态先 flush 再修改标脏，late join 得到当前权威值，SubObject 生命周期一致。</p></div>
+          </div>
+
+          <div class="callout">
+            <strong>只复制 AI 结果，不复制思考过程</strong>
+            <p>行为树、感知黑板和导航搜索应保留在权威服务器；客户端需要的是位置、姿态、动画意图、战斗状态和表现所需的事件。远端 AI 可以切换为聚合代理，但代理不是权威模拟，也不能被客户端结果反向驱动。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.3 · Case 03</span>
+          <h2 id="battle-royale-case" data-no="10" tabindex="-1">百人大逃杀：先算每连接，再乘全服</h2>
+          <p class="lede">“100 人”不是一个足够的容量输入。关键是每条连接在每个战局阶段能看到多少对象、其中多少变脏、每次更新实测多少字节，以及服务器为所有连接重复承担多少工作。</p>
+
+          <div class="scenario">
+            <div class="scenario__head">
+              <div class="scenario__code">BR100</div>
+              <div class="scenario__title"><small>BLUEPRINT · BUDGET BY PHASE</small><h3>百人大逃杀</h3><p>用每连接对象层级建立 state subtotal，再加入协议、可靠数据和峰值，而不是拿玩家数乘结构体大小。</p></div>
+            </div>
+            <div class="scenario__facts">
+              <div><small>HOT PATH</small><b>Final circle density</b></div>
+              <div><small>SCOPE</small><b>Grid + combat priority</b></div>
+              <div><small>TAIL RISK</small><b>Starvation / join burst</b></div>
+              <div><small>FAILURE</small><b>Budget collapse by phase</b></div>
+            </div>
+          </div>
+
+          <h3>一个可替换输入的演算</h3>
+          <div class="budget-calc" aria-label="百人大逃杀每连接状态带宽演算">
+            <div class="budget-calc__inner">
+              <div class="budget-calc__label"><span>ILLUSTRATIVE INPUT · NOT A RECOMMENDATION</span><span>STATE PAYLOAD ONLY</span></div>
+              <div class="budget-row"><b>近距离高频对象</b><span>45</span><span>×</span><span>20 Hz</span><span>×</span><span>18 B</span><strong>16,200 B/s</strong></div>
+              <div class="budget-row"><b>中距离低频对象</b><span>150</span><span>×</span><span>4 Hz</span><span>×</span><span>12 B</span><strong>7,200 B/s</strong></div>
+              <div class="budget-row"><b>全局玩家摘要</b><span>99</span><span>×</span><span>1 Hz</span><span>×</span><span>24 B</span><strong>2,376 B/s</strong></div>
+              <div class="budget-total"><b>每连接 state subtotal</b><strong>25,776 B/s ≈ 206 kbps</strong></div>
+            </div>
+          </div>
+
+          <p>这里的 45、150、99、频率和字节全部是演算输入，不是 UE 默认或项目建议。真正的 <code>MeasuredBytesPerUpdate</code> 应从目标构建的 Networking Insights / NetTrace 取得；对象数应从实际战局阶段的 scope 统计取得。</p>
+
+          <div class="callout callout--danger">
+            <strong>206 kbps 不是线路预算</strong>
+            <p>它还没有包含 packet / transport headers、RPC、NetBlob、NetToken 与引用导出、reliable resend、initial state、join burst、语音和平台传输封装。服务器 state egress 也不是简单用平均连接乘平均值：每条连接的 View、AOI、丢包和可靠队列都不同。</p>
+          </div>
+
+          <h3>五个战局阶段，五种负载形状</h3>
+          <div class="phases">
+            <div class="phase"><small>01</small><b>Lobby</b><span>PlayerState、装扮和 join burst 集中；空间分布小。</span></div>
+            <div class="phase"><small>02</small><b>Drop</b><span>高速移动、多 View 方向变化、初始对象创建密集。</span></div>
+            <div class="phase"><small>03</small><b>Spread</b><span>AOI 分散，Grid 收益最大，远距对象应离开 scope。</span></div>
+            <div class="phase"><small>04</small><b>Shrink</b><span>密度上升，战斗 dirty ratio 和可靠事件增加。</span></div>
+            <div class="phase"><small>05</small><b>Final</b><span>最坏同屏人数、最短 combat age、最容易发生饥饿。</span></div>
+          </div>
+
+          <h3>容量验收必须同时看公平性</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>对象层</th><th>目标</th><th>监控</th><th>饥饿保护</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Owner / locked target</td><td>最短最大状态年龄</td><td>P95/P99 age、missed updates</td><td>owner boost，但仍受包预算验证</td></tr>
+                <tr><td>近距战斗</td><td>可用的相对运动与战斗反馈</td><td>sent rate、write bits、loss recovery</td><td>combat boost + max age alert</td></tr>
+                <tr><td>中远距玩家</td><td>最终进展，不长期冻结</td><td>time since last sent</td><td>累积 priority / aging</td></tr>
+                <tr><td>PlayerState</td><td>记分板和 owner 信息正确</td><td>Count Limiter 命中、owner lane</td><td>轮转 / Fill 行为实测</td></tr>
+                <tr><td>观战连接</td><td>View 切换后快速重建相关性</td><td>scope churn、creation burst</td><td>目标切换专项预算</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.3 · Case 04</span>
+          <h2 id="mmo-case" data-no="11" tabindex="-1">MMO：千人在线不是千人同一 ReplicationSystem</h2>
+          <p class="lede">MMO 的第一道架构题不是 Iris 参数，而是“同一权威实例实际负责多少玩家、多少 AOI、多少对象”。在线人数、Shard 人数、AOI 密度和单连接可见对象是四个不同的数；跨区 handoff 又是第五种峰值。</p>
+
+          <div class="scenario">
+            <div class="scenario__head">
+              <div class="scenario__code">MMO</div>
+              <div class="scenario__title"><small>BLUEPRINT · ARCHITECTURE FIRST</small><h3>区域化 MMO</h3><p>Iris 优化单个复制域；项目架构负责分区、所有权、持久化与跨服一致性。</p></div>
+            </div>
+            <div class="scenario__facts">
+              <div><small>ONLINE</small><b>账号在线总数</b></div>
+              <div><small>SHARD</small><b>单权威实例人数</b></div>
+              <div><small>AOI</small><b>同一区域密度</b></div>
+              <div><small>HANDOFF</small><b>跨区状态峰值</b></div>
+            </div>
+          </div>
+
+          <h3>先画服务器边界，再画复制边界</h3>
+          <div class="shard-map" aria-label="MMO 分区与 Iris 复制边界">
+            <div class="shard-map__inner">
+              <div class="shard-node" style="grid-column:1;grid-row:2"><b>LOGIN / ROUTER</b><span>身份、路由、容量选择</span></div>
+              <div class="shard-arrow" style="grid-column:2;grid-row:2">→</div>
+              <div class="shard-node shard-node--safe" style="grid-column:3;grid-row:2"><b>SHARD A</b><span>ReplicationSystem A<br>AOI A1 / A2</span></div>
+              <div class="shard-arrow" style="grid-column:4;grid-row:2">⇄</div>
+              <div class="shard-node shard-node--safe" style="grid-column:5;grid-row:2"><b>SHARD B</b><span>ReplicationSystem B<br>AOI B1 / B2</span></div>
+              <div class="shard-caption" style="grid-column:3;grid-row:1">IRIS SCOPE</div>
+              <div class="shard-caption" style="grid-column:5;grid-row:1">IRIS SCOPE</div>
+              <div class="shard-caption" style="grid-column:4;grid-row:3">PROJECT HANDOFF PROTOCOL</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>能力</th><th>Iris / ReplicationSystem</th><th>项目在线架构</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>对象状态复制</td><td>单复制系统内的 scope、dirty、priority、serialize、send</td><td>定义哪些对象属于哪个权威实例</td></tr>
+                <tr><td>AOI</td><td>Connection / Group / Grid / Dynamic Filter</td><td>决定区域、频道与业务订阅模型</td></tr>
+                <tr><td>跨区 handoff</td><td>不自动提供跨服务器所有权转移</td><td>快照、序列号、冻结窗口、失败恢复</td></tr>
+                <tr><td>持久化</td><td>不负责数据库状态</td><td>存档、事务、幂等和恢复</td></tr>
+                <tr><td>跨服事件</td><td>不负责全局消息总线</td><td>聊天、拍卖、世界事件、服务发现</td></tr>
+                <tr><td>扩缩容</td><td>不管理 fleet</td><td>容量预测、调度、热区拆分和 failover</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>MMO 容量用例</h3>
+          <div class="cards">
+            <div class="card card--yellow"><small>DENSITY</small><h3>主城与世界 Boss</h3><p>同 AOI 对象数突然放大，Grid 不再有效裁剪；需要分层表现、Group、Count Limiter 和玩法降级。</p></div>
+            <div class="card card--safe"><small>HANDOFF</small><h3>跨区与重连</h3><p>验证旧 shard 停止、目标 shard 初始状态、重复消息幂等、失败回滚和短时双写边界。</p></div>
+            <div class="card card--signal"><small>SURGE</small><h3>大规模登录</h3><p>initial state、reference export、资产异步加载和创建 burst，不能用稳定态平均值代表。</p></div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>不要承诺“单服千人”</strong>
+            <p>本篇没有运行真实 MMO 项目，也没有进行千人压测。Iris 能减少复制工作的重复与连接成本，但服务器游戏逻辑、物理、AI、资产、操作系统网络栈和在线服务仍共享预算。任何人数承诺必须由目标硬件、目标玩法和最坏 AOI 的端到端压测产生。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.4 · Migration</span>
+          <h2 id="migration-runway" data-no="12" tabindex="-1">从传统系统迁移：五阶段跑道</h2>
+          <p class="lede">迁移不是把 <code>net.Iris.UseIrisReplication</code> 从 0 改成 1。可靠的路径先清点隐式依赖，再建立双路径正确性，最后才做性能对比和生产灰度。</p>
+
+          <div class="runway" aria-label="Iris 五阶段迁移跑道">
+            <div class="runway__inner">
+              <div class="runway-step"><b>Inventory</b><span>清点 relevancy、priority、ReplicationGraph、SubObject、NetSerialize、RPC、Dormancy 与 Push。</span><em>EXIT · 所有隐式扩展点有 owner</em></div>
+              <div class="runway-step"><b>Shadow</b><span>测试分支启用 Iris，冻结场景合同，保留 legacy 结果作为 oracle。</span><em>EXIT · 两条路径可重复采集</em></div>
+              <div class="runway-step"><b>Correctness</b><span>先修 registered subobject、Filter、Serializer、Owner、Role 与生命周期。</span><em>EXIT · 劣化网络下断言通过</em></div>
+              <div class="runway-step"><b>Performance</b><span>同负载比较 CPU、scope、dirty、bits、memory、max age 与 join burst。</span><em>EXIT · 预算和回归阈值达标</em></div>
+              <div class="runway-step"><b>Rollout</b><span>按 fleet、地图或 playlist 灰度，监控 protocol、P99、错误率并演练回退。</span><em>EXIT · 全量且回退窗口关闭</em></div>
+            </div>
+          </div>
+
+          <h3>传统扩展点不能原样带过去</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>传统路径</th><th>Iris 对应</th><th>迁移动作</th><th>验收重点</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>IsNetRelevantFor</code></td><td>Filtering</td><td>拆出 owner、group、level、spatial 与动态规则</td><td>每连接真值矩阵</td></tr>
+                <tr><td><code>GetNetPriority</code></td><td>Prioritization</td><td>把业务价值放入 static / dynamic prioritizer</td><td>最大更新年龄与饥饿</td></tr>
+                <tr><td>Replication Graph Nodes</td><td>Filters + Prioritizers</td><td>按节点语义重新建模，不做类名替换</td><td>同一 NetDriver 不同时使用两套系统</td></tr>
+                <tr><td><code>ReplicateSubobjects</code></td><td>Registered SubObject List</td><td>注册、移除并维护生命周期</td><td>late add、destroy、owner condition</td></tr>
+                <tr><td>自定义 <code>NetSerialize</code></td><td>NetSerializer 审核</td><td>实现 Iris Serializer 或证明反射序列化等价</td><td>warning、round trip、version</td></tr>
+                <tr><td>每帧 polling</td><td>Push / Hybrid / frequency</td><td>先审计写路径，再逐类降低轮询</td><td>漏标脏与最大状态年龄</td></tr>
+                <tr><td>隐式 RPC / OnRep 假设</td><td>明确投递契约</td><td>把业务顺序写成测试</td><td>loss、reliable、same-frame</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>Iris 要求 Registered SubObject List</strong>
+            <p>本地 <code>UEngineReplicationBridge</code> 会确保 <code>GDefaultUseSubObjectReplicationList</code> 已启用，并给出 <code>net.SubObjects.DefaultUseSubObjectReplicationList=1</code> 提示。非 Actor / ActorComponent 的 UObject 还要正确实现 <code>RegisterReplicationFragments</code>。这属于正确性门，不应拖到性能阶段。</p>
+          </div>
+
+          <pre class="codeblock"><code><span class="muted">; 迁移起步，不代表可以跳过逐类检查</span>
+[SystemSettings]
+net.SubObjects.DefaultUseSubObjectReplicationList=1
+Net.IsPushModelEnabled=1
+
+<span class="muted">; Iris 可按项目启动策略启用；先保留可控回退路径</span>
+net.Iris.UseIrisReplication=1</code></pre>
+
+          <h3>自定义序列化不要用白名单掩盖未知行为</h3>
+          <p>如果结构体有传统 <code>NetSerialize</code> / <code>NetDeltaSerialize</code> 却没有 Iris 专用 <code>NetSerializer</code>，Descriptor Builder 默认会给出警告。<code>SupportsStructNetSerializerList</code> 只应用于已经证明反射路径等价的结构；它是审计结果，不是关闭警报的垃圾桶。</p>
+
+          <h3>灰度单位要能隔离协议和玩法风险</h3>
+          <p>优先按服务器 fleet、地图、playlist 或内部 cohort 灰度，而不是随机把同一协议会话的一半对象切换实现。Dashboard 至少按 engine build、game commit、config hash、map、mode 和 cohort 切片。回退条件在发布前写好：protocol mismatch、正确性断言、server frame P99、max state age、disconnect 和 join failure 任一越线即停止扩大。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.5 · Release Control</span>
+          <h2 id="release-gates" data-no="13" tabindex="-1">发布闸门：PASS、WATCH、BLOCK</h2>
+          <p class="lede">上线检查表不是“我们看过了”，而是每一项都有场景、指标、阈值、证据链接和负责人。任何 BLOCK 都停止扩大；WATCH 必须有时间窗口和自动回退；PASS 也要能在下一个版本继续复现。</p>
+
+          <div class="scorecard" aria-label="Iris 发布闸门">
+            <div class="score">
+              <div class="score__head"><b>Correctness</b><span>BLOCKING</span></div>
+              <ul>
+                <li>Owner、simulated proxy 与 spectator 条件正确；</li>
+                <li>late join 收到完整初始状态；</li>
+                <li>丢包后最终收敛；</li>
+                <li>Dormancy wake 不丢最终状态；</li>
+                <li>SubObject 创建、销毁与重建正确；</li>
+                <li>Level load / unload / travel 正确。</li>
+              </ul>
+            </div>
+            <div class="score">
+              <div class="score__head"><b>Performance</b><span>BUDGETED</span></div>
+              <ul>
+                <li>server frame P50 / P95 / P99；</li>
+                <li>poll / filter / prioritize / quantize / write；</li>
+                <li>per-connection scope / dirty / scheduled / written；</li>
+                <li>bytes、reliable queue、max state age；</li>
+                <li>baseline 与 protocol memory；</li>
+                <li>join / travel burst。</li>
+              </ul>
+            </div>
+            <div class="score">
+              <div class="score__head"><b>Network Resilience</b><span>DEGRADED</span></div>
+              <ul>
+                <li>目标 RTT / jitter / loss 档位；</li>
+                <li>reliable resend 不失控；</li>
+                <li>baseline 丢包恢复；</li>
+                <li>引用与依赖最终解析；</li>
+                <li>RPC / OnRep 业务顺序有断言；</li>
+                <li>reconnect 与 session resume。</li>
+              </ul>
+            </div>
+            <div class="score">
+              <div class="score__head"><b>Operations</b><span>REVERSIBLE</span></div>
+              <ul>
+                <li>config hash 和 cohort 可追踪；</li>
+                <li>指标可按版本、地图、玩法切片；</li>
+                <li>protocol mismatch 策略明确；</li>
+                <li>自动停止灰度阈值已配置；</li>
+                <li>回退在预生产演练；</li>
+                <li>证据和失败样本可保留。</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3>回退先保护正确性，再保护容量</h3>
+          <div class="rollback">
+            <div class="rollback__question"><b>正确性断言或协议失败？</b><p>停止 cohort 扩大，冻结失败样本；按版本门禁断开不兼容会话或恢复已验证构建。</p></div>
+            <div class="rollback__arrow">→</div>
+            <div class="rollback__answer"><b>回到最近一次正确基线</b><p>不要通过降低日志、关闭警告或放宽断言“修复”生产指标。</p></div>
+          </div>
+          <div class="rollback">
+            <div class="rollback__question"><b>CPU P99 或带宽恶化？</b><p>先定位对象漏斗哪一层变大，确认是 scope、dirty、schedule 还是 write；只回退相关配置。</p></div>
+            <div class="rollback__arrow">→</div>
+            <div class="rollback__answer"><b>恢复单一杠杆</b><p>避免同时降频、缩半径和改 priority，否则无法解释恢复来自哪一项。</p></div>
+          </div>
+
+          <h3>失败矩阵</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>症状</th><th>首查</th><th>常见原因</th><th>安全动作</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>属性偶发不更新</td><td>Dirty → Poll</td><td>Push 漏标脏或误判 fully-push</td><td>恢复 polling，补断言后再迁移</td></tr>
+                <tr><td>更新慢一个数量级</td><td>PollFrequency</td><td>把每秒次数误读成帧间隔</td><td>按最大状态年龄重算</td></tr>
+                <tr><td>休眠对象永不刷新</td><td>Dormancy pending flush</td><td>修改前未 wake / flush</td><td>修 setter 顺序并回归 late join</td></tr>
+                <tr><td>Delta 后内存上涨</td><td>Baseline memory</td><td>连接多、对象大、收益低</td><td>逐类关闭并比较 state bits</td></tr>
+                <tr><td>对象跨区消失</td><td>Level Group / Grid</td><td>ready 状态、旧 membership 或 hysteresis</td><td>恢复旧映射，抓边界 trace</td></tr>
+                <tr><td>Filter CPU 随人数爆炸</td><td>Dynamic Filter slope</td><td>per-object gameplay 查询或分配</td><td>退回 Group / Grid，缓存批处理</td></tr>
+                <tr><td>远处对象长期冻结</td><td>Prioritization age</td><td>饥饿或预算长期不足</td><td>增加 aging / max-age 保护</td></tr>
+                <tr><td>SubObject 缺失</td><td>Registered list</td><td>未注册、过早移除或 Root 被过滤</td><td>修生命周期，不放宽协议检查</td></tr>
+                <tr><td>迁移后结构体告警</td><td>Descriptor Builder</td><td>自定义 NetSerialize 未审核</td><td>实现 Serializer 或证明等价</td></tr>
+                <tr><td>上线才出现尖峰</td><td>Join / travel scenario</td><td>只测稳定态平均负载</td><td>停止灰度，补峰值用例</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">18.5 · Field Reference</span>
+          <h2 id="quick-reference" data-no="14" tabindex="-1">快速参考、技术来源与系列收束</h2>
+          <p class="lede">如果只能记住一个顺序：先证明谁应该收到，再证明变化被发现，然后证明关键对象没有饥饿；最后才优化每次发送的位数。每跨过一层，都保留可以回到上一层的证据。</p>
+
+          <h3>优化动作速查</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>动作</th><th>主要降低</th><th>不直接降低</th><th>核心验收</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>减少对象 / 属性 / RPC</td><td>全链路 CPU、内存、带宽</td><td>剩余对象的业务复杂度</td><td>功能与协议兼容</td></tr>
+                <tr><td>Connection / Group / Level</td><td>每连接 scope</td><td>同组内 dirty 成本</td><td>权限和生命周期</td></tr>
+                <tr><td>Grid Filter</td><td>空间无关对象</td><td>同 AOI 密集对象</td><td>边界、速度、View</td></tr>
+                <tr><td>Push Model</td><td>无变化 polling</td><td>真实变化、Filter、Write</td><td>标脏覆盖</td></tr>
+                <tr><td>降低 PollFrequency</td><td>检查次数</td><td>单次 poll 成本</td><td>最大状态年龄</td></tr>
+                <tr><td>Dormancy</td><td>长期静止对象 polling</td><td>wake / final state 成本</td><td>Flush 与 late join</td></tr>
+                <tr><td>Prioritization</td><td>预算内的等待次序</td><td>总带宽与 scope</td><td>关键 age 与饥饿</td></tr>
+                <tr><td>Delta Compression</td><td>重复完整状态 bits</td><td>baseline memory</td><td>loss、bits、memory</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>对象类型起步矩阵</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>对象</th><th>Scope 起点</th><th>变化发现起点</th><th>额外检查</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Owner 私有状态</td><td>Owner Filter</td><td>Push</td><td>Owner change、旧权限撤销</td></tr>
+                <tr><td>近距战斗 Actor</td><td>Grid</td><td>Push / Hybrid</td><td>combat max age、多 View</td></tr>
+                <tr><td>静态交互物</td><td>Level + Grid</td><td>Dormancy</td><td>wake、late join、持久化</td></tr>
+                <tr><td>PlayerState</td><td>全局 / Group</td><td>Push / 低频</td><td>Count Limiter、owner fast lane</td></tr>
+                <tr><td>AI 表现代理</td><td>Level + Grid</td><td>分层快照</td><td>近中远切换、权威边界</td></tr>
+                <tr><td>长寿命大状态</td><td>先过滤</td><td>Push / Poll</td><td>Delta A/B、baseline memory</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>本篇技术来源</h3>
+          <div class="source-grid">
+            <a href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">知乎：系列大纲</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/introduction-to-iris-in-unreal-engine?lang=en-US" target="_blank" rel="noopener noreferrer">Epic：Introduction to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/components-of-iris-in-unreal-engine?lang=en-US" target="_blank" rel="noopener noreferrer">Epic：Components of Iris</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/iris-filtering-in-unreal-engine?lang=en-US" target="_blank" rel="noopener noreferrer">Epic：Iris Filtering</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-prioritization-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Iris Prioritization</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/migrate-to-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Migrate to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/networking-insights-in-unreal-engine?lang=en-US" target="_blank" rel="noopener noreferrer">Epic：Networking Insights</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/using-network-emulation-in-unreal-engine?lang=en-US" target="_blank" rel="noopener noreferrer">Epic：Network Emulation</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/console-commands-for-network-debugging-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Network Debug Commands</a>
+          </div>
+
+          <h3>UE 5.7.4 源文件速查</h3>
+          <pre class="codeblock"><code>Engine/Build/Build.version
+Engine/Config/BaseEngine.ini
+Engine/Source/Runtime/Net/Iris/Public/Iris/ReplicationSystem/
+  ObjectReplicationBridgeConfig.h
+  Filtering/NetObjectGridFilter.h
+  Prioritization/SphereNetObjectPrioritizer.h
+Engine/Source/Runtime/Net/Iris/Private/Iris/ReplicationSystem/
+  LegacyPushModel.cpp
+  ObjectReplicationBridge.cpp
+  Polling/ObjectPoller.cpp
+  DeltaCompression/DeltaCompressionBaselineManager.cpp
+  Stats/NetStats.cpp
+Engine/Source/Runtime/Engine/Private/Net/Iris/ReplicationSystem/
+  EngineReplicationBridge.cpp
+  ReplicationSystemUtil.cpp
+Engine/Plugins/Runtime/ReplicationSystemTestPlugin/Source/Private/Tests/
+  ReplicationSystem/TestDormancy.cpp
+  ReplicationSystem/TestObjectDeltaSerialization.cpp
+  ReplicationSystem/Filtering/TestGridFilter.cpp
+  ReplicationSystem/Filtering/TestGroups.cpp</code></pre>
+
+          <div class="callout">
+            <strong>验证边界</strong>
+            <p>本篇完成了本地 UE 5.7.4 源码静态核对和博客页面构建验证；没有修改或编译 Unreal Engine，没有运行 ReplicationSystemTestPlugin、游戏项目自动化或真实联机压测，也没有进行百人或千人容量测试。文中的项目数值均为演算输入或起步示例，必须在你的模块、玩法、目标硬件与网络档位中替换并验证。</p>
+          </div>
+
+          <p>至此，系列正文从 Iris 的整体架构、数据结构、过滤、优先级、序列化、传输、NetBlob、Delta、Polling、引用、条件、RPC、调试、配置和高级定制，走到了最终的测量、案例和发布闭环。附录继续提供源文件、配置、API、术语与版本索引。</p>
+
+          <nav class="chapter-nav" aria-label="系列文章导航">
+            <a href="/html-articles/ue5-iris-guide-part-17/"><span>← PREVIOUS</span><b>第十七部分：高级主题</b></a>
+            <a href="/html-articles/ue5-iris-guide-outline/#section-21"><span>NEXT →</span><b>系列大纲附录：源码、配置、API 与术语</b></a>
+          </nav>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <p>UE5 Iris 网络复制系统技术分析 · 第十八部分</p>
+    <p>原创扩写与整理：Jossy Zhang · 技术基线：Unreal Engine 5.7.4</p>
+    <p><a href="/ue5-iris-guide/">返回系列目录</a> · <a href="/">返回博客首页</a></p>
+  </footer>
+
+  <button class="back-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.reading-progress');
+      const backTop = document.querySelector('.back-top');
+      const tocLinks = [...document.querySelectorAll('.toc a')];
+      const sections = tocLinks
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .map((heading) => heading ? heading.closest('section') : null)
+        .filter(Boolean);
+
+      const updateScrollUI = () => {
+        const root = document.documentElement;
+        const scrollable = root.scrollHeight - root.clientHeight;
+        const ratio = scrollable > 0 ? root.scrollTop / scrollable : 0;
+        progress.style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+        backTop.classList.toggle('is-visible', root.scrollTop > 620);
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (!visible.length) return;
+        const activeId = visible[0].target.querySelector('h2[id]')?.id;
+        if (!activeId) return;
+
+        tocLinks.forEach((link) => {
+          if (link.getAttribute('href') === `#${activeId}`) {
+            link.setAttribute('aria-current', 'true');
+          } else {
+            link.removeAttribute('aria-current');
+          }
+        });
+      }, { rootMargin: '-18% 0px -68% 0px', threshold: [0, 0.08] });
+
+      sections.forEach((section) => observer.observe(section));
+      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      window.addEventListener('resize', updateScrollUI);
+      backTop.addEventListener('click', () => {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      });
+      updateScrollUI();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1403 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Smartuil">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第一部分，介绍系统启用方式、设计目标、适用场景、七层架构、数据流向与核心设计理念。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="canonical" href="https://zhuanlan.zhihu.com/p/1996686801008611714">
+  <title>UE5-Iris 网络复制系统技术分析 - 第一部分：系统概述与架构设计 · Smartuil</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: var(--iris);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+    }
+
+    a:hover {
+      color: var(--signal);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, 0.42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, 0.2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "IRIS";
+      position: absolute;
+      right: -0.04em;
+      bottom: -0.39em;
+      color: rgba(255, 255, 255, 0.045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -0.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner {
+      position: relative;
+      max-width: 1000px;
+      z-index: 1;
+    }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 28px;
+      color: #f3c3ae;
+      font: 700 0.76rem/1 var(--mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 42px;
+      height: 2px;
+      background: var(--signal);
+    }
+
+    h1 {
+      max-width: 1100px;
+      margin: 0;
+      font: 800 clamp(2.5rem, 5.4vw, 5rem) / 1.08 var(--serif);
+      letter-spacing: -0.04em;
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    .hero__deck {
+      max-width: 760px;
+      margin: 28px 0 0;
+      color: rgba(255, 253, 248, 0.75);
+      font: 400 clamp(1rem, 1.9vw, 1.25rem) / 1.8 var(--sans);
+    }
+
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 30px;
+      margin-top: 38px;
+      color: rgba(255, 253, 248, 0.8);
+      font: 600 0.84rem/1.6 var(--mono);
+    }
+
+    .hero__meta a {
+      color: #fff;
+    }
+
+    .hero__meta span {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hero__meta span::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 880px);
+      gap: clamp(44px, 6vw, 92px);
+      width: min(1260px, calc(100% - 56px));
+      margin: 0 auto;
+      padding: 68px 0 90px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 28px;
+      max-height: calc(100vh - 56px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.72);
+      box-shadow: 0 18px 50px rgba(25, 35, 58, 0.07);
+      backdrop-filter: blur(18px);
+    }
+
+    .toc__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toc__head strong {
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .toc__head span {
+      color: var(--signal);
+      font: 700 0.68rem/1 var(--mono);
+      letter-spacing: 0.1em;
+    }
+
+    .toc ol {
+      max-height: calc(100vh - 116px);
+      margin: 0;
+      padding: 10px 0 20px;
+      overflow: auto;
+      list-style: none;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .toc li {
+      margin: 0;
+    }
+
+    .toc a {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      padding: 9px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: 140ms ease;
+    }
+
+    .toc a:hover,
+    .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.08);
+      border-left-color: var(--signal);
+    }
+
+    .toc a span {
+      padding-top: 0.2em;
+      color: var(--signal);
+      font: 700 0.66rem/1.5 var(--mono);
+    }
+
+    .toc a b {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .toc-mobile {
+      display: none;
+    }
+
+    .article-shell {
+      min-width: 0;
+    }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin: 0 0 46px;
+      padding: 18px 20px;
+      background: var(--signal-soft);
+      border-left: 5px solid var(--signal);
+    }
+
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      color: #fff;
+      background: var(--signal);
+      border-radius: 50%;
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .source-note p {
+      margin: 0;
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .source-note p strong {
+      display: block;
+      color: var(--iris-dark);
+    }
+
+    .source-note > a {
+      white-space: nowrap;
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    article {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    article > p,
+    article > ul,
+    article > blockquote,
+    article > .table-scroll,
+    article > figure,
+    article > .reading-link-wrap {
+      max-width: 790px;
+    }
+
+    article p {
+      margin: 1rem 0;
+    }
+
+    article h2 {
+      position: relative;
+      margin: 5.8rem 0 2rem;
+      padding: 0.8rem 0 1rem 56px;
+      color: var(--iris-dark);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font: 800 clamp(1.65rem, 3.2vw, 2.5rem) / 1.28 var(--serif);
+      letter-spacing: -0.025em;
+      scroll-margin-top: 28px;
+    }
+
+    article h2::before {
+      content: counter(chapter, decimal-leading-zero);
+      counter-increment: chapter;
+      position: absolute;
+      left: 0;
+      top: 1.15rem;
+      color: var(--signal);
+      font: 800 0.74rem/1 var(--mono);
+      letter-spacing: 0.08em;
+    }
+
+    article {
+      counter-reset: chapter;
+    }
+
+    article h3 {
+      margin: 3.2rem 0 1.15rem;
+      padding-left: 18px;
+      color: var(--ink);
+      border-left: 4px solid var(--iris);
+      font: 750 clamp(1.18rem, 2.1vw, 1.48rem) / 1.45 var(--serif);
+      scroll-margin-top: 28px;
+    }
+
+    article h2:first-of-type {
+      margin-top: 3rem;
+    }
+
+    article ul {
+      margin: 0.9rem 0 1.4rem;
+      padding-left: 1.35rem;
+    }
+
+    article ul ul {
+      margin: 0.45rem 0 0.7rem;
+      padding-left: 1.6rem;
+      border-left: 1px dashed var(--line);
+    }
+
+    article li {
+      margin: 0.32rem 0;
+      padding-left: 0.18rem;
+    }
+
+    article li::marker {
+      color: var(--signal);
+    }
+
+    article blockquote {
+      margin: 1.8rem 0;
+      padding: 20px 24px;
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.075);
+      border-left: 5px solid var(--iris);
+      font-family: var(--serif);
+      font-size: 1.05rem;
+    }
+
+    article blockquote p {
+      margin: 0;
+    }
+
+    article hr {
+      width: 90px;
+      height: 8px;
+      margin: 5.5rem 0 0;
+      background:
+        linear-gradient(90deg, var(--signal) 0 26px, transparent 26px 32px, var(--iris) 32px 90px);
+      border: 0;
+    }
+
+    article code {
+      padding: 0.12em 0.38em;
+      color: #aa3f27;
+      background: #ece3d6;
+      border: 1px solid #d9ccbb;
+      border-radius: 3px;
+      font: 0.84em/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+
+    article strong {
+      color: var(--iris-dark);
+    }
+
+    article figure {
+      margin: 2rem 0 3rem;
+      padding: 10px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    article img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .reading-link-wrap {
+      margin: 1rem 0 2.4rem;
+    }
+
+    .reading-link {
+      display: grid;
+      gap: 5px;
+      padding: 22px 24px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--iris-dark);
+      border-right: 7px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(39, 53, 111, 0.2);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .reading-link:hover {
+      color: var(--white);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 42px rgba(39, 53, 111, 0.25);
+    }
+
+    .reading-link__label,
+    .reading-link__url {
+      color: rgba(255, 255, 255, 0.6);
+      font: 700 0.7rem/1.5 var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .reading-link strong {
+      color: var(--white);
+      font: 700 1.1rem/1.4 var(--serif);
+    }
+
+    .table-scroll {
+      margin: 2rem 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--white);
+      box-shadow: 0 14px 38px rgba(25, 35, 58, 0.07);
+    }
+
+    table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th,
+    td {
+      padding: 13px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      color: var(--white);
+      background: var(--iris-dark);
+      font-family: var(--serif);
+    }
+
+    .article-footer {
+      margin-top: 76px;
+      padding: 38px 0 0;
+      border-top: 3px solid var(--ink);
+    }
+
+    .article-footer__grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+    }
+
+    .article-footer h2 {
+      margin: 0 0 8px;
+      padding: 0;
+      border: 0;
+      font-size: 1.35rem;
+    }
+
+    .article-footer h2::before {
+      display: none;
+    }
+
+    .article-footer p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.86rem;
+    }
+
+    .article-footer a {
+      display: inline-block;
+      padding: 12px 16px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--signal);
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 12px 32px rgba(25, 35, 58, 0.23);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: 160ms ease;
+    }
+
+    .back-top.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        display: block;
+        width: min(860px, calc(100% - 40px));
+        padding-top: 36px;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .toc-mobile {
+        display: block;
+        margin-bottom: 28px;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.85);
+      }
+
+      .toc-mobile summary {
+        padding: 15px 18px;
+        color: var(--iris-dark);
+        cursor: pointer;
+        font: 750 0.9rem/1.4 var(--serif);
+      }
+
+      .toc-mobile ol {
+        max-height: 52vh;
+        margin: 0;
+        padding: 8px 18px 18px 48px;
+        overflow: auto;
+      }
+
+      .toc-mobile li {
+        margin: 0.4rem 0;
+      }
+
+      .toc-mobile a {
+        font-size: 0.8rem;
+      }
+
+      .toc-mobile a span {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 16px;
+      }
+
+      h1 {
+        font-size: 2.18rem;
+        letter-spacing: -0.045em;
+      }
+
+      .hero {
+        padding: 54px 22px 52px;
+      }
+
+      .hero::before {
+        font-size: 50vw;
+        bottom: -0.23em;
+      }
+
+      .kicker {
+        margin-bottom: 22px;
+      }
+
+      .hero__meta {
+        display: grid;
+        gap: 8px;
+      }
+
+      .layout {
+        width: min(100% - 32px, 860px);
+        padding-bottom: 64px;
+      }
+
+      .source-note {
+        grid-template-columns: auto 1fr;
+      }
+
+      .source-note > a {
+        grid-column: 2;
+      }
+
+      article h2 {
+        margin-top: 4.6rem;
+        padding-left: 44px;
+      }
+
+      article h3 {
+        margin-top: 2.8rem;
+      }
+
+      .article-footer__grid {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .back-top {
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+
+    @media print {
+      .reading-progress,
+      .toc,
+      .toc-mobile,
+      .back-top {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+      }
+
+      .hero {
+        padding: 32px 0;
+        color: #000;
+        background: #fff;
+        border-bottom: 2px solid #000;
+      }
+
+      .hero::before {
+        display: none;
+      }
+
+      .hero__deck,
+      .hero__meta,
+      .hero__meta a {
+        color: #333;
+      }
+
+      .layout {
+        display: block;
+        width: 100%;
+        padding: 24px 0;
+      }
+
+      article h2,
+      article h3 {
+        break-after: avoid;
+      }
+
+      article a {
+        color: #000;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+
+    .hero--part h1 {
+      max-width: 1180px;
+      font-size: clamp(2.45rem, 4.5vw, 4.45rem);
+    }
+
+    article pre {
+      max-width: 100%;
+      margin: 1.4rem 0 1.8rem;
+      padding: 20px 22px;
+      overflow-x: auto;
+      color: #e9edf8;
+      background: #17203a;
+      border: 1px solid #303d68;
+      border-left: 5px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(25, 35, 58, 0.13);
+      tab-size: 4;
+    }
+
+    article pre code {
+      display: block;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      white-space: pre;
+      overflow-wrap: normal;
+      font-size: 0.78rem;
+      line-height: 1.68;
+    }
+
+    @media (max-width: 640px) {
+      .hero--part h1 {
+        font-size: 2.05rem;
+      }
+
+      article pre {
+        margin-right: -4px;
+        padding: 16px;
+      }
+    }
+</style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.5 · Iris Replication System</p>
+      <h1>
+  <span>UE5-Iris 网络复制系统技术分析</span>
+  <span>第一部分：系统概述与架构设计</span>
+</h1>
+      <p class="hero__deck">从 Iris 的启用方式、设计目标与适用场景出发，梳理七层架构、数据流向，以及贯穿复制系统的核心设计理念。</p>
+      <div class="hero__meta" aria-label="文章信息">
+  <span>作者 Smartuil</span>
+  <span>发布 2026-01-19</span>
+  <span>编辑 2026-01-21</span>
+  <span>7 个章节 · 21 个小节</span>
+  <span><a href="https://zhuanlan.zhihu.com/p/1996686801008611714" target="_blank" rel="noopener noreferrer">知乎原文 ↗</a></span>
+</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head">
+        <strong>内容索引</strong>
+        <span>CONTENTS</span>
+      </div>
+      <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>更好的阅读体验：</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🌐 Iris 网络复制系统技术分析 - 第一部分：系统概述与架构设计</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>💡 1.1 Iris 简介</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🏗️ 1.2 整体架构层次</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>💡 1.3 核心设计理念</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>📁 关键源文件索引</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>📝 小结</b>
+        </a>
+      </li></ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 7 个章节</summary>
+        <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>更好的阅读体验：</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🌐 Iris 网络复制系统技术分析 - 第一部分：系统概述与架构设计</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>💡 1.1 Iris 简介</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🏗️ 1.2 整体架构层次</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>💡 1.3 核心设计理念</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>📁 关键源文件索引</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>📝 小结</b>
+        </a>
+      </li></ol>
+      </details>
+
+      <div class="source-note" role="note">
+        <span class="source-note__mark" aria-hidden="true">源</span>
+        <p>
+  <strong>文章来源：知乎专栏</strong>
+  原文作者 Smartuil；本页经授权整理为独立 HTML，内容顺序与原文保持一致。
+</p>
+        <a href="https://zhuanlan.zhihu.com/p/1996686801008611714" target="_blank" rel="noopener noreferrer">查看原文 ↗</a>
+      </div>
+
+      <article><h2 id="section-01" tabindex="-1">更好的阅读体验：</h2><div class="reading-link-wrap"><a target="_blank" href="https://www.bonan.online/posts/Iris1" class="reading-link" rel="noopener noreferrer">
+    <span>作者提供的延伸阅读</span>
+    <strong>Iris 网络复制系统技术分析 - 第一部分：系统概述与架构设计</strong>
+    <span>www.bonan.online/posts/Iris1</span>
+  </a></div><h2 id="section-02" tabindex="-1">🌐 Iris 网络复制系统技术分析 - 第一部分：系统概述与架构设计</h2><figure><div><img src="./assets/iris-guide-overview.jpg" width="1376" alt="Iris 网络复制系统技术分析指南概览" height="768" loading="eager" decoding="async"></div></figure><hr><h2 id="section-03" tabindex="-1">💡 1.1 Iris 简介</h2><h3 id="section-03-01" tabindex="-1">什么是 Iris？</h3><p><strong>Iris</strong> (Iris Replication System) 是虚幻引擎 5 中引入的新一代网络复制系统，旨在替代传统的基于 <code><a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=Actor+Channel&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">Actor Channel</a></code> 的复制架构。Iris 采用全新的<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E6%95%B0%E6%8D%AE%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">数据驱动设计</a>，为大规模多人游戏提供更高的性能和更好的可扩展性。</p><h3 id="section-03-02" tabindex="-1">⚙️ 如何启用 Iris？</h3><p>Iris 通过引擎插件系统启动。启用步骤：</p><ol><li><strong>启用 Iris 插件</strong>：在项目设置或 <code>.uproject</code> 文件中启用位于 <code>Engine/Plugins/Experimental/Iris/</code> 目录下的 Iris 插件</li><li><strong>插件自动加载 IrisCore 模块</strong>：Iris 插件启动时会自动加载核心模块</li></ol><div><pre><code>// 位于: Engine/Plugins/Experimental/Iris/Source/Iris/Private/Iris/IrisModule.cpp
+
+class FIrisModule : public IModuleInterface
+{
+private:
+    virtual void StartupModule() override
+    {
+#if UE_WITH_IRIS
+        FModuleManager::Get().LoadModule("IrisCore", ELoadModuleFlags::None);
+#endif
+    }
+};
+
+IMPLEMENT_MODULE(FIrisModule, Iris);</code></pre></div><p><strong>插件配置文件</strong> (<code>Iris.uplugin</code>)：</p><div><pre><code>{
+    "FriendlyName": "Iris",
+    "Description": "Iris networking.",
+    "Category": "Networking",
+    "EnabledByDefault": false,
+    "IsExperimentalVersion": true,
+    "Modules": [
+        {
+            "Name": "Iris",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ]
+}</code></pre></div><blockquote><strong>注意</strong>：Iris 目前标记为实验性功能（<code>IsExperimentalVersion: true</code>），默认不启用（<code>EnabledByDefault: false</code>）。<br> 还需要将以下控制台变量设置为 1<br> // 位于: Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/IrisConfig.h  static int32 CVarUseIrisReplication = 0; static FAutoConsoleVariableRef CVarUseIrisReplicationRef(     TEXT("net.Iris.UseIrisReplication"),      CVarUseIrisReplication,      TEXT("Enables Iris replication system. 0 will fallback to legacy replicationsystem."),      ECVF_Default );  namespace UE::Net {     /** 返回是否应该使用 Iris 作为首选复制系统 */     IRISCORE_API bool ShouldUseIrisReplication();          /** 设置是否使用 Iris 复制系统 */     IRISCORE_API void SetUseIrisReplication(bool EnableIrisReplication);          /** 获取命令行中设置的复制系统类型，返回 Default 表示未通过命令行设置 */     IRISCORE_API EReplicationSystem GetUseIrisReplicationCmdlineValue(); }</blockquote><h3 id="section-03-03" tabindex="-1">🎯 设计目标与动机</h3><p>Iris 的设计围绕以下核心目标：</p><div class="table-scroll"><table><tbody><tr><th>目标</th><th>说明</th></tr><tr><td>🚀 更高的性能</td><td>通过数据驱动设计、<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E7%BC%93%E5%AD%98%E5%8F%8B%E5%A5%BD%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">缓存友好的内存布局</a>和并行处理优化</td></tr><tr><td>📈 更好的可扩展性</td><td>支持大规模多人游戏场景（数千个<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E5%A4%8D%E5%88%B6%E5%AF%B9%E8%B1%A1&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">复制对象</a>）</td></tr><tr><td>🧩 更灵活的架构</td><td>模块化设计，过滤器和优先级策略可自由替换</td></tr><tr><td>🎛️ 更精细的控制</td><td>提供更细粒度的过滤、优先级和带宽管理</td></tr><tr><td>⚡ 更低的延迟</td><td>优化的序列化路径和增量压缩支持</td></tr></tbody></table></div><h3 id="section-03-04" tabindex="-1">⚖️ 与传统 NetDriver 复制系统的对比</h3><div class="table-scroll"><table><tbody><tr><th>特性</th><th>传统系统</th><th>Iris</th></tr><tr><td>架构基础</td><td>Actor Channel</td><td>ReplicationSystem + Bridge</td></tr><tr><td>状态管理</td><td>直接操作属性</td><td>ReplicationState + Fragment</td></tr><tr><td><a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=2&amp;q=%E5%BA%8F%E5%88%97%E5%8C%96&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">序列化</a></td><td>FArchive (通用)</td><td>NetSerializer (专用量化)</td></tr><tr><td>过滤机制</td><td>IsNetRelevantFor() <a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E8%99%9A%E5%87%BD%E6%95%B0&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">虚函数</a></td><td>可替换 Filter 系统</td></tr><tr><td>优先级机制</td><td>NetPriority 属性</td><td>可替换 Prioritizer 系统</td></tr><tr><td>脏数据检测</td><td>每帧比较所有属性</td><td>Push Model + 轮询频率控制</td></tr><tr><td>内存布局</td><td>分散在各个 Actor</td><td><a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E8%BF%9E%E7%BB%AD%E5%86%85%E5%AD%98&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">连续内存</a>块（缓存友好）</td></tr><tr><td>并行处理</td><td>有限支持</td><td>原生并行任务支持</td></tr><tr><td><a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=2&amp;q=%E5%A2%9E%E9%87%8F%E5%8E%8B%E7%BC%A9&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">增量压缩</a></td><td>不支持</td><td>原生支持</td></tr></tbody></table></div><h3 id="section-03-05" tabindex="-1">🎮 适用场景</h3><p>Iris 特别适合以下场景：</p><ol><li>🌍 <strong>大规模开放世界游戏</strong><br> </li></ol><ul><li>大量需要复制的对象</li><li>复杂的空间过滤需求</li><li><a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E5%85%B3%E5%8D%A1%E6%B5%81%E9%80%81&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">关卡流送</a>支持</li></ul><ol><li>🪂 <strong>大逃杀/Battle Royale 类型</strong><br> </li></ol><ul><li>高玩家数量（100+）</li><li>动态的可见性管理</li><li>带宽敏感</li></ul><ol><li>⚔️ <strong><a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=MMO+%E7%B1%BB%E5%9E%8B%E6%B8%B8%E6%88%8F&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">MMO 类型游戏</a></strong><br> </li></ol><ul><li>海量复制对象</li><li>复杂的组过滤需求</li><li>区域/分片支持</li></ul><ol><li>🏆 <strong>竞技类游戏</strong><br> </li></ol><ul><li>低延迟要求</li><li>精确的优先级控制</li><li>高频更新</li></ul><hr><h2 id="section-04" tabindex="-1">🏗️ 1.2 整体架构层次</h2><h3 id="section-04-01" tabindex="-1">架构分层图解</h3><figure><div><img src="./assets/iris-seven-layer-architecture.jpg" width="1500" alt="Iris 网络复制系统七层架构图" height="1091" loading="lazy" decoding="async"></div></figure><blockquote> 该图片源于<a href="https://dev.epicgames.com/documentation/zh-cn/unreal-engine/introduction-to-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">虚幻引擎Iris官方文档</a></blockquote><p>Iris 采用清晰的分层架构设计，从上到下共 7 层：</p><div><pre><code>┌─────────────────────────────────────────────────────────────┐
+                        │  🎮 Layer 1: Game Layer                                     │
+                        │  ─────────────────────────────────────────────────────────  │
+                        │  类: AActor, UActorComponent                                │
+                        │  职责: 开发者编写的游戏逻辑层，包含需要复制的对象           │
+                        └─────────────────────────────────────────────────────────────┘
+                                                    │
+                                                    │ 注册复制对象
+                                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                      🌉 Bridge 层（桥接层）                                         │
+│  ┌───────────────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  🔌 Layer 2: Engine Bridge                                                                    │  │
+│  │  类: UEngineReplicationBridge                                                                 │  │
+│  │  职责: Actor/Component 生命周期 │ NetDriver 集成 │ 关卡流送                                   │  │
+│  └───────────────────────────────────────────────────────────────────────────────────────────────┘  │
+│                                              │ 继承                                                  │
+│                                              ▼                                                       │
+│  ┌───────────────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  🧩 Layer 3: Object Bridge                                                                    │  │
+│  │  类: UObjectReplicationBridge                                                                 │  │
+│  │  职责: UObject 复制管理 │ 过滤器配置 │ 休眠管理 │ 依赖管理                                    │  │
+│  └───────────────────────────────────────────────────────────────────────────────────────────────┘  │
+│                                              │ 继承                                                  │
+│                                              ▼                                                       │
+│  ┌───────────────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  🔗 Layer 4: Replication Bridge                                                               │  │
+│  │  类: UReplicationBridge                                                                       │  │
+│  │  职责: 网络对象创建/销毁 │ 子对象管理 │ 复制协议                                              │  │
+│  └───────────────────────────────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                                    │
+                                                    │ 关联
+                                                    ▼
+                        ┌─────────────────────────────────────────────────────────────┐
+                        │  🧠 Layer 5: Replication System                             │
+                        │  ─────────────────────────────────────────────────────────  │
+                        │  类: UReplicationSystem                                     │
+                        │  职责: 连接管理 │ 过滤 │ 优先级 │ 组管理 │ RPC │ 主循环    │
+                        └─────────────────────────────────────────────────────────────┘
+                                                    │
+                                                    │ 使用
+                                                    ▼
+                        ┌─────────────────────────────────────────────────────────────┐
+                        │  📦 Layer 6: Data Streams                                   │
+                        │  ─────────────────────────────────────────────────────────  │
+                        │  类: UDataStream                                            │
+                        │  职责: 序列化 │ 可靠/不可靠传输 │ 带宽管理 │ 增量压缩       │
+                        └─────────────────────────────────────────────────────────────┘
+                                                    │
+                                                    │ 写入/读取
+                                                    ▼
+                        ┌─────────────────────────────────────────────────────────────┐
+                        │  🌐 Layer 7: Network Transport                              │
+                        │  ─────────────────────────────────────────────────────────  │
+                        │  类: UNetConnection                                         │
+                        │  职责: 底层网络传输 │ 包投递状态                            │
+                        └─────────────────────────────────────────────────────────────┘</code></pre></div><p><strong>层级速查表：</strong></p><div class="table-scroll"><table><tbody><tr><th>层级</th><th>名称</th><th>核心类</th><th>一句话职责</th></tr><tr><td>1</td><td>Game Layer</td><td>AActor, UActorComponent</td><td>你的游戏代码</td></tr><tr><td>2</td><td>Engine Bridge</td><td>UEngineReplicationBridge</td><td>连接引擎与 Iris</td></tr><tr><td>3</td><td>Object Bridge</td><td>UObjectReplicationBridge</td><td>管理 UObject 复制</td></tr><tr><td>4</td><td>Replication Bridge</td><td>UReplicationBridge</td><td>网络<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">对象生命周期</a></td></tr><tr><td>5</td><td>Replication System</td><td>UReplicationSystem</td><td>核心<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E8%B0%83%E5%BA%A6%E4%B8%AD%E5%BF%83&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">调度中心</a></td></tr><tr><td>6</td><td>Data Streams</td><td>UDataStream</td><td>数据序列化传输</td></tr><tr><td>7</td><td>Network Transport</td><td>UNetConnection</td><td>底层网络收发</td></tr></tbody></table></div><blockquote> 💡 <strong>理解要点</strong>：Layer 2-4 是<strong>继承关系</strong>（Bridge 层），负责将游戏对象”翻译”成网络对象；Layer 5 是<strong>核心调度器</strong>，协调所有复制逻辑；Layer 6-7 负责<strong>数据传输</strong>。</blockquote><h3 id="section-04-02" tabindex="-1">📋 各层职责划分</h3><h3 id="section-04-03" tabindex="-1">🎮 1. Game Layer（游戏层）</h3><p><a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91%E8%80%85&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">游戏开发者</a>编写的业务逻辑层：</p><div><pre><code>// 示例：一个需要复制的 Actor
+UCLASS()
+class AMyReplicatedActor : public AActor
+{
+    GENERATED_BODY()
+
+    // 需要复制的属性
+    UPROPERTY(Replicated)
+    float Health;
+
+    UPROPERTY(Replicated)
+    FVector Position;
+
+    // 复制属性注册
+    void GetLifetimeReplicatedProps(TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) const override
+    {
+        Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+        DOREPLIFETIME(AMyReplicatedActor, Health);
+        DOREPLIFETIME(AMyReplicatedActor, Position);
+    }
+};</code></pre></div><h3 id="section-04-04" tabindex="-1">🔌 2. UEngineReplicationBridge（引擎复制桥接）</h3><p>处理 Actor 和 Component 的复制生命周期：</p><div><pre><code>// 位于: Engine/Source/Runtime/Engine/Public/Net/Iris/ReplicationSystem/EngineReplicationBridge.h
+
+UCLASS(Transient, MinimalAPI)
+class UEngineReplicationBridge final : public UObjectReplicationBridge
+{
+public:
+    // 创建桥接实例
+    static UEngineReplicationBridge* Create(UNetDriver* NetDriver);
+
+    // 设置 NetDriver
+    void SetNetDriver(UNetDriver* InNetDriver);
+    UNetDriver* GetNetDriver() const { return NetDriver; }
+
+    // ===== Actor 复制 =====
+    // 开始复制一个 Actor 及其注册的 Component 和 SubObject
+    FNetRefHandle StartReplicatingActor(AActor* Instance, const FActorReplicationParams&amp; Params);
+
+    // 停止复制 Actor，会销毁其句柄及其 Component 和 SubObject 的句柄
+    void StopReplicatingActor(AActor* Actor, EEndPlayReason::Type EndPlayReason);
+
+    // ===== Component 复制 =====
+    // 开始复制 ActorComponent 及其注册的 SubObject
+    FNetRefHandle StartReplicatingComponent(FNetRefHandle RootObjectHandle,
+                                            UActorComponent* ActorComponent);
+
+    // 停止复制 Component
+    void StopReplicatingComponent(UActorComponent* ActorComponent,
+                                  EEndReplicationFlags EndReplicationFlags);
+
+    // ===== SubObject 复制 =====
+    FNetRefHandle StartReplicatingSubObject(UObject* SubObject,
+                                            const FSubObjectReplicationParams&amp; Params);
+
+    // ===== 关卡过滤 =====
+    // Actor 切换关卡时更新关卡组
+    void ActorChangedLevel(const AActor* Actor, const ULevel* PreviousLevel);
+
+    // ===== 网络指标 =====
+    // 收集网络指标用于分析
+    void ConsumeNetMetrics(TArray&lt;FAnalyticsEventAttribute&gt;&amp; OutAttrs);
+};</code></pre></div><h3 id="section-04-05" tabindex="-1">🧩 3. UObjectReplicationBridge（对象复制桥接）</h3><p>提供 UObject 级别的复制管理：</p><div><pre><code>// 位于: Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/ObjectReplicationBridge.h
+
+UCLASS(Transient, MinimalApi)
+class UObjectReplicationBridge : public UReplicationBridge
+{
+public:
+    // ===== 对象查询 =====
+    // 从句柄获取对象
+    UObject* GetReplicatedObject(FNetRefHandle Handle) const;
+
+    // 从对象获取句柄
+    FNetRefHandle GetReplicatedRefHandle(const UObject* Object,
+                                         EGetRefHandleFlags Flags = EGetRefHandleFlags::None) const;
+
+    // 从 NetHandle 获取句柄
+    FNetRefHandle GetReplicatedRefHandle(FNetHandle Handle) const;
+
+    // ===== 开始复制 =====
+    // 开始复制根对象
+    FNetRefHandle StartReplicatingRootObject(UObject* Instance,
+                                             const FRootObjectReplicationParams&amp; Params,
+                                             FNetObjectFactoryId NetFactoryId);
+
+    // 开始复制子对象
+    FNetRefHandle StartReplicatingSubObject(UObject* Instance,
+                                            const FSubObjectReplicationParams&amp; Params,
+                                            FNetObjectFactoryId NetFactoryId);
+
+    // ===== 停止复制 =====
+    void StopReplicatingNetObject(UObject* Instance,
+                                  EEndReplicationFlags Flags = EEndReplicationFlags::Destroy);
+
+    // ===== 依赖关系 =====
+    void AddDependentObject(FNetRefHandle Parent, FNetRefHandle DependentObject,
+                           EDependentObjectSchedulingHint Hint);
+    void RemoveDependentObject(FNetRefHandle Parent, FNetRefHandle DependentObject);
+
+    // ===== <a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=2&amp;q=%E4%BC%91%E7%9C%A0%E7%AE%A1%E7%90%86&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">休眠管理</a> =====
+    void SetObjectWantsToBeDormant(FNetRefHandle Handle, bool bWantsToBeDormant);
+    bool GetObjectWantsToBeDormant(FNetRefHandle Handle) const;
+    void NetFlushDormantObject(FNetRefHandle Handle);
+
+    // ===== 轮询频率 =====
+    void SetPollFrequency(FNetRefHandle RootHandle, float PollFrequency);
+
+    // ===== 动态过滤配置 =====
+    void SetClassDynamicFilterConfig(FName ClassPathName, FNetObjectFilterHandle FilterHandle, FName FilterProfile=NAME_None);
+    void SetClassDynamicFilterConfig(FName ClassPathName, FName FilterName, FName FilterProfile=NAME_None);
+
+    // ===== 子对象网络条件 =====
+    void SetSubObjectNetCondition(FNetRefHandle SubObjectHandle, ELifetimeCondition Condition);
+};</code></pre></div><h3 id="section-04-06" tabindex="-1">🔗 4. UReplicationBridge（复制桥接基类）</h3><p>网络对象的基础管理：</p><div class="table-scroll"><table><tbody><tr><th>职责</th><th>说明</th></tr><tr><td>网络对象创建/销毁</td><td>管理复制对象的生命周期</td></tr><tr><td>子对象管理</td><td>处理 SubObject 的注册和注销</td></tr><tr><td>关卡组管理</td><td>支持关卡流送的<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E8%BF%87%E6%BB%A4%E7%BB%84&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">过滤组</a></td></tr><tr><td>复制协议管理</td><td>定义对象的复制规则</td></tr></tbody></table></div><h3 id="section-04-07" tabindex="-1">🧠 5. UReplicationSystem（复制系统核心）</h3><p>Iris 的核心管理类：</p><div><pre><code>// 位于: Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/ReplicationSystem.h
+
+UCLASS(transient)
+class UReplicationSystem : public UObject
+{
+public:
+    // ===== 创建参数 =====
+    struct FReplicationSystemParams
+    {
+        UReplicationBridge* ReplicationBridge = nullptr;
+        uint32 MaxReplicatedObjectCount = 65536U;        // 最大复制对象数
+        uint32 InitialNetObjectListCount = 65536U;       // 初始对象列表大小
+        uint32 NetObjectListGrowCount = 16384U;          // 列表增长步长
+        uint32 PreAllocatedMemoryBuffersObjectCount = 65536U; // 预分配内存缓冲区<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=2&amp;q=%E5%AF%B9%E8%B1%A1%E6%95%B0&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">对象数</a>
+        uint32 MaxReplicationWriterObjectCount = 0;      // 最大复制写入对象数
+        uint32 MaxDeltaCompressedObjectCount = 2048U;    // 最大增量压缩对象数
+        uint32 MaxNetObjectGroupCount = 2048U;           // 最大组数量
+        bool bIsServer = false;                          // 是否为服务器
+        bool bAllowObjectReplication = false;            // 是否允许对象复制
+        FForwardNetRPCCallDelegate ForwardNetRPCCallDelegate; // RPC 转发委托
+        FNetTokenStore* NetTokenStore = nullptr;         // NetToken 存储
+    };
+
+    // ===== 系统信息 =====
+    uint32 GetId() const;                    // 获取系统唯一 ID
+    uint32 GetMaxConnectionCount() const;    // 获取最大连接数
+    bool IsServer() const;                   // 是否为服务器
+    bool AllowObjectReplication();           // 是否允许对象复制
+
+    // ===== 生命周期 =====
+    void PreSendUpdate(const FSendUpdateParams&amp; Params); // 发送前更新（带参数）
+    void PreSendUpdate(float DeltaSeconds);  // 发送前更新
+    void SendUpdate(TFunctionRef&lt;void(TArrayView&lt;uint32&gt;)&gt; SendFunction);
+    void PostSendUpdate();                   // 发送后更新
+
+    // ===== 连接管理 =====
+    void AddConnection(uint32 ConnectionId);
+    void RemoveConnection(uint32 ConnectionId);
+    bool IsValidConnection(uint32 ConnectionId) const;
+    void SetConnectionGracefullyClosing(uint32 ConnectionId) const; // 设置连接优雅关闭
+    void SetReplicationEnabledForConnection(uint32 ConnectionId, bool bEnabled);
+    bool IsReplicationEnabledForConnection(uint32 ConnectionId) const;
+
+    // ===== 过滤 =====
+    bool SetFilter(FNetRefHandle Handle, FNetObjectFilterHandle FilterHandle, FName FilterProfile=NAME_None);
+    FNetObjectFilterHandle GetFilterHandle(FName FilterName) const;
+    UNetObjectFilter* GetFilter(FName FilterName) const;
+    FName GetFilterName(FNetObjectFilterHandle Filter) const;
+    void SetOwningNetConnection(FNetRefHandle Handle, uint32 ConnectionId);
+    uint32 GetOwningNetConnection(FNetRefHandle Handle) const;
+    bool SetConnectionFilter(FNetRefHandle Handle, const TBitArray&lt;&gt;&amp; Connections, ENetFilterStatus ReplicationStatus);
+
+    // ===== 组管理 =====
+    FNetObjectGroupHandle CreateGroup(FName GroupName);
+    void DestroyGroup(FNetObjectGroupHandle GroupHandle);
+    FNetObjectGroupHandle FindGroup(FName GroupName) const;
+    void AddToGroup(FNetObjectGroupHandle GroupHandle, FNetRefHandle Handle);
+    void RemoveFromGroup(FNetObjectGroupHandle GroupHandle, FNetRefHandle Handle);
+    void RemoveFromAllGroups(FNetRefHandle Handle);
+    bool IsInGroup(FNetObjectGroupHandle GroupHandle, FNetRefHandle Handle) const;
+    bool IsValidGroup(FNetObjectGroupHandle GroupHandle) const;
+    bool AddExclusionFilterGroup(FNetObjectGroupHandle GroupHandle);
+    bool AddInclusionFilterGroup(FNetObjectGroupHandle GroupHandle);
+    void RemoveGroupFilter(FNetObjectGroupHandle GroupHandle);
+    void SetGroupFilterStatus(FNetObjectGroupHandle GroupHandle, uint32 ConnectionId, ENetFilterStatus Status);
+
+    // ===== 特殊组 =====
+    FNetObjectGroupHandle GetNotReplicatedNetObjectGroup() const;   // 不复制组
+    FNetObjectGroupHandle GetNetGroupOwnerNetObjectGroup() const;   // 所有者组
+    FNetObjectGroupHandle GetNetGroupReplayNetObjectGroup() const;  // 回放组
+
+    // ===== 子对象过滤 =====
+    FNetObjectGroupHandle GetOrCreateSubObjectFilter(FName GroupName);
+    FNetObjectGroupHandle GetSubObjectFilterGroupHandle(FName GroupName) const;
+    void SetSubObjectFilterStatus(FName GroupName, FConnectionHandle ConnectionHandle, ENetFilterStatus ReplicationStatus);
+    void RemoveSubObjectFilter(FName GroupName);
+
+    // ===== 优先级 =====
+    void SetStaticPriority(FNetRefHandle Handle, float Priority);
+    bool SetPrioritizer(FNetRefHandle Handle, FNetObjectPrioritizerHandle PrioritizerHandle);
+    FNetObjectPrioritizerHandle GetPrioritizerHandle(FName PrioritizerName) const;
+    UNetObjectPrioritizer* GetPrioritizer(FName PrioritizerName) const;
+    void SetReplicationView(uint32 ConnectionId, const FReplicationView&amp; View);
+
+    // ===== RPC =====
+    bool SendRPC(const UObject* RootObject, const UObject* SubObject,
+                 const UFunction* Function, const void* Parameters);
+    bool SendRPC(uint32 ConnectionId, const UObject* RootObject,
+                 const UObject* SubObject, const UFunction* Function, const void* Parameters);
+    bool SetRPCSendPolicyFlags(const UFunction* Function, ENetObjectAttachmentSendPolicyFlags SendFlags);
+    void ResetRPCSendPolicyFlags();
+
+    // ===== NetBlob =====
+    bool RegisterNetBlobHandler(UNetBlobHandler* Handler);
+    bool QueueNetObjectAttachment(uint32 ConnectionId, const FNetObjectReference&amp; TargetRef,
+                                  const TRefCountPtr&lt;FNetObjectAttachment&gt;&amp; Attachment);
+
+    // ===== 复制条件 =====
+    bool SetReplicationConditionConnectionFilter(FNetRefHandle Handle, EReplicationCondition Condition,
+                                                 uint32 ConnectionId, bool bEnable);
+    bool SetReplicationCondition(FNetRefHandle Handle, EReplicationCondition Condition, bool bEnable);
+
+    // ===== 增量压缩 =====
+    void SetDeltaCompressionStatus(FNetRefHandle Handle, ENetObjectDeltaCompressionStatus Status);
+
+    // ===== 其他 =====
+    void ForceNetUpdate(FNetRefHandle Handle);   // 强制更新
+    void MarkDirty(FNetRefHandle Handle);        // 标记脏
+    void SetIsNetTemporary(FNetRefHandle Handle); // 设为临时对象
+    void TearOffNextUpdate(FNetRefHandle Handle); // 下次更新时断开
+    void SetCullDistanceSqrOverride(FNetRefHandle Handle, float DistSqr); // 设置裁剪距离覆盖
+    void ClearCullDistanceSqrOverride(FNetRefHandle Handle);              // 清除裁剪距离覆盖
+    float GetCullDistanceSqrOverride(FNetRefHandle Handle, float DefaultValue = -1.0f) const;
+
+    // ===== 查询 =====
+    bool IsValidHandle(FNetRefHandle Handle) const;
+    const FReplicationProtocol* GetReplicationProtocol(FNetRefHandle Handle) const;
+    const FNetDebugName* GetDebugName(FNetRefHandle Handle) const;
+    const FNetCullDistanceOverrides&amp; GetNetCullDistanceOverrides() const;
+    const FWorldLocations&amp; GetWorldLocations() const;
+    double GetElapsedTime() const;
+
+    // ===== 用户数据 =====
+    void SetConnectionUserData(uint32 ConnectionId, UObject* UserData);
+    UObject* GetConnectionUserData(uint32 ConnectionId) const;
+
+    // ===== 错误处理 =====
+    void ReportProtocolMismatch(uint64 NetRefHandleId, uint32 ConnectionId);
+    void ReportErrorWithNetRefHandle(ENetRefHandleError ErrorType, uint64 NetRefHandleId, uint32 ConnectionId);
+
+    // ===== 指标收集 =====
+    void CollectNetMetrics(FNetMetrics&amp; OutNetMetrics) const;
+};</code></pre></div><h3 id="section-04-08" tabindex="-1">📦 6. UDataStream（数据流）</h3><p>负责数据的序列化和传输管理：</p><div class="table-scroll"><table><tbody><tr><th>职责</th><th>说明</th></tr><tr><td>数据序列化</td><td>使用 NetSerializer 进行专用量化序列化</td></tr><tr><td>可靠/不可靠传输</td><td>支持两种传输模式，按需选择</td></tr><tr><td>带宽管理</td><td>控制每帧发送的数据量</td></tr><tr><td>增量压缩</td><td>只发送变化的数据，减少带宽占用</td></tr></tbody></table></div><h3 id="section-04-09" tabindex="-1">🌐 7. UNetConnection（网络传输）</h3><p>底层网络连接管理：</p><div class="table-scroll"><table><tbody><tr><th>职责</th><th>说明</th></tr><tr><td>底层网络传输</td><td>处理实际的<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E7%BD%91%E7%BB%9C%E6%95%B0%E6%8D%AE%E5%8C%85&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">网络数据包</a>发送和接收</td></tr><tr><td>包投递状态</td><td>跟踪数据包的确认、丢失和重传</td></tr><tr><td>连接状态</td><td>管理连接的建立、维护和断开</td></tr></tbody></table></div><h3 id="section-04-10" tabindex="-1">🔄 数据流向概览</h3><h3 id="section-04-11" tabindex="-1">📤 服务器端发送流程</h3><div><pre><code>1. PreSendUpdate (每帧调用)
+   │
+   ├─► OnStartPreSendUpdate
+   │   ├─► 更新世界位置 (UpdateInstancesWorldLocation)
+   │   └─► 调用 PreUpdate 回调
+   │
+   ├─► BuildPollList
+   │   └─► 构建需要轮询的对象列表
+   │
+   ├─► PreUpdate
+   │   └─► 调用对象的预更新回调 (PreReplication)
+   │
+   ├─► FinalizeDirtyObjects
+   │   └─► 锁定脏对象列表
+   │
+   ├─► PollAndCopy
+   │   ├─► 检测脏属性 (Poll)
+   │   ├─► 量化 (Quantize) 数据
+   │   └─► 复制到内部缓冲区 (Copy)
+   │
+   ├─► 过滤 (Filtering)
+   │   ├─► 组过滤 (Exclusion/Inclusion Groups)
+   │   ├─► 动态过滤 (UNetObjectFilter)
+   │   └─► 确定每个连接的可见对象
+   │
+   ├─► 优先级排序 (Prioritization)
+   │   ├─► 计算对象优先级
+   │   └─► 按优先级排序
+   │
+   ├─► 序列化 (Serialization)
+   │   ├─► 增量压缩 (可选)
+   │   ├─► 序列化状态数据
+   │   └─► 写入 DataStream
+   │
+   ├─► SendUpdate
+   │   └─► 发送数据包到各连接
+   │
+   └─► PostSendUpdate
+       └─► 清理临时数据</code></pre></div><h3 id="section-04-12" tabindex="-1">📥 客户端接收流程</h3><div><pre><code>1. 接收数据包
+   │
+   ├─► PreReceiveUpdate
+   │
+   ├─► ReadData (DataStream)
+   │   ├─► 反序列化状态数据
+   │   ├─► 反量化 (Dequantize)
+   │   └─► 创建/更新对象
+   │
+   ├─► ApplyReplicatedState
+   │   ├─► 应用状态到对象属性
+   │   └─► 调用 RepNotify
+   │
+   └─► PostReceiveUpdate
+       └─► 清理临时数据</code></pre></div><hr><h2 id="section-05" tabindex="-1">💡 1.3 核心<a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">设计理念</a></h2><h3 id="section-05-01" tabindex="-1">📊 数据驱动设计</h3><p>Iris 采用数据驱动的设计理念，将复制逻辑从对象本身分离出来：</p><div><pre><code>// 传统系统：逻辑与对象耦合
+class AActor
+{
+    virtual bool IsNetRelevantFor(...);  // 每个 Actor 实现自己的相关性逻辑
+    virtual void PreReplication(...);    // 每个 Actor 实现自己的预复制逻辑
+};
+
+// Iris：数据驱动，逻辑分离
+class UNetObjectFilter           // 过滤逻辑独立
+class UNetObjectPrioritizer      // 优先级逻辑独立
+struct FReplicationStateDescriptor // 状态描述独立</code></pre></div><p><strong>优势：</strong></p><ul><li>复制逻辑可以批量处理</li><li>易于优化和并行化</li><li>配置驱动，无需修改代码</li></ul><h3 id="section-05-02" tabindex="-1">🧱 缓存友好的内存布局</h3><p>Iris 将复制状态数据组织为连续内存块：</p><div><pre><code>// 传统系统：数据分散
+Actor1 -&gt; [Health, Position, Rotation, ...]  // <a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">内存地址</a> 0x1000
+Actor2 -&gt; [Health, Position, Rotation, ...]  // 内存地址 0x9000 (跳跃!)
+Actor3 -&gt; [Health, Position, Rotation, ...]  // 内存地址 0x3000 (跳跃!)
+
+// Iris：数据连续
+ReplicationStateBuffer:
+[Actor1.State][Actor2.State][Actor3.State][...]  // 连续内存块
+     ↑            ↑            ↑
+   0x1000       0x1040       0x1080  (顺序访问)</code></pre></div><p><strong>性能优势：</strong></p><p>连续内存访问对 CPU 缓存更友好，可显著减少缓存未命中（cache miss），从而提升批量处理性能。</p><h3 id="section-05-03" tabindex="-1">⚡ 并行处理支持</h3><p>Iris 原生支持并行任务处理，通过内部实现优化来实现并行化：</p><p><strong>可并行化的操作：</strong></p><ul><li>PollAndCopy（脏数据检测和复制）</li><li>过滤计算</li><li>优先级计算</li><li>序列化</li></ul><h3 id="section-05-04" tabindex="-1">🔧 模块化可替换架构</h3><p>Iris 的过滤器和优先级策略采用模块化设计，可自由替换：</p><div><pre><code>// 过滤器接口
+// 位于: Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/Filtering/NetObjectFilter.h
+
+UCLASS(Abstract, MinimalAPI)
+class UNetObjectFilter : public UObject
+{
+public:
+    virtual void Init(const FNetObjectFilterInitParams&amp; Params);
+    virtual void Deinit();
+    virtual void AddConnection(uint32 ConnectionId);
+    virtual void RemoveConnection(uint32 ConnectionId);
+    virtual bool AddObject(uint32 ObjectIndex, FNetObjectFilterAddObjectParams&amp;) = 0;
+    virtual void RemoveObject(uint32 ObjectIndex, const FNetObjectFilteringInfo&amp;) = 0;
+    virtual void UpdateObjects(FNetObjectFilterUpdateParams&amp;);
+    virtual void PreFilter(FNetObjectPreFilteringParams&amp;);
+    virtual void Filter(FNetObjectFilteringParams&amp;);  // 核心过滤逻辑
+    virtual void PostFilter(FNetObjectPostFilteringParams&amp;);
+    ENetFilterTraits GetFilterTraits() const;
+    bool HasFilterTrait(ENetFilterTraits FilterTrait) const;
+};
+
+// 优先级策略接口
+// 位于: Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/Prioritization/NetObjectPrioritizer.h
+
+UCLASS(Abstract)
+class UNetObjectPrioritizer : public UObject
+{
+public:
+    virtual void Init(FNetObjectPrioritizerInitParams&amp; Params) = 0;
+    virtual void Deinit() = 0;
+    virtual void OnMaxInternalNetRefIndexIncreased(uint32 NewMaxInternalIndex) = 0;
+    virtual void AddConnection(uint32 ConnectionId);
+    virtual void RemoveConnection(uint32 ConnectionId);
+    virtual bool AddObject(uint32 ObjectIndex, FNetObjectPrioritizerAddObjectParams&amp; Params) = 0;
+    virtual void RemoveObject(uint32 ObjectIndex, const FNetObjectPrioritizationInfo&amp; Info) = 0;
+    virtual void UpdateObjects(FNetObjectPrioritizerUpdateParams&amp;) = 0;
+    virtual void PrePrioritize(FNetObjectPrePrioritizationParams&amp;);
+    virtual void Prioritize(FNetObjectPrioritizationParams&amp;) = 0;  // 核心优先级计算
+    virtual void PostPrioritize(FNetObjectPostPrioritizationParams&amp;);
+};</code></pre></div><p><strong>内置过滤器：</strong></p><ul><li><code>NopNetObjectFilter</code> - 空操作过滤器（不做任何过滤）</li><li><code>FilterOutNetObjectFilter</code> - 始终过滤</li><li><code>NetObjectGridFilter</code> - <a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E7%A9%BA%E9%97%B4%E7%BD%91%E6%A0%BC&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">空间网格</a>过滤</li><li><code>NetObjectConnectionFilter</code> - 连接过滤</li></ul><p><strong>内置优先级策略：</strong></p><ul><li><code>SphereNetObjectPrioritizer</code> - 球形距离优先级</li><li><code>SphereWithOwnerBoostNetObjectPrioritizer</code> - 所有者加成</li><li><code>FieldOfViewNetObjectPrioritizer</code> - 视野优先级</li><li><code>LocationBasedNetObjectPrioritizer</code> - 位置优先级</li><li><code>NetObjectCountLimiter</code> - 对象数量限制器</li></ul><hr><h2 id="section-06" tabindex="-1">📁 关键源文件索引</h2><div class="table-scroll"><table><tbody><tr><th>模块</th><th>文件路径</th></tr><tr><td>配置</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/IrisConfig.h</td></tr><tr><td>ReplicationSystem</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/ReplicationSystem.h</td></tr><tr><td>ReplicationBridge</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/ReplicationBridge.h</td></tr><tr><td>ObjectReplicationBridge</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/ObjectReplicationBridge.h</td></tr><tr><td>EngineReplicationBridge</td><td>Engine/Source/Runtime/Engine/Public/Net/Iris/ReplicationSystem/EngineReplicationBridge.h</td></tr><tr><td>过滤器基类</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/Filtering/NetObjectFilter.h</td></tr><tr><td>优先级策略基类</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/Prioritization/NetObjectPrioritizer.h</td></tr><tr><td>NetRefHandle</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/NetRefHandle.h</td></tr><tr><td>ReplicationFragment</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/ReplicationFragment.h</td></tr><tr><td>NetSerializer</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/Serialization/NetSerializer.h</td></tr><tr><td>DataStream</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/DataStream/DataStream.h</td></tr><tr><td>WorldLocations</td><td>Engine/Source/Runtime/Experimental/Iris/Core/Public/Iris/ReplicationSystem/WorldLocations.h</td></tr></tbody></table></div><hr><h2 id="section-07" tabindex="-1">📝 小结</h2><p>第一部分介绍了 Iris 网络复制系统的整体概况：</p><ol><li>💡 <strong>Iris 是什么</strong>：UE5 引入的新一代网络复制系统，替代传统的 Actor Channel 架构</li><li>🎯 <strong>设计目标</strong>：高性能、可扩展、灵活、精细控制</li><li>🏗️ <strong>架构层次</strong>：Game Layer → Engine Bridge → Object Bridge → Replication Bridge → Replication System → Data Streams → Network Transport</li><li>🧠 <strong>核心理念</strong>：数据驱动、缓存友好、并行处理、模块化</li></ol><p>下一部分将深入分析 Iris 的核心数据结构：FNetRefHandle、ReplicationState、ReplicationFragment 和 ReplicationProtocol。</p><hr><p><i>本文档基于 Unreal Engine 5.5.0 Iris <a href="https://zhida.zhihu.com/search?content_id=269276944&amp;content_type=Article&amp;match_order=1&amp;q=%E6%BA%90%E4%BB%A3%E7%A0%81&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">源代码</a>分析（源码目录：Engine/Source/Runtime/Experimental/Iris/）</i></p></article>
+
+      <footer class="article-footer">
+        <div class="article-footer__grid">
+          <div>
+            <h2>来源与版权说明</h2>
+            <p>文章来源：知乎专栏。原文《UE5-Iris 网络复制系统技术分析 - 第一部分：系统概述与架构设计》由 Smartuil 发布；本页经授权转换为 HTML，原文发布于 2026-01-19，最后编辑于 2026-01-21。</p>
+          </div>
+          <a href="https://zhuanlan.zhihu.com/p/1996686801008611714" target="_blank" rel="noopener noreferrer">访问知乎原文 ↗</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="回到页面顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const sectionLinks = Array.from(document.querySelectorAll(".toc a[data-section]"));
+      const sections = sectionLinks
+        .map((link) => document.getElementById(link.dataset.section))
+        .filter(Boolean);
+
+      const updateScroll = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+
+        const activationLine = Math.min(180, window.innerHeight * 0.18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= activationLine) {
+            activeId = section.id;
+          } else {
+            break;
+          }
+        }
+
+        sectionLinks.forEach((link) => {
+          if (link.dataset.section === activeId) {
+            link.setAttribute("aria-current", "true");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      window.addEventListener("scroll", updateScroll, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      updateScroll();
+    })();
+  </script>
+
+
+</body></html>

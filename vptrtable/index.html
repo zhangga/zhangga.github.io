@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="C++ 虚函数与虚函数表机制笔记" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    C++ 虚函数与虚函数表机制笔记
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-08-17</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：1.8k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：7分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#C-%E8%99%9A%E5%87%BD%E6%95%B0%E4%B8%8E%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8%E6%9C%BA%E5%88%B6%E7%AC%94%E8%AE%B0"><span class="post-toc-text">C++ 虚函数与虚函数表机制笔记</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E5%87%BD%E6%95%B0"><span class="post-toc-text">一、为什么需要虚函数</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81C-%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="post-toc-text">二、C++ 对象的内存布局</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-%E5%8F%AA%E6%9C%89%E6%95%B0%E6%8D%AE%E6%88%90%E5%91%98%E7%9A%84%E5%AF%B9%E8%B1%A1"><span class="post-toc-text">1. 只有数据成员的对象</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-%E5%90%AB%E6%9C%89%E9%9D%9E%E8%99%9A%E5%87%BD%E6%95%B0%E7%9A%84%E5%AF%B9%E8%B1%A1"><span class="post-toc-text">2. 含有非虚函数的对象</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-%E6%8B%A5%E6%9C%89%E4%B8%80%E4%B8%AA%E8%99%9A%E5%87%BD%E6%95%B0%E7%9A%84%E5%AF%B9%E8%B1%A1"><span class="post-toc-text">3. 拥有一个虚函数的对象</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-%E6%8B%A5%E6%9C%89%E5%A4%9A%E4%B8%AA%E8%99%9A%E5%87%BD%E6%95%B0%E7%9A%84%E5%AF%B9%E8%B1%A1"><span class="post-toc-text">4. 拥有多个虚函数的对象</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81%E7%BB%A7%E6%89%BF%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="post-toc-text">三、继承下的内存布局</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#5-%E5%8D%95%E7%BB%A7%E6%89%BF%EF%BC%88%E7%BB%A7%E6%89%BF%E7%B1%BB%E8%87%AA%E8%BA%AB%E6%97%A0%E8%99%9A%E5%87%BD%E6%95%B0%EF%BC%89"><span class="post-toc-text">5. 单继承（继承类自身无虚函数）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#6-%E5%AD%98%E5%9C%A8%E5%9F%BA%E7%B1%BB%E8%99%9A%E5%87%BD%E6%95%B0%E8%A6%86%E7%9B%96%EF%BC%88override%EF%BC%89"><span class="post-toc-text">6. 存在基类虚函数覆盖（override）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#7-%E7%BB%A7%E6%89%BF%E7%B1%BB%E5%AE%9A%E4%B9%89%E4%BA%86%E5%9F%BA%E7%B1%BB%E6%B2%A1%E6%9C%89%E7%9A%84%E6%96%B0%E8%99%9A%E5%87%BD%E6%95%B0"><span class="post-toc-text">7. 继承类定义了基类没有的新虚函数</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E5%A4%9A%E7%BB%A7%E6%89%BF%E5%B8%83%E5%B1%80%EF%BC%88%E8%A6%81%E7%82%B9%EF%BC%89"><span class="post-toc-text">四、多继承布局（要点）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%94%E3%80%81%E7%94%A8-C-%E8%AF%AD%E8%A8%80%E6%A8%A1%E6%8B%9F%E8%99%9A%E5%87%BD%E6%95%B0%E6%9C%BA%E5%88%B6%EF%BC%88%E6%80%9D%E8%B7%AF%EF%BC%89"><span class="post-toc-text">五、用 C 语言模拟虚函数机制（思路）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AD%E3%80%81%E6%A0%B8%E5%BF%83%E9%80%9F%E8%AE%B0"><span class="post-toc-text">六、核心速记</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="C-虚函数与虚函数表机制笔记"><a href="#C-虚函数与虚函数表机制笔记" class="headerlink" title="C++ 虚函数与虚函数表机制笔记"></a>C++ 虚函数与虚函数表机制笔记</h1><blockquote>
+<p><strong>来源</strong>：《C++虚函数表实现机制以及用C语言对其进行的模拟实现》 — 陪她去流浪（桃子），2014-10-30<br>原文链接：<a target="_blank" rel="noopener" href="https://blog.twofei.com/496/">https://blog.twofei.com/496/</a></p>
+<p>本文为个人学习笔记，核心结论与示例均整理自上述原文。</p>
+</blockquote>
+<hr>
+<h2 id="一、为什么需要虚函数"><a href="#一、为什么需要虚函数" class="headerlink" title="一、为什么需要虚函数"></a>一、为什么需要虚函数</h2><p>虚函数是 C++ 实现 <strong>多态（动态绑定）</strong> 与 <strong>接口函数</strong> 的基础：</p>
+<ul>
+<li>可以定义一个 <strong>基类指针</strong>，让它指向一个 <strong>继承类</strong> 对象。</li>
+<li>通过基类指针调用函数时，能在 <strong>运行时</strong> 决定到底调用基类的函数还是继承类的函数。</li>
+</ul>
+<p>一句话概括：没有虚函数，C++ 的多态就无从谈起。</p>
+<hr>
+<h2 id="二、C-对象的内存布局"><a href="#二、C-对象的内存布局" class="headerlink" title="二、C++ 对象的内存布局"></a>二、C++ 对象的内存布局</h2><p>观察内存布局的常用手段：</p>
+<ul>
+<li>用 <code>offsetof</code> 宏输出成员变量的偏移；</li>
+<li>用调试器（如 VS）直接查看对象内存。</li>
+</ul>
+<h3 id="1-只有数据成员的对象"><a href="#1-只有数据成员的对象" class="headerlink" title="1. 只有数据成员的对象"></a>1. 只有数据成员的对象</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> base1_1;</span><br><span class="line">    <span class="type">int</span> base1_2;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>偏移</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sizeof(Base1)</code></td>
+<td>8</td>
+</tr>
+<tr>
+<td><code>offsetof(Base1, base1_1)</code></td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>offsetof(Base1, base1_2)</code></td>
+<td>4</td>
+</tr>
+</tbody></table>
+<p>结论：成员变量按 <strong>声明顺序</strong> 从上到下依次存放；对象大小等于所有成员变量（内存对齐后）之和。</p>
+<h3 id="2-含有非虚函数的对象"><a href="#2-含有非虚函数的对象" class="headerlink" title="2. 含有非虚函数的对象"></a>2. 含有非虚函数的对象</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> base1_1;</span><br><span class="line">    <span class="type">int</span> base1_2;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>布局与偏移与上例 <strong>完全相同</strong>。原因：</p>
+<ul>
+<li>非虚函数不会发生动态绑定，不影响对象布局；</li>
+<li>调用非虚函数时，调用哪个函数在 <strong>编译期</strong> 就已确定（取决于当前指针类型）。</li>
+</ul>
+<h3 id="3-拥有一个虚函数的对象"><a href="#3-拥有一个虚函数的对象" class="headerlink" title="3. 拥有一个虚函数的对象"></a>3. 拥有一个虚函数的对象</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> base1_1;</span><br><span class="line">    <span class="type">int</span> base1_2;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun1</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>偏移</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sizeof(Base1)</code></td>
+<td>12</td>
+</tr>
+<tr>
+<td><code>__vfptr</code></td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>base1_1</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>base1_2</code></td>
+<td>8</td>
+</tr>
+</tbody></table>
+<p>对象最前面 <strong>多出了 4 个字节</strong>，这就是 **虚函数表指针 <code>__vfptr</code>**（vtable pointer）：</p>
+<ul>
+<li>类型为 <code>void**</code>，它是一个 <strong>指针</strong>，而不是数组；</li>
+<li>指向一张 <strong>虚函数表</strong>（一个函数指针数组）；</li>
+<li>表中的每一项是对应虚函数的地址，例如 <code>[0] = &amp;Base1::base1_fun1</code>。</li>
+</ul>
+<p>伪代码示意：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>*        __fun[<span class="number">1</span>] = &#123; &amp;Base1::base1_fun1 &#125;;</span><br><span class="line"><span class="type">const</span> <span class="type">void</span>** __vfptr  = &amp;__fun[<span class="number">0</span>];</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>为什么 <code>__vfptr</code> 是”指向指针数组的指针”，而不是直接内嵌一个指针数组？</strong><br>因为虚函数表本身 <strong>不属于对象的一部分</strong>，对象里只保存一个指向它的指针 <code>__vfptr</code>，这样可以让同类的所有对象共享同一份表。<br>注意 <code>const void**</code> 中的 <code>const</code> 修饰的是虚函数表内容，而非 <code>__vfptr</code> 本身。</p>
+</blockquote>
+<h3 id="4-拥有多个虚函数的对象"><a href="#4-拥有多个虚函数的对象" class="headerlink" title="4. 拥有多个虚函数的对象"></a>4. 拥有多个虚函数的对象</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> base1_1;</span><br><span class="line">    <span class="type">int</span> base1_2;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun1</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun2</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>关键现象：<strong>多加一个虚函数，对象大小依然是 12 字节</strong>。</p>
+<ul>
+<li>新增虚函数只是往虚函数表里 <strong>多加一项</strong>（<code>[1] = &amp;Base1::base1_fun2</code>）；</li>
+<li>对象布局、大小不受影响。</li>
+</ul>
+<p>伪代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>*        __fun[] = &#123; &amp;Base1::base1_fun1, &amp;Base1::base1_fun2 &#125;;</span><br><span class="line"><span class="type">const</span> <span class="type">void</span>** __vfptr = &amp;__fun[<span class="number">0</span>];</span><br></pre></td></tr></table></figure>
+
+<p><strong>重要结论</strong>：</p>
+<blockquote>
+<p>同一个类的不同实例 <strong>共用同一份虚函数表</strong>，它们各自的 <code>__vfptr</code> 都指向这同一张表。<br>虚函数表是 <strong>编译器在编译期</strong> 就构造好的，只存在一份；定义对象时编译器自动把对象的 <code>__vfptr</code> 指向它。</p>
+</blockquote>
+<hr>
+<h2 id="三、继承下的内存布局"><a href="#三、继承下的内存布局" class="headerlink" title="三、继承下的内存布局"></a>三、继承下的内存布局</h2><h3 id="5-单继承（继承类自身无虚函数）"><a href="#5-单继承（继承类自身无虚函数）" class="headerlink" title="5. 单继承（继承类自身无虚函数）"></a>5. 单继承（继承类自身无虚函数）</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123;</span><br><span class="line">    <span class="type">int</span> base1_1; <span class="type">int</span> base1_2;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun1</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun2</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derive1</span> : <span class="keyword">public</span> Base1 &#123;</span><br><span class="line">    <span class="type">int</span> derive1_1; <span class="type">int</span> derive1_2;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>布局规律：<strong>基类部分在上，继承类新增成员在下</strong>。前半部分就是完整的 <code>Base1</code>（虚表指针 + 成员变量），虚函数表 <code>[0][1]</code> 仍是 <code>base1_fun1()</code>、<code>base1_fun2()</code>。</p>
+<h3 id="6-存在基类虚函数覆盖（override）"><a href="#6-存在基类虚函数覆盖（override）" class="headerlink" title="6. 存在基类虚函数覆盖（override）"></a>6. 存在基类虚函数覆盖（override）</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derive1</span> : <span class="keyword">public</span> Base1 &#123;</span><br><span class="line">    <span class="type">int</span> derive1_1; <span class="type">int</span> derive1_2;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun1</span><span class="params">()</span> </span>&#123;&#125;   <span class="comment">// 覆盖基类</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>现象：虚函数表中原本的 <code>Base1::base1_fun1()</code> 项 **被替换为 <code>Derive1::base1_fun1()</code>**。</p>
+<blockquote>
+<p>此后无论通过 <code>Derive1</code> 指针还是 <code>Base1</code> 指针调用 <code>base1_fun1()</code>，调用的都是 <strong>被重写后的版本 —— 多态发生了！</strong></p>
+</blockquote>
+<h3 id="7-继承类定义了基类没有的新虚函数"><a href="#7-继承类定义了基类没有的新虚函数" class="headerlink" title="7. 继承类定义了基类没有的新虚函数"></a>7. 继承类定义了基类没有的新虚函数</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Derive1</span> : <span class="keyword">public</span> Base1 &#123;</span><br><span class="line">    <span class="type">int</span> derive1_1; <span class="type">int</span> derive1_2;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">derive1_fun1</span><span class="params">()</span> </span>&#123;&#125;  <span class="comment">// 新增虚函数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>现象：从对象大小和成员偏移看，<strong>表面上和第 5 种情况完全一样</strong>，看不到新增的虚函数。真相要从汇编入手。</p>
+<p>调用 <code>pd1-&gt;derive1_fun1();</code> 对应的汇编（VS，<code>__thiscall</code>）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mov  eax, dword ptr [pd1]     ; eax = d1 的地址</span><br><span class="line">mov  edx, dword ptr [eax]     ; edx = __vfptr = 虚函数表地址</span><br><span class="line">mov  esi, esp</span><br><span class="line">mov  ecx, dword ptr [pd1]     ; this 存入 ecx</span><br><span class="line">mov  eax, dword ptr [edx+8]   ; edx+8 = 表第 3 项 __vftable[2]</span><br><span class="line">call eax                      ; 调用虚函数</span><br></pre></td></tr></table></figure>
+
+<p>关键点解读：</p>
+<ul>
+<li>因为 <code>__vfptr</code> 是对象的第一个成员，所以 <code>&amp;__vfptr == &amp;d1</code>；</li>
+<li><code>edx+8</code> 取的是虚函数表 <strong>第 3 个元素</strong> <code>__vftable[2]</code>。</li>
+</ul>
+<p><strong>结论</strong>：</p>
+<blockquote>
+<p>继承类新增的虚函数被 <strong>追加到基类虚函数表的后面</strong>。<br>基类只知道自己的 <code>[0][1]</code> 两项，即使后面追加了 <code>[2]</code>，也完全不影响基类。</p>
+</blockquote>
+<blockquote>
+<p><strong>必须用指针（或引用）调用才会触发动态绑定。</strong><br><code>d1.derive1_fun1();</code> 直接用对象调用不会动态绑定；<code>pd1-&gt;derive1_fun1();</code> 用指针调用才会。</p>
+</blockquote>
+<hr>
+<h2 id="四、多继承布局（要点）"><a href="#四、多继承布局（要点）" class="headerlink" title="四、多继承布局（要点）"></a>四、多继承布局（要点）</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123; <span class="type">int</span> base1_1, base1_2; <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun1</span><span class="params">()</span></span>; <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun2</span><span class="params">()</span></span>; &#125;;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Base2</span> &#123; <span class="type">int</span> base2_1, base2_2; <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base2_fun1</span><span class="params">()</span></span>; <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base2_fun2</span><span class="params">()</span></span>; &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derive1</span> : <span class="keyword">public</span> Base1, <span class="keyword">public</span> Base2 &#123;</span><br><span class="line">    <span class="type">int</span> derive1_1, derive1_2;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base1_fun1</span><span class="params">()</span> </span>&#123;&#125;   <span class="comment">// 覆盖 Base1</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">base2_fun2</span><span class="params">()</span> </span>&#123;&#125;   <span class="comment">// 覆盖 Base2</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">derive1_fun1</span><span class="params">()</span> </span>&#123;&#125; <span class="comment">// 自身新增</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">derive1_fun2</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>多继承下，对象会 <strong>包含多张虚函数表指针</strong>（每个带虚表的直接基类各一份），并按基类声明顺序排列：</p>
+<ul>
+<li>每个基类子对象保留自己的虚表指针；</li>
+<li>被覆盖的虚函数项在对应基类的虚表中被替换为派生类版本；</li>
+<li>派生类自身新增的虚函数，通常追加到 <strong>第一个基类</strong> 的虚表之后。</li>
+</ul>
+<blockquote>
+<p>原文还进一步讨论了若干边界情况：第 1 个基类没有虚表、两个基类都没有虚表、以及三个基类”有/无/有”虚表的组合布局。详见原文对应章节。</p>
+</blockquote>
+<hr>
+<h2 id="五、用-C-语言模拟虚函数机制（思路）"><a href="#五、用-C-语言模拟虚函数机制（思路）" class="headerlink" title="五、用 C 语言模拟虚函数机制（思路）"></a>五、用 C 语言模拟虚函数机制（思路）</h2><p>虚函数机制本质上就是 **”对象头部藏一个函数指针数组指针 + 通过下标间接调用”**，因此可用纯 C 模拟：</p>
+<ol>
+<li>用结构体的第一个成员放一个 <code>void** vptr</code>（虚表指针）；</li>
+<li>构造一张 <code>void* vtable[]</code>（函数指针数组），填入各成员函数地址；</li>
+<li>每个”成员函数”显式接收 <code>this</code> 指针作为第一个参数；</li>
+<li>调用时通过 <code>obj-&gt;vptr[i](obj, ...)</code> 完成间接调用，实现动态分发。</li>
+</ol>
+<p>这样即可用 C 复现 C++ 虚函数在运行期的动态绑定行为。完整可运行源码见原文 <strong>源代码</strong> 章节。</p>
+<hr>
+<h2 id="六、核心速记"><a href="#六、核心速记" class="headerlink" title="六、核心速记"></a>六、核心速记</h2><ul>
+<li>有虚函数的对象，头部多一个 <code>__vfptr</code>（<code>void**</code>），指向共享的虚函数表。</li>
+<li>虚函数表由编译器在编译期生成，<strong>同类所有实例共享一份</strong>。</li>
+<li>增加虚函数只改虚表内容，<strong>不改变对象大小/布局</strong>（除首次引入 <code>__vfptr</code>）。</li>
+<li>覆盖基类虚函数 = 替换虚表中对应项 → 多态。</li>
+<li>派生类新增虚函数 = 追加到基类虚表之后。</li>
+<li><strong>只有用指针/引用调用才会动态绑定</strong>；用对象直接调用不会。</li>
+</ul>
+<hr>
+<p><em>本笔记整理自：<a target="_blank" rel="noopener" href="https://blog.twofei.com/496/">https://blog.twofei.com/496/</a>（陪她去流浪 · 桃子）。</em></p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-07-29</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ds-coredump-analysis/'>DS 崩溃分析 · AI + 飞书自动化流程</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/cpp-decltype-and-xvalue/">decltype 与将亡值（xvalue）详解</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

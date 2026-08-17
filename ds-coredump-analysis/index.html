@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="DS 崩溃分析 · AI + 飞书自动化流程" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    DS 崩溃分析 · AI + 飞书自动化流程
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-08-17</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.9k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：11分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#DS-%E5%B4%A9%E6%BA%83%E5%88%86%E6%9E%90-%C2%B7-AI-%E9%A3%9E%E4%B9%A6%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%81%E7%A8%8B%EF%BC%88%E8%84%B1%E6%95%8F%E7%89%88%EF%BC%89"><span class="post-toc-text">DS 崩溃分析 · AI + 飞书自动化流程（脱敏版）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E7%9B%AE%E6%A0%87"><span class="post-toc-text">1. 背景与目标</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="post-toc-text">2. 整体架构</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-%E5%89%8D%E7%BD%AE%E5%87%86%E5%A4%87"><span class="post-toc-text">3. 前置准备</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%B5%81%E7%A8%8B"><span class="post-toc-text">4. 端到端流程</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%AD%A5%E9%AA%A4-%E2%91%A0-%E6%8B%89%E5%8F%96%E5%B9%B6%E7%AD%9B%E9%80%89%E5%91%8A%E8%AD%A6%E5%8D%A1%E7%89%87"><span class="post-toc-text">步骤 ① 拉取并筛选告警卡片</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%AD%A5%E9%AA%A4-%E2%91%A1-%E9%80%90%E4%B8%AA%E5%88%86%E6%9E%90%EF%BC%88ds-coredump-analysis-skill%EF%BC%89"><span class="post-toc-text">步骤 ② 逐个分析（ds-coredump-analysis skill）</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%AD%A5%E9%AA%A4-%E2%91%A2-%E7%BB%93%E8%AE%BA%E8%90%BD%E5%BA%93"><span class="post-toc-text">步骤 ③ 结论落库</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%AD%A5%E9%AA%A4-%E2%91%A3-%E5%9B%9E%E7%BE%A4%E9%80%9A%E6%8A%A5"><span class="post-toc-text">步骤 ④ 回群通报</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-skill-%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%EF%BC%88%E8%87%AA%E5%8C%85%E5%90%AB%EF%BC%89"><span class="post-toc-text">5. skill 目录结构（自包含）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-skill-%E5%86%85%E9%83%A8%E5%88%86%E6%9E%90%E6%B5%81%E7%A8%8B%EF%BC%88%E6%AD%A5%E9%AA%A4-0-12%EF%BC%89"><span class="post-toc-text">6. skill 内部分析流程（步骤 0~12）</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E6%97%A0%E6%97%A5%E5%BF%97%E5%88%86%E6%94%AF"><span class="post-toc-text">无日志分支</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#7-%E6%8A%A5%E5%91%8A%E7%BB%93%E6%9E%84%EF%BC%88HTML%EF%BC%89"><span class="post-toc-text">7. 报告结构（HTML）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#8-%E5%B9%82%E7%AD%89%E5%8E%BB%E9%87%8D%E4%B8%8E%E7%9F%A5%E8%AF%86%E6%B2%89%E6%B7%80"><span class="post-toc-text">8. 幂等去重与知识沉淀</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#9-%E6%8E%A8%E8%8D%90%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="post-toc-text">9. 推荐的自动化提示词</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#10-%E8%BE%B9%E7%95%8C%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="post-toc-text">10. 边界与注意事项</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%99%84%EF%BC%9A%E8%84%B1%E6%95%8F%E5%8D%A0%E4%BD%8D%E7%AC%A6%E5%AF%B9%E7%85%A7%EF%BC%88%E5%86%85%E9%83%A8%E5%A1%AB%E5%85%85%E7%94%A8%EF%BC%8C%E5%8B%BF%E9%9A%8F%E6%96%87%E6%A1%A3%E5%A4%96%E5%8F%91%EF%BC%89"><span class="post-toc-text">附：脱敏占位符对照（内部填充用，勿随文档外发）</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="DS-崩溃分析-·-AI-飞书自动化流程（脱敏版）"><a href="#DS-崩溃分析-·-AI-飞书自动化流程（脱敏版）" class="headerlink" title="DS 崩溃分析 · AI + 飞书自动化流程（脱敏版）"></a>DS 崩溃分析 · AI + 飞书自动化流程（脱敏版）</h1><blockquote>
+<p>一套把 <strong>Linux 专用服务器（DS）core dump 崩溃分析</strong> 全流程自动化的方案：飞书报警卡片 → AI（<code>ds-coredump-analysis</code> skill）逐个分析 → 结论落库多维表格 → 回群通报。让”有 coredump 需要下载”的 P1 告警从人工排查变成流水线化处理。</p>
+</blockquote>
+<ul>
+<li>适用引擎：Unreal Engine（<code>&lt;项目名&gt;</code> DS，Linux ELF core + gdb）</li>
+<li>文档版本：2026-08-07</li>
+<li>关键组件：飞书群机器人卡片、<code>ds-coredump-analysis</code> skill、落库工具、多维表格</li>
+<li>说明：本文为<strong>对外分享脱敏版</strong>，机器路径、版本标识、飞书群 ID、多维表格链接、IP/集群等已用占位符（形如 <code>&lt;xxx&gt;</code>）替代，实际值以内部配置为准。</li>
+</ul>
+<hr>
+<h2 id="1-背景与目标"><a href="#1-背景与目标" class="headerlink" title="1. 背景与目标"></a>1. 背景与目标</h2><p>线上 DS 崩溃会产生 core dump，运维监控在飞书群里以 <strong>P1 告警卡片</strong>推送（标题：<code>&lt;告警标题&gt;</code>，示例：”服务有 coredump 文件需要下载”），卡片含 coredump 下载地址、日志地址、机器信息等。</p>
+<p>痛点：人工逐个下载 core、配符号、跑 gdb、翻日志、写结论，重复且慢；相同根因反复排查。</p>
+<p>目标：</p>
+<ul>
+<li><strong>自动拉取</strong>告警卡片，按规则筛选出待分析项。</li>
+<li><strong>AI 自动分析</strong>：结合 <code>core + gdb + 日志</code> 定位第一因，判断”何时崩、崩在哪”。</li>
+<li><strong>结论沉淀</strong>：写入多维表格，跨次聚合共性崩溃，已分析过的直接复用。</li>
+<li><strong>闭环通报</strong>：把结果链接发回飞书群。</li>
+</ul>
+<hr>
+<h2 id="2-整体架构"><a href="#2-整体架构" class="headerlink" title="2. 整体架构"></a>2. 整体架构</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────┐</span><br><span class="line">│  飞书群 (P1 告警卡片) │  监控推送：coredumpurl / logfileurl / filename / ip / cluster ...</span><br><span class="line">└──────────┬──────────┘</span><br><span class="line">           │ ① 拉取最近 N 条卡片（按规则筛选）</span><br><span class="line">           ▼</span><br><span class="line">┌─────────────────────────────────────────────┐</span><br><span class="line">│              AI Agent (运行在 DS 分析机)         │</span><br><span class="line">│  ┌───────────────────────────────────────┐  │</span><br><span class="line">│  │  ds-coredump-analysis skill            │  │</span><br><span class="line">│  │  0.4 filename 幂等查重 ─► 命中即返回历史结论 │  │</span><br><span class="line">│  │  0.5 卡片取数 (wget core/log, 版本→二进制) │  │</span><br><span class="line">│  │  1  日志优先 (无 logfileurl 则跳过)        │  │</span><br><span class="line">│  │  2~7 gdb 环境/栈/内存/FName/回源码          │  │</span><br><span class="line">│  │  8  日志回扣验证                          │  │</span><br><span class="line">│  │  10 产出 HTML 报告                        │  │</span><br><span class="line">│  │  11 聚合归档 (crash_patterns + 索引)       │  │</span><br><span class="line">│  └───────────────────────────────────────┘  │</span><br><span class="line">└──────────┬───────────────────────┬──────────┘</span><br><span class="line">           │ ② 结论摘要 + 报告链接    │ 知识库/索引（本地随 skill）</span><br><span class="line">           ▼                        ▼</span><br><span class="line">┌─────────────────────┐   ┌────────────────────────┐</span><br><span class="line">│  多维表格 (落库工具)    │   │ analyzed_cores_index.md │</span><br><span class="line">│  每条 core 一行         │   │ crash_patterns.md       │</span><br><span class="line">└──────────┬──────────┘   └────────────────────────┘</span><br><span class="line">           │ ③ 表格链接</span><br><span class="line">           ▼</span><br><span class="line">┌─────────────────────┐</span><br><span class="line">│  飞书群 (回群通报)      │  本次分析的时间范围 / 条数 / 跳过 / 失败</span><br><span class="line">└─────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>三层职责：</p>
+<ul>
+<li><strong>飞书层</strong>：输入（卡片）+ 输出（表格、通报）。</li>
+<li><strong>AI 分析层</strong>：<code>ds-coredump-analysis</code> skill，纯分析逻辑，自包含。</li>
+<li><strong>知识层</strong>：filename 幂等索引 + 崩溃模式库，随 skill 目录携带，跨次累积。</li>
+</ul>
+<hr>
+<h2 id="3-前置准备"><a href="#3-前置准备" class="headerlink" title="3. 前置准备"></a>3. 前置准备</h2><table>
+<thead>
+<tr>
+<th>项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DS 分析机</td>
+<td>一台能访问内网 OSS/日志下载服务、装有 <code>gdb</code> / <code>eu-unstrip</code> / <code>readelf</code> 的 Linux 机器</td>
+</tr>
+<tr>
+<td>带符号二进制</td>
+<td>按版本存放，默认版本 <code>&lt;版本标识&gt;</code>：<br><code>&lt;分析机基础路径&gt;/LinuxServer_&lt;版本标识&gt;/&lt;项目名&gt;/Binaries/Linux/&lt;项目名&gt;Server-Linux-Shipping</code><br>路径规律：<code>&lt;分析机基础路径&gt;/LinuxServer_&lt;版本&gt;/&lt;项目名&gt;/Binaries/Linux/...</code></td>
+</tr>
+<tr>
+<td>AI Agent + skill</td>
+<td>在分析机上运行 Agent，安装 <code>ds-coredump-analysis</code> skill（自包含目录，见 §5）</td>
+</tr>
+<tr>
+<td>飞书能力</td>
+<td>拉群消息卡片、写多维表格、发群消息（落库工具/skill）</td>
+</tr>
+<tr>
+<td>目标表格</td>
+<td><code>&lt;多维表格链接&gt;</code></td>
+</tr>
+<tr>
+<td>目标群</td>
+<td><code>&lt;飞书群 ID&gt;</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>边界：skill 本身是”AI 分析指令集”，不是独立可执行程序；gdb 实际执行必须在能访问内网与带符号二进制目录的 DS 分析机上进行。</p>
+</blockquote>
+<hr>
+<h2 id="4-端到端流程"><a href="#4-端到端流程" class="headerlink" title="4. 端到端流程"></a>4. 端到端流程</h2><h3 id="步骤-①-拉取并筛选告警卡片"><a href="#步骤-①-拉取并筛选告警卡片" class="headerlink" title="步骤 ① 拉取并筛选告警卡片"></a>步骤 ① 拉取并筛选告警卡片</h3><p>从飞书群 <code>&lt;飞书群 ID&gt;</code> 拉取标题为 <code>&lt;告警标题&gt;</code> 的卡片，按时间<strong>从新到旧</strong>：</p>
+<ul>
+<li>累计<strong>最多 10 个”未分析过”的 core</strong>；</li>
+<li>一旦遇到卡片时间早于 <code>当前时间 - 24h</code>（按 <code>Asia/Shanghai</code>）<strong>立即停止</strong>（即使不足 10 条）；</li>
+<li>二者<strong>先触发者为准</strong>；</li>
+<li>**去重键 = 卡片中的 core <code>filename</code>**（全局唯一），先查 <code>analyzed_cores_index.md</code>，命中即跳过并继续往前拉。</li>
+</ul>
+<h3 id="步骤-②-逐个分析（ds-coredump-analysis-skill）"><a href="#步骤-②-逐个分析（ds-coredump-analysis-skill）" class="headerlink" title="步骤 ② 逐个分析（ds-coredump-analysis skill）"></a>步骤 ② 逐个分析（ds-coredump-analysis skill）</h3><ul>
+<li>先<strong>尽快下载</strong>全部待分析 core（<code>coredumpurl</code> 带 <code>Expires</code> 签名，过期即 403），再逐个跑 gdb；</li>
+<li>按 core 版本选<strong>对应带符号二进制</strong>，无法确定时用默认版本并在报告注明；</li>
+<li><strong>卡片无 <code>logfileurl</code> → 跳过日志分析、不找本地日志、直接 gdb</strong>；</li>
+<li><strong>单条失败</strong>（下载 403 / build-id 不匹配 / gdb 报错）→ 记录失败原因，<strong>继续下一条</strong>，不中断整批。</li>
+</ul>
+<h3 id="步骤-③-结论落库"><a href="#步骤-③-结论落库" class="headerlink" title="步骤 ③ 结论落库"></a>步骤 ③ 结论落库</h3><p>用落库工具把每条结论<strong>摘要 + HTML 报告链接</strong>写入多维表格；完整 gdb/日志原文放报告正文，不塞进单元格。</p>
+<h3 id="步骤-④-回群通报"><a href="#步骤-④-回群通报" class="headerlink" title="步骤 ④ 回群通报"></a>步骤 ④ 回群通报</h3><p>把表格链接发回群，说明本次：<strong>扫描卡片时间范围（最早 → 最晚）、分析条数、跳过条数（已分析）、失败条数</strong>。</p>
+<hr>
+<h2 id="5-skill-目录结构（自包含）"><a href="#5-skill-目录结构（自包含）" class="headerlink" title="5. skill 目录结构（自包含）"></a>5. skill 目录结构（自包含）</h2><p><code>ds-coredump-analysis/</code> 可整目录拷贝/打包到 Linux 分析机：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SKILL.md</code></td>
+<td>入口：触发条件 + 阅读顺序 + DS 程序目录</td>
+</tr>
+<tr>
+<td><code>workflow.md</code></td>
+<td>完整工作流（步骤 0~12）</td>
+</tr>
+<tr>
+<td><code>analysis_principles.md</code></td>
+<td>通用分析原则（第一因/级联/置信度/UObject 引用安全）</td>
+</tr>
+<tr>
+<td><code>report_template.md</code></td>
+<td>报告内容与顺序（最终产出 HTML）</td>
+</tr>
+<tr>
+<td><code>crash_patterns.md</code></td>
+<td>崩溃模式知识库（按崩溃签名跨次聚合计数）</td>
+</tr>
+<tr>
+<td><code>analyzed_cores_index.md</code></td>
+<td>已分析 core 索引（filename 幂等键，命中即返回结论）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-skill-内部分析流程（步骤-0-12）"><a href="#6-skill-内部分析流程（步骤-0-12）" class="headerlink" title="6. skill 内部分析流程（步骤 0~12）"></a>6. skill 内部分析流程（步骤 0~12）</h2><p>核心原则：<strong>日志优先</strong>——有日志时，不允许直接拿 core 原生栈下结论，先从日志定位最早第一因；无 <code>logfileurl</code> 时例外，直接 core + gdb。</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>内容</th>
+<th>关键点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>适用触发条件</td>
+<td>ELF core / gdb / SIGSEGV / <code>?? ()</code> / 飞书卡片</td>
+</tr>
+<tr>
+<td><strong>0.4</strong></td>
+<td><strong>按 filename 查重</strong></td>
+<td>全局唯一幂等键；命中已分析过 → <strong>直接返回历史结论</strong>，跳过下载与 gdb</td>
+</tr>
+<tr>
+<td><strong>0.5</strong></td>
+<td>从飞书卡片取数</td>
+<td>解析字段 → <code>wget</code> 下载 core/log → 版本→二进制映射；<strong>无 <code>logfileurl</code> 分支</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td>先读日志找方向</td>
+<td>①定版本 ②倒查第一因 ③识别业务路径 ④判定战场阶段 ⑤算存活时长；先回查知识库</td>
+</tr>
+<tr>
+<td>2</td>
+<td>环境准备</td>
+<td><code>?? ()</code> 头号排查：二进制版本、build-id、依赖 <code>.so</code>、<code>.gdbinit</code>、符号就位</td>
+</tr>
+<tr>
+<td>3</td>
+<td>获取原生栈</td>
+<td><code>bt</code> / <code>bt full</code> / <code>thread apply all bt</code> / <code>info registers</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>逐帧下钻</td>
+<td>GC 崩溃套路：DrainValidated → PushReference → ProcessObjects，找持有链根</td>
+</tr>
+<tr>
+<td>5</td>
+<td>内存取证</td>
+<td><code>x/16gx</code> 对象头、<code>x/8gx</code> 失效引用、<code>find</code> 定位字段偏移</td>
+</tr>
+<tr>
+<td>6</td>
+<td>解码 FName → 类名</td>
+<td><code>GNameBlocksDebug</code> 手动解，拿到 <code>BP_xxx_C</code> 类名</td>
+</tr>
+<tr>
+<td>7</td>
+<td>回项目源码定位</td>
+<td>Grep C++/TS/蓝图，排查 UPROPERTY/销毁清空/TS 回填；区分第一因 vs 级联</td>
+</tr>
+<tr>
+<td>8</td>
+<td>日志回扣验证</td>
+<td>拿 core 结论回日志印证触发路径，闭环第一因（无日志则跳过）</td>
+</tr>
+<tr>
+<td>9</td>
+<td>复现与加固建议</td>
+<td><code>-gcdefaultverify</code> / <code>-stompmalloc</code> / ASan / <code>obj refs</code></td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>输出 HTML 报告</strong></td>
+<td>见 §7</td>
+</tr>
+<tr>
+<td>11</td>
+<td>聚合归档到知识库</td>
+<td>生成崩溃签名 → 登记 filename 索引 → 回查去重计数 → 回填修复状态</td>
+</tr>
+<tr>
+<td>12</td>
+<td>关键纪律（防幻觉）</td>
+<td>结论必须有 gdb 输出/源码证据支撑，无法验证标”未验证”</td>
+</tr>
+</tbody></table>
+<h3 id="无日志分支"><a href="#无日志分支" class="headerlink" title="无日志分支"></a>无日志分支</h3><p>部分卡片不含 <code>logfileurl</code>：<strong>不做日志分析、不去本地机器翻找日志</strong>，直接用 core + 对应版本带符号二进制走 gdb（跳过步骤 1、8，从步骤 2 开始），报告标注「无日志，仅 core 分析」，置信度不高于「高概率」。</p>
+<hr>
+<h2 id="7-报告结构（HTML）"><a href="#7-报告结构（HTML）" class="headerlink" title="7. 报告结构（HTML）"></a>7. 报告结构（HTML）</h2><p>最终报告为<strong>自包含单文件 HTML</strong>（内联 CSS、浏览器直接打开），gdb/日志原文放 <code>&lt;pre&gt;&lt;code&gt;</code> 代码块保留原格式，中文字体 <code>Noto Sans CJK SC</code> / <code>WenQuanYi Micro Hei</code>。</p>
+<p>结构（从时间线 → 崩溃现场 → 原始证据层层递进）：</p>
+<ol>
+<li><strong>崩溃发生时机（开头必答）</strong><ul>
+<li>战场阶段：开局加载/进场 · 战斗进行中 · 结算/收尾 · 切换 <code>EmptyLoad</code> 退出卸载关卡 · 空闲待机 · 无法判定</li>
+<li>判定依据：core filename 关卡标识（<code>st_Empty</code>→切 EmptyLoad 退出；<code>st_&lt;关卡名&gt;</code>→对应战场）+ 日志结尾业务动作</li>
+<li><strong>战场存活时长</strong>：以日志最后一次 <code>receive agent ALLOCATED_NOTIFY</code> 时间戳为起点，算到日志末行的间隔（如”约 3 分 12 秒”）；无则「无法计算」</li>
+</ul>
+</li>
+<li><strong>基础信息</strong>：CrashType / ErrorMessage / Version / Cluster·IP·Port / app_id / 崩溃时刻</li>
+<li><strong>第一因 / 级联问题 / Native 栈状态</strong></li>
+<li><strong>结论置信度</strong>：已确认 / 高概率 / 待确认</li>
+<li><strong>崩溃主要源信息速览（结论正下方）</strong>：① 日志结尾原文（约 30~50 行含 fatal/signal）② gdb <code>bt</code> 崩溃线程栈原文</li>
+<li><strong>附录 A：gdb 原始信息</strong>（完整命令 + 原始输出，不裁剪）</li>
+<li><strong>附录 B：日志关键片段</strong>（原文行 + 时间戳；无则写明「无 logfileurl」）</li>
+</ol>
+<hr>
+<h2 id="8-幂等去重与知识沉淀"><a href="#8-幂等去重与知识沉淀" class="headerlink" title="8. 幂等去重与知识沉淀"></a>8. 幂等去重与知识沉淀</h2><p>两层去重，互补：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>键</th>
+<th>命中效果</th>
+<th>载体</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>filename 级幂等</strong></td>
+<td>core <code>filename</code>（全局唯一）</td>
+<td>完全相同的 core → <strong>直接返回既有报告</strong>，免下载/免 gdb</td>
+<td><code>analyzed_cores_index.md</code></td>
+</tr>
+<tr>
+<td><strong>崩溃签名级聚合</strong></td>
+<td><code>根因类别 + 关键崩溃帧 + 涉事类名</code></td>
+<td>filename 不同但根因相同 → <strong>命中次数 +1</strong>，沉淀共性</td>
+<td><code>crash_patterns.md</code></td>
+</tr>
+</tbody></table>
+<p>崩溃签名示例：<code>GC-UAF | DrainValidated@GarbageCollection.cpp:&lt;行号&gt; | BP_&lt;xxx&gt;_C</code>。</p>
+<p>只归档证据充分（已确认/高概率）的结论；研发修复后回填「修复状态」，便于后续同签名快速判定是否回归。</p>
+<hr>
+<h2 id="9-推荐的自动化提示词"><a href="#9-推荐的自动化提示词" class="headerlink" title="9. 推荐的自动化提示词"></a>9. 推荐的自动化提示词</h2><blockquote>
+<p>从飞书群 <code>&lt;飞书群 ID&gt;</code> 拉取标题为”<code>&lt;告警标题&gt;</code>“的卡片，按时间从新到旧处理：</p>
+<ol>
+<li><strong>筛选范围</strong>：累计最多 <strong>10 个未分析过的 core</strong>；遇到卡片时间早于（当前时间 -24h，按 Asia/Shanghai）即停止，二者先到者为准。**去重键 = 卡片中的 core <code>filename</code>**，先查 <code>ds-coredump-analysis</code> 的 <code>analyzed_cores_index.md</code>，命中即跳过并继续往前拉。</li>
+<li><strong>分析</strong>：用 <code>ds-coredump-analysis</code> skill。先尽快下载全部待分析 core（<code>coredumpurl</code> 带 Expires 易过期），再逐个用对应版本带符号二进制跑 gdb。<strong>卡片无 <code>logfileurl</code> 则跳过日志、仅 core 分析</strong>。单条失败（下载/符号/gdb）记录原因后继续下一条，不中断整批。</li>
+<li><strong>落库</strong>：用落库工具把每条结论摘要 + HTML 报告链接写入表格 <code>&lt;多维表格链接&gt;</code>；完整 gdb/日志原文放报告正文（附录 A/B）。</li>
+<li><strong>回群</strong>：把表格链接发回该群，说明本次<strong>扫描卡片时间范围（最早→最晚）、分析条数、跳过（已分析）条数、失败条数</strong>。</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="10-边界与注意事项"><a href="#10-边界与注意事项" class="headerlink" title="10. 边界与注意事项"></a>10. 边界与注意事项</h2><ul>
+<li><strong>执行环境</strong>：gdb 分析必须在能访问内网 OSS/日志下载服务与带符号二进制目录的 DS 分析机上；skill 只提供分析指令，不能凭空联网。</li>
+<li><strong>下载时效</strong>：<code>coredumpurl</code> 是 OSS 签名 URL，含 <code>Expires</code>，过期即 403 —— 拿到卡片尽快下载，批量时先全量下载再逐个分析。</li>
+<li><strong>版本一致性</strong>：换 core 可能换版本，务必用对应版本的带符号二进制，否则栈全是 <code>?? ()</code>；用 core 头 <code>Core was generated by &#39;...&#39;</code> + build-id 交叉核对。</li>
+<li><strong>精确数值</strong>：时间戳/地址等精确值以 <code>Read</code> 读原文为准，Grep 上下文可能截断负号/长数字。</li>
+<li><strong>防幻觉</strong>：所有崩溃/引用/类型结论必须有 gdb 输出或源码证据支撑；无符号先修环境，别拿垃圾帧下结论。</li>
+<li><strong>依赖确认</strong>：部署前确认落库工具已就绪、有写表格权限；<code>ds-coredump-analysis</code> skill 目录完整拷贝。</li>
+</ul>
+<hr>
+<h2 id="附：脱敏占位符对照（内部填充用，勿随文档外发）"><a href="#附：脱敏占位符对照（内部填充用，勿随文档外发）" class="headerlink" title="附：脱敏占位符对照（内部填充用，勿随文档外发）"></a>附：脱敏占位符对照（内部填充用，勿随文档外发）</h2><table>
+<thead>
+<tr>
+<th>占位符</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;项目名&gt;</code></td>
+<td>游戏/服务项目代号</td>
+</tr>
+<tr>
+<td><code>&lt;版本标识&gt;</code></td>
+<td>带符号二进制版本（默认版本）</td>
+</tr>
+<tr>
+<td><code>&lt;分析机基础路径&gt;</code></td>
+<td>带符号二进制在分析机上的基础目录</td>
+</tr>
+<tr>
+<td><code>&lt;飞书群 ID&gt;</code></td>
+<td>告警/通报所在飞书群 open_chat_id</td>
+</tr>
+<tr>
+<td><code>&lt;多维表格链接&gt;</code></td>
+<td>结论落库的多维表格 URL</td>
+</tr>
+<tr>
+<td><code>&lt;告警标题&gt;</code></td>
+<td>P1 告警卡片标题</td>
+</tr>
+<tr>
+<td><code>&lt;IP&gt;</code> / <code>&lt;cluster&gt;</code></td>
+<td>机器 IP / 集群名</td>
+</tr>
+</tbody></table>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-08-07</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/iris-optimization-practice/'>UE5 Iris 复制系统落地实践：从踩坑到优化的四个阶段</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/vptrtable/">C++ 虚函数与虚函数表机制笔记</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>
