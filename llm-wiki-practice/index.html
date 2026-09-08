@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="HomeAgent -- 我的 LLM Wiki 实践记录" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    HomeAgent -- 我的 LLM Wiki 实践记录
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-09-08</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：3.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：10分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E6%8A%8A%E6%94%B6%E8%97%8F%E7%82%BC%E5%8C%96%E6%88%90%E4%B8%8A%E4%B8%8B%E6%96%87%EF%BC%9A%E6%88%91%E7%9A%84-LLM-Wiki-%E5%AE%9E%E8%B7%B5%E8%AE%B0%E5%BD%95"><span class="post-toc-text">把收藏炼化成上下文：我的 LLM Wiki 实践记录</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1-%E8%B5%B7%E5%9B%A0%EF%BC%9A%E6%88%91%E4%B8%8D%E6%83%B3%E5%86%8D%E6%8A%8A%E5%A5%BD%E5%86%85%E5%AE%B9%E6%89%94%E8%BF%9B%E6%94%B6%E8%97%8F%E5%A4%B9%E4%BA%86"><span class="post-toc-text">1. 起因：我不想再把好内容扔进收藏夹了</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#2-%E6%88%91%E7%90%86%E8%A7%A3%E7%9A%84-LLM-Wiki%EF%BC%9A%E4%B8%8D%E6%98%AF%E7%AC%94%E8%AE%B0%E8%BD%AF%E4%BB%B6%EF%BC%8C%E8%80%8C%E6%98%AF%E7%BB%99-Agent-%E7%94%A8%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BA%95%E5%BA%A7"><span class="post-toc-text">2. 我理解的 LLM Wiki：不是笔记软件，而是给 Agent 用的知识底座</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#3-%E7%82%BC%E5%8C%96%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E6%94%B6%E8%97%8F"><span class="post-toc-text">3. 炼化，而不是收藏</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#4-%E5%86%B7%E5%90%AF%E5%8A%A8%EF%BC%9A%E5%85%88%E6%8A%8A%E8%BF%87%E5%8E%BB%E7%9A%84%E8%87%AA%E5%B7%B1%E6%89%BE%E5%9B%9E%E6%9D%A5"><span class="post-toc-text">4. 冷启动：先把过去的自己找回来</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-1-%E6%8C%96%E5%8E%86%E5%8F%B2-Agent-%E4%BC%9A%E8%AF%9D"><span class="post-toc-text">4.1 挖历史 Agent 会话</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-2-%E7%BF%BB%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8E%86%E5%8F%B2%E6%96%87%E6%A1%A3"><span class="post-toc-text">4.2 翻自己的历史文档</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-3-%E6%B8%85%E7%A9%BA%E6%94%B6%E8%97%8F%E5%A4%B9"><span class="post-toc-text">4.3 清空收藏夹</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#5-%E6%97%A5%E5%B8%B8%E4%BD%BF%E7%94%A8%EF%BC%9A%E7%82%BC%E5%8C%96%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%A6%81%E9%A9%AC%E4%B8%8A%E6%B6%88%E8%B4%B9"><span class="post-toc-text">5. 日常使用：炼化之后，要马上消费</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#6-%E4%B8%AA%E6%80%A7%E5%8C%96%E6%95%99%E5%AD%A6%EF%BC%9AWiki-%E8%B6%8A%E6%87%82%E6%88%91%EF%BC%8CAgent-%E6%95%99%E5%BE%97%E8%B6%8A%E5%A5%BD"><span class="post-toc-text">6. 个性化教学：Wiki 越懂我，Agent 教得越好</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#7-Wiki-%E4%B8%BB%E8%A6%81%E6%98%AF%E7%BB%99-Agent-%E7%9C%8B%E7%9A%84"><span class="post-toc-text">7. Wiki 主要是给 Agent 看的</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#8-%E4%BB%8E%E4%B8%AA%E4%BA%BA%E5%88%B0%E5%9B%A2%E9%98%9F%EF%BC%9A%E8%AE%A9%E4%B8%8B%E4%B8%80%E4%B8%AA%E4%BA%BA%E4%B8%8D%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B"><span class="post-toc-text">8. 从个人到团队：让下一个人不从零开始</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#9-%E6%88%91%E7%9A%84%E8%90%BD%E5%9C%B0%E9%85%8D%E7%BD%AE%E6%80%9D%E8%B7%AF"><span class="post-toc-text">9. 我的落地配置思路</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#10-%E9%A9%AC%E4%B8%8A%E5%8F%AF%E4%BB%A5%E8%AF%95%E7%9A%84%E4%B8%89%E4%BB%B6%E4%BA%8B"><span class="post-toc-text">10. 马上可以试的三件事</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#11-%E6%9C%80%E5%90%8E"><span class="post-toc-text">11. 最后</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="把收藏炼化成上下文：我的-LLM-Wiki-实践记录"><a href="#把收藏炼化成上下文：我的-LLM-Wiki-实践记录" class="headerlink" title="把收藏炼化成上下文：我的 LLM Wiki 实践记录"></a>把收藏炼化成上下文：我的 LLM Wiki 实践记录</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://bytetech.info/articles/7660125544725348392">https://bytetech.info/articles/7660125544725348392</a><br>这篇更像是我自己的实践记录：为什么开始做 LLM Wiki、怎么冷启动、平时怎么用，以及我踩到的一些坑。</p>
+</blockquote>
+<h2 id="1-起因：我不想再把好内容扔进收藏夹了"><a href="#1-起因：我不想再把好内容扔进收藏夹了" class="headerlink" title="1. 起因：我不想再把好内容扔进收藏夹了"></a>1. 起因：我不想再把好内容扔进收藏夹了</h2><p>我以前有很多收藏夹。</p>
+<p>浏览器里有，微信里有，小红书、X、YouTube、B 站、知乎也都有。每次看到好文章、好视频、好帖子，第一反应都是先收藏，想着“以后有空再看”。</p>
+<p>但后来我发现，收藏很多时候只是另一种形式的遗忘。</p>
+<p>内容被我存起来了，但没有被我理解；入口被我保留下来了，但知识没有进入我的工作流。更糟的是，在 AI 时代，我每天和各种 Agent 讨论问题、调试代码、做判断、踩坑复盘，这些过程里其实沉淀了很多经验。可是只要 session 一关，它们也会散落在历史记录里，下次遇到相似问题，我还是要从头开始。</p>
+<p>这件事让我开始重新思考：</p>
+<p><strong>我真正需要的不是更多收藏，而是一个能持续积累、能被 Agent 反复调用的个人上下文。</strong></p>
+<p>这就是我开始尝试 LLM Wiki 的原因。</p>
+<h2 id="2-我理解的-LLM-Wiki：不是笔记软件，而是给-Agent-用的知识底座"><a href="#2-我理解的-LLM-Wiki：不是笔记软件，而是给-Agent-用的知识底座" class="headerlink" title="2. 我理解的 LLM Wiki：不是笔记软件，而是给 Agent 用的知识底座"></a>2. 我理解的 LLM Wiki：不是笔记软件，而是给 Agent 用的知识底座</h2><p>我第一次认真看 LLM Wiki 这个概念，是因为 Karpathy 在 2026 年 4 月发的一篇 gist。</p>
+<p>它里面有一句话我印象很深：</p>
+<blockquote>
+<p>The wiki is a persistent, compounding artifact.</p>
+</blockquote>
+<p>我自己的理解是：</p>
+<p><strong>LLM Wiki 不是把文章摘抄成笔记，而是让 Agent 把碎片知识编译成一份可以持续复利的知识库。</strong></p>
+<p>传统 RAG 更像是“每次临时翻资料”。你问一个问题，Agent 去文档 chunks 里找内容，现场拼上下文，现场推理，回答完就结束了。下次再问类似问题，它又要重新找、重新拼、重新推。</p>
+<p>LLM Wiki 的思路反过来：</p>
+<ul>
+<li>原始素材保留下来，作为事实锚点；</li>
+<li>Agent 负责读懂、总结、归类、交叉引用；</li>
+<li>新知识会被编织进已有知识网络；</li>
+<li>旧页面会随着新信息持续更新；</li>
+<li>矛盾、补充、关联关系都会被记录下来。</li>
+</ul>
+<p>也就是说，Agent 不只是“读完这篇文章回答我”，而是在帮我维护一个长期存在的知识系统。</p>
+<h2 id="3-炼化，而不是收藏"><a href="#3-炼化，而不是收藏" class="headerlink" title="3. 炼化，而不是收藏"></a>3. 炼化，而不是收藏</h2><p>我现在会刻意区分两个动作：收藏和炼化。</p>
+<p>收藏是终点。点了收藏按钮之后，我大概率就不会再看了。</p>
+<p>炼化是起点。它要求 Agent 真正读完材料，把里面可复用的观点、判断、经验抽出来，再放进我的知识结构里。</p>
+<p>一篇文章如果只是存在收藏夹里，它还是一座孤岛。只有当它和我的项目经历、技术背景、历史决策、踩坑记录发生连接，它才真的变成了我的上下文。</p>
+<p>可以被炼化的东西也不只是长文章。它可以是：</p>
+<ul>
+<li>一条推文里的关键判断；</li>
+<li>一个视频里的核心论点；</li>
+<li>一个 GitHub 项目的架构思路；</li>
+<li>一次 debugging session 里的踩坑记录；</li>
+<li>群聊里同事说过的一句很准的判断；</li>
+<li>历史项目文档里沉睡很久的决策背景。</li>
+</ul>
+<p>只要里面有可复用的经验，就值得被炼化。</p>
+<h2 id="4-冷启动：先把过去的自己找回来"><a href="#4-冷启动：先把过去的自己找回来" class="headerlink" title="4. 冷启动：先把过去的自己找回来"></a>4. 冷启动：先把过去的自己找回来</h2><p>刚开始搭 LLM Wiki 时，最大的问题是空。</p>
+<p>Wiki 里什么都没有，Agent 对我也不了解。这个时候谈个性化学习、知识复利都太早。冷启动阶段最重要的一件事，是尽快把“过去的自己”找回来。</p>
+<p>我觉得可以从三个方向做。</p>
+<h3 id="4-1-挖历史-Agent-会话"><a href="#4-1-挖历史-Agent-会话" class="headerlink" title="4.1 挖历史 Agent 会话"></a>4.1 挖历史 Agent 会话</h3><p>以前我以为 session 关了就什么都没了。后来发现，其实很多 Agent 工具都会在本地保留历史会话。</p>
+<p>这些会话里藏着很多有价值的信息：</p>
+<ul>
+<li>我当时遇到了什么问题；</li>
+<li>中间试过哪些方向；</li>
+<li>哪些方案最后被放弃；</li>
+<li>我对 Agent 做过哪些纠正；</li>
+<li>最后为什么选了某个实现。</li>
+</ul>
+<p>这些内容特别适合作为个人 Wiki 的冷启动材料。</p>
+<p>我的理想做法是让 Agent 批量扫描历史会话，判断哪些 session 值得沉淀。真正有价值的，就按当时的背景写成经验记录、项目决策或踩坑复盘。</p>
+<h3 id="4-2-翻自己的历史文档"><a href="#4-2-翻自己的历史文档" class="headerlink" title="4.2 翻自己的历史文档"></a>4.2 翻自己的历史文档</h3><p>博客、技术分享、side project、简历、项目复盘、PRD、方案文档，这些东西往往散落在不同地方。</p>
+<p>单独看时，它们只是文件；串起来看时，其实是一个人的经历轨迹。</p>
+<p>当这些内容进入 Wiki 后，Agent 对我的理解就不再是“一个开发者”，而是一个更具体的人：做过哪些项目、熟悉哪些领域、踩过哪些坑、有哪些长期偏好和判断模式。</p>
+<p>这也是个性化上下文最有价值的地方。</p>
+<h3 id="4-3-清空收藏夹"><a href="#4-3-清空收藏夹" class="headerlink" title="4.3 清空收藏夹"></a>4.3 清空收藏夹</h3><p>最后是那些积灰的收藏夹。</p>
+<p>以前收藏它们，并不代表没价值，只是我没有时间消化。现在可以把收藏列表批量拉出来，让 Agent 先做粗筛和初步炼化。</p>
+<p>冷启动不适合追求“每条都深度学习”。量太大时，更现实的做法是先搭骨架：先让 Wiki 里出现概念、主题、来源和基本关联。真正深入理解，可以放到后面的日常使用里慢慢完成。</p>
+<p>还有一个提醒：</p>
+<p><strong>一定要注意脱敏。</strong></p>
+<p>公司内部数据、credentials、敏感业务逻辑、还没公开的项目信息，都要先清理干净。最好把这条规则直接写进 Wiki 仓库的 <code>AGENTS.md</code>，让 Agent 每次操作前都能看到。</p>
+<h2 id="5-日常使用：炼化之后，要马上消费"><a href="#5-日常使用：炼化之后，要马上消费" class="headerlink" title="5. 日常使用：炼化之后，要马上消费"></a>5. 日常使用：炼化之后，要马上消费</h2><p>冷启动之后，我最常用的动作其实只有两个：</p>
+<ol>
+<li>看到一篇好文章或一个好视频，直接丢给 Agent：帮我炼化一下。</li>
+<li>一次复杂任务结束后，告诉 Agent：把这次踩坑和决策沉淀到 Wiki。</li>
+</ol>
+<p>但我后来发现，只炼化还不够。</p>
+<p>如果只是把内容整理得更漂亮，分好类、打好标签，然后再也不看，那它和收藏夹没有本质区别。只是多花了一些整理时间，还多烧了一点 token。</p>
+<p>所以我现在会尽量在炼化后立刻消费。</p>
+<p>比如让 Agent 基于我的 Wiki 给我生成一份讲解：</p>
+<ul>
+<li>这篇材料最重要的观点是什么；</li>
+<li>它和我已有经验有什么关联；</li>
+<li>它有没有挑战我之前的判断；</li>
+<li>哪些地方我可能没真正理解；</li>
+<li>如果要应用到当前工作里，应该怎么做。</li>
+</ul>
+<p>我也很喜欢用费曼学习法：让 Agent 提问，我用自己的话解释。讲不清楚的地方，就是还没真正理解的 gap。</p>
+<p>如果是一个需要长期学习的主题，我会更倾向于把它做成 stateful 的学习工作区，比如保留 mission、lesson、learning records，让学习可以跨 session 延续，而不是一次性讲完就散。</p>
+<h2 id="6-个性化教学：Wiki-越懂我，Agent-教得越好"><a href="#6-个性化教学：Wiki-越懂我，Agent-教得越好" class="headerlink" title="6. 个性化教学：Wiki 越懂我，Agent 教得越好"></a>6. 个性化教学：Wiki 越懂我，Agent 教得越好</h2><p>LLM Wiki 最吸引我的地方，是它能让 Agent 的讲解越来越贴近我。</p>
+<p>如果 Wiki 里记录了我的背景、项目经历、熟悉领域和踩坑历史，Agent 在解释新知识时就能找到更适合我的类比。</p>
+<p>比如一个有音视频客户端背景的人在学习 LLM 推理优化，Agent 可以把 KV Cache 类比成视频解码里的参考帧缓存：不是每次都从头解码，而是复用已有上下文做增量推理。</p>
+<p>这种解释不是通用教程能稳定给出来的。它依赖个人上下文。</p>
+<p>而个人上下文越丰富，Agent 越知道该从哪里讲起、哪些地方可以略过、哪些地方需要多解释、哪些旧经验可以迁移过来。</p>
+<p>这就是我理解的知识复利。</p>
+<h2 id="7-Wiki-主要是给-Agent-看的"><a href="#7-Wiki-主要是给-Agent-看的" class="headerlink" title="7. Wiki 主要是给 Agent 看的"></a>7. Wiki 主要是给 Agent 看的</h2><p>一开始我也想过用 Obsidian 之类的工具，看 Graph View，浏览概念之间的连接。</p>
+<p>但当条目和标签变多后，图谱很容易变成一团毛线。看起来很壮观，实际帮助有限。</p>
+<p>现在我更倾向于认为：</p>
+<p><strong>Wiki 不是主要给人直接看的，而是给 Agent 消费的。人通过 Agent 间接消费 Wiki。</strong></p>
+<p>我自己主要有三种消费方式：</p>
+<ul>
+<li><strong>即时教学</strong>：炼化完一篇材料后，让 Agent 做个性化讲解。</li>
+<li><strong>任务前召回</strong>：开工前让 Agent 先查 Wiki，看有没有相关经验可以复用。</li>
+<li><strong>按需深挖</strong>：想了解某个主题时，直接问 Agent“我的 Wiki 里关于这个主题有哪些内容”。</li>
+</ul>
+<p>这样用起来比自己翻目录、点链接、看图谱自然得多。</p>
+<h2 id="8-从个人到团队：让下一个人不从零开始"><a href="#8-从个人到团队：让下一个人不从零开始" class="headerlink" title="8. 从个人到团队：让下一个人不从零开始"></a>8. 从个人到团队：让下一个人不从零开始</h2><p>个人 Wiki 解决的是“下次的我不要从零开始”。</p>
+<p>团队 Wiki 解决的是“下一个同事、下一个新人、下一个 Agent 不要从零开始”。</p>
+<p>团队里的知识更容易散落：飞书群聊、会议纪要、Bug 单、需求文档、MR 评论、值班记录、项目复盘。每个人手里都有一部分上下文，但很少有人能看到完整图景。</p>
+<p>如果这些内容能被持续炼化成团队 Wiki，那么新人上手、同事交接、Agent 执行任务时，都可以少走很多重复路。</p>
+<p>当然团队场景会更复杂：权限、隐私、维护责任、知识冲突、过期信息，都需要认真设计。但方向上，我觉得它和个人 Wiki 的本质是一样的：</p>
+<p><strong>把散落的经验变成可复用的上下文。</strong></p>
+<h2 id="9-我的落地配置思路"><a href="#9-我的落地配置思路" class="headerlink" title="9. 我的落地配置思路"></a>9. 我的落地配置思路</h2><p>如果要真正跑起来，我会优先选择 Git 仓库，而不是 Notion、飞书文档这类 SaaS 知识库。</p>
+<p>原因很简单：Git 对 Agent 太友好了。</p>
+<p>Agent 可以直接读文件、grep、rg、看 git log、提交变更。所有东西都是本地文本，速度快，成本低，也更适合自动化。</p>
+<p>我理想中的配置大概是这样：</p>
+<ol>
+<li>建一个 private Git 仓库，比如 <code>my-llm-wiki</code>。</li>
+<li>Clone 到一个固定路径，多台机器尽量保持一致。</li>
+<li>全局 <code>AGENTS.md</code> 或 <code>CLAUDE.md</code> 只放一条路由规则：涉及 LLM Wiki、知识库、炼化、记忆、沉淀时，先读 Wiki 仓库里的 <code>AGENTS.md</code>。</li>
+<li>具体结构和流程都放在 Wiki 仓库自己的 <code>AGENTS.md</code> 里。</li>
+<li>Wiki 内部规则也要渐进式披露，不要把所有细节一次性塞进上下文。</li>
+</ol>
+<p>我觉得这里最重要的不是装哪个 Skill，而是让 Agent 知道：Wiki 在哪里，什么时候该去看，什么东西该写，什么东西不能写。</p>
+<h2 id="10-马上可以试的三件事"><a href="#10-马上可以试的三件事" class="headerlink" title="10. 马上可以试的三件事"></a>10. 马上可以试的三件事</h2><p>如果要从今天开始，我会先做这三件事：</p>
+<ol>
+<li><strong>冷启动自己</strong>：让 Agent 扫描历史会话、个人文档和收藏夹，先建立知识图谱骨架。</li>
+<li><strong>炼化一篇最近看过的好文章</strong>：不要只总结，而是让它和已有经验建立连接。</li>
+<li><strong>炼化后马上学习</strong>：让 Agent 基于 Wiki 做一份个性化讲解，再用费曼学习法检查自己是否真的理解。</li>
+</ol>
+<h2 id="11-最后"><a href="#11-最后" class="headerlink" title="11. 最后"></a>11. 最后</h2><p>这件事给我的最大启发是：</p>
+<p><strong>AI 时代，真正重要的可能不是我收藏了多少信息，而是我能不能把信息持续炼化成自己的上下文。</strong></p>
+<p>收藏夹让知识停在那里；LLM Wiki 让知识进入循环。</p>
+<p>每一次炼化，都是在给未来的自己和未来的 Agent 铺路。今天沉淀的一条经验，可能会在几个月后的某个任务里，被重新召回，帮我少踩一个坑、少走一段弯路。</p>
+<p>这大概就是我愿意继续折腾 LLM Wiki 的原因。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-08-24</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ue5.8-arm-build/'>UE 5.8 的 Graviton4 优化：从编译参数到实际运行效果</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/ds-framework/">DS 中 GameMode / GameState / PlayerController / PlayerState 深入解析</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

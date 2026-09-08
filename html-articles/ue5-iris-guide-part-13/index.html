@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十三部分：基于 Unreal Engine 5.7.4 源码，讲解 ELifetimeCondition、FReplicationConditionals、Custom 与 Dynamic 条件、每连接 ChangeMask 裁剪、条件缓存和基线失效。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M18 16h28v8H36v16h10v8H18v-8h10V24H18z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-13/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十三部分：条件复制 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --amber: #9b6923;
+      --amber-soft: #f2e5c9;
+      --red-soft: #f4ded9;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, .11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, .035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, .028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a, article h2, article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 16%, rgba(245, 177, 142, .2), transparent 28%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "CONDITION";
+      position: absolute;
+      right: -.04em;
+      bottom: -.25em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(92px, 17vw, 250px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      pointer-events: none;
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 920px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; color: #d9def7; font-size: 13px; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .9);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] { color: var(--iris-dark); background: #eef0fb; border-left-color: var(--signal); }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 21px/1 var(--serif);
+    }
+    .source-note p { margin: 0; color: #333e5b; font-size: 14px; line-height: 1.65; }
+    .source-note a { white-space: nowrap; font-size: 13px; font-weight: 750; }
+
+    article {
+      overflow: hidden;
+      padding: clamp(26px, 5vw, 58px);
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article section { scroll-margin-top: 30px; }
+    article section + section { margin-top: 70px; padding-top: 66px; border-top: 1px solid var(--line); }
+    article h2 {
+      margin: 0 0 25px;
+      color: var(--iris-dark);
+      font: 800 clamp(27px, 4vw, 42px) / 1.2 var(--serif);
+      letter-spacing: -.025em;
+    }
+    article h2 .chapter-no {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--signal);
+      font: 800 11px/1 var(--mono);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    article h3 { margin: 38px 0 13px; color: var(--iris-dark); font-size: 21px; line-height: 1.45; }
+    article p { margin: 0 0 19px; }
+    article ul, article ol { padding-left: 1.25em; }
+    article li + li { margin-top: 8px; }
+    article strong { color: #202e62; }
+    article code {
+      padding: .12em .36em;
+      color: #9e3826;
+      background: #f5e8e1;
+      border-radius: 3px;
+      font: .88em/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+    pre {
+      max-width: 100%;
+      overflow: auto;
+      padding: 22px;
+      color: #edf0ff;
+      background: #19233a;
+      border-left: 5px solid var(--signal);
+      font: 13px/1.7 var(--mono);
+      tab-size: 4;
+    }
+    pre code { padding: 0; color: inherit; background: none; border-radius: 0; overflow-wrap: normal; }
+    .eyebrow { margin-bottom: 11px; color: var(--signal); font: 800 11px/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+    .lead { color: #2e3850; font: 1.16em/1.82 var(--serif); }
+    .pullquote {
+      margin: 31px 0;
+      padding: 24px 27px;
+      color: var(--iris-dark);
+      background: #eef0fb;
+      border-left: 6px solid var(--iris);
+      font: 800 clamp(20px, 3vw, 28px) / 1.55 var(--serif);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 26px 0;
+    }
+    .card {
+      padding: 21px;
+      background: #faf7f0;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--iris);
+    }
+    .card small { color: var(--signal); font: 800 10px/1 var(--mono); letter-spacing: .12em; }
+    .card h3 { margin: 11px 0 8px; font-size: 18px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+
+    .callout {
+      margin: 28px 0;
+      padding: 20px 23px;
+      border: 1px solid;
+      border-left-width: 6px;
+    }
+    .callout strong { display: block; margin-bottom: 6px; }
+    .callout p { margin: 0; font-size: 15px; }
+    .callout--good { background: var(--green-soft); border-color: #7aaf9c; }
+    .callout--warn { background: var(--amber-soft); border-color: #c39a58; }
+    .callout--danger { background: var(--red-soft); border-color: #cf887a; }
+
+    .table-wrap { max-width: 100%; overflow: auto; margin: 27px 0; border: 1px solid var(--line); }
+    table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 14px; line-height: 1.55; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { color: var(--white); background: var(--iris-dark); font-size: 12px; letter-spacing: .035em; }
+    tbody tr:nth-child(even) { background: #f7f3eb; }
+    tbody tr:last-child td { border-bottom: 0; }
+    td:first-child { color: var(--iris-dark); font-weight: 750; }
+
+    .scroll-frame { max-width: 100%; overflow: auto; margin: 28px 0 4px; border: 1px solid var(--line); background: #faf7f0; }
+    .scroll-frame__hint { margin: 6px 0 24px; color: #7a8191; font-size: 12px; text-align: right; }
+
+    .gate-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(205px, 1fr));
+      gap: 0;
+      min-width: 900px;
+      padding: 22px;
+    }
+    .gate {
+      position: relative;
+      min-height: 184px;
+      padding: 21px;
+      color: #fff;
+      background: var(--iris-dark);
+      border-right: 1px solid rgba(255,255,255,.22);
+    }
+    .gate:nth-child(2) { background: #35458c; }
+    .gate:nth-child(3) { background: #5360a6; }
+    .gate:nth-child(4) { background: var(--signal); border-right: 0; }
+    .gate:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -15px;
+      top: 50%;
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      color: var(--iris-dark);
+      background: var(--white);
+      border-radius: 50%;
+      transform: translateY(-50%);
+    }
+    .gate small { color: #f4c5ad; font: 800 10px/1 var(--mono); letter-spacing: .12em; }
+    .gate b { display: block; margin: 13px 0 8px; font-size: 18px; }
+    .gate p { margin: 0; color: #e9ecff; font-size: 13px; line-height: 1.6; }
+
+    .axis-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 14px;
+      min-width: 760px;
+      padding: 22px;
+    }
+    .axis {
+      padding: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .axis:nth-child(2) { border-top-color: var(--signal); }
+    .axis:nth-child(3) { border-top-color: var(--green); }
+    .axis small { color: var(--signal); font: 800 10px/1 var(--mono); }
+    .axis b { display: block; margin: 12px 0 8px; color: var(--iris-dark); font-size: 19px; }
+    .axis p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+
+    .mask-lab { min-width: 760px; padding: 24px; }
+    .mask-row {
+      display: grid;
+      grid-template-columns: 165px repeat(8, 44px) minmax(140px, 1fr);
+      gap: 4px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .mask-row b { color: var(--iris-dark); font-size: 13px; }
+    .bit { display: grid; place-items: center; height: 38px; color: #fff; background: var(--iris); font: 800 13px/1 var(--mono); }
+    .bit.off { color: #73798a; background: #dfddd6; }
+    .mask-row em { padding-left: 12px; color: var(--ink-soft); font-size: 12px; font-style: normal; }
+    .mask-row--result { padding-top: 10px; border-top: 1px solid var(--line); }
+    .mask-row--result .bit { background: var(--signal); }
+    .mask-row--result .bit.off { color: #8a7771; background: #ead9d3; }
+
+    .condition-stack { min-width: 780px; padding: 24px; }
+    .condition-band {
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr);
+      margin-bottom: 10px;
+      border: 1px solid var(--line);
+    }
+    .condition-band b { display: flex; align-items: center; padding: 16px; color: #fff; background: var(--iris-dark); }
+    .condition-band div { display: flex; flex-wrap: wrap; gap: 8px; padding: 13px; background: var(--white); }
+    .condition-band code { white-space: nowrap; }
+
+    .connection-matrix td.yes { color: var(--green); background: #e8f2ec; font-weight: 800; }
+    .connection-matrix td.no { color: #9f3929; background: #f7e8e4; font-weight: 800; }
+    .connection-matrix td.initial { color: var(--amber); background: #f5ecd9; font-weight: 800; }
+
+    .internal-layout {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(210px, 1fr));
+      gap: 12px;
+      min-width: 940px;
+      padding: 22px;
+    }
+    .internal-box { padding: 20px; background: var(--white); border: 1px solid var(--line); }
+    .internal-box small { color: var(--signal); font: 800 10px/1 var(--mono); }
+    .internal-box b { display: block; margin: 12px 0 8px; color: var(--iris-dark); }
+    .internal-box p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+
+    .runtime-compare {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(330px, 1fr));
+      gap: 18px;
+      min-width: 760px;
+      padding: 22px;
+    }
+    .runtime-card { padding: 24px; background: var(--white); border: 1px solid var(--line); border-top: 6px solid var(--signal); }
+    .runtime-card + .runtime-card { border-top-color: var(--iris); }
+    .runtime-card small { color: var(--signal); font: 800 10px/1 var(--mono); }
+    .runtime-card h3 { margin: 12px 0 9px; }
+    .runtime-card p { color: var(--ink-soft); font-size: 14px; }
+    .runtime-card p:last-child { margin-bottom: 0; }
+
+    .object-condition-flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(250px, 1fr));
+      gap: 12px;
+      min-width: 820px;
+      padding: 22px;
+    }
+    .object-condition {
+      padding: 21px;
+      color: #fff;
+      background: var(--iris-dark);
+    }
+    .object-condition:nth-child(2) { background: #3f4fa0; }
+    .object-condition:nth-child(3) { background: var(--green); }
+    .object-condition small { color: #f5c1a6; font: 800 10px/1 var(--mono); }
+    .object-condition b { display: block; margin: 11px 0 8px; }
+    .object-condition p { margin: 0; color: #eef0ff; font-size: 13px; line-height: 1.6; }
+
+    .timeline { min-width: 980px; padding: 26px; }
+    .timeline__rail { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); align-items: start; }
+    .timeline-step { position: relative; padding: 0 14px; text-align: center; }
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      top: 14px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #b8bed9;
+    }
+    .timeline-step:first-child::before { left: 50%; }
+    .timeline-step:last-child::before { right: 50%; }
+    .timeline-step i {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 31px;
+      height: 31px;
+      margin: 0 auto 13px;
+      color: #fff;
+      background: var(--iris);
+      border-radius: 50%;
+      font: 800 11px/1 var(--mono);
+      font-style: normal;
+    }
+    .timeline-step.connection i { background: var(--signal); }
+    .timeline-step b { display: block; color: var(--iris-dark); font-size: 13px; }
+    .timeline-step span { display: block; margin-top: 6px; color: var(--ink-soft); font-size: 11px; line-height: 1.5; }
+    .timeline-labels { display: grid; grid-template-columns: 4fr 3fr; gap: 8px; margin-top: 22px; }
+    .timeline-labels b { padding: 8px 12px; text-align: center; font-size: 12px; background: #e7e9f5; }
+    .timeline-labels b + b { color: #8a341f; background: #f3dfd7; }
+
+    .state-machine {
+      display: grid;
+      grid-template-columns: 220px 70px repeat(3, 180px);
+      gap: 10px;
+      align-items: stretch;
+      min-width: 880px;
+      padding: 24px;
+    }
+    .state {
+      padding: 20px;
+      background: var(--white);
+      border: 2px solid var(--iris);
+    }
+    .state--start { color: #fff; background: var(--iris-dark); }
+    .state--never { border-color: var(--signal); }
+    .state b { display: block; margin-bottom: 7px; }
+    .state p { margin: 0; font-size: 12px; line-height: 1.55; }
+    .arrow { display: grid; place-items: center; color: var(--signal); font-size: 28px; font-weight: 900; }
+
+    .scenario {
+      display: grid;
+      grid-template-columns: 220px repeat(3, minmax(180px, 1fr));
+      min-width: 850px;
+      margin: 0;
+      padding: 22px;
+    }
+    .scenario > div { padding: 15px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .scenario > div:nth-child(4n) { border-right: 0; }
+    .scenario .head { color: #fff; background: var(--iris-dark); font-weight: 800; }
+    .scenario .property { color: var(--iris-dark); background: #ece9e1; font-weight: 800; }
+    .scenario .allow { color: var(--green); background: #e6f0ea; font-weight: 800; }
+    .scenario .deny { color: #9f3929; background: #f6e6e2; font-weight: 800; }
+    .scenario .first { color: var(--amber); background: #f4ead4; font-weight: 800; }
+
+    .decision {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(200px, 1fr));
+      gap: 12px;
+      min-width: 880px;
+      padding: 22px;
+    }
+    .decision div { padding: 20px; background: var(--white); border: 1px solid var(--line); border-top: 5px solid var(--iris); }
+    .decision div:nth-child(2) { border-top-color: var(--green); }
+    .decision div:nth-child(3) { border-top-color: var(--signal); }
+    .decision div:nth-child(4) { border-top-color: var(--amber); }
+    .decision small { color: var(--signal); font: 800 10px/1 var(--mono); }
+    .decision b { display: block; margin: 11px 0 8px; color: var(--iris-dark); }
+    .decision p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+
+    .source-tree {
+      overflow: auto;
+      padding: 22px;
+      color: #dce2ff;
+      background: #19233a;
+      border-left: 5px solid var(--iris);
+      white-space: pre;
+      font: 12px/1.7 var(--mono);
+    }
+    .sources {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0 28px;
+    }
+    .sources a {
+      padding: 12px 14px;
+      color: var(--iris-dark);
+      background: #f5f1e9;
+      border: 1px solid var(--line);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .sources a:hover { color: var(--signal); border-color: #d7a18f; }
+
+    .chapter-nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 42px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+    .chapter-nav a, .chapter-nav div {
+      display: block;
+      padding: 17px 19px;
+      color: var(--iris-dark);
+      background: #f2efe8;
+      border: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .chapter-nav a:hover { color: var(--signal); border-color: #d7a18f; }
+    .chapter-nav span { display: block; margin-bottom: 5px; color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .12em; }
+    .chapter-nav b { font-size: 14px; }
+    .chapter-nav div { color: #747b8b; }
+
+    footer {
+      padding: 40px 24px 55px;
+      color: #d9def7;
+      background: #19233a;
+      text-align: center;
+      font-size: 13px;
+    }
+    footer p { margin: 5px 0; }
+    footer a { color: #f5b18e; }
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 40;
+      width: 44px;
+      height: 44px;
+      opacity: 0;
+      visibility: hidden;
+      color: #fff;
+      background: var(--signal);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 8px 25px rgba(25,35,58,.25);
+      cursor: pointer;
+      transition: .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; visibility: visible; }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: minmax(0, 1fr); width: min(900px, calc(100% - 36px)); }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+    }
+
+    @media (max-width: 720px) {
+      body { font-size: 16px; }
+      .hero { padding: 56px 22px 50px; }
+      .hero::before { bottom: -.13em; font-size: 30vw; }
+      .layout { width: calc(100% - 22px); margin-top: 22px; }
+      article { padding: 25px 20px; }
+      article section + section { margin-top: 50px; padding-top: 48px; }
+      .source-note { grid-template-columns: 44px minmax(0, 1fr); }
+      .source-note a { grid-column: 2; white-space: normal; }
+      .cards, .sources, .chapter-nav { grid-template-columns: 1fr; }
+      .source-note { padding: 17px; }
+      .source-note__mark { width: 38px; height: 38px; }
+      pre { padding: 17px; }
+      .pullquote { padding: 20px; }
+      .back-top { right: 14px; bottom: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+
+    @media print {
+      .reading-progress, .hero::before, .toc, .toc-mobile, .back-top, .chapter-nav { display: none !important; }
+      body { color: #000; background: #fff; font-size: 11pt; }
+      .hero { padding: 24px 0; color: #000; background: #fff; border-bottom: 2px solid #000; }
+      .hero h1 span + span, .hero__deck, .hero__meta, .kicker { color: #000; }
+      .layout { display: block; width: 100%; margin: 20px 0; }
+      article { padding: 0; border: 0; box-shadow: none; }
+      article section + section { break-before: page; }
+      a { color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">UE 5.7.4 · Iris Replication System · Part 13</p>
+      <h1>
+        <span>条件复制</span>
+        <span>同一个 ChangeMask，不同连接有不同答案</span>
+      </h1>
+      <p class="hero__deck">对象已经通过过滤，不代表它的每个字段都该发给每条连接。Iris 把生命周期条件、对象实例状态与连接上下文叠成掩码，在发送前裁剪 ChangeMask；条件重新满足时，它还必须补脏并修复增量基线，确保远端看到的是当前真值。</p>
+      <div class="hero__meta">
+        <span>2026-07-24</span>
+        <span>约 32 分钟</span>
+        <span>源码基线：Unreal Engine 5.7.4</span>
+        <span><a href="#sources">源码与官方资料</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>目录</strong><span>PART 13</span></div>
+      <ol>
+        <li><a href="#gate"><span>01</span><b>对象可见，字段未必可见</b></a></li>
+        <li><a href="#pipeline"><span>02</span><b>过滤、脏位与条件三道门</b></a></li>
+        <li><a href="#model"><span>03</span><b>条件复制的三个轴</b></a></li>
+        <li><a href="#overview"><span>04</span><b>13.1 条件类型全景</b></a></li>
+        <li><a href="#declaration"><span>05</span><b>声明条件与 Push Model</b></a></li>
+        <li><a href="#matrix"><span>06</span><b>Owner、Role、Initial 与 Physics</b></a></li>
+        <li><a href="#conditionals"><span>07</span><b>13.2 FReplicationConditionals</b></a></li>
+        <li><a href="#runtime"><span>08</span><b>Custom 与 Dynamic</b></a></li>
+        <li><a href="#objects"><span>09</span><b>对象级条件与 SubObject</b></a></li>
+        <li><a href="#evaluation"><span>10</span><b>13.3 每连接条件评估</b></a></li>
+        <li><a href="#cache"><span>11</span><b>缓存、补脏与基线失效</b></a></li>
+        <li><a href="#scenario"><span>12</span><b>三连接案例与性能策略</b></a></li>
+        <li><a href="#debug"><span>13</span><b>排错、源码与总结</b></a></li>
+      </ol>
+    </nav>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开本篇目录（13 节）</summary>
+        <ol>
+          <li><a href="#gate"><span>01</span><b>对象可见，字段未必可见</b></a></li>
+          <li><a href="#pipeline"><span>02</span><b>过滤、脏位与条件三道门</b></a></li>
+          <li><a href="#model"><span>03</span><b>条件复制的三个轴</b></a></li>
+          <li><a href="#overview"><span>04</span><b>13.1 条件类型全景</b></a></li>
+          <li><a href="#declaration"><span>05</span><b>声明条件与 Push Model</b></a></li>
+          <li><a href="#matrix"><span>06</span><b>Owner、Role、Initial 与 Physics</b></a></li>
+          <li><a href="#conditionals"><span>07</span><b>13.2 FReplicationConditionals</b></a></li>
+          <li><a href="#runtime"><span>08</span><b>Custom 与 Dynamic</b></a></li>
+          <li><a href="#objects"><span>09</span><b>对象级条件与 SubObject</b></a></li>
+          <li><a href="#evaluation"><span>10</span><b>13.3 每连接条件评估</b></a></li>
+          <li><a href="#cache"><span>11</span><b>缓存、补脏与基线失效</b></a></li>
+          <li><a href="#scenario"><span>12</span><b>三连接案例与性能策略</b></a></li>
+          <li><a href="#debug"><span>13</span><b>排错、源码与总结</b></a></li>
+        </ol>
+      </details>
+
+      <aside class="source-note" aria-label="文章来源">
+        <div class="source-note__mark">源</div>
+        <p><strong>文章来源：</strong>本文由 Jossy Zhang 根据《UE5 Iris 网络复制系统技术分析指南》系列大纲原创扩写；技术结论依据本地 Unreal Engine 5.7.4 源码、ReplicationSystemTestPlugin 自动化测试与 Epic Games 官方文档。</p>
+        <a href="#sources">查看依据</a>
+      </aside>
+
+      <article>
+        <section id="gate">
+          <p class="eyebrow">Chapter 01 · Problem Space</p>
+          <h2><span class="chapter-no">第十三部分开场</span>对象能看见，不代表每个字段都该看见</h2>
+          <p class="lead">同一个 Pawn 对三条连接可能扮演三种角色：拥有者需要私有装备栏，远端模拟者需要移动提示，晚加入者还需要一份只在初始状态发送的随机种子。对象本身对三条连接都可见，但属性集合不应完全相同。</p>
+
+          <div class="pullquote">过滤回答“这个对象要不要存在于该连接”；条件复制回答“对象既然存在，这个成员此刻要不要进入该连接的输出”。</div>
+
+          <p>这条边界非常重要。给属性加上 <code>COND_OwnerOnly</code>，并不会阻止远端创建 Actor；它只让非 Owner 连接在发送该对象状态时看不到这个属性。反过来，如果整个对象对某连接都没有价值，应该使用 Iris Object Filtering，而不是给对象里的几十个字段逐个加条件。</p>
+
+          <div class="cards">
+            <div class="card">
+              <small>PRIVATE</small>
+              <h3>只给拥有者</h3>
+              <p>装备栏、输入确认、私密任务状态适合 <code>COND_OwnerOnly</code>。</p>
+            </div>
+            <div class="card">
+              <small>PREDICTION</small>
+              <h3>避开自主代理</h3>
+              <p>客户端自己预测的值可只发给 Simulated，避免服务器覆盖本地预测结果。</p>
+            </div>
+            <div class="card">
+              <small>BOOTSTRAP</small>
+              <h3>只进初始状态</h3>
+              <p>稳定配置或生成种子可用 <code>COND_InitialOnly</code>，晚加入者仍有自己的首次状态。</p>
+            </div>
+          </div>
+
+          <div class="callout callout--good">
+            <strong>本篇的三个核心结论</strong>
+            <p>条件是在每连接发送阶段裁剪成员 ChangeMask；Owner、Autonomous、Initial、Physics 是不同维度；条件从“不发”切到“发”时，Iris 必须把当前值重新显露，而不是只打开一个开关。</p>
+          </div>
+        </section>
+
+        <section id="pipeline">
+          <p class="eyebrow">Chapter 02 · Pipeline</p>
+          <h2><span class="chapter-no">先看全景</span>过滤、脏位与条件是三道不同的门</h2>
+          <p>一个属性最终写进某条连接的包，至少经过三类判断。把它们混在一起，常常会得出“加了条件为什么轮询还在发生”或“属性没发为什么对象还创建了”的错误预期。</p>
+
+          <div class="scroll-frame" role="region" aria-label="Iris 条件复制三道门" tabindex="0">
+            <div class="gate-flow">
+              <div class="gate"><small>GATE 01 · OBJECT</small><b>Object Filter</b><p>整个 Net Object 是否允许进入这条连接的复制作用域？不通过时，后续没有这个对象的成员输出。</p></div>
+              <div class="gate"><small>GATE 02 · CHANGE</small><b>Dirty / ChangeMask</b><p>共享状态里哪些成员发生了变化，或者因为条件切换需要重新发送？</p></div>
+              <div class="gate"><small>GATE 03 · CONNECTION</small><b>Condition Mask</b><p>对当前连接，Owner、Role、Initial、Physics 与自定义 active 状态允许哪些成员？</p></div>
+              <div class="gate"><small>OUTPUT</small><b>Serialize</b><p>只序列化仍留在该连接 ChangeMask 中的成员，并与该连接的基线协作。</p></div>
+            </div>
+          </div>
+          <p class="scroll-frame__hint">图表可横向滚动 →</p>
+
+          <h3>ChangeMask 与 Condition Mask 回答不同问题</h3>
+          <p><strong>ChangeMask</strong> 表示“什么变了”；<strong>Lifetime Condition Mask</strong> 表示“当前连接上哪些内置条件成立”；<strong>Custom Condition Mask</strong> 表示“这个对象实例里哪些自定义成员当前激活”。在 UE 5.7.4 的兼容属性路径中，<code>FReplicationConditionals::ApplyConditionalsToChangeMask</code> 把它们叠加到当前连接的掩码副本上。</p>
+
+          <div class="scroll-frame" role="region" aria-label="条件掩码位运算示意" tabindex="0">
+            <div class="mask-lab">
+              <div class="mask-row">
+                <b>Dirty ChangeMask</b>
+                <span class="bit">1</span><span class="bit">1</span><span class="bit">1</span><span class="bit off">0</span>
+                <span class="bit">1</span><span class="bit off">0</span><span class="bit">1</span><span class="bit off">0</span>
+                <em>成员 0、1、2、4、6 有变化</em>
+              </div>
+              <div class="mask-row">
+                <b>Lifetime Allowed</b>
+                <span class="bit">1</span><span class="bit off">0</span><span class="bit">1</span><span class="bit">1</span>
+                <span class="bit">1</span><span class="bit">1</span><span class="bit">1</span><span class="bit off">0</span>
+                <em>当前连接屏蔽 1、7</em>
+              </div>
+              <div class="mask-row">
+                <b>Custom Active</b>
+                <span class="bit">1</span><span class="bit">1</span><span class="bit">1</span><span class="bit">1</span>
+                <span class="bit off">0</span><span class="bit">1</span><span class="bit">1</span><span class="bit">1</span>
+                <em>对象实例关闭成员 4</em>
+              </div>
+              <div class="mask-row mask-row--result">
+                <b>Connection Result</b>
+                <span class="bit">1</span><span class="bit off">0</span><span class="bit">1</span><span class="bit off">0</span>
+                <span class="bit off">0</span><span class="bit off">0</span><span class="bit">1</span><span class="bit off">0</span>
+                <em>最终只发送 0、2、6</em>
+              </div>
+            </div>
+          </div>
+
+          <p>上图只是 8 位概念图。真实协议的 ChangeMask 长度由 Replication State Descriptor 决定；一个成员也可能占多个 bit。关键不是位数，而是：<strong>条件裁剪不会改写共享的属性值，只改当前连接本次允许发送的成员集合。</strong></p>
+        </section>
+
+        <section id="model">
+          <p class="eyebrow">Chapter 03 · Mental Model</p>
+          <h2><span class="chapter-no">建立坐标系</span>声明、对象实例与连接上下文三个轴</h2>
+          <p>为什么同一个 <code>COND_OwnerOnly</code> 属性，在连接 A 上通过、连接 B 上失败？因为最终结果并不只由枚举决定，而是由三类信息共同求值。</p>
+
+          <div class="scroll-frame" role="region" aria-label="条件复制三个轴" tabindex="0">
+            <div class="axis-grid">
+              <div class="axis"><small>AXIS 01</small><b>声明时条件</b><p><code>GetLifetimeReplicatedProps</code> 把 <code>ELifetimeCondition</code> 烘焙进属性布局和 Iris Protocol。它描述成员的长期规则。</p></div>
+              <div class="axis"><small>AXIS 02</small><b>对象实例状态</b><p>Owning Connection、Autonomous Connection、ReplicatePhysics、自定义 active mask 和 Dynamic 条件均因对象而异。</p></div>
+              <div class="axis"><small>AXIS 03</small><b>连接上下文</b><p>当前发送给哪条 Connection？是否是该连接的 initial state？由此产生一套连接专属条件掩码。</p></div>
+            </div>
+          </div>
+
+          <h3>“Lifetime” 为什么不能按实例临时注册？</h3>
+          <p>Epic 的条件属性文档强调：属性一旦注册为复制属性，不能在某个实例上取消注册。Iris 在 <code>BeginReplication</code> 时建立描述复制数据的 Protocol，同类型实例共享 Protocol；实例差异放在 Instance Protocol 和运行时条件状态里。</p>
+
+          <pre><code>void AConditionalPawn::GetLifetimeReplicatedProps(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    // 正确：规则对该类的全部实例稳定
+    DOREPLIFETIME_CONDITION(
+        AConditionalPawn,
+        PrivateLoadout,
+        COND_OwnerOnly);
+
+    // 错误思路：不要根据 this 的临时状态决定是否注册属性
+}</code></pre>
+
+          <div class="callout callout--warn">
+            <strong>规则稳定，结果可以变化</strong>
+            <p>声明为 OwnerOnly 的规则是稳定的，但谁是 Owner 可以变化；声明为 Dynamic 的占位规则是稳定的，但运行时可切换到 OwnerOnly、SkipOwner 或 Never。不要把“布局不变”和“发送结果不变”混为一谈。</p>
+          </div>
+        </section>
+
+        <section id="overview">
+          <p class="eyebrow">Chapter 04 · 13.1</p>
+          <h2><span class="chapter-no">13.1 复制条件概述</span>不要死背枚举：先按意图给条件分组</h2>
+          <p>UE 5.7.4 的 <code>ELifetimeCondition</code> 定义在 <code>CoreNetTypes.h</code>。按数字顺序背名称帮助不大，按“初始状态、拥有者、网络角色、回放、运行时和 SubObject”分类，才容易选对。</p>
+
+          <div class="scroll-frame" role="region" aria-label="ELifetimeCondition 分类" tabindex="0">
+            <div class="condition-stack">
+              <div class="condition-band"><b>常规 / 禁止</b><div><code>COND_None</code><code>COND_Never</code></div></div>
+              <div class="condition-band"><b>Initial State</b><div><code>COND_InitialOnly</code><code>COND_InitialOrOwner</code></div></div>
+              <div class="condition-band"><b>Owner</b><div><code>COND_OwnerOnly</code><code>COND_SkipOwner</code><code>COND_InitialOrOwner</code><code>COND_ReplayOrOwner</code></div></div>
+              <div class="condition-band"><b>Role / Physics</b><div><code>COND_SimulatedOnly</code><code>COND_AutonomousOnly</code><code>COND_SimulatedOrPhysics</code><code>COND_SimulatedOnlyNoReplay</code><code>COND_SimulatedOrPhysicsNoReplay</code></div></div>
+              <div class="condition-band"><b>Replay</b><div><code>COND_ReplayOrOwner</code><code>COND_ReplayOnly</code><code>COND_SkipReplay</code></div></div>
+              <div class="condition-band"><b>运行时</b><div><code>COND_Custom</code><code>COND_Dynamic</code></div></div>
+              <div class="condition-band"><b>SubObject 专用</b><div><code>COND_NetGroup</code></div></div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>条件</th><th>准确语义</th><th>典型用途</th><th>常见误解</th></tr></thead>
+              <tbody>
+                <tr><td>COND_None</td><td>没有额外生命周期条件</td><td>常规复制属性</td><td>不等于每帧都发；仍要有变化</td></tr>
+                <tr><td>COND_InitialOnly</td><td>只在当前连接接收对象初始状态时允许</td><td>生成种子、稳定初始配置</td><td>不是只在服务器启动或 Actor Spawn 帧</td></tr>
+                <tr><td>COND_OwnerOnly</td><td>当前连接等于对象 owning connection</td><td>私有状态</td><td>Owner 不必等于 Autonomous</td></tr>
+                <tr><td>COND_SkipOwner</td><td>除 owning connection 外允许</td><td>拥有者本地已知或预测的值</td><td>不是“只发 Simulated”</td></tr>
+                <tr><td>COND_SimulatedOnly</td><td>当前连接不是 autonomous connection</td><td>远端模拟提示</td><td>不是简单的“非 Owner”</td></tr>
+                <tr><td>COND_AutonomousOnly</td><td>只对唯一 autonomous connection 允许</td><td>自主代理专属状态</td><td>同一对象不能同时有多个 Autonomous</td></tr>
+                <tr><td>COND_SimulatedOrPhysics</td><td>Simulated 或对象已启用 ReplicatePhysics</td><td>移动与物理同步</td><td>Physics 不是从属性值自动推断</td></tr>
+                <tr><td>COND_Custom</td><td>由对象实例的 active mask 开关</td><td>按对象启停某成员</td><td>不是逐连接自定义回调</td></tr>
+                <tr><td>COND_Dynamic</td><td>运行时改用另一个 Lifetime Condition；默认允许</td><td>OwnerOnly 与 SkipOwner 间切换</td><td>不是任意 Lambda 谓词</td></tr>
+                <tr><td>COND_Never</td><td>条件始终不成立</td><td>Dynamic 的关闭目标、测试或生成布局</td><td>不是注销复制属性</td></tr>
+                <tr><td>COND_NetGroup</td><td>按 SubObject 所属 Net Group 过滤连接</td><td>子对象分组</td><td>不能用于属性</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Replay 条件需要单独验证</h3>
+          <p>枚举还包含 ReplayOnly、ReplayOrOwner、SkipReplay 及 NoReplay 组合。本文保留它们的公开语义，但不把普通连接的代码路径外推成完整回放实现：本地 UE 5.7.4 的 <code>GetLifetimeConditionals</code> 对普通连接明确启用 <code>COND_SkipReplay</code>，未启用 <code>COND_ReplayOnly</code>；项目若依赖 Replay，应结合实际 NetDriver、回放连接和版本做测试。</p>
+        </section>
+
+        <section id="declaration">
+          <p class="eyebrow">Chapter 05 · Declaration</p>
+          <h2><span class="chapter-no">把规则放进 Protocol</span>FDoRepLifetimeParams 与 DOREPLIFETIME_* 宏</h2>
+          <p>最常用的声明是 <code>DOREPLIFETIME_CONDITION</code>。它构造 <code>FDoRepLifetimeParams</code>，填入 <code>Condition</code>，再注册属性。</p>
+
+          <pre><code>void AConditionalPawn::GetLifetimeReplicatedProps(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME_CONDITION(
+        AConditionalPawn,
+        PrivateLoadout,
+        COND_OwnerOnly);
+
+    DOREPLIFETIME_CONDITION(
+        AConditionalPawn,
+        SpawnSeed,
+        COND_InitialOnly);
+
+    DOREPLIFETIME_CONDITION(
+        AConditionalPawn,
+        DebugSnapshot,
+        COND_Custom);
+
+    DOREPLIFETIME_CONDITION(
+        AConditionalPawn,
+        TacticalMarker,
+        COND_Dynamic);
+}</code></pre>
+
+          <h3>需要 Push Model 或 RepNotify 参数时</h3>
+          <p><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/FDoRepLifetimeParams?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>FDoRepLifetimeParams</code></a> 在 UE 5.7.4 有四项公开配置：</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>字段</th><th>作用</th><th>默认值</th></tr></thead>
+              <tbody>
+                <tr><td>Condition</td><td>连接需要满足的复制条件</td><td>COND_None</td></tr>
+                <tr><td>RepNotifyCondition</td><td>何时触发 RepNotify</td><td>REPNOTIFY_OnChanged</td></tr>
+                <tr><td>bIsPushBased</td><td>属性是否使用 Push Model 报告变化</td><td>false</td></tr>
+                <tr><td>CreateAndRegisterReplicationFragmentFunction</td><td>为属性创建并注册 Replication Fragment</td><td>nullptr</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pre><code>FDoRepLifetimeParams Params;
+Params.Condition = COND_SimulatedOnly;
+Params.RepNotifyCondition = REPNOTIFY_OnChanged;
+Params.bIsPushBased = true;
+
+DOREPLIFETIME_WITH_PARAMS(
+    AConditionalPawn,
+    MovementHint,
+    Params);</code></pre>
+
+          <div class="callout callout--warn">
+            <strong>Push Model 与条件是正交的</strong>
+            <p>Push Model 解决“系统怎么知道值变了”，Condition 解决“这份变化能发给哪条连接”。Push 属性没有正确 Mark Dirty，条件再正确也没有新 ChangeMask；属性已经脏了，条件不满足时仍会在该连接上被裁掉。</p>
+          </div>
+
+          <h3>注册条件不是秘密保护</h3>
+          <p>OwnerOnly 能减少不必要的传输，也能避免服务器值覆盖拥有者本地预测值；但网络协议不是安全边界。服务器仍必须对客户端输入做权威校验，客户端二进制也能推断类布局。条件复制负责数据路由，不负责加密或访问控制。</p>
+        </section>
+
+        <section id="matrix">
+          <p class="eyebrow">Chapter 06 · Roles</p>
+          <h2><span class="chapter-no">生命周期与角色矩阵</span>Owner、Autonomous、Initial 与 Physics 不是同一个开关</h2>
+          <p>多人游戏里 Owner 与 Autonomous 经常指向同一玩家，于是工程代码容易把它们当成同义词。Iris 5.7.4 的实现明确分开：</p>
+          <ul>
+            <li><strong>Owner：</strong>来自 <code>ReplicationFiltering-&gt;GetOwningConnection(ObjectIndex)</code>；</li>
+            <li><strong>Autonomous：</strong>来自 <code>FPerObjectInfo::AutonomousConnectionId</code>，同一对象最多一条连接；</li>
+            <li><strong>Simulated：</strong>当前连接不等于 AutonomousConnectionId；</li>
+            <li><strong>Initial：</strong>当前连接正在接收该对象的初始状态；</li>
+            <li><strong>Physics：</strong>对象级 <code>bRepPhysics</code>，默认关闭。</li>
+          </ul>
+
+          <div class="table-wrap">
+            <table class="connection-matrix">
+              <thead><tr><th>条件</th><th>Owner + Autonomous</th><th>Non-owner + Simulated</th><th>Late join + Simulated</th></tr></thead>
+              <tbody>
+                <tr><td>COND_OwnerOnly</td><td class="yes">发送</td><td class="no">屏蔽</td><td class="no">屏蔽</td></tr>
+                <tr><td>COND_SkipOwner</td><td class="no">屏蔽</td><td class="yes">发送</td><td class="yes">发送</td></tr>
+                <tr><td>COND_AutonomousOnly</td><td class="yes">发送</td><td class="no">屏蔽</td><td class="no">屏蔽</td></tr>
+                <tr><td>COND_SimulatedOnly</td><td class="no">屏蔽</td><td class="yes">发送</td><td class="yes">发送</td></tr>
+                <tr><td>COND_InitialOnly</td><td class="initial">仅初始状态</td><td class="initial">仅初始状态</td><td class="initial">自己的首次状态</td></tr>
+                <tr><td>COND_InitialOrOwner</td><td class="yes">持续允许</td><td class="initial">仅初始状态</td><td class="initial">自己的首次状态</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Initial 是“每连接”的</h3>
+          <p>服务器在 10:00 Spawn 一个 Actor，连接 C 在 10:05 加入。对 C 来说，这个 Actor 仍有一份需要首次发送的 initial state，因此 <code>COND_InitialOnly</code> 属性仍应进入 C 的首次状态。它不是“只在 Spawn 那一帧检查”。</p>
+
+          <h3>Physics 为什么能让 Autonomous 也通过？</h3>
+          <p><code>COND_SimulatedOrPhysics</code> 的条件是 <code>bRoleSimulated | bRepPhysics</code>。通常 Autonomous 被排除；当对象级 ReplicatePhysics 打开时，即便当前连接是 Autonomous，也允许相关属性。该条件还影响 <code>FReplicatedMovement</code> 的部分成员。</p>
+
+          <div class="callout callout--danger">
+            <strong>不要用 Owner 推断网络角色</strong>
+            <p>Pawn 的拥有者和自主代理常常一致，但观战、控制权切换、代理对象与自定义复制对象都可能打破这个巧合。需要 Owner 语义就用 Owner 条件，需要 Role 语义就正确设置 RoleAutonomous。</p>
+          </div>
+        </section>
+
+        <section id="conditionals">
+          <p class="eyebrow">Chapter 07 · 13.2</p>
+          <h2><span class="chapter-no">13.2 ReplicationConditionals</span>FReplicationConditionals 保存了什么？</h2>
+          <p><code>FReplicationConditionals</code> 是 UE 5.7.4 Iris 内部把传统属性条件接到每连接发送流程的核心。它不是公开游戏玩法 API，但理解其数据布局，能解释为什么条件切换会产生缓存更新、补脏和基线失效。</p>
+
+          <div class="scroll-frame" role="region" aria-label="FReplicationConditionals 内部状态" tabindex="0">
+            <div class="internal-layout">
+              <div class="internal-box"><small>PER OBJECT</small><b>FPerObjectInfo</b><p>15 位 AutonomousConnectionId + 1 位 bRepPhysics，描述对象级 Role 与 Physics 状态。</p></div>
+              <div class="internal-box"><small>PER CONNECTION × OBJECT</small><b>ObjectConditionals</b><p>保存上一套 FConditionalsMask，用于判断某条件是否刚刚从关闭变为开启。</p></div>
+              <div class="internal-box"><small>PER OBJECT × REPINDEX</small><b>DynamicConditions</b><p>只为运行时被覆盖的 COND_Dynamic 属性保存实际 ELifetimeCondition。</p></div>
+              <div class="internal-box"><small>GLOBAL DIRTY SET</small><b>ObjectsWithDirtyLifetimeConditionals</b><p>Owner、Role、Physics 改变后，通知所有有效连接更新全局生命周期条件。</p></div>
+            </div>
+          </div>
+
+          <h3>16 位 FConditionalsMask 的边界</h3>
+          <p><code>FConditionalsMask</code> 内部是 <code>uint16</code>，访问条件时检查索引小于 16，对应属性可用的条件值 0～15。值为 16 的 <code>COND_NetGroup</code> 不塞进这张掩码，而是在 SubObject group 路径单独处理。</p>
+
+          <pre><code>struct FConditionalsMask
+{
+    bool IsConditionEnabled(int Condition) const
+    {
+        checkSlow(Condition &lt; 16);
+        return ConditionalsMask &amp; (uint16(1) &lt;&lt; unsigned(Condition));
+    }
+
+    uint16 ConditionalsMask;
+};</code></pre>
+
+          <h3>这是兼容属性路径，不是 Iris 最终唯一形态</h3>
+          <p>源码头部注释直言：这个类“几乎所有内容”用于 backward compatibility mode，部分函数较慢；Declared Replication States 可以把很多追踪工作放回状态自身。本文分析的是 UE 5.7.4 中大量现有 <code>UPROPERTY</code> 代码实际会经过的路径，不把它包装成所有未来 Iris 状态的固定形态。</p>
+
+          <div class="callout callout--good">
+            <strong>为什么仍然值得读内部实现？</strong>
+            <p>因为它把公开语义落成了可验证的数据结构：Owner 和 Autonomous 确实分开存，Dynamic 确实按 RepIndex 记录，上一条件结果确实按连接缓存，Custom 确实通过额外掩码执行 AND。</p>
+          </div>
+        </section>
+
+        <section id="runtime">
+          <p class="eyebrow">Chapter 08 · Runtime</p>
+          <h2><span class="chapter-no">两种运行时机制</span>COND_Custom 与 COND_Dynamic 到底差在哪？</h2>
+          <p>两者都能在运行时改变“发不发”，但改变的东西不同。Custom 改的是 active / inactive；Dynamic 改的是属性当前采用哪一个内置生命周期条件。</p>
+
+          <div class="scroll-frame" role="region" aria-label="Custom 和 Dynamic 条件对比" tabindex="0">
+            <div class="runtime-compare">
+              <div class="runtime-card">
+                <small>BOOLEAN GATE</small>
+                <h3>COND_Custom</h3>
+                <p><strong>改变：</strong>该对象实例上，这个成员当前是否激活。</p>
+                <p><strong>粒度：</strong>每对象，不是每连接。</p>
+                <p><strong>适合：</strong>调试快照、可选统计、对象阶段性状态。</p>
+                <p><strong>不适合：</strong>在回调里读取某条连接的 RemoteRole，做逐连接分支。</p>
+              </div>
+              <div class="runtime-card">
+                <small>CONDITION SELECTOR</small>
+                <h3>COND_Dynamic</h3>
+                <p><strong>改变：</strong>该对象实例的成员改用 OwnerOnly、SkipOwner、Never 等条件。</p>
+                <p><strong>粒度：</strong>每对象存条件，发送时仍按连接求值。</p>
+                <p><strong>适合：</strong>玩法阶段改变数据受众。</p>
+                <p><strong>限制：</strong>只有初始声明为 COND_Dynamic 的属性可改。</p>
+              </div>
+            </div>
+          </div>
+
+          <h3>Custom：声明与切换</h3>
+          <pre><code>// GetLifetimeReplicatedProps
+DOREPLIFETIME_CONDITION(
+    AConditionalPawn,
+    DebugSnapshot,
+    COND_Custom);
+
+// 对象状态改变时，通过条件管理器切换
+DOREPLIFETIME_ACTIVE_OVERRIDE(
+    AConditionalPawn,
+    DebugSnapshot,
+    bReplicateDebugSnapshot);</code></pre>
+
+          <p>Epic 官方文档特别提醒：Active Override 是 per actor / per object，而不是 per connection；如果 active 值频繁变化，会带来额外成本。不要把 RemoteRole 或连接专属视图塞进这个布尔表达式。</p>
+
+          <h3>Dynamic：声明与切换</h3>
+          <pre><code>// GetLifetimeReplicatedProps
+DOREPLIFETIME_CONDITION(
+    AConditionalPawn,
+    TacticalMarker,
+    COND_Dynamic);
+
+// 条件发生变化时立即调用，不要拖到 PreReplication
+DOREPDYNAMICCONDITION_SETCONDITION_FAST(
+    AConditionalPawn,
+    TacticalMarker,
+    COND_OwnerOnly);
+
+// 也可以在 GetReplicatedCustomConditionState 中设初始条件
+DOREPDYNAMICCONDITION_INITCONDITION_FAST(
+    AConditionalPawn,
+    TacticalMarker,
+    COND_SkipOwner);</code></pre>
+
+          <p>如果没有运行时覆盖，<code>COND_Dynamic</code> 默认被视为允许复制。测试 <code>DynamicConditionIsReplicatedByDefault</code> 专门锁定了这项行为；不要以为“Dynamic 尚未设置”就等于 Never。</p>
+
+          <div class="scroll-frame" role="region" aria-label="Dynamic 条件状态机" tabindex="0">
+            <div class="state-machine">
+              <div class="state state--start"><b>COND_Dynamic</b><p>默认允许；等待对象实例选择实际条件。</p></div>
+              <div class="arrow">→</div>
+              <div class="state"><b>COND_OwnerOnly</b><p>只对 owning connection 允许。</p></div>
+              <div class="state"><b>COND_SkipOwner</b><p>只对非 owning connections 允许。</p></div>
+              <div class="state state--never"><b>COND_Never</b><p>对全部连接关闭。重新切回可见条件时要补发当前值。</p></div>
+            </div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>Custom Delta / Fast Array 警告</strong>
+            <p>UE 5.7.4 宏注释指出：Custom Delta 属性（例如 FastArraySerializer）已经复制后再改变 Dynamic Condition，可能产生意外行为。动态条件 setter 应在条件变化时立即调用，而不是依赖 PreReplication 延迟更新。</p>
+          </div>
+        </section>
+
+        <section id="objects">
+          <p class="eyebrow">Chapter 09 · Object State</p>
+          <h2><span class="chapter-no">对象级条件与 SubObject</span>EReplicationCondition 提供条件输入，不等于属性枚举</h2>
+          <p><code>ELifetimeCondition</code> 是属性或 SubObject 注册时使用的规则；<a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UE__Net__EReplicationCondition?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>UE::Net::EReplicationCondition</code></a> 则是 Iris 对象上的运行时输入。UE 5.7.4 公开两个值：<code>RoleAutonomous</code> 与 <code>ReplicatePhysics</code>。</p>
+
+          <div class="scroll-frame" role="region" aria-label="Iris 对象级条件 API" tabindex="0">
+            <div class="object-condition-flow">
+              <div class="object-condition"><small>OWNERSHIP</small><b>SetOwningNetConnection</b><p>设置 owning connection，驱动 OwnerOnly、SkipOwner、InitialOrOwner 等条件，并可能影响对象过滤。</p></div>
+              <div class="object-condition"><small>ROLE</small><b>SetReplicationConditionConnectionFilter</b><p>5.7.4 只支持 RoleAutonomous；指定连接为 Autonomous，其余连接按 Simulated。</p></div>
+              <div class="object-condition"><small>PHYSICS</small><b>SetReplicationCondition</b><p>5.7.4 只支持 ReplicatePhysics；影响 Physics 组合条件与 FReplicatedMovement 的部分成员。</p></div>
+            </div>
+          </div>
+
+          <pre><code>ReplicationSystem-&gt;SetOwningNetConnection(
+    NetRefHandle,
+    OwnerConnectionId);
+
+ReplicationSystem-&gt;SetReplicationConditionConnectionFilter(
+    NetRefHandle,
+    UE::Net::EReplicationCondition::RoleAutonomous,
+    AutonomousConnectionId,
+    true);
+
+ReplicationSystem-&gt;SetReplicationCondition(
+    NetRefHandle,
+    UE::Net::EReplicationCondition::ReplicatePhysics,
+    true);</code></pre>
+
+          <p>切换 RoleAutonomous 时，Iris 还会标记 RemoteRole 属性为脏；切换 Owner、Autonomous 或 Physics 时，会让相关对象的全局生命周期条件进入 dirty 集合，并按受影响范围使 delta compression baseline 失效。</p>
+
+          <h3>SubObject 条件：沿用父对象上下文，但多一条 NetGroup 路径</h3>
+          <p>Bridge 可以为注册的 SubObject 设置生命周期条件。普通条件用 Root/Parent 的条件上下文求值；<code>COND_NetGroup</code> 单独查询该 SubObject 所在的 Net Object Group：</p>
+          <ul>
+            <li>Owner group 映射到 OwnerOnly 语义；</li>
+            <li>Replay group 映射到 ReplayOnly 语义；</li>
+            <li>其他 SubObject filter group 查询当前连接的过滤状态；</li>
+            <li>父 SubObject 被条件排除时，层级中的子 SubObject 不能越过父节点独立复制。</li>
+          </ul>
+
+          <div class="callout callout--warn">
+            <strong>两个编译期 / 运行期边界</strong>
+            <p><code>DOREPLIFETIME_CONDITION</code> 会静态拒绝把 <code>COND_NetGroup</code> 用在属性上；<code>COND_Custom</code> 也不用于 SubObject 的连接选择。SubObject 受众需要使用 Bridge 的 SubObject 条件或 NetGroup。</p>
+          </div>
+        </section>
+
+        <section id="evaluation">
+          <p class="eyebrow">Chapter 10 · 13.3</p>
+          <h2><span class="chapter-no">13.3 条件评估流程</span>共享状态先准备，每条连接再裁剪自己的 ChangeMask</h2>
+          <p>Epic 的 Iris Components 文档把发送端分成 Pre-Send Update 与 Send Update：前者轮询或接收脏通知、复制并量化共享状态、更新过滤和优先级；后者为每条连接调度并序列化对象。属性条件位于后半段的连接专属路径。</p>
+
+          <div class="scroll-frame" role="region" aria-label="条件评估时间线" tabindex="0">
+            <div class="timeline">
+              <div class="timeline__rail">
+                <div class="timeline-step"><i>1</i><b>Gameplay Write</b><span>服务器修改属性</span></div>
+                <div class="timeline-step"><i>2</i><b>Dirty Detect</b><span>Push Mark 或 Poll</span></div>
+                <div class="timeline-step"><i>3</i><b>Copy &amp; Quantize</b><span>建立 Iris 共享状态</span></div>
+                <div class="timeline-step"><i>4</i><b>Filter &amp; Schedule</b><span>决定对象候选</span></div>
+                <div class="timeline-step connection"><i>5</i><b>Lifetime Mask</b><span>每连接求条件</span></div>
+                <div class="timeline-step connection"><i>6</i><b>Apply Masks</b><span>裁剪 ChangeMask</span></div>
+                <div class="timeline-step connection"><i>7</i><b>Serialize</b><span>写允许的成员</span></div>
+              </div>
+              <div class="timeline-labels"><b>共享工作：一次准备，多连接复用</b><b>连接专属：每条连接得到自己的答案</b></div>
+            </div>
+          </div>
+
+          <h3>第一步：GetLifetimeConditionals</h3>
+          <p>函数接收 <code>ReplicatingConnectionId</code>、<code>ParentObjectIndex</code> 和 <code>bIsInitialState</code>，计算 Owner、Simulated、Autonomous、Physics 与组合条件，生成 16 位 <code>FConditionalsMask</code>。<code>COND_None</code>、<code>COND_Custom</code>、<code>COND_Dynamic</code> 的基础位默认开启；Custom 的具体 active 状态稍后由另一张掩码处理，Dynamic 还会先替换成实际条件。</p>
+
+          <h3>第二步：ApplyConditionalsToChangeMask</h3>
+          <p>如果 Protocol 带有 <code>HasLifetimeConditionals</code> Trait，函数遍历带条件的 Replication State Member：</p>
+          <ol>
+            <li>读取成员声明的 <code>ELifetimeCondition</code>；</li>
+            <li>若为 <code>COND_Dynamic</code>，按 ObjectIndex + Property RepIndex 查实际条件；</li>
+            <li>条件满足则保留 ChangeMask；若上一轮不满足、本轮满足，则主动设置该成员的所有 ChangeMask bits；</li>
+            <li>条件不满足则清除该成员对应 bits；</li>
+            <li>最后把 Custom 的 <code>ConditionalChangeMaskData</code> 与结果逐字 AND。</li>
+          </ol>
+
+          <pre><code>// 逻辑化简，不是 UE 源码逐行拷贝
+for (Member : LifetimeConditionalMembers)
+{
+    Condition = Member.DeclaredCondition;
+
+    if (Condition == COND_Dynamic)
+        Condition = GetDynamicCondition(ObjectIndex, Member.RepIndex);
+
+    if (!LifetimeMask.IsConditionEnabled(Condition))
+        ConnectionChangeMask.ClearBits(Member.BitRange);
+    else if (!PreviousMask.IsConditionEnabled(Condition))
+        ConnectionChangeMask.SetBits(Member.BitRange);
+}
+
+ConnectionChangeMask &amp;= CustomActiveMask;</code></pre>
+
+          <p>单一 Lifetime Conditional State 有一条优化路径；多 State Protocol 会累计每个 State 的 ChangeMask offset。无论哪条路径，原则一致：在连接副本上清位或补位，不破坏共享状态。</p>
+        </section>
+
+        <section id="cache">
+          <p class="eyebrow">Chapter 11 · Cache &amp; Baseline</p>
+          <h2><span class="chapter-no">条件缓存</span>从隐藏到可见，为什么不能只把开关拨回来？</h2>
+          <p>连接 A 上某属性过去一直被 OwnerOnly 屏蔽。服务器期间把值从 10 改成 30；A 没收到这两次变化。后来 A 成为 Owner，如果系统只说“条件现在通过”，原 ChangeMask 可能早已清掉，A 仍保留旧值或默认值。</p>
+
+          <div class="pullquote">条件重新满足，不是恢复一条静态规则，而是让远端重新加入当前真值。重新显露必须伴随补脏；使用增量压缩时，还要确保基线仍然适用。</div>
+
+          <h3>上一条件掩码是“可见性历史”</h3>
+          <p>Iris 在 <code>ConnectionInfos[ConnectionId].ObjectConditionals[ObjectIndex]</code> 保存上一套 <code>FConditionalsMask</code>。本轮求得新掩码后逐成员比较：</p>
+          <ul>
+            <li>上一轮满足、本轮满足：按正常 ChangeMask 发送；</li>
+            <li>上一轮满足、本轮不满足：清掉该成员 bits；</li>
+            <li>上一轮不满足、本轮满足：设置该成员 bits，强制当前值进入发送候选。</li>
+          </ul>
+
+          <h3>哪些条件变化会使基线失效？</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>变化</th><th>补偿行为</th><th>失效范围</th><th>原因</th></tr></thead>
+              <tbody>
+                <tr><td>Owning Connection 改变</td><td>标记条件 dirty</td><td>旧 Owner 与新 Owner</td><td>OwnerOnly / SkipOwner 的可见集合对调</td></tr>
+                <tr><td>RoleAutonomous 改变</td><td>RemoteRole 标脏 + 条件 dirty</td><td>受影响连接</td><td>Autonomous / Simulated 的可见集合改变</td></tr>
+                <tr><td>ReplicatePhysics 开启</td><td>条件 dirty</td><td>全部连接</td><td>SimulatedOrPhysics 成员可能重新显露</td></tr>
+                <tr><td>Custom 关闭 → 开启</td><td>属性 ChangeMask 标脏</td><td>全部连接</td><td>远端可能错过了关闭期间的值</td></tr>
+                <tr><td>Dynamic 隐藏 → 可能可见</td><td>属性 ChangeMask 标脏</td><td>全部连接</td><td>新条件可能允许此前被屏蔽的连接</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><code>DynamicConditionChangeRequiresBaselineInvalidation</code> 的判断很克制：旧条件只要不是始终允许的 <code>COND_None</code> / 默认 <code>COND_Dynamic</code>，就可能曾经屏蔽连接；新条件只要不是 <code>COND_Never</code>，就可能让某连接重新可见。这时才需要按“可能丢失当前值”处理。</p>
+
+          <div class="callout callout--good">
+            <strong>基线失效不是“以后全部全量发送”</strong>
+            <p>它只让受影响对象/连接不再依赖可能过期的 delta baseline，重新建立正确基准。把它理解为条件切换的正确性保险，比理解成永久关闭增量压缩更准确。</p>
+          </div>
+        </section>
+
+        <section id="scenario">
+          <p class="eyebrow">Chapter 12 · Scenario &amp; Cost</p>
+          <h2><span class="chapter-no">三连接案例</span>把一组属性投影成三份不同的发送集合</h2>
+          <p>假设服务器上有一个 <code>AConditionalPawn</code>，连接 A 是 Owner + Autonomous，连接 B 是普通 Simulated，连接 C 刚加入且是 Simulated。对象已通过三条连接的 Object Filter。</p>
+
+          <div class="scroll-frame" role="region" aria-label="三连接属性条件案例" tabindex="0">
+            <div class="scenario">
+              <div class="head">属性 / 条件</div><div class="head">连接 A<br>Owner + Autonomous</div><div class="head">连接 B<br>Non-owner + Simulated</div><div class="head">连接 C<br>Late join + Simulated</div>
+              <div class="property">PrivateLoadout<br><code>COND_OwnerOnly</code></div><div class="allow">发送</div><div class="deny">屏蔽</div><div class="deny">屏蔽</div>
+              <div class="property">MovementHint<br><code>COND_SimulatedOnly</code></div><div class="deny">屏蔽</div><div class="allow">发送</div><div class="allow">发送</div>
+              <div class="property">SpawnSeed<br><code>COND_InitialOnly</code></div><div class="first">只在 A 初始状态</div><div class="first">只在 B 初始状态</div><div class="first">现在发送</div>
+              <div class="property">DebugSnapshot<br><code>COND_Custom</code></div><div class="allow">Active 时发送</div><div class="allow">Active 时发送</div><div class="allow">Active 时发送</div>
+              <div class="property">TacticalMarker<br><code>COND_Dynamic</code></div><div class="allow">取决于当前条件</div><div class="allow">取决于当前条件</div><div class="allow">取决于当前条件</div>
+            </div>
+          </div>
+
+          <p>若 TacticalMarker 从 OwnerOnly 切到 SkipOwner，A 从可见变隐藏，B/C 从隐藏变可见。Iris 不只是修改 Dynamic map；它还要让属性重新进入 ChangeMask，并使相关 baseline 失效，B/C 才能拿到切换时的当前 Marker。</p>
+
+          <h3>性能：条件究竟省了哪一段？</h3>
+          <p>条件主要减少的是<strong>每连接成员序列化与带宽</strong>，并可避免远端不需要的属性覆盖。它通常不会倒流回去取消已经发生的对象轮询、共享状态拷贝或量化。若一个大字段对 99 条连接都无用，收益很直接；若 4 字节字段每帧高频翻转条件，条件维护和基线修复可能抵消收益。</p>
+
+          <div class="scroll-frame" role="region" aria-label="条件机制选择指南" tabindex="0">
+            <div class="decision">
+              <div><small>WHOLE OBJECT</small><b>对象 Filter</b><p>整对象对某连接无用时，从更早的阶段排除，不要给全部成员逐个加条件。</p></div>
+              <div><small>STABLE RULE</small><b>内置 Condition</b><p>Owner、Role、Initial 等稳定规则优先，意图清楚且便于引擎优化。</p></div>
+              <div><small>OBJECT SWITCH</small><b>COND_Custom</b><p>按对象实例启停成员；不要把它当逐连接谓词，也不要无意义高频切换。</p></div>
+              <div><small>AUDIENCE SWITCH</small><b>COND_Dynamic</b><p>需要在 OwnerOnly、SkipOwner、Never 等内置受众之间切换时使用。</p></div>
+            </div>
+          </div>
+
+          <h3>推荐的测量维度</h3>
+          <ul>
+            <li>对象数与平均有效连接数；</li>
+            <li>条件属性数量和成员 ChangeMask bit 数；</li>
+            <li>字段尺寸、变化频率与实际压缩率；</li>
+            <li>Custom / Dynamic 条件每秒切换次数；</li>
+            <li>条件重新显露引发的 baseline invalidation 数量；</li>
+            <li>过滤、轮询/量化、序列化和发送带宽各自的占比。</li>
+          </ul>
+        </section>
+
+        <section id="debug">
+          <p class="eyebrow">Chapter 13 · Debug &amp; Source</p>
+          <h2><span class="chapter-no">排错、源码导航与测试</span>从“对象有没有”一路查到“成员为什么被清位”</h2>
+
+          <h3>排错顺序</h3>
+          <ol>
+            <li><strong>对象是否进入该连接：</strong>先看 Object Filter、Group、Dormancy 和调度，不要一开始就怪属性条件。</li>
+            <li><strong>属性是否注册：</strong>检查 <code>UPROPERTY(Replicated...)</code> 与 <code>GetLifetimeReplicatedProps</code>。</li>
+            <li><strong>属性是否脏：</strong>Push Model 是否调用 Mark Dirty；轮询对象是否被 Poll。</li>
+            <li><strong>Owner 是否正确：</strong>检查 Iris owning connection，不要只看 UObject 的 Owner 指针。</li>
+            <li><strong>Role 是否正确：</strong>Autonomous connection 是否通过 <code>SetReplicationConditionConnectionFilter</code> 设置。</li>
+            <li><strong>Initial 判断是否正确：</strong>晚加入连接是否真的在接收该对象 initial state。</li>
+            <li><strong>Custom 是否用官方 API 切换：</strong>只改自己的布尔变量，不会自动更新条件掩码。</li>
+            <li><strong>Dynamic 声明是否匹配：</strong>setter 只对原始条件为 <code>COND_Dynamic</code> 的属性生效。</li>
+            <li><strong>SubObject 父链是否允许：</strong>父 SubObject 被过滤时，子节点不能越过父节点出现。</li>
+            <li><strong>条件是否在抖动：</strong>频繁补脏和基线失效可能让性能与带宽不降反升。</li>
+          </ol>
+
+          <h3>自动化测试给出的行为锚点</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>测试</th><th>锁定的行为</th></tr></thead>
+              <tbody>
+                <tr><td>ToOwnerStateIsReplicatedToOwner</td><td>OwnerOnly 对 owning connection 发送</td></tr>
+                <tr><td>SkipOwnerStateIsNotReplicatedToOwner</td><td>SkipOwner 屏蔽 owning connection</td></tr>
+                <tr><td>CanSwitchAutonmousConnection</td><td>Autonomous 连接切换后，两端角色条件更新</td></tr>
+                <tr><td>CanMixConditions</td><td>同一对象多个条件可并存并分别求值</td></tr>
+                <tr><td>HierarchicalSubObjectIsNotReplicatedToOwnerUnlessParentIs</td><td>层级 SubObject 不能越过被排除的父节点</td></tr>
+                <tr><td>PushBased_COND_InitialOnly</td><td>Push 属性与 InitialOnly 正确组合</td></tr>
+                <tr><td>DynamicConditionIsReplicatedByDefault</td><td>未覆盖的 COND_Dynamic 默认允许</td></tr>
+                <tr><td>DynamicConditionSupportsGoingFromNotReplicatedToReplicated</td><td>Dynamic 从隐藏切到可见时能补发当前值</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="sources">UE 5.7.4 源码导航</h3>
+          <div class="source-tree">Engine/Source/Runtime/
+├─ CoreUObject/Public/UObject/
+│  └─ CoreNetTypes.h
+├─ Engine/Public/Net/
+│  ├─ UnrealNetwork.h
+│  └─ RepLayout.h
+├─ Net/Core/
+│  ├─ Public/Net/Core/PropertyConditions/
+│  │  ├─ PropertyConditions.h
+│  │  └─ RepChangedPropertyTracker.h
+│  └─ Private/Net/Core/PropertyConditions/
+│     ├─ PropertyConditions.cpp
+│     └─ RepChangedPropertyTracker.cpp
+└─ Net/Iris/
+   ├─ Public/Iris/ReplicationSystem/
+   │  ├─ Conditionals/ReplicationCondition.h
+   │  ├─ ObjectReplicationBridge.h
+   │  └─ ReplicationSystem.h
+   └─ Private/Iris/ReplicationSystem/
+      ├─ Conditionals/ReplicationConditionals.h
+      ├─ Conditionals/ReplicationConditionals.cpp
+      └─ ReplicationSystem.cpp
+
+Engine/Plugins/Runtime/ReplicationSystemTestPlugin/.../
+└─ Tests/ReplicationSystem/Conditionals/
+   ├─ TestConditionals.cpp
+   └─ TestDynamicCondition.cpp</div>
+
+          <h3>Epic Games 官方资料</h3>
+          <div class="sources">
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/conditional-property-replication-in-unreal-engine" target="_blank" rel="noopener noreferrer">Conditional Property Replication</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/FDoRepLifetimeParams?application_version=5.7" target="_blank" rel="noopener noreferrer">FDoRepLifetimeParams</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">Components of Iris</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/migrate-to-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">Migrate to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UE__Net__EReplicationCondition?application_version=5.7" target="_blank" rel="noopener noreferrer">EReplicationCondition</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/Iris/ReplicationSystem/UReplicationSystem/SetReplicationCo-?application_version=5.7" target="_blank" rel="noopener noreferrer">SetReplicationConditionConnectionFilter</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/FReplicationSystemUtil/SetReplicationCondition?application_version=5.7" target="_blank" rel="noopener noreferrer">SetReplicationCondition</a>
+          </div>
+
+          <h3>本篇结论</h3>
+          <div class="cards">
+            <div class="card"><small>BOUNDARY</small><h3>先对象，后成员</h3><p>Object Filter 决定对象范围，Conditionals 在发送前裁剪成员 ChangeMask。</p></div>
+            <div class="card"><small>CONTEXT</small><h3>按连接求值</h3><p>声明规则、对象状态与连接上下文共同产生 Owner、Role、Initial、Physics 结果。</p></div>
+            <div class="card"><small>CORRECTNESS</small><h3>重新显露要补偿</h3><p>条件从隐藏到可见必须补脏，并在需要时使 delta baseline 失效。</p></div>
+          </div>
+
+          <div class="pullquote">脏位说“值变了”，条件说“谁能看见”；Custom 改开关，Dynamic 改规则；上一轮条件缓存和基线失效，则保证“重新看见”时拿到的是现在，而不是过去。</div>
+
+          <p>下一部分将进入 RPC 系统：可靠与不可靠调用怎样进入 Iris 数据流，目标连接如何确定，RPC 与属性状态在发送、接收和执行顺序上又有哪些保证与陷阱。</p>
+
+          <nav class="chapter-nav" aria-label="系列文章导航">
+            <a href="/html-articles/ue5-iris-guide-part-12/"><span>← PREVIOUS</span><b>第十二部分：对象引用与依赖</b></a>
+            <a href="/html-articles/ue5-iris-guide-part-14/"><span>NEXT →</span><b>第十四部分：RPC 系统</b></a>
+          </nav>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <p>UE5 Iris 网络复制系统技术分析 · 第十三部分</p>
+    <p>原创扩写与整理：Jossy Zhang · 技术基线：Unreal Engine 5.7.4</p>
+    <p><a href="/ue5-iris-guide/">返回系列目录</a> · <a href="/">返回博客首页</a></p>
+  </footer>
+
+  <button class="back-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.reading-progress');
+      const backTop = document.querySelector('.back-top');
+      const sections = [...document.querySelectorAll('article section[id]')];
+      const tocLinks = [...document.querySelectorAll('.toc a')];
+      const mobileToc = document.querySelector('.toc-mobile');
+
+      const updateScrollUI = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = `${maxScroll > 0 ? Math.min(100, scrollTop / maxScroll * 100) : 0}%`;
+        backTop.classList.toggle('is-visible', scrollTop > 650);
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+
+        if (!visible) return;
+        tocLinks.forEach((link) => {
+          const active = link.getAttribute('href') === `#${visible.target.id}`;
+          if (active) link.setAttribute('aria-current', 'true');
+          else link.removeAttribute('aria-current');
+        });
+      }, { rootMargin: '-18% 0px -66% 0px', threshold: [0, .05, .2] });
+
+      sections.forEach((section) => observer.observe(section));
+      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      window.addEventListener('resize', updateScrollUI);
+      updateScrollUI();
+
+      backTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      });
+
+      document.querySelectorAll('.toc-mobile a').forEach((link) => {
+        link.addEventListener('click', () => { mobileToc.open = false; });
+      });
+    })();
+  </script>
+</body>
+</html>

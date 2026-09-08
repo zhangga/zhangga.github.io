@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十一部分：基于 Unreal Engine 5.7.4 源码，讲解轮询、DirtyNetObjectTracker、Push Model、ObjectPoller、轮询频率限制与 ChangeMask。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M18 16h28v8H36v16h10v8H18v-8h10V24H18z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-11/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十一部分：轮询与脏数据检测 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --amber: #9b6923;
+      --amber-soft: #f2e5c9;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, .035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, .028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a, article h2, article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 16%, rgba(245, 177, 142, .2), transparent 28%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "DIRTY";
+      position: absolute;
+      right: -.04em;
+      bottom: -.38em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(150px, 25vw, 360px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      pointer-events: none;
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 910px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; color: #d9def7; font-size: 13px; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .9);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] { color: var(--iris-dark); background: #eef0fb; border-left-color: var(--signal); }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 21px/1 var(--serif);
+    }
+    .source-note p { margin: 0; color: #333e5b; font-size: 14px; line-height: 1.6; }
+    .source-note > a { white-space: nowrap; font-size: 13px; font-weight: 800; }
+
+    article, .article-footer {
+      background: rgba(255, 253, 248, .96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article { padding: clamp(28px, 5vw, 68px); }
+    article > :first-child { margin-top: 0; }
+    article h2, article h3, article h4 { scroll-margin-top: 25px; color: var(--ink); }
+    article h2 {
+      position: relative;
+      margin: 76px 0 28px;
+      padding: 0 0 16px;
+      font: 800 clamp(27px, 3vw, 39px) / 1.25 var(--serif);
+      letter-spacing: -.02em;
+      border-bottom: 2px solid var(--line);
+    }
+    article h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 86px; height: 4px; background: var(--signal); }
+    article h3 { margin: 46px 0 15px; font: 800 23px/1.35 var(--serif); }
+    article h4 { margin: 30px 0 10px; font-size: 17px; }
+    article p { margin: 0 0 18px; }
+    article ul, article ol { padding-left: 1.35em; }
+    article li { margin: 6px 0; }
+    article strong { color: #15204a; }
+    article blockquote {
+      margin: 25px 0;
+      padding: 21px 24px 21px 28px;
+      color: #2c3854;
+      background: #f0eee7;
+      border-left: 5px solid var(--signal);
+      font-family: var(--serif);
+      font-size: 19px;
+    }
+    code {
+      padding: .12em .34em;
+      color: #303b80;
+      background: #eaecf7;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: .88em;
+    }
+    article p code, article li code, article td code, article blockquote code { overflow-wrap: anywhere; word-break: break-word; }
+    pre { margin: 0; }
+    article pre {
+      overflow-x: auto;
+      padding: 22px 24px;
+      color: #e7ebff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      font: 14px/1.68 var(--mono);
+      tab-size: 4;
+    }
+    article pre code { padding: 0; color: inherit; background: none; border-radius: 0; font-size: inherit; }
+    .code-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+      padding: 8px 13px;
+      color: #dfe4ff;
+      background: #29355b;
+      border-left: 5px solid var(--signal);
+      font: 700 11px/1.5 var(--mono);
+      letter-spacing: .04em;
+    }
+    .code-label + pre { border-top: 1px solid #455178; }
+    .table-scroll, .dirty-pipeline, .tracker-bits, .poll-modes, .push-contract,
+    .frequency-wheel, .mask-anatomy, .frame-journey, .cost-model {
+      width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+    }
+    .table-scroll { margin: 25px 0 31px; border: 1px solid var(--line); }
+    table { width: 100%; min-width: 690px; border-collapse: collapse; background: var(--white); font-size: 14px; line-height: 1.55; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-right: 1px solid #ded7ca; border-bottom: 1px solid #ded7ca; }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: #fff; background: var(--iris-dark); font-size: 12px; letter-spacing: .02em; }
+    tbody tr:nth-child(even) { background: #f5f2eb; }
+    .article-callout {
+      margin: 25px 0;
+      padding: 19px 22px;
+      background: var(--signal-soft);
+      border: 1px solid #dfa990;
+      border-left: 6px solid var(--signal);
+    }
+    .article-callout--green { background: var(--green-soft); border-color: #9bc5b4; border-left-color: var(--green); }
+    .article-callout--blue { background: #e8ebf8; border-color: #b8c0e1; border-left-color: var(--iris); }
+    .article-callout > strong { display: block; margin-bottom: 5px; }
+    .article-callout p:last-child { margin-bottom: 0; }
+    .stats, .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 26px 0;
+    }
+    .stat, .card { min-width: 0; padding: 19px; background: var(--white); border: 1px solid var(--line); border-top: 4px solid var(--iris); }
+    .stat b { display: block; color: var(--signal); font: 800 30px/1.15 var(--serif); }
+    .stat span { color: var(--ink-soft); font-size: 13px; }
+    .card h4 { margin: 0 0 8px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .formula {
+      margin: 25px 0;
+      padding: 22px 24px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--iris-dark), var(--iris));
+      border-bottom: 5px solid var(--signal);
+      font: 700 15px/1.8 var(--mono);
+      overflow-x: auto;
+    }
+    .formula span { display: block; color: #f4b79b; }
+    .badge {
+      display: inline-block;
+      margin: 0 5px 5px 0;
+      padding: 2px 8px;
+      color: var(--iris-dark);
+      background: #e7eaf7;
+      border: 1px solid #bcc3df;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-left: 30px; }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; top: 1px; color: var(--green); font-weight: 900; }
+
+    .dirty-pipeline { margin: 28px 0; border: 1px solid #b8c0e1; background: #e9ecf8; }
+    .dirty-pipeline__inner {
+      display: grid;
+      grid-template-columns: repeat(9, minmax(132px, 1fr));
+      gap: 1px;
+      width: max-content;
+      min-width: 100%;
+      background: #aeb6d5;
+    }
+    .pipeline-step { position: relative; min-height: 150px; padding: 18px 15px; background: var(--white); }
+    .pipeline-step:nth-child(4), .pipeline-step:nth-child(5) { background: #eef0fb; }
+    .pipeline-step:nth-child(7), .pipeline-step:nth-child(8) { background: #e8f1ec; }
+    .pipeline-step::after { content: "→"; position: absolute; z-index: 2; right: -8px; top: 26px; color: var(--signal); font-weight: 900; }
+    .pipeline-step:last-child::after { display: none; }
+    .pipeline-step small { display: block; color: var(--signal); font: 800 10px/1.4 var(--mono); letter-spacing: .06em; }
+    .pipeline-step strong { display: block; margin: 8px 0 5px; font: 750 16px/1.3 var(--serif); }
+    .pipeline-step p { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.55; }
+
+    .tracker-bits { margin: 28px 0; }
+    .tracker-bits__inner { display: grid; gap: 12px; min-width: 700px; }
+    .bit-row { display: grid; grid-template-columns: 220px repeat(8, 42px) minmax(180px, 1fr); gap: 6px; align-items: center; }
+    .bit-row strong { font: 700 13px/1.4 var(--mono); }
+    .bit { display: grid; place-items: center; height: 40px; color: #687086; background: #e5e1d8; border: 1px solid #cbc3b7; font: 800 13px/1 var(--mono); }
+    .bit.on { color: #fff; background: var(--signal); border-color: #a63f29; }
+    .bit.force { background: var(--iris); border-color: var(--iris-dark); }
+    .bit.acc { background: var(--green); border-color: #205a47; }
+    .bit-row em { color: var(--ink-soft); font-size: 12px; line-height: 1.5; }
+
+    .poll-modes { margin: 27px 0; }
+    .poll-modes__inner { display: grid; grid-template-columns: repeat(3, minmax(250px, 1fr)); gap: 14px; min-width: 780px; }
+    .mode { padding: 21px; background: var(--white); border: 1px solid var(--line); border-top: 5px solid var(--iris); }
+    .mode:nth-child(2) { border-top-color: var(--green); }
+    .mode:nth-child(3) { border-top-color: var(--signal); }
+    .mode small { color: var(--signal); font: 800 10px/1.4 var(--mono); letter-spacing: .07em; }
+    .mode strong { display: block; margin: 8px 0; font: 750 20px/1.3 var(--serif); }
+    .mode p, .mode li { color: var(--ink-soft); font-size: 13px; line-height: 1.65; }
+    .mode ul { margin-bottom: 0; }
+
+    .push-contract { margin: 27px 0; border: 1px solid var(--line); }
+    .push-contract__inner { display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: 1px; min-width: 780px; background: var(--line); }
+    .contract-step { padding: 20px; background: var(--white); }
+    .contract-step b { display: block; color: var(--signal); font: 800 12px/1 var(--mono); }
+    .contract-step strong { display: block; margin: 9px 0 6px; font-family: var(--serif); }
+    .contract-step p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+
+    .frequency-wheel { margin: 28px 0; }
+    .frequency-wheel__inner {
+      display: grid;
+      grid-template-columns: 150px repeat(8, 70px);
+      gap: 5px;
+      min-width: 750px;
+      align-items: center;
+    }
+    .frequency-wheel__inner > div { min-height: 48px; padding: 8px; border: 1px solid #cbc3b7; background: var(--white); font: 700 12px/1.4 var(--mono); text-align: center; }
+    .frequency-wheel__inner .wheel-head { color: #fff; background: var(--iris-dark); border-color: var(--iris-dark); }
+    .frequency-wheel__inner .wheel-name { text-align: left; color: var(--iris-dark); background: #eef0fb; }
+    .frequency-wheel__inner .due { color: #fff; background: var(--green); border-color: #205a47; }
+    .frequency-wheel__inner .forced { color: #fff; background: var(--signal); border-color: #a63f29; }
+
+    .mask-anatomy { margin: 27px 0; }
+    .mask-anatomy__inner { display: grid; grid-template-columns: repeat(3, minmax(230px, 1fr)); gap: 34px; min-width: 800px; }
+    .mask-layer { position: relative; padding: 22px; background: var(--white); border: 1px solid var(--line); border-top: 5px solid var(--iris); }
+    .mask-layer:nth-child(2) { border-top-color: var(--amber); }
+    .mask-layer:nth-child(3) { border-top-color: var(--green); }
+    .mask-layer:not(:last-child)::after { content: "→"; position: absolute; right: -27px; top: 50%; color: var(--signal); font-size: 25px; font-weight: 900; }
+    .mask-layer small { color: var(--signal); font: 800 10px/1.4 var(--mono); }
+    .mask-layer strong { display: block; margin: 7px 0; font: 750 19px/1.3 var(--serif); }
+    .mask-layer p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.65; }
+    .mask-bits { display: flex; gap: 4px; margin-top: 14px; }
+    .mask-bits i { display: block; width: 26px; height: 26px; background: #dcd8ce; border: 1px solid #c8c0b4; }
+    .mask-bits i.on { background: var(--signal); border-color: #a63f29; }
+
+    .frame-journey { margin: 28px 0; }
+    .frame-journey__inner {
+      display: grid;
+      grid-template-columns: 150px repeat(7, minmax(130px, 1fr));
+      gap: 1px;
+      min-width: 1080px;
+      background: #aeb6d5;
+      border: 1px solid #aeb6d5;
+    }
+    .frame-cell { min-height: 92px; padding: 13px; background: var(--white); font-size: 12px; line-height: 1.5; }
+    .frame-cell.head { min-height: 52px; color: #fff; background: var(--iris-dark); font: 800 11px/1.35 var(--mono); }
+    .frame-cell.row-head { color: var(--iris-dark); background: #eef0fb; font-weight: 800; }
+    .frame-cell.ok { background: var(--green-soft); }
+    .frame-cell.warn { background: var(--amber-soft); }
+    .frame-cell.hot { background: var(--signal-soft); }
+    .frame-cell strong { display: block; margin-bottom: 4px; }
+
+    .cost-model { margin: 27px 0; }
+    .cost-model__inner { display: grid; gap: 10px; min-width: 700px; }
+    .cost-row { display: grid; grid-template-columns: 190px minmax(360px, 1fr) 120px; gap: 12px; align-items: center; }
+    .cost-row strong { font-size: 13px; }
+    .cost-track { height: 22px; overflow: hidden; background: #e0dcd3; border: 1px solid #cbc3b7; }
+    .cost-fill { display: block; height: 100%; background: var(--iris); }
+    .cost-fill.green { background: var(--green); }
+    .cost-fill.signal { background: var(--signal); }
+    .cost-row em { color: var(--ink-soft); font-size: 12px; }
+
+    .article-footer { margin-top: 28px; padding: 28px 34px; color: var(--ink-soft); font-size: 14px; }
+    .article-footer p { margin: 0 0 8px; }
+    .back-home { display: inline-block; margin-top: 12px; font-weight: 800; }
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      width: 46px;
+      height: 46px;
+      color: #fff;
+      background: var(--iris-dark);
+      border: 0;
+      box-shadow: 0 9px 28px rgba(25, 35, 58, .22);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: minmax(210px, 250px) minmax(0, 1fr); gap: 26px; width: min(1120px, calc(100% - 30px)); }
+      article { padding: 35px; }
+      .source-note { grid-template-columns: 42px 1fr; }
+      .source-note > a { grid-column: 2; }
+    }
+    @media (max-width: 790px) {
+      body { font-size: 16px; }
+      .hero { padding: 58px 22px 53px; }
+      .hero::before { font-size: 155px; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 25px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      article { padding: 27px 20px; }
+      article h2 { margin-top: 58px; }
+      article h3 { margin-top: 37px; }
+      .source-note { padding: 17px; }
+      .stats, .cards { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 34px; }
+      .hero__meta { display: grid; }
+      .source-note { display: block; }
+      .source-note__mark { margin-bottom: 12px; }
+      .source-note > a { display: inline-block; margin-top: 10px; white-space: normal; }
+      article pre { padding: 18px 16px; font-size: 12px; }
+      .article-footer { padding: 23px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">UE5 · IRIS REPLICATION · PART 11</p>
+      <h1>
+        <span>轮询与脏数据检测</span>
+        <span>从“值变了”到“值得检查”</span>
+      </h1>
+      <p class="hero__deck">状态写入 UObject 只是起点。本文沿 Unreal Engine 5.7.4 的一帧复制流水线，拆开 DirtyNetObjectTracker、Push Model、ObjectPoller、轮询频率限制器与 ChangeMask，回答 Iris 怎样把一次 Gameplay 变化逐层收窄为可量化、可发送的成员集合。</p>
+      <div class="hero__meta">
+        <span>作者：Jossy Zhang</span>
+        <span>技术基线：Unreal Engine 5.7.4</span>
+        <span>源码与测试复核：ReplicationSystemTestPlugin</span>
+        <span><a href="/html-articles/ue5-iris-guide-outline/">系列大纲</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>本篇目录</strong><span>13 SECTIONS</span></div>
+      <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>导读：状态不会自动进网络</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>一帧全景图</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>11.1 检测机制概述</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>11.2 DirtyNetObjectTracker</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>11.3 Push Model</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>11.4 ObjectPoller</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>11.5 Frequency Limiter</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>11.6 ChangeMask</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>一个对象、连续两帧</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>性能成本模型</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>接入清单与最佳实践</b></a></li>
+        <li><a href="#section-12" data-section="section-12"><span>12</span><b>排查、源码与测试</b></a></li>
+        <li><a href="#section-13" data-section="section-13"><span>13</span><b>11.7 总结与 Part 12</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开本篇目录（13 节）</summary>
+        <ol>
+          <li><a href="#section-01" data-section="section-01"><span>01</span><b>导读：状态不会自动进网络</b></a></li>
+          <li><a href="#section-02" data-section="section-02"><span>02</span><b>一帧全景图</b></a></li>
+          <li><a href="#section-03" data-section="section-03"><span>03</span><b>11.1 检测机制概述</b></a></li>
+          <li><a href="#section-04" data-section="section-04"><span>04</span><b>11.2 DirtyNetObjectTracker</b></a></li>
+          <li><a href="#section-05" data-section="section-05"><span>05</span><b>11.3 Push Model</b></a></li>
+          <li><a href="#section-06" data-section="section-06"><span>06</span><b>11.4 ObjectPoller</b></a></li>
+          <li><a href="#section-07" data-section="section-07"><span>07</span><b>11.5 Frequency Limiter</b></a></li>
+          <li><a href="#section-08" data-section="section-08"><span>08</span><b>11.6 ChangeMask</b></a></li>
+          <li><a href="#section-09" data-section="section-09"><span>09</span><b>一个对象、连续两帧</b></a></li>
+          <li><a href="#section-10" data-section="section-10"><span>10</span><b>性能成本模型</b></a></li>
+          <li><a href="#section-11" data-section="section-11"><span>11</span><b>接入清单与最佳实践</b></a></li>
+          <li><a href="#section-12" data-section="section-12"><span>12</span><b>排查、源码与测试</b></a></li>
+          <li><a href="#section-13" data-section="section-13"><span>13</span><b>11.7 总结与 Part 12</b></a></li>
+        </ol>
+      </details>
+
+      <section class="source-note" aria-label="文章来源与技术依据">
+        <div class="source-note__mark">11</div>
+        <p><strong>文章来源：</strong>Jossy Zhang 根据系列大纲原创扩写。技术结论以本地 Unreal Engine 5.7.4 源码快照、ReplicationSystemTestPlugin 自动化测试与 Epic Games 官方资料为依据；Private 类、CVar 默认值和实现布局均按 5.7.4 标注。</p>
+        <a href="#section-12-04">查看资料索引 →</a>
+      </section>
+
+      <article>
+        <h2 id="section-01" tabindex="-1">🧭 第十一部分导读：状态不会自动进入网络</h2>
+        <p>上一部分讨论了“当前脏成员相对哪份已确认 Baseline 编码”。这仍然跳过了更前面的问题：服务器上的 <code>Health = 80</code> 写入之后，复制系统怎样知道这个对象值得检查？如果世界里有十万个可复制对象，难道每帧都要把每个 UObject 的每个属性重新读取、量化并比较一遍吗？</p>
+        <p>Iris 的答案不是单选 Poll 或 Push，而是一套分层筛选：</p>
+        <div class="stats">
+          <div class="stat"><b>Object</b><span>对象级脏位回答“哪些对象要进入或绕过轮询门控”。</span></div>
+          <div class="stat"><b>Member</b><span>成员 Poll Mask 回答“对象内部哪些 Push 成员值得读取”。</span></div>
+          <div class="stat"><b>Wire</b><span>量化 ChangeMask 回答“哪些成员要进入后续传播与序列化”。</span></div>
+        </div>
+        <blockquote>“标脏”是让对象或成员进入候选集，不是立即序列化，更不是保证本帧进入网络包。</blockquote>
+        <p>这句话是全文的锚点。相关性过滤、优先级、带宽预算、DataStream 与 packet 仍在后面。即使调用 <code>ForceNetUpdate</code>，也只是更强地影响轮询候选，不会绕开所有发送阶段。</p>
+
+        <h3 id="section-01-01" tabindex="-1">本文回答的六个问题</h3>
+        <ol>
+          <li>Poll 与 Push 分别节省哪一种成本？</li>
+          <li><code>FDirtyNetObjectTracker</code> 为什么要同时保存三组位图？</li>
+          <li>Push 属性已经标脏，为什么 <code>FObjectPoller</code> 仍然存在？</li>
+          <li>轮询频率限制器如何把同频对象错开，并允许 Dirty/Force 绕过？</li>
+          <li>对象脏位、Member Poll Mask 和 ChangeMask 为什么不能混为一谈？</li>
+          <li>如何在项目里正确声明 Push 属性、验证漏标并测量收益？</li>
+        </ol>
+
+        <h2 id="section-02" tabindex="-1">🗺️ 一帧全景图：从 Gameplay 写值到发送候选</h2>
+        <p>先把 UE 5.7.4 中与本篇直接相关的顺序压缩成一条线。方法名来自 <code>UReplicationSystem::NetUpdate</code>、<code>UObjectReplicationBridge::PreSendUpdate</code> 和帧末清理路径；图中每个格子都不是“发包”的同义词。</p>
+
+        <div class="dirty-pipeline" aria-label="Iris 一帧脏数据发现、轮询、量化与发送流水线">
+          <div class="dirty-pipeline__inner">
+            <div class="pipeline-step"><small>01 · GAMEPLAY</small><strong>写值 / MarkDirty</strong><p>Setter 修改属性；Push 宏可登记对象和 RepIndex。</p></div>
+            <div class="pipeline-step"><small>02 · GATHER</small><strong>UpdateDirtyObjectList</strong><p>Tracker 收集全局脏位，更新本帧与累计集合。</p></div>
+            <div class="pipeline-step"><small>03 · SCHEDULE</small><strong>BuildPollList</strong><p>相关对象、频率计数、Dirty/Force、Dormancy 合成轮询集合。</p></div>
+            <div class="pipeline-step"><small>04 · CALLBACK</small><strong>PreUpdate</strong><p>在复制读取之前让实例刷新派生状态；期间还可能新建子对象。</p></div>
+            <div class="pipeline-step"><small>05 · LOCK</small><strong>FinalizeDirtyObjects</strong><p>再次收集并锁住全局 dirty list，保证 Poll 看到稳定视图。</p></div>
+            <div class="pipeline-step"><small>06 · COPY</small><strong>PollAndCopy</strong><p>按 Poll/Push/Force 路径读取外部状态，产生待量化对象。</p></div>
+            <div class="pipeline-step"><small>07 · QUANTIZE</small><strong>QuantizeDirtyStateData</strong><p>量化并生成真正的成员 ChangeMask。</p></div>
+            <div class="pipeline-step"><small>08 · SEND</small><strong>Filter / Prioritize</strong><p>按连接筛选、排序、预算和序列化；可能延后发送。</p></div>
+            <div class="pipeline-step"><small>09 · CLEANUP</small><strong>ReconcilePolledList</strong><p>只清除成功轮询对象对应的累计与 Force 位。</p></div>
+          </div>
+        </div>
+
+        <h3 id="section-02-01" tabindex="-1">为什么收集 Dirty 要做两次？</h3>
+        <p>帧开始的 <code>UpdateDirtyObjectList</code> 让调度阶段看到此前与本帧已有的脏状态；Bridge 在 <code>PreUpdate</code> 之后调用 <code>FinalizeDirtyObjects</code>，再执行 <code>UpdateAndLockDirtyNetObjects</code>，把回调期间新产生的标脏也纳入 Poll。锁定则防止多个 poller 在清理全局列表时互相踩踏。</p>
+        <p>随后 <code>UpdateDirtyListPostPoll</code> 把本帧 Dirty OR 进累计集合。帧末的 <code>ReconcilePolledList(PolledObjects)</code> 只清除确实被轮询的对象，没轮到的对象继续在累计集合中等待。</p>
+
+        <h3 id="section-02-02" tabindex="-1">四个动作、四种含义</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>动作</th><th>改变什么</th><th>不保证什么</th></tr></thead>
+          <tbody>
+            <tr><td><code>MARK_PROPERTY_DIRTY...</code></td><td>登记 NetHandle 与 RepIndex 范围；Iris 可映射到成员 Poll Mask。</td><td>不立即读取属性，不立即生成 ChangeMask。</td></tr>
+            <tr><td><code>MarkNetObjectStateDirty</code></td><td>把对象级内部索引置入 Dirty 位图。</td><td>不知道具体哪个成员发生变化。</td></tr>
+            <tr><td><code>ForceNetUpdate</code></td><td>设置 Force 位并同时把对象标脏，可绕过频率门控。</td><td>不保证相关性、优先级和带宽预算允许本帧发送。</td></tr>
+            <tr><td>ChangeMask bit = 1</td><td>量化状态确认成员发生可复制变化。</td><td>不保证每个连接都可见或本包有空间。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-03" tabindex="-1">📮 11.1 脏数据检测机制概述：Poll、Push 与混合策略</h2>
+        <h3 id="section-03-01" tabindex="-1">什么是“脏数据”</h3>
+        <p>可以把复制系统想成快递追踪。仓库里的一件货物被重新打包，并不意味着卡车已经出发：</p>
+        <ul>
+          <li><strong>对象脏：</strong>仓库系统收到“这件货可能变了”的扫描记录；</li>
+          <li><strong>成员脏：</strong>复核后确认重量、目的地或内容中的哪些字段真的变化；</li>
+          <li><strong>连接可发送：</strong>这件货对某条线路相关、优先级足够并且车上有空间；</li>
+          <li><strong>投递确认：</strong>包已写出仍不等于对端收到，后面还有 ACK/Lost 与重发。</li>
+        </ul>
+        <p>Iris 里的“Dirty”常常带有阶段限定。看到一个名为 Dirty 的 bit array，首先要问：它属于对象发现、外部状态 Poll、量化 ChangeMask，还是逐连接发送历史？</p>
+
+        <h3 id="section-03-02" tabindex="-1">Poll：系统主动检查</h3>
+        <p>传统 Poll 的思路是“到时间就读一次当前状态，与复制缓冲区比较”。它的优势是 Gameplay 写值代码无需承担通知契约；只要对象按期被轮询，变化最终会被发现。代价是大量对象没变化时，仍需执行 PreUpdate、读取、比较，甚至量化前的准备工作。</p>
+
+        <h3 id="section-03-03" tabindex="-1">Push：Gameplay 主动通知</h3>
+        <p>Push 把一部分责任交给写值方：属性变化时调用标脏宏，复制系统据此跳过完全没被标记的 fully-push 对象，或者只读取标记过的成员。优势是低变化率、大对象池中可以显著减少无效检查；代价是漏标会成为正确性缺陷，而且混合对象、对象引用与特殊 Fragment 仍可能需要 Poll。</p>
+
+        <h3 id="section-03-04" tabindex="-1">Iris 为什么采用混合策略</h3>
+        <div class="poll-modes" aria-label="Poll、Push 与混合模式对比">
+          <div class="poll-modes__inner">
+            <section class="mode"><small>POLL</small><strong>按期主动检查</strong><p>适合变化来源分散、难以保证所有写入口都标脏的对象。</p><ul><li>契约简单</li><li>空轮询成本高</li><li>频率限制可控</li></ul></section>
+            <section class="mode"><small>PUSH</small><strong>写值时主动通知</strong><p>适合写入口集中、对象多但大多数帧不变化的状态。</p><ul><li>可跳过 clean 对象</li><li>可按 RepIndex 缩小成员范围</li><li>漏标风险高</li></ul></section>
+            <section class="mode"><small>HYBRID</small><strong>同一对象混合 Fragment</strong><p>Push 成员按标记读取，非 Push Fragment 继续 Poll，必要时刷新对象引用。</p><ul><li>渐进迁移</li><li>边界更复杂</li><li>不是零轮询</li></ul></section>
+          </div>
+        </div>
+
+        <h3 id="section-03-05" tabindex="-1">关键源码地图</h3>
+        <p><span class="badge">DirtyNetObjectTracker.cpp</span><span class="badge">GlobalDirtyNetObjectTracker.cpp</span><span class="badge">LegacyPushModel.cpp</span><span class="badge">ObjectPoller.cpp</span><span class="badge">ObjectPollFrequencyLimiter.cpp</span><span class="badge">ObjectReplicationBridge.cpp</span><span class="badge">ReplicationOperations.cpp</span></p>
+        <p>其中 Tracker、Poller、Limiter 和 Legacy 适配层位于 Private 实现，适合用来理解 5.7.4 行为，不应当直接作为项目稳定 API 依赖。项目接入优先使用 Push 宏、Lifetime 参数、Bridge 公共方法和配置结构。</p>
+
+        <h2 id="section-04" tabindex="-1">🧮 11.2 FDirtyNetObjectTracker：三组位图与跨帧状态</h2>
+        <p><code>FDirtyNetObjectTracker</code> 的职责不是逐成员比较，而是维护 ReplicationSystem 内部对象索引对应的粗粒度候选状态。UE 5.7.4 中它恰好保存 <code>DirtyNetObjects</code>、<code>AccumulatedDirtyNetObjects</code> 与 <code>ForceNetUpdateObjects</code> 三组 <code>FNetBitArray</code>：</p>
+
+        <div class="tracker-bits" aria-label="DirtyNetObjectTracker 三组位图">
+          <div class="tracker-bits__inner">
+            <div class="bit-row"><strong>DirtyNetObjects</strong><i class="bit">0</i><i class="bit on">1</i><i class="bit">0</i><i class="bit">0</i><i class="bit on">1</i><i class="bit">0</i><i class="bit">0</i><i class="bit">0</i><em>本帧新标脏；net tick flush 结束时整体清空。</em></div>
+            <div class="bit-row"><strong>AccumulatedDirty...</strong><i class="bit">0</i><i class="bit acc">1</i><i class="bit">0</i><i class="bit acc">1</i><i class="bit acc">1</i><i class="bit">0</i><i class="bit">0</i><i class="bit">0</i><em>跨帧保留，直到对应对象确实被轮询。</em></div>
+            <div class="bit-row"><strong>ForceNetUpdate...</strong><i class="bit">0</i><i class="bit">0</i><i class="bit">0</i><i class="bit force">1</i><i class="bit">0</i><i class="bit">0</i><i class="bit">0</i><i class="bit">0</i><em>显式强制请求；成功轮询后只清除对应位。</em></div>
+          </div>
+        </div>
+
+        <h3 id="section-04-01" tabindex="-1">Mark 与 Force 的差别</h3>
+        <p><code>MarkNetObjectStateDirty(ReplicationSystemId, InternalIndex)</code> 最终走入 Tracker 的对象级 <code>MarkNetObjectDirty</code>。它只有内部索引，没有属性信息，因此只能表达“对象值得重新检查”。</p>
+        <p><code>ForceNetUpdate</code> 会先设置 <code>ForceNetUpdateObjects</code>，再同时标记对象 Dirty。这样不仅频率调度能识别强制位，依赖 Dirty 的过滤或其他更新也不会遗漏该对象。</p>
+
+        <div class="article-callout">
+          <strong>Force 的边界</strong>
+          <p>它是“强制进入轮询候选”的语义，不是“强制绕过过滤、优先级和带宽预算”。如果对象对连接不相关、被过滤、优先级不够或本包预算耗尽，仍可能不在本帧发送。</p>
+        </div>
+
+        <h3 id="section-04-02" tabindex="-1">更新、锁定、累计与清理</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>方法</th><th>核心动作</th><th>为什么需要</th></tr></thead>
+          <tbody>
+            <tr><td><code>UpdateDirtyNetObjects</code></td><td>从 Global Tracker 拉取；与本系统 scope 求交；OR 到本帧 Dirty，并维护 Accumulated。</td><td>全局 Push 通知要投递到具体 ReplicationSystem。</td></tr>
+            <tr><td><code>UpdateAndLockDirtyNetObjects</code></td><td>先更新，再锁住 global dirty list。</td><td>Poll 阶段需要稳定的 per-property dirty 视图。</td></tr>
+            <tr><td><code>UpdateAccumulatedDirtyList</code></td><td>把本帧 Dirty OR 进累计集合。</td><td>本帧没轮询到的对象不能丢失变化。</td></tr>
+            <tr><td><code>ReconcilePolledList</code></td><td>按 <code>ObjectsPolled</code> 清除 Accumulated 与 Force；整体清空当前 Dirty。</td><td>只消费真实 Poll 成功的对象，保留延期对象。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-04-03" tabindex="-1">FGlobalDirtyNetObjectTracker 与属性级 Push</h3>
+        <p>Push 宏首先以 NetHandle 和 <code>RepIndex</code> 范围进入 <code>FGlobalDirtyNetObjectTracker</code>。如果 per-property tracking 可用，Protocol 中的 RepIndex → Fragment/Member 映射会把范围落到每个 Fragment 的 Member Poll Mask；否则至少保留对象级 dirty，后续做更宽的 Poll。</p>
+        <p>UE 5.7.4 的当前限制是：一个 Protocol 的 per-property Push 路径只支持单个 Push-based owner（源码有 <code>OwnerIndex == 0</code> 约束并关联 UE-278338）。多 owner、无效 RepIndex、禁用属性或某些 custom conditional 情况可能回退或忽略成员级细化。文章把它作为版本实现限制，而不是长期公共契约。</p>
+
+        <h3 id="section-04-04" tabindex="-1">多个 ReplicationSystem / poller 怎样协作</h3>
+        <p>每个 ReplicationSystem 向 Global Tracker 注册 poll handle。只有一个 poller 时可以在收集后立即重置全局 dirty；存在多个 poller 时，必须等各系统都有机会 gather，必要时还会把 global list 锁到 reset。<code>FDirtyObjectsAccessor</code> 把锁的生存期封装在作用域中，避免 Poll 期间列表被提前清空。</p>
+
+        <h2 id="section-05" tabindex="-1">📣 11.3 Push Model：声明、标脏与 Legacy 适配层</h2>
+        <h3 id="section-05-01" tabindex="-1">Push 真正启用需要多道门</h3>
+        <div class="push-contract" aria-label="Push Model 从编译到属性标脏的四步契约">
+          <div class="push-contract__inner">
+            <div class="contract-step"><b>GATE 01</b><strong>编译支持</strong><p>构建需要 <code>WITH_PUSH_MODEL</code>；没有该能力时宏不会形成有效通知链。</p></div>
+            <div class="contract-step"><b>GATE 02</b><strong>运行期开关</strong><p><code>net.IsPushModelEnabled</code> 必须为真。源码默认 false，项目配置不能省略验证。</p></div>
+            <div class="contract-step"><b>GATE 03</b><strong>Iris 模式</strong><p><code>net.Iris.PushModelMode</code> 在 5.7.4 源码默认 2，决定委托是否可运行时切换。</p></div>
+            <div class="contract-step"><b>GATE 04</b><strong>属性契约</strong><p>Lifetime 参数声明 Push；每个真实写入口调用正确的 Dirty 宏。</p></div>
+          </div>
+        </div>
+        <p><code>net.Iris.PushModelMode</code> 的三个模式是：</p>
+        <ul>
+          <li><strong>0：</strong>Iris Push 适配关闭，但允许运行时切换；</li>
+          <li><strong>1：</strong>启用，并采用不可运行时切换的直接委托；</li>
+          <li><strong>2：</strong>启用且允许运行时切换，委托调用时检查状态；这是 5.7.4 源码默认值。</li>
+        </ul>
+        <p>但模式默认 2 不等于 Push 默认可用，因为全局 <code>net.IsPushModelEnabled</code> 的源码默认仍为 false。<code>net.MakeBpPropertiesPushModel</code> 默认 true，也只有在 Push Model 本身启用时才有意义。</p>
+
+        <h3 id="section-05-02" tabindex="-1">一份完整而安全的 C++ 示例</h3>
+        <div class="code-label"><span>ReplicatedPawn.cpp</span><span>UE 5.7.4 Push property</span></div>
+        <pre><code>void AReplicatedPawn::GetLifetimeReplicatedProps(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    FDoRepLifetimeParams Params;
+    Params.bIsPushBased = true;
+    DOREPLIFETIME_WITH_PARAMS_FAST(AReplicatedPawn, Health, Params);
+}
+
+void AReplicatedPawn::SetHealth(int32 NewHealth)
+{
+    if (Health == NewHealth)
+    {
+        return;
+    }
+
+    Health = NewHealth;
+    MARK_PROPERTY_DIRTY_FROM_NAME(AReplicatedPawn, Health, this);
+}</code></pre>
+        <p>这个 Setter 把“是否真的变化、写入新值、通知复制系统”放在一起，审查最容易。<code>MARK_PROPERTY_DIRTY_FROM_NAME</code> 是推荐的编译期名字形式；静态数组要使用带 <code>STATIC_ARRAY_INDEX</code> 或 <code>STATIC_ARRAY</code> 的专用宏。</p>
+
+        <h3 id="section-05-03" tabindex="-1">宏族怎么选</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>宏</th><th>用途</th><th>建议</th></tr></thead>
+          <tbody>
+            <tr><td><code>MARK_PROPERTY_DIRTY_FROM_NAME</code></td><td>普通成员，通过类型与成员名在编译期取得 RepIndex。</td><td>常规首选。</td></tr>
+            <tr><td><code>...FROM_NAME_STATIC_ARRAY_INDEX</code></td><td>只标记静态数组的一个元素。</td><td>索引明确时使用。</td></tr>
+            <tr><td><code>...FROM_NAME_STATIC_ARRAY</code></td><td>标记整个静态数组。</td><td>批量写入时使用。</td></tr>
+            <tr><td><code>COMPARE_ASSIGN_AND_MARK_PROPERTY_DIRTY</code></td><td>比较、赋值、标脏合为一体。</td><td>适合简单类型；昂贵结构体应评估比较和拷贝成本。</td></tr>
+            <tr><td><code>MARK_PROPERTY_DIRTY</code> / <code>UNSAFE</code></td><td>使用 RepIndex 或缓存数据的底层形式。</td><td>只有封装层确实需要时使用，避免手写索引漂移。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-05-04" tabindex="-1">LegacyPushModel 做了什么</h3>
+        <p>Iris 没有要求 Gameplay 换一套 Push 宏。<code>LegacyPushModel</code> 根据模式安装委托，把既有 Push Model 的 NetHandle 与 RepIndex 范围转发给 <code>FGlobalDirtyNetObjectTracker::MarkNetObjectStateDirty</code>。这样旧宏调用可接入 Iris 的对象位图和成员 Poll Mask。</p>
+
+        <h3 id="section-05-05" tabindex="-1">三个高频陷阱</h3>
+        <ol>
+          <li><strong>漏标：</strong>fully-push 属性发生变化但没有调用宏，Iris 可能把对象视为 clean 并跳过，客户端就收不到更新。</li>
+          <li><strong>先标后写并假定快照已取：</strong>标脏只登记候选；真正读取在后面的 Poll/Copy 阶段。代码仍应让最终状态在轮询前稳定。</li>
+          <li><strong>把 Push 当零轮询：</strong>hybrid 对象的非 Push Fragment 仍要 Poll；fully-push 对象也可能因为 WantsFullPoll、GC 引用刷新、多 owner 或特殊状态走更宽路径。</li>
+        </ol>
+        <div class="article-callout article-callout--green">
+          <strong>迁移建议</strong>
+          <p>先选写入口集中、单元测试覆盖好、低变化率的大对象池；让所有写操作通过 Setter，再声明 Push。不要先把属性改成 Push，之后才去搜索遗漏写点。</p>
+        </div>
+
+        <h2 id="section-06" tabindex="-1">🔎 11.4 FObjectPoller：把候选对象变成待量化状态</h2>
+        <p><code>FObjectPoller</code> 消费 Bridge 构建的 PollList 与 Tracker 的 Dirty 视图，读取对象外部状态并更新复制缓冲区。它的输出重点是 <code>DirtyObjectsToQuantize</code> 和 <code>DirtyObjectsThisFrame</code>，而不是网络包。</p>
+
+        <div class="poll-modes" aria-label="FObjectPoller 三条核心轮询路径">
+          <div class="poll-modes__inner">
+            <section class="mode"><small>NORMAL</small><strong>PollAndCopyObjects</strong><p>遍历 PollList，按 InstanceProtocol 和 Fragment traits 读取、比较对象状态。</p><ul><li>可并行分片</li><li>可过滤 clean fully-push 对象</li><li>记录实际 PolledObjects</li></ul></section>
+            <section class="mode"><small>PUSH-AWARE</small><strong>PushModelPollObject</strong><p>结合本帧/累计 Dirty、Member Poll Mask、WantsFullPoll 与 GC 状态选择窄或宽读取。</p><ul><li><code>PollDirtyState</code></li><li><code>PollAllState</code></li><li>hybrid 继续 Poll 非 Push Fragment</li></ul></section>
+            <section class="mode"><small>FORCED</small><strong>ForcePollObject</strong><p>单对象强制轮询和某些内部路径使用；根据 NeedsPoll 做全量读取或直接标记量化。</p><ul><li>清除 WantsFullPoll</li><li>记录 wasted poll</li><li>仍不代表直接发送</li></ul></section>
+          </div>
+        </div>
+
+        <h3 id="section-06-01" tabindex="-1">clean fully-push 对象怎样被过滤</h3>
+        <p>当 <code>net.Iris.Poll.FilterOutNonDirtyPushBasedObjects=true</code>（5.7.4 源码默认）、Push 已启用，而且对象既没有本帧 Dirty、没有累计 Dirty、也没有 GC 影响时，Poller 可把 fully-push 对象从轮询循环中剔除。这是 Push 最直接的 CPU 收益来源之一。</p>
+        <p>注意它要求对象是 fully push-based。只要 Protocol 中仍有非 Push Fragment，就不能假定整个对象可跳过；Poller 可能只刷新 Push 部分的对象引用，同时继续读取非 Push 状态。</p>
+
+        <h3 id="section-06-02" tabindex="-1">PushModelPollObject 的关键分支</h3>
+        <ul>
+          <li>对象在累计或本帧 Dirty 集合中：先进入 <code>DirtyObjectsToQuantize</code> 与本帧 Dirty；</li>
+          <li>fully-push 且有 per-property tracking、又不要求 full poll：使用 <code>PollDirtyState</code>；</li>
+          <li>WantsFullPoll、多 owner 或 ChangeMask 不可信：回退 <code>PollAllState</code>；</li>
+          <li>仅受 GC 影响：可以只 Poll object references；</li>
+          <li>hybrid：即使 Push 部分 clean，也要 Poll 非 full-push Fragment。</li>
+        </ul>
+
+        <h3 id="section-06-03" tabindex="-1">ForcePollObject 的两个结果</h3>
+        <p>如果 InstanceProtocol 为空，直接返回。如果对象 <code>NeedsPoll</code>，它执行 <code>PollAllState</code>，比较发现变化后把对象加入量化集合；若没有变化，可计为 wasted poll。如果对象不需要外部 Poll，则直接标记 Dirty-to-quantize 和本帧 Dirty，表示内部状态仍需后续处理。</p>
+
+        <h3 id="section-06-04" tabindex="-1">并行 Poll 的 5.7.4 实现细节</h3>
+        <p>源码默认 <code>net.Iris.NumPollingTasks=32</code>，<code>net.Iris.NumWordsToInterleave=16</code>。一个 bit-array storage word 为 32 bits，因此 16 words 对应 512 个对象位，也就是 64 bytes 的块。任务交错领取块，避免稀疏对象集中在少数连续区域时负载不均。</p>
+        <p>只有允许并行、工作量足够且任务数大于 0 时才创建并行任务，否则同步执行。任务数与块大小都是 Private CVar 和当前默认，升级引擎或换平台后要重新核对，不应硬编码到项目逻辑。</p>
+
+        <h2 id="section-07" tabindex="-1">⏱️ 11.5 FObjectPollFrequencyLimiter：把检查成本摊到不同帧</h2>
+        <p>Push 解决“没通知就尽量不检查”，Frequency Limiter 解决“即使需要 Poll，也不必每帧检查”。它以对象内部索引为 key，维护四组核心数据：</p>
+        <ul>
+          <li><code>FramesBetweenUpdates</code>：每个对象的 <code>uint8</code> 周期；</li>
+          <li><code>FrameCounters</code>：当前倒计时，同样是 <code>uint8</code>；</li>
+          <li><code>FrameIndexOffsets[256]</code>：让相同周期对象从不同计数位置开始；</li>
+          <li><code>FrameIndex</code> 与 <code>MaxInternalHandle</code>：推进帧和限定扫描范围。</li>
+        </ul>
+
+        <h3 id="section-07-01" tabindex="-1">PollFrequency 如何换算成帧周期</h3>
+        <div class="formula">
+          <span>UE 5.7.4 UObjectReplicationBridge 换算</span>
+          FramesBetweenUpdates = floor(MaxTickRate / max(0.001, PollFrequency))<br>
+          if FramesBetweenUpdates &gt; 0: --FramesBetweenUpdates<br>
+          clamp to [0, 255]
+        </div>
+        <p><code>PollFramePeriod=0</code> 表示每帧轮询；255 表示每 256 帧命中一次。以 30Hz 为例，最大周期约 8.53 秒。频率是目标调度频率，不是网络投递 SLA：被 Poll 后仍要经过连接级过滤和发送预算。</p>
+
+        <h3 id="section-07-02" tabindex="-1">相同频率为什么不会同帧尖峰</h3>
+        <p>新对象设置周期时，不会全部从同一个 counter 开始。<code>FrameIndexOffsets</code> 会让同周期对象分布在周期窗口的不同槽位。测试 <code>ObjectsToPollAreSpreadOutWhenCreatingObjectAndUpdatingOncePerFrame</code> 与随机创建数量的测试都验证了这种错峰行为。</p>
+
+        <div class="frequency-wheel" aria-label="相同周期对象错峰与强制更新示意">
+          <div class="frequency-wheel__inner">
+            <div class="wheel-head">对象 / 帧</div><div class="wheel-head">F0</div><div class="wheel-head">F1</div><div class="wheel-head">F2</div><div class="wheel-head">F3</div><div class="wheel-head">F4</div><div class="wheel-head">F5</div><div class="wheel-head">F6</div><div class="wheel-head">F7</div>
+            <div class="wheel-name">A · period 3</div><div class="due">POLL</div><div>·</div><div>·</div><div>·</div><div class="due">POLL</div><div>·</div><div>·</div><div>·</div>
+            <div class="wheel-name">B · period 3</div><div>·</div><div class="due">POLL</div><div>·</div><div>·</div><div>·</div><div class="due">POLL</div><div>·</div><div>·</div>
+            <div class="wheel-name">C · period 3</div><div>·</div><div>·</div><div class="due">POLL</div><div>·</div><div>·</div><div>·</div><div class="due">POLL</div><div>·</div>
+            <div class="wheel-name">D · forced at F3</div><div>·</div><div>·</div><div>·</div><div class="forced">FORCE</div><div>·</div><div>·</div><div>·</div><div class="due">POLL</div>
+          </div>
+        </div>
+
+        <h3 id="section-07-03" tabindex="-1">Update：underflow、重载与位图合成</h3>
+        <p>每帧计数器减一，<code>uint8</code> 从 0 下溢到 255 表示到期，然后把计数器重载为配置周期。最终 Poll 集合可概括为：</p>
+        <div class="formula">
+          <span>简化集合表达式</span>
+          ObjectsToPoll = (FrequencyDue ∪ DirtyOrForceOverride) ∩ RelevantObjects
+        </div>
+        <p>x86 路径一次以两个 16-byte vector 处理 32 个对象；源码还提供 NEON 和标量 fallback。SIMD 优化的是大量计数器与位图的固定宽度更新，不会改变调度语义。</p>
+
+        <h3 id="section-07-04" tabindex="-1">net.Iris.EnableForceNetUpdate 最容易被误读</h3>
+        <p>Bridge 构建 PollList 时，5.7.4 的 <code>net.Iris.EnableForceNetUpdate</code> 源码默认 false，含义并非“完全禁用 ForceNetUpdate”：</p>
+        <ul>
+          <li><strong>false：</strong>累计 Dirty 就可以作为频率 override；普通 MarkDirty 也可能提前 Poll；</li>
+          <li><strong>true：</strong>只有专用 ForceNetUpdate 位可绕过频率门控，普通 Dirty 等到频率到期。</li>
+        </ul>
+        <p>这是兼容与调度策略开关。配置它之前应先决定项目要的是“任何 Dirty 都尽快 Poll”，还是“只有显式 Force 才打破频率预算”。</p>
+
+        <h3 id="section-07-05" tabindex="-1">类配置、Actor 频率与子对象</h3>
+        <p><code>UObjectReplicationBridgeConfig::PollConfigs</code> 可按类覆盖 PollFrequency，并选择是否包含子类。出于性能原因不应直接对最宽泛的 Object/Actor 基类做覆盖；更具体的类路径更容易控制规模。没有类配置时，Actor 可从 <code>NetUpdateFrequency</code> 得到频率；<code>net.Iris.EnableDynamicNetUpdateFrequency=true</code> 时运行期变化也会更新 Iris。</p>
+        <p><code>SetPollWithObject</code> 让根对象与子对象共享 counter/period，保证它们在同一帧 Poll。自动化测试同时覆盖从根对象和从子对象触发 <code>ForceNetUpdate</code> 的行为。</p>
+
+        <h2 id="section-08" tabindex="-1">🎛️ 11.6 ChangeMask：从对象候选收窄到成员变化</h2>
+        <p>ChangeMask 常被拿来泛指“脏位”，但在 Iris 里至少要分三层。下面三张卡片按产生和消费顺序排列：</p>
+
+        <div class="mask-anatomy" aria-label="对象 Dirty 位、成员 Poll Mask 与量化 ChangeMask 的三层关系">
+          <div class="mask-anatomy__inner">
+            <section class="mask-layer"><small>LAYER 01 · OBJECT</small><strong>DirtyNetObjectTracker bits</strong><p>以 InternalIndex 为 bit，选择需要进入或绕过轮询调度的对象。</p><div class="mask-bits"><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i></div></section>
+            <section class="mask-layer"><small>LAYER 02 · POLL</small><strong>Member Poll Mask</strong><p>Global Tracker 把 RepIndex 映射到 Fragment 内成员，限制 Push Poll 读取范围。</p><div class="mask-bits"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div></section>
+            <section class="mask-layer"><small>LAYER 03 · QUANTIZED</small><strong>Protocol ChangeMask</strong><p>读取、比较和量化确认后的真实成员变化，供传播与序列化使用。</p><div class="mask-bits"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div></section>
+          </div>
+        </div>
+
+        <h3 id="section-08-01" tabindex="-1">成员怎样映射到 ChangeMask bits</h3>
+        <p><code>FReplicationStateMemberChangeMaskDescriptor</code> 为每个成员保存 <code>BitOffset</code> 与 <code>BitCount</code>。绝大多数成员占 1 bit，但动态数组等成员可分配多个 bit。一个 Protocol 中多个 ReplicationState 的 ChangeMask 按顺序扁平拼接，量化阶段写入 <code>FChangeMaskCache</code>。</p>
+
+        <h3 id="section-08-02" tabindex="-1">小 ChangeMask 为什么不用单独分配</h3>
+        <p><code>FChangeMaskStorageOrPointer</code> 内部只有一个 64-bit 字段。<code>BitCount &lt;= 64</code> 时，它把这个字段直接当作内联位存储；超过 64 bits 才让 allocator 分配外部 storage，并把字段解释为指针。这是一种典型的 small-buffer optimization，减少常见小对象的堆分配。</p>
+
+        <div class="table-scroll"><table>
+          <thead><tr><th>BitCount</th><th>存储</th><th>特点</th></tr></thead>
+          <tbody>
+            <tr><td>1–64</td><td>内联在 <code>uint64 ChangeMaskOrPointer</code></td><td>无需额外分配；访问时返回字段地址。</td></tr>
+            <tr><td>&gt; 64</td><td>外部分配，字段保存指针</td><td>大小按 <code>FNetBitArrayView</code> 所需 storage words 计算。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-08-03" tabindex="-1">教学模型中的 86.9% 从哪里来</h3>
+        <p>假设一个状态有 10 个互相独立的 32-bit 成员，每次只变化 1 个。忽略一切外层协议和具体 Serializer：</p>
+        <div class="formula">
+          <span>仅用于说明“成员选择”的简化模型</span>
+          full members = 10 × 32 = 320 bits<br>
+          raw mask + one member = 10 + 32 = 42 bits<br>
+          illustrative reduction = 1 − 42 / 320 = 86.9%
+        </div>
+        <p>真实 Iris 网络侧会对 ChangeMask 使用 sparse bit array 编码，并叠加对象句柄、batch、Baseline/条件、DataStream、packet header 以及 NetSerializer 的量化位数。因此 86.9% 不是包体承诺；它只说明“先选成员”为什么可能降低后续工作量。</p>
+
+        <h3 id="section-08-04" tabindex="-1">ChangeMask 在量化阶段才变得可信</h3>
+        <p><code>QuantizeObjectStateData</code> 只遍历 <code>DirtyObjectsToQuantize</code>，为对象在 Cache 中预留 ChangeMask 存储，再调用 <code>Quantize</code> 或 <code>QuantizeIfDirty</code>。只有比较和量化确认变化后，<code>bHasDirtyChangeMask</code> 才为真。也就是说，Push 的“可能变化”与 ChangeMask 的“量化后确实变化”之间还隔着 Poll/Copy 和 Serializer 的 equality 语义。</p>
+
+        <h2 id="section-09" tabindex="-1">🎬 一个对象、连续两帧：三层状态怎样流动</h2>
+        <p>设 <code>ACombatPawn</code> 有三部分状态：</p>
+        <ul>
+          <li><code>Health</code>：Push 属性，通过 Setter 标脏；</li>
+          <li><code>Position</code>：普通 Poll Fragment，按 10Hz 检查；</li>
+          <li><code>InventorySubObject</code>：与根对象共享轮询帧。</li>
+        </ul>
+        <p>服务器 30Hz。帧 N 时 Health 从 100 改为 80，但 Position 不变；帧 N+1 时 Position 发生移动，Health 不再变化。</p>
+
+        <div class="frame-journey" aria-label="Push Health 与 Poll Position 连续两帧的状态流">
+          <div class="frame-journey__inner">
+            <div class="frame-cell head">帧 / 阶段</div><div class="frame-cell head">Gameplay</div><div class="frame-cell head">Tracker</div><div class="frame-cell head">Frequency</div><div class="frame-cell head">Poller</div><div class="frame-cell head">Quantize</div><div class="frame-cell head">Send gates</div><div class="frame-cell head">Cleanup</div>
+            <div class="frame-cell row-head">Frame N<br>Health 变化</div><div class="frame-cell hot"><strong>Setter</strong>Health=80；标记 RepIndex。</div><div class="frame-cell hot"><strong>Dirty=1</strong>对象位 + Health member poll bit。</div><div class="frame-cell warn"><strong>未到 10Hz 周期</strong>Dirty override 是否生效取决于 Force CVar 策略。</div><div class="frame-cell ok"><strong>Hybrid Poll</strong>读取 Health；非 Push Position 仍按调度处理。</div><div class="frame-cell ok"><strong>Health bit=1</strong>Position bit=0。</div><div class="frame-cell warn"><strong>仍需筛选</strong>相关性、优先级、预算。</div><div class="frame-cell"><strong>按 Polled 清理</strong>累计/Force；当前 Dirty 全清。</div>
+            <div class="frame-cell row-head">Frame N+1<br>Position 变化</div><div class="frame-cell"><strong>无 Push 通知</strong>移动系统更新 Position。</div><div class="frame-cell"><strong>Health clean</strong>没有新的 Push dirty。</div><div class="frame-cell ok"><strong>周期到期</strong>根对象和子对象一起进入 PollList。</div><div class="frame-cell ok"><strong>Poll non-push</strong>比较 Position；Health 可不做无效全量 Poll。</div><div class="frame-cell ok"><strong>Position bit=1</strong>Health bit=0。</div><div class="frame-cell warn"><strong>逐连接决定</strong>可见成员与发送时间。</div><div class="frame-cell"><strong>等待下一周期</strong>counter 重载并错峰。</div>
+          </div>
+        </div>
+
+        <h3 id="section-09-01" tabindex="-1">如果漏掉 Health 的标脏宏</h3>
+        <p>在 fully-push Fragment 中，Health 可能不会进入 Member Poll Mask；对象若也没有其他 Dirty、Force、GC 或 WantsFullPoll 原因，甚至会被 clean fully-push 过滤直接跳过。值留在服务器对象里，复制缓冲区和客户端都看不到变化。</p>
+
+        <h3 id="section-09-02" tabindex="-1">如果调用 ForceNetUpdate</h3>
+        <p>Tracker 同时设置 Force 与 Dirty。频率限制器把它纳入 override，Poller 在本帧读取并产生待量化状态。之后对象仍需经过过滤和发送预算。若本帧 Poll 成功，<code>ReconcilePolledList</code> 清除其 Force 和累计 Dirty；若没被 Poll，对应累计状态保留到后续帧。</p>
+
+        <h3 id="section-09-03" tabindex="-1">如果 PreUpdate 中又标脏另一个对象</h3>
+        <p>5.7.4 的自动化测试专门覆盖 PreUpdate 中对自己或另一个对象 MarkDirty/Force 的情况。由于 FinalizeDirtyObjects 在 PreUpdate 后再次收集并锁定，标记不会凭空消失；但对象在当前 PollList 中的位置和本帧是否来得及被 Poll，仍受调度时序影响。测试展示某些“轮询较晚对象”可在同帧被捕获，而已错过轮询位置的对象可能在下一次更新处理。</p>
+
+        <h2 id="section-10" tabindex="-1">📈 性能成本模型：Push、频率与 ChangeMask 各省什么</h2>
+        <p>不要把“Push 快 10 倍”当成通用结论。Iris 的净收益取决于对象规模、变化率、Fragment 混合比例、属性写入口、连接数、平台缓存和 Serializer。更可靠的方法是先拆成本，再用真实场景测量。</p>
+
+        <div class="formula">
+          <span>每帧复制发现侧的简化成本</span>
+          total = candidate discovery<br>
+                + PreUpdate callbacks<br>
+                + external state read / compare<br>
+                + quantization / ChangeMask<br>
+                + per-connection filtering / serialization
+        </div>
+
+        <div class="cost-model" aria-label="不同策略主要降低的成本区间">
+          <div class="cost-model__inner">
+            <div class="cost-row"><strong>纯 Poll · 高空转</strong><div class="cost-track"><span class="cost-fill signal" style="width:92%"></span></div><em>基准示意</em></div>
+            <div class="cost-row"><strong>Frequency Limiter</strong><div class="cost-track"><span class="cost-fill" style="width:65%"></span></div><em>降低检查频率</em></div>
+            <div class="cost-row"><strong>Push object dirty</strong><div class="cost-track"><span class="cost-fill green" style="width:43%"></span></div><em>跳过 clean 对象</em></div>
+            <div class="cost-row"><strong>per-property tracking</strong><div class="cost-track"><span class="cost-fill green" style="width:28%"></span></div><em>缩小成员读取</em></div>
+          </div>
+        </div>
+        <p>柱长只是机制方向示意，不是基准测试结果。Frequency Limiter 主要减少 Poll 次数；对象级 Push 主要减少 clean 对象进入 Poller；per-property tracking 进一步减少对象内部读取；ChangeMask 主要减少量化后的传播与序列化范围。</p>
+
+        <h3 id="section-10-01" tabindex="-1">四组必须同时采集的指标</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>维度</th><th>建议记录</th><th>怎样对照</th></tr></thead>
+          <tbody>
+            <tr><td>候选规模</td><td>scopable、relevant、frequency-due、dirty override、实际 polled 对象数。</td><td>同一回放下比较纯 Poll、Push、不同 PollFrequency。</td></tr>
+            <tr><td>CPU</td><td>PreUpdate、PollAll/PollDirty、wasted poll、Quantize、任务调度时间。</td><td>按类、Fragment 和 P50/P95/P99 拆分。</td></tr>
+            <tr><td>变化率</td><td>对象标脏次数、真正 ChangeMask 非零次数、每次脏成员数。</td><td>找“频繁通知但值没变”和“常 Poll 但不变”的类。</td></tr>
+            <tr><td>网络结果</td><td>逐连接过滤后对象数、成员 bits、延迟帧数与最终 packet bytes。</td><td>防止把发现侧优化误报成固定带宽收益。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-10-02" tabindex="-1">什么时候 Push 可能不划算</h3>
+        <ul>
+          <li>属性几乎每帧变化，通知成本并不能换来大量 clean skip；</li>
+          <li>写入口散落在大量代码、蓝图和第三方模块，漏标风险高；</li>
+          <li>对象多数 Fragment 仍是 Poll，fully-push 过滤收益有限；</li>
+          <li>Setter 为复杂结构体做昂贵比较，成本转移到了 Gameplay；</li>
+          <li>对象数量很少，优化收益低于维护和测试成本。</li>
+        </ul>
+
+        <h3 id="section-10-03" tabindex="-1">推荐实验矩阵</h3>
+        <ol>
+          <li>固定服务器 TickRate、对象数和连接数，录制可重复 Gameplay 回放；</li>
+          <li>基线：关闭 Push，保留项目当前 PollFrequency；</li>
+          <li>只启用对象级 Push，记录 clean skip 与漏标验证；</li>
+          <li>启用 per-property tracking，观察 PollDirtyState 比例和成员数；</li>
+          <li>分别调整 PollFrequency 与 <code>net.Iris.EnableForceNetUpdate</code> 策略；</li>
+          <li>用 Networking Insights/NetTrace 把发现侧 CPU 与最终网络结果对齐。</li>
+        </ol>
+
+        <h2 id="section-11" tabindex="-1">✅ 接入清单与工程最佳实践</h2>
+        <h3 id="section-11-01" tabindex="-1">Push 属性接入清单</h3>
+        <ul class="checklist">
+          <li>确认目标构建包含 <code>WITH_PUSH_MODEL</code>，项目配置启用 <code>net.IsPushModelEnabled</code>。</li>
+          <li>确认 <code>net.Iris.PushModelMode</code> 符合项目是否需要运行时切换。</li>
+          <li>为属性设置 <code>FDoRepLifetimeParams::bIsPushBased = true</code>。</li>
+          <li>把所有写入口收口到 Setter，并先比较、再赋值、最后标脏。</li>
+          <li>普通成员优先用 <code>MARK_PROPERTY_DIRTY_FROM_NAME</code>。</li>
+          <li>静态数组使用 index/whole-array 专用宏，不把一个元素误当普通成员。</li>
+          <li>为漏标、重复赋相同值、Dormancy、子对象、Owner 条件和 GC 场景写自动化测试。</li>
+          <li>先在少数高价值类启用并采样，再扩大范围。</li>
+        </ul>
+
+        <h3 id="section-11-02" tabindex="-1">轮询频率配置清单</h3>
+        <ul class="checklist">
+          <li>把 PollFrequency 理解为检查频率，不是发送频率或投递保证。</li>
+          <li>优先按具体类配置，不对 Object/Actor 根类做宽泛覆盖。</li>
+          <li>根对象与子对象需要一致快照时使用共享轮询帧。</li>
+          <li>动态修改 Actor NetUpdateFrequency 前确认 Iris 动态频率开关。</li>
+          <li>明确普通 Dirty 是否应绕过频率；再配置 <code>net.Iris.EnableForceNetUpdate</code>。</li>
+          <li>对低频对象的关键事件显式调用 Force，但不要假设其必定本帧发出。</li>
+          <li>查看错峰后的 P99，而不只看平均每帧 Poll 数。</li>
+        </ul>
+
+        <h3 id="section-11-03" tabindex="-1">代码审查的三个问题</h3>
+        <ol>
+          <li><strong>通知是否完整？</strong>每个 Push 属性的所有写入口是否都会调用正确的宏？</li>
+          <li><strong>调度是否符合玩法？</strong>普通 Dirty、Force 与 PollFrequency 的组合是否满足关键状态延迟预算？</li>
+          <li><strong>收益是否真的到达下游？</strong>Poll CPU 降低后，ChangeMask、逐连接过滤和最终带宽是否也改善？</li>
+        </ol>
+
+        <h3 id="section-11-04" tabindex="-1">版本升级清单</h3>
+        <p>升级 UE 后重新核对：Push mode 与 CVar 默认值、Global Tracker 的 owner 限制、Poller 过滤条件、任务分片默认值、频率计数位宽与 SIMD 路径、ChangeMask 内联阈值，以及本文列出的自动化测试。Private 实现是理解工具，不是版本承诺。</p>
+
+        <h2 id="section-12" tabindex="-1">🧯 故障排查、源码与自动化测试</h2>
+        <h3 id="section-12-01" tabindex="-1">固定排查顺序</h3>
+        <div class="formula">
+          <span>从“服务器值变了”追到“连接候选”</span>
+          Push compile/runtime gates<br>
+          → property registration<br>
+          → dirty macro / NetHandle / RepIndex<br>
+          → Global tracker gather<br>
+          → object Dirty / Accumulated / Force bits<br>
+          → frequency &amp; dormancy poll list<br>
+          → PollDirtyState / PollAllState<br>
+          → DirtyObjectsToQuantize<br>
+          → quantized ChangeMask<br>
+          → connection filter / priority / budget
+        </div>
+
+        <div class="table-scroll"><table>
+          <thead><tr><th>症状</th><th>优先检查</th><th>常见原因</th></tr></thead>
+          <tbody>
+            <tr><td>Push 属性永不更新</td><td>全局开关、Lifetime 参数、所有写入口、宏类型。</td><td>Push 未真正启用，或某个直接赋值绕过 Setter。</td></tr>
+            <tr><td>MarkDirty 后仍晚几帧</td><td><code>net.Iris.EnableForceNetUpdate</code>、PollFrequency、PollList、发送预算。</td><td>普通 Dirty 未配置为频率 override，或 Poll 后被连接级阶段延后。</td></tr>
+            <tr><td>ForceNetUpdate 仍未本帧到达</td><td>相关性、过滤、Dormancy、优先级、packet budget。</td><td>把 Force Poll 误认为强制投递。</td></tr>
+            <tr><td>Push 开启但 Poll CPU 仍高</td><td>Protocol 是否 fully-push、hybrid Fragment、WantsFullPoll、GC、多 owner。</td><td>只有少数属性 Push，无法过滤整个对象。</td></tr>
+            <tr><td>对象反复标脏但 ChangeMask 为零</td><td>是否重复赋相同量化值、Serializer IsEqual、wasted poll。</td><td>通知表示“可能变化”，量化后值实际相等。</td></tr>
+            <tr><td>某些子对象不同步</td><td><code>SetPollWithObject</code>、根/子对象 Force 传播、Dormancy。</td><td>根和子对象未共享轮询帧，或只强制了错误一侧。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-12-02" tabindex="-1">UE 5.7.4 源码索引</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>主题</th><th>关键文件</th><th>核对点</th></tr></thead>
+          <tbody>
+            <tr><td>对象脏位</td><td><code>DirtyNetObjectTracker.h/.cpp</code></td><td>三组位图、Update/Lock/Accumulate/Reconcile。</td></tr>
+            <tr><td>全局 Push</td><td><code>GlobalDirtyNetObjectTracker.h/.cpp</code></td><td>NetHandle/RepIndex、成员 Poll Mask、多 poller。</td></tr>
+            <tr><td>适配层</td><td><code>LegacyPushModel.h/.cpp</code><br><code>PushModel.h/.cpp</code></td><td>模式、委托、宏族、运行期开关。</td></tr>
+            <tr><td>轮询执行</td><td><code>ObjectPoller.h/.cpp</code></td><td>PollAll/PollDirty、Force、hybrid、GC、并行任务。</td></tr>
+            <tr><td>频率调度</td><td><code>ObjectPollFrequencyLimiter.h/.cpp</code></td><td>counter、offset、dirty override、SIMD。</td></tr>
+            <tr><td>Bridge</td><td><code>ObjectReplicationBridge.h/.cpp</code><br><code>ObjectReplicationBridgeConfig.h</code></td><td>BuildPollList、PreUpdate、PollConfigs、动态频率。</td></tr>
+            <tr><td>帧顺序</td><td><code>ReplicationSystem.cpp</code></td><td>Dirty update、Poll、Quantize、Send、Reset。</td></tr>
+            <tr><td>ChangeMask</td><td><code>ChangeMaskUtil.h/.cpp</code><br><code>ReplicationStateDescriptor.h</code><br><code>ReplicationOperations.cpp</code></td><td>64-bit 内联、成员 bit 描述、稀疏序列化。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-12-03" tabindex="-1">自动化测试告诉了我们什么</h3>
+        <ul>
+          <li><code>TestDirtyNetObjectTracker.cpp</code>：初始无脏位、非法索引安全、合法标脏、清理、延迟脏位、global tracker、PreUpdate 中 Mark/Force 与 Push 自标脏；</li>
+          <li><code>TestObjectPollFrequencyLimiter.cpp</code>：相同频率对象错峰、随机创建/更新仍保持分布、根对象与子对象共同轮询及 Force；</li>
+          <li><code>TestPreUpdateCallback.cpp</code>：PreUpdate 中创建对象，以及 fully-push 新对象在时序中是否被 Poll；</li>
+          <li><code>TestReplicationStateDescriptorBuilder.cpp</code>：Descriptor Push traits 与成员描述；</li>
+          <li><code>ReplicatedTestObject.cpp</code>：<code>bIsPushBased</code> + <code>DOREPLIFETIME_WITH_PARAMS</code> 的可运行示例。</li>
+        </ul>
+        <p>这些测试最重要的价值不是证明一个 happy path，而是说明时序边界：Dirty 可能跨帧累计；PreUpdate 内产生的新变化需要再次 gather；Force 与子对象传播也必须用明确场景验证。</p>
+
+        <h3 id="section-12-04" tabindex="-1">Epic Games 官方资料</h3>
+        <ul>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/FDoRepLifetimeParams?application_version=5.7" target="_blank" rel="noopener noreferrer">FDoRepLifetimeParams（UE 5.7）</a>：<code>bIsPushBased</code> 的公共声明。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridge/SetPollFrequency?application_version=5.7" target="_blank" rel="noopener noreferrer">UObjectReplicationBridge::SetPollFrequency（UE 5.7）</a>：根对象与子对象轮询频率接口。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridge/FRootObjectReplicationParams?application_version=5.7" target="_blank" rel="noopener noreferrer">FRootObjectReplicationParams（UE 5.7）</a>：<code>PollFrequency</code> 与 PreUpdate 参数。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UReplicationSystem/NetUpdate?application_version=5.7" target="_blank" rel="noopener noreferrer">UReplicationSystem::NetUpdate（UE 5.7）</a>：ReplicationSystem 每帧入口。</li>
+          <li><a href="https://dev.epicgames.com/documentation/unreal-engine/console-commands-for-network-debugging-in-unreal-engine?lang=en-US" target="_blank" rel="noopener noreferrer">Console Commands for Network Debugging</a>：<code>net.IsPushModelEnabled</code>、Push 验证与调试开关。</li>
+          <li><a href="https://dev.epicgames.com/documentation/unreal-engine/testing-and-debugging-networked-games-in-unreal-engine" target="_blank" rel="noopener noreferrer">Testing and Debugging Networked Games</a>：Networking Insights、Network Profiler 与测试入口。</li>
+        </ul>
+        <p>官方资料用于确认公共参数与调试入口；Tracker、Poller、Limiter、ChangeMask storage、CVar 默认值与执行分支以本地 UE 5.7.4 Private 源码为准。</p>
+
+        <h2 id="section-13" tabindex="-1">💡 11.7 总结与下一部分：从“谁脏了”到“它引用谁”</h2>
+        <ul>
+          <li>Poll 主动检查，Push 主动通知；Iris 允许 fully-push、pure-poll 和 hybrid 对象共存。</li>
+          <li><code>FDirtyNetObjectTracker</code> 用本帧 Dirty、跨帧 Accumulated 与 Force 三组位图避免丢失和语义混淆。</li>
+          <li>属性级 Push 通过 Legacy 适配层进入 Global Tracker，并可按 RepIndex 生成 Member Poll Mask。</li>
+          <li>Push 不是零轮询：Poller 仍负责读取、比较、GC 引用刷新和 hybrid Fragment。</li>
+          <li><code>ForceNetUpdate</code> 可越过轮询频率门控，但不保证绕过连接级筛选和本帧预算。</li>
+          <li>Frequency Limiter 用 <code>uint8</code> counter、错峰 offset 与 SIMD 把大量对象的 Poll 成本摊开。</li>
+          <li>对象脏位、Member Poll Mask 与量化 ChangeMask 是三层不同数据；只有最后一层确认真实成员变化。</li>
+          <li>小 ChangeMask 在 64 bits 内内联；网络侧使用 sparse mask，教学位数不能当作最终包大小。</li>
+          <li>Push 收益没有通用倍数，必须同时测候选规模、Poll CPU、ChangeMask 与最终逐连接网络结果。</li>
+        </ul>
+
+        <p>第十一部分回答了“当前状态中的谁值得检查、谁确实变化”。下一部分将进入<strong>对象引用与依赖</strong>：当一个复制成员指向另一个 UObject 时，Iris 如何用 NetObjectReference 表达身份，怎样处理未解析引用、必须先存在的依赖，以及 owner、subobject 与 dependent object 如何共同影响发送顺序。</p>
+        <p><a href="/html-articles/ue5-iris-guide-part-10/">← 回看第十部分：增量压缩</a></p>
+        <p><a href="/html-articles/ue5-iris-guide-outline/">前往系列大纲与第十二部分：对象引用与依赖 →</a></p>
+      </article>
+
+      <footer class="article-footer">
+        <p><strong>文章来源：</strong>Jossy Zhang 根据《UE5 Iris 网络复制系统技术分析指南》大纲原创扩写。技术依据为本地 Unreal Engine 5.7.4 源码、ReplicationSystemTestPlugin 自动化测试与 Epic Games 官方资料。</p>
+        <p><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/FDoRepLifetimeParams?application_version=5.7" target="_blank" rel="noopener noreferrer">Epic Games：FDoRepLifetimeParams</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridge/SetPollFrequency?application_version=5.7" target="_blank" rel="noopener noreferrer">SetPollFrequency</a> · <a href="https://dev.epicgames.com/documentation/unreal-engine/console-commands-for-network-debugging-in-unreal-engine?lang=en-US" target="_blank" rel="noopener noreferrer">Network Debugging Commands</a></p>
+        <a class="back-home" href="/">← 返回博客首页</a>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="返回页面顶部">↑</button>
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const links = Array.from(document.querySelectorAll(".toc a[data-section], .toc-mobile a[data-section]"));
+      const sections = [...new Set(links.map((link) => document.getElementById(link.dataset.section)).filter(Boolean))];
+      const update = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+        const line = Math.min(180, window.innerHeight * .18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= line) activeId = section.id;
+          else break;
+        }
+        links.forEach((link) => {
+          if (link.dataset.section === activeId) link.setAttribute("aria-current", "true");
+          else link.removeAttribute("aria-current");
+        });
+      };
+      window.addEventListener("scroll", update, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      update();
+    })();
+  </script>
+</body>
+</html>

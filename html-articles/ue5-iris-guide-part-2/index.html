@@ -1,0 +1,1927 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Smartuil">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第二部分，详解游戏层、桥接层、复制系统、数据流与网络传输的七层架构和数据流向。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="canonical" href="https://zhuanlan.zhihu.com/p/1996687209709991513">
+  <title>UE5-Iris 网络复制系统技术分析 - 第二部分：架构层次 · Smartuil</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: var(--iris);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+    }
+
+    a:hover {
+      color: var(--signal);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, 0.42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, 0.2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "IRIS";
+      position: absolute;
+      right: -0.04em;
+      bottom: -0.39em;
+      color: rgba(255, 255, 255, 0.045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -0.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner {
+      position: relative;
+      max-width: 1000px;
+      z-index: 1;
+    }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 28px;
+      color: #f3c3ae;
+      font: 700 0.76rem/1 var(--mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 42px;
+      height: 2px;
+      background: var(--signal);
+    }
+
+    h1 {
+      max-width: 1100px;
+      margin: 0;
+      font: 800 clamp(2.5rem, 5.4vw, 5rem) / 1.08 var(--serif);
+      letter-spacing: -0.04em;
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    .hero__deck {
+      max-width: 760px;
+      margin: 28px 0 0;
+      color: rgba(255, 253, 248, 0.75);
+      font: 400 clamp(1rem, 1.9vw, 1.25rem) / 1.8 var(--sans);
+    }
+
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 30px;
+      margin-top: 38px;
+      color: rgba(255, 253, 248, 0.8);
+      font: 600 0.84rem/1.6 var(--mono);
+    }
+
+    .hero__meta a {
+      color: #fff;
+    }
+
+    .hero__meta span {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hero__meta span::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 880px);
+      gap: clamp(44px, 6vw, 92px);
+      width: min(1260px, calc(100% - 56px));
+      margin: 0 auto;
+      padding: 68px 0 90px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 28px;
+      max-height: calc(100vh - 56px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.72);
+      box-shadow: 0 18px 50px rgba(25, 35, 58, 0.07);
+      backdrop-filter: blur(18px);
+    }
+
+    .toc__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toc__head strong {
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .toc__head span {
+      color: var(--signal);
+      font: 700 0.68rem/1 var(--mono);
+      letter-spacing: 0.1em;
+    }
+
+    .toc ol {
+      max-height: calc(100vh - 116px);
+      margin: 0;
+      padding: 10px 0 20px;
+      overflow: auto;
+      list-style: none;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .toc li {
+      margin: 0;
+    }
+
+    .toc a {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      padding: 9px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: 140ms ease;
+    }
+
+    .toc a:hover,
+    .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.08);
+      border-left-color: var(--signal);
+    }
+
+    .toc a span {
+      padding-top: 0.2em;
+      color: var(--signal);
+      font: 700 0.66rem/1.5 var(--mono);
+    }
+
+    .toc a b {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .toc-mobile {
+      display: none;
+    }
+
+    .article-shell {
+      min-width: 0;
+    }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin: 0 0 46px;
+      padding: 18px 20px;
+      background: var(--signal-soft);
+      border-left: 5px solid var(--signal);
+    }
+
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      color: #fff;
+      background: var(--signal);
+      border-radius: 50%;
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .source-note p {
+      margin: 0;
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .source-note p strong {
+      display: block;
+      color: var(--iris-dark);
+    }
+
+    .source-note > a {
+      white-space: nowrap;
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    article {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    article > p,
+    article > ul,
+    article > blockquote,
+    article > .table-scroll,
+    article > figure,
+    article > .reading-link-wrap {
+      max-width: 790px;
+    }
+
+    article p {
+      margin: 1rem 0;
+    }
+
+    article h2 {
+      position: relative;
+      margin: 5.8rem 0 2rem;
+      padding: 0.8rem 0 1rem 56px;
+      color: var(--iris-dark);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font: 800 clamp(1.65rem, 3.2vw, 2.5rem) / 1.28 var(--serif);
+      letter-spacing: -0.025em;
+      scroll-margin-top: 28px;
+    }
+
+    article h2::before {
+      content: counter(chapter, decimal-leading-zero);
+      counter-increment: chapter;
+      position: absolute;
+      left: 0;
+      top: 1.15rem;
+      color: var(--signal);
+      font: 800 0.74rem/1 var(--mono);
+      letter-spacing: 0.08em;
+    }
+
+    article {
+      counter-reset: chapter;
+    }
+
+    article h3 {
+      margin: 3.2rem 0 1.15rem;
+      padding-left: 18px;
+      color: var(--ink);
+      border-left: 4px solid var(--iris);
+      font: 750 clamp(1.18rem, 2.1vw, 1.48rem) / 1.45 var(--serif);
+      scroll-margin-top: 28px;
+    }
+
+    article h2:first-of-type {
+      margin-top: 3rem;
+    }
+
+    article ul {
+      margin: 0.9rem 0 1.4rem;
+      padding-left: 1.35rem;
+    }
+
+    article ul ul {
+      margin: 0.45rem 0 0.7rem;
+      padding-left: 1.6rem;
+      border-left: 1px dashed var(--line);
+    }
+
+    article li {
+      margin: 0.32rem 0;
+      padding-left: 0.18rem;
+    }
+
+    article li::marker {
+      color: var(--signal);
+    }
+
+    article blockquote {
+      margin: 1.8rem 0;
+      padding: 20px 24px;
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.075);
+      border-left: 5px solid var(--iris);
+      font-family: var(--serif);
+      font-size: 1.05rem;
+    }
+
+    article blockquote p {
+      margin: 0;
+    }
+
+    article hr {
+      width: 90px;
+      height: 8px;
+      margin: 5.5rem 0 0;
+      background:
+        linear-gradient(90deg, var(--signal) 0 26px, transparent 26px 32px, var(--iris) 32px 90px);
+      border: 0;
+    }
+
+    article code {
+      padding: 0.12em 0.38em;
+      color: #aa3f27;
+      background: #ece3d6;
+      border: 1px solid #d9ccbb;
+      border-radius: 3px;
+      font: 0.84em/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+
+    article strong {
+      color: var(--iris-dark);
+    }
+
+    article figure {
+      margin: 2rem 0 3rem;
+      padding: 10px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    article img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .reading-link-wrap {
+      margin: 1rem 0 2.4rem;
+    }
+
+    .reading-link {
+      display: grid;
+      gap: 5px;
+      padding: 22px 24px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--iris-dark);
+      border-right: 7px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(39, 53, 111, 0.2);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .reading-link:hover {
+      color: var(--white);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 42px rgba(39, 53, 111, 0.25);
+    }
+
+    .reading-link__label,
+    .reading-link__url {
+      color: rgba(255, 255, 255, 0.6);
+      font: 700 0.7rem/1.5 var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .reading-link strong {
+      color: var(--white);
+      font: 700 1.1rem/1.4 var(--serif);
+    }
+
+    .table-scroll {
+      margin: 2rem 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--white);
+      box-shadow: 0 14px 38px rgba(25, 35, 58, 0.07);
+    }
+
+    table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th,
+    td {
+      padding: 13px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      color: var(--white);
+      background: var(--iris-dark);
+      font-family: var(--serif);
+    }
+
+    .article-footer {
+      margin-top: 76px;
+      padding: 38px 0 0;
+      border-top: 3px solid var(--ink);
+    }
+
+    .article-footer__grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+    }
+
+    .article-footer h2 {
+      margin: 0 0 8px;
+      padding: 0;
+      border: 0;
+      font-size: 1.35rem;
+    }
+
+    .article-footer h2::before {
+      display: none;
+    }
+
+    .article-footer p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.86rem;
+    }
+
+    .article-footer a {
+      display: inline-block;
+      padding: 12px 16px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--signal);
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 12px 32px rgba(25, 35, 58, 0.23);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: 160ms ease;
+    }
+
+    .back-top.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        display: block;
+        width: min(860px, calc(100% - 40px));
+        padding-top: 36px;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .toc-mobile {
+        display: block;
+        margin-bottom: 28px;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.85);
+      }
+
+      .toc-mobile summary {
+        padding: 15px 18px;
+        color: var(--iris-dark);
+        cursor: pointer;
+        font: 750 0.9rem/1.4 var(--serif);
+      }
+
+      .toc-mobile ol {
+        max-height: 52vh;
+        margin: 0;
+        padding: 8px 18px 18px 48px;
+        overflow: auto;
+      }
+
+      .toc-mobile li {
+        margin: 0.4rem 0;
+      }
+
+      .toc-mobile a {
+        font-size: 0.8rem;
+      }
+
+      .toc-mobile a span {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 16px;
+      }
+
+      h1 {
+        font-size: 2.18rem;
+        letter-spacing: -0.045em;
+      }
+
+      .hero {
+        padding: 54px 22px 52px;
+      }
+
+      .hero::before {
+        font-size: 50vw;
+        bottom: -0.23em;
+      }
+
+      .kicker {
+        margin-bottom: 22px;
+      }
+
+      .hero__meta {
+        display: grid;
+        gap: 8px;
+      }
+
+      .layout {
+        width: min(100% - 32px, 860px);
+        padding-bottom: 64px;
+      }
+
+      .source-note {
+        grid-template-columns: auto 1fr;
+      }
+
+      .source-note > a {
+        grid-column: 2;
+      }
+
+      article h2 {
+        margin-top: 4.6rem;
+        padding-left: 44px;
+      }
+
+      article h3 {
+        margin-top: 2.8rem;
+      }
+
+      .article-footer__grid {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .back-top {
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+
+    @media print {
+      .reading-progress,
+      .toc,
+      .toc-mobile,
+      .back-top {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+      }
+
+      .hero {
+        padding: 32px 0;
+        color: #000;
+        background: #fff;
+        border-bottom: 2px solid #000;
+      }
+
+      .hero::before {
+        display: none;
+      }
+
+      .hero__deck,
+      .hero__meta,
+      .hero__meta a {
+        color: #333;
+      }
+
+      .layout {
+        display: block;
+        width: 100%;
+        padding: 24px 0;
+      }
+
+      article h2,
+      article h3 {
+        break-after: avoid;
+      }
+
+      article a {
+        color: #000;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+
+    .hero--part h1 {
+      max-width: 1180px;
+      font-size: clamp(2.45rem, 4.5vw, 4.45rem);
+    }
+
+    article pre {
+      max-width: 100%;
+      margin: 1.4rem 0 1.8rem;
+      padding: 20px 22px;
+      overflow-x: auto;
+      color: #e9edf8;
+      background: #17203a;
+      border: 1px solid #303d68;
+      border-left: 5px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(25, 35, 58, 0.13);
+      tab-size: 4;
+    }
+
+    article pre code {
+      display: block;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      white-space: pre;
+      overflow-wrap: normal;
+      font-size: 0.78rem;
+      line-height: 1.68;
+    }
+
+    @media (max-width: 640px) {
+      .hero--part h1 {
+        font-size: 2.05rem;
+      }
+
+      article pre {
+        margin-right: -4px;
+        padding: 16px;
+      }
+    }
+
+
+    article > ol {
+      max-width: 790px;
+    }
+
+    article ol {
+      margin: 0.9rem 0 1.4rem;
+      padding-left: 1.6rem;
+    }
+
+    article ol ol,
+    article ol ul,
+    article ul ol {
+      margin: 0.45rem 0 0.7rem;
+      padding-left: 1.6rem;
+      border-left: 1px dashed var(--line);
+    }
+</style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.5 · Iris Replication System</p>
+      <h1>
+  <span>UE5-Iris 网络复制系统技术分析</span>
+  <span>第二部分：架构层次</span>
+</h1>
+      <p class="hero__deck">以国际快递中心为类比，逐层拆解 Iris 从游戏对象、桥接系统、复制调度、数据流到网络传输的七层架构与完整数据路径。</p>
+      <div class="hero__meta" aria-label="文章信息">
+  <span>作者 Smartuil</span>
+  <span>发布 2026-01-19</span>
+  <span>编辑 2026-01-21</span>
+  <span>12 个章节 · 42 个小节</span>
+  <span><a href="https://zhuanlan.zhihu.com/p/1996687209709991513" target="_blank" rel="noopener noreferrer">知乎原文 →</a></span>
+</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head">
+        <strong>内容索引</strong>
+        <span>CONTENTS</span>
+      </div>
+      <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>更好的阅读体验：</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🌐 Iris 网络复制系统技术分析 - 第二部分：架构层次</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>2.1 七层架构总览</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🎮 2.2 游戏层 (Game Layer)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>🔌 2.3 引擎桥接层 (Engine Replication Bridge)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>🧩 2.4 对象桥接层 (Object Replication Bridge)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>🔗 2.5 复制桥接层 (Replication Bridge)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-08" data-section="section-08">
+          <span>08</span>
+          <b>🧠 2.6 复制系统层 (Replication System)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-09" data-section="section-09">
+          <span>09</span>
+          <b>📦 2.7 数据流层 (Data Streams)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-10" data-section="section-10">
+          <span>10</span>
+          <b>🌐 2.8 网络传输层 (Network Transport)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-11" data-section="section-11">
+          <span>11</span>
+          <b>🔄 2.9 数据流向概览</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-12" data-section="section-12">
+          <span>12</span>
+          <b>📚 本章小结</b>
+        </a>
+      </li></ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 12 个章节</summary>
+        <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>更好的阅读体验：</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🌐 Iris 网络复制系统技术分析 - 第二部分：架构层次</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>2.1 七层架构总览</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🎮 2.2 游戏层 (Game Layer)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>🔌 2.3 引擎桥接层 (Engine Replication Bridge)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>🧩 2.4 对象桥接层 (Object Replication Bridge)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>🔗 2.5 复制桥接层 (Replication Bridge)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-08" data-section="section-08">
+          <span>08</span>
+          <b>🧠 2.6 复制系统层 (Replication System)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-09" data-section="section-09">
+          <span>09</span>
+          <b>📦 2.7 数据流层 (Data Streams)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-10" data-section="section-10">
+          <span>10</span>
+          <b>🌐 2.8 网络传输层 (Network Transport)</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-11" data-section="section-11">
+          <span>11</span>
+          <b>🔄 2.9 数据流向概览</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-12" data-section="section-12">
+          <span>12</span>
+          <b>📚 本章小结</b>
+        </a>
+      </li></ol>
+      </details>
+
+      <div class="source-note" role="note">
+  <span class="source-note__mark" aria-hidden="true">源</span>
+  <p><strong>文章来源</strong>本文由 Smartuil 发布于知乎专栏，经授权整理为 HTML 阅读版。</p>
+  <a href="https://zhuanlan.zhihu.com/p/1996687209709991513" target="_blank" rel="noopener noreferrer">查看原文 →</a>
+</div>
+
+      <article id="imported-article"><h2 id="section-01" tabindex="-1">更好的阅读体验：</h2><div class="reading-link-wrap"><a href="https://www.bonan.online/posts/Iris2" target="_blank" rel="noopener noreferrer" class="reading-link">
+    <span class="reading-link__label">延伸阅读</span>
+    <strong>Iris 网络复制系统技术分析 - 第二部分：架构层次</strong>
+    <span class="reading-link__url">www.bonan.online/posts/Iris2</span>
+  </a></div><h2 id="section-02" tabindex="-1">🌐 Iris 网络复制系统技术分析 - 第二部分：架构层次</h2><figure><div><img src="./assets/iris-guide-overview.jpg" width="1376" alt="Iris 网络复制系统技术分析第二部分概览" height="768"></div></figure><blockquote> 🎯 <strong>本章目标</strong>：理解 Iris 的七层架构设计，就像了解一家物流公司的运作流程一样简单。</blockquote><hr><h2 id="section-03" tabindex="-1">2.1 <a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=2&amp;q=%E4%B8%83%E5%B1%82%E6%9E%B6%E6%9E%84&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">七层架构</a>总览</h2><h3 id="section-03-01" tabindex="-1">📦 从一个国际快递中心说起</h3><p>想象你要从北京仓库发货给全国各地的客户：</p><div><pre><code>📦 仓库货物（服务器数据）："这批货要发给上海、广州、成都的客户"
+     ↓
+📝 入库登记 → 📋 订单分拣 → 📜 规则制定 → ⚖️ 调度排期 → 📦 打包封装 → 🚚 物流配送 → 🏠 客户签收</code></pre></div><p>Iris 的架构也是这样分层的，每一层都有明确的职责：</p><div><pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                     🏗️ Iris 七层架构                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│   🎮 第 1 层   游戏层 (Game Layer)                                   │
+│               你的游戏代码：AActor、UActorComponent                 │
+│               ─────────────────────────────────────────             │
+│                              ↓↑                                     │
+│   🔌 第 2 层   引擎桥接层 (Engine Replication Bridge)                │
+│               UEngineReplicationBridge                              │
+│               ─────────────────────────────────────────             │
+│                              ↓↑                                     │
+│   🧩 第 3 层   对象桥接层 (Object Replication Bridge)                │
+│               UObjectReplicationBridge                              │
+│               ─────────────────────────────────────────             │
+│                              ↓↑                                     │
+│   🔗 第 4 层   复制桥接层 (Replication Bridge)                       │
+│               UReplicationBridge                                    │
+│               ─────────────────────────────────────────             │
+│                              ↓↑                                     │
+│   🧠 第 5 层   复制系统层 (Replication System)                       │
+│               UReplicationSystem                                    │
+│               ─────────────────────────────────────────             │
+│                              ↓↑                                     │
+│   📦 第 6 层   数据流层 (Data Streams)                               │
+│               UDataStream、ReplicationWriter/Reader                 │
+│               ─────────────────────────────────────────             │
+│                              ↓↑                                     │
+│   🌐 第 7 层   网络传输层 (Network Transport)                        │
+│               UNetConnection、底层 Socket                           │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-03-02" tabindex="-1">📦 快递物流比喻对照表</h3><div class="table-scroll"><table><tbody><tr><th>物流角色</th><th>Iris 层次</th><th>职责</th></tr><tr><td>📦 仓库货物</td><td>🎮 游戏层</td><td>数据源头（服务器上的游戏对象）</td></tr><tr><td>📝 入库登记</td><td>🔌 引擎桥接层</td><td>登记货物信息（注册 Actor/Component）</td></tr><tr><td>📋 订单分拣</td><td>🧩 对象桥接层</td><td>分类整理（配置过滤/优先级规则）</td></tr><tr><td>📜 规则制定</td><td>🔗 复制桥接层</td><td>制定复制协议（网络<a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=1&amp;q=%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">对象生命周期</a>）</td></tr><tr><td>⚖️ 调度排期</td><td>🧠 复制系统层</td><td>决定发哪些货、发给谁、先发哪个</td></tr><tr><td>📦 打包封装</td><td>📦 数据流层</td><td>把货物打包成快递包裹（<a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=1&amp;q=%E5%BA%8F%E5%88%97%E5%8C%96&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">序列化</a>）</td></tr><tr><td>🚚 物流配送</td><td>🌐 网络传输层</td><td>运输到目的地（发送<a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=1&amp;q=%E7%BD%91%E7%BB%9C%E6%95%B0%E6%8D%AE%E5%8C%85&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">网络数据包</a>）</td></tr></tbody></table></div><h3 id="section-03-03" tabindex="-1">❓ 为什么要分层？</h3><div><pre><code>❌ 不分层的问题（传统方式）：
+┌─────────────────────────────────────┐
+│ 一个巨大的类做所有事情               │
+│ 😰 难以维护                         │
+│ 😰 难以测试                         │
+│ 😰 难以优化                         │
+│ 😰 改一处可能影响全局                │
+└─────────────────────────────────────┘
+
+✅ 分层的好处（Iris 方式）：
+┌─────────────────────────────────────┐
+│ 每层只关心自己的事情                 │
+│ 🎮 游戏层：我只管设置属性值          │
+│ 🔌 桥接层：我只管翻译游戏对象        │
+│ 🧠 复制层：我只管调度和过滤          │
+│ 📦 数据层：我只管序列化              │
+│ 🌐 传输层：我只管发包                │
+└─────────────────────────────────────┘</code></pre></div><blockquote> 💡 <strong>新手理解</strong>：分层就像公司的部门划分——财务部不需要知道技术部怎么写代码，技术部也不需要知道财务部怎么做账。各司其职，效率更高。<br> 📌 <strong>Bridge 层说明</strong>：第 2-4 层是<a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=1&amp;q=%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">继承关系</a>（UEngineReplicationBridge → UObjectReplicationBridge → UReplicationBridge），共同组成”桥接层”，负责将游戏对象”翻译”成网络对象。</blockquote><hr><h2 id="section-04" tabindex="-1">🎮 2.2 游戏层 (Game Layer)</h2><h3 id="section-04-01" tabindex="-1">🤔 这一层是什么？</h3><p>游戏层就是<strong>你写的游戏代码</strong>。这是你最熟悉的地方：</p><div><pre><code>// 🎮 这就是游戏层的代码
+UCLASS()
+class AMyCharacter : public ACharacter
+{
+    GENERATED_BODY()
+
+    // ✨ 需要同步的属性
+    UPROPERTY(Replicated)
+    float Health;
+
+    UPROPERTY(Replicated)
+    int32 Score;
+
+    UPROPERTY(ReplicatedUsing = OnRep_WeaponClass)
+    TSubclassOf&lt;AWeapon&gt; CurrentWeaponClass;
+
+    UFUNCTION()
+    void OnRep_WeaponClass();
+};</code></pre></div><h3 id="section-04-02" tabindex="-1">📋 游戏层的职责</h3><div><pre><code>游戏层只需要做三件事：
+
+1️⃣ 声明哪些属性需要同步
+   UPROPERTY(Replicated)
+   float Health;
+
+2️⃣ 在服务器上修改属性值
+   Health = 100.0f;  // 服务器修改，自动同步到客户端
+
+3️⃣ （可选）处理属性变化通知
+   UFUNCTION()
+   void OnRep_Health() { UpdateHealthBar(); }</code></pre></div><h3 id="section-04-03" tabindex="-1">🙅 你不需要关心的事情</h3><div><pre><code>作为游戏程序员，你不需要关心：
+
+❌ 数据怎么打包成二进制
+❌ 网络包怎么发送
+❌ 客户端怎么接收
+❌ 属性怎么反序列化
+❌ 带宽怎么分配
+
+✅ 这些都由下面的层自动处理！</code></pre></div><h3 id="section-04-04" tabindex="-1">🔄 游戏层与复制系统的交互</h3><div><pre><code>🎮 游戏层
+                      │
+    ┌─────────────────┼─────────────────┐
+    │                 │                 │
+    ▼                 ▼                 ▼
+ 📝 设置属性       📞 调用 RPC       🆕 创建/销毁对象
+    │                 │                 │
+    ▼                 ▼                 ▼
+Health = 50    ClientRPC_ShowDamage()  SpawnActor()
+    │                 │                 │
+    └─────────────────┼─────────────────┘
+                      │
+                      ▼
+              ✨ Iris 自动处理同步</code></pre></div><h3 id="section-04-05" tabindex="-1">💻 代码示例：一个完整的可复制 Actor</h3><div><pre><code>// 📁 MyProjectile.h
+UCLASS()
+class AMyProjectile : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    AMyProjectile();
+
+    // 📋 告诉引擎这个 Actor 需要网络复制
+    virtual void GetLifetimeReplicatedProps(TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) const override;
+
+protected:
+    // 🚀 位置和速度需要同步
+    UPROPERTY(Replicated)
+    FVector Velocity;
+
+    // 💥 伤害值只需要同步一次（InitialOnly）
+    UPROPERTY(Replicated)
+    float Damage;
+
+    // 👤 拥有者变化时需要通知
+    UPROPERTY(ReplicatedUsing = OnRep_OwnerPlayer)
+    APlayerController* OwnerPlayer;
+
+    UFUNCTION()
+    void OnRep_OwnerPlayer();
+};
+
+// 📁 MyProjectile.cpp
+void AMyProjectile::GetLifetimeReplicatedProps(TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AMyProjectile, Velocity);
+    DOREPLIFETIME_CONDITION(AMyProjectile, Damage, COND_InitialOnly);
+    DOREPLIFETIME(AMyProjectile, OwnerPlayer);
+}</code></pre></div><blockquote> 💡 <strong>新手提示</strong>：游戏层是你唯一需要写代码的地方。只要正确使用 <code>UPROPERTY(Replicated)</code>，Iris 会自动处理剩下的一切。</blockquote><hr><h2 id="section-05" tabindex="-1">🔌 2.3 引擎桥接层 (Engine Replication Bridge)</h2><h3 id="section-05-01" tabindex="-1">🤔 这一层是什么？</h3><p>引擎桥接层是<strong>游戏层和 Iris 系统之间的翻译官</strong>。它把 Unreal 的 Actor/Component 概念翻译成 Iris 能理解的网络对象。</p><div><pre><code>🌍 生活比喻：国际会议的同声传译
+
+🇨🇳 中国代表（游戏层）    🎙️ 翻译官（引擎桥接层）    🌐 外国代表（Iris 系统）
+     │                        │                         │
+     │ "我们需要同步这个角色"   │                         │
+     │───────────────────────→│                         │
+     │                        │ "Register NetObject     │
+     │                        │  with handle 0x1234"    │
+     │                        │────────────────────────→│
+     │                        │                         │</code></pre></div><h3 id="section-05-02" tabindex="-1">📋 UEngineReplicationBridge 的核心职责</h3><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│              🔌 UEngineReplicationBridge 职责                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ Actor 生命周期管理                                          │
+│     • Actor 创建时 → 注册为网络对象                              │
+│     • Actor 销毁时 → 注销网络对象                                │
+│                                                                 │
+│  2️⃣ Component 管理                                              │
+│     • 跟踪 Actor 的所有可复制组件                                │
+│     • 管理组件的子对象关系                                       │
+│                                                                 │
+│  3️⃣ 与 NetDriver 集成                                           │
+│     • 接收 NetDriver 的复制请求                                  │
+│     • 协调传统复制和 Iris 复制                                   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-05-03" tabindex="-1">🔄 Actor 生命周期管理</h3><div><pre><code>🆕 Actor 创建流程：
+
+🎮 游戏代码                 🔌 引擎桥接层                 🌐 Iris 系统
+   │                           │                            │
+   │ SpawnActor&lt;AEnemy&gt;()      │                            │
+   │──────────────────────────→│                            │
+   │                           │                            │
+   │                           │ 🔍 检查：这个 Actor 需要复制吗？
+   │                           │ (bReplicates == true?)     │
+   │                           │                            │
+   │                           │ ✅ 是 → BeginReplication() │
+   │                           │────────────────────────────→│
+   │                           │                            │
+   │                           │        🎫 分配 NetRefHandle │
+   │                           │←────────────────────────────│
+   │                           │        0x00001234          │
+   │                           │                            │
+   │ 返回 AEnemy*              │                            │
+   │←──────────────────────────│                            │
+
+
+🗑️ Actor 销毁流程：
+
+🎮 游戏代码                 🔌 引擎桥接层                 🌐 Iris 系统
+   │                           │                            │
+   │ Enemy-&gt;Destroy()          │                            │
+   │──────────────────────────→│                            │
+   │                           │                            │
+   │                           │ EndReplication()           │
+   │                           │────────────────────────────→│
+   │                           │                            │
+   │                           │        ♻️ 回收 NetRefHandle │
+   │                           │        📢 通知所有客户端销毁 │
+   │                           │←────────────────────────────│
+   │                           │                            │</code></pre></div><h3 id="section-05-04" tabindex="-1">🔗 与 NetDriver 的集成</h3><div><pre><code>⚖️ 传统 NetDriver 复制 vs Iris 复制：
+
+┌─────────────────────────────────────────────────────────────────┐
+│                        NetDriver                                 │
+│                           │                                      │
+│              ┌────────────┴────────────┐                        │
+│              │                         │                        │
+│              ▼                         ▼                        │
+│     🏚️ 传统复制路径              🆕 Iris 复制路径               │
+│     (旧系统)                     (新系统)                        │
+│              │                         │                        │
+│              │                         ▼                        │
+│              │              🔌 UEngineReplicationBridge         │
+│              │                         │                        │
+│              │                         ▼                        │
+│              │                   🌐 Iris 系统                    │
+│              │                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+💡 引擎桥接层让两种系统可以共存，方便逐步迁移。
+
+🔧 共存实现机制：
+┌─────────────────────────────────────────────────────────────────┐
+│  1️⃣ 全局开关控制                                                │
+│     • 命令行参数：-UseIrisReplication=true/false                │
+│     • 运行时 API：UE::Net::SetUseIrisReplication(bool)          │
+│     • 配置优先级：命令行 &gt; 项目设置 &gt; 默认值                     │
+│                                                                 │
+│  2️⃣ 路由分发                                                    │
+│     NetDriver 在复制时检查全局开关：                             │
+│     • 开关=true  → 走 Iris 路径（UEngineReplicationBridge）     │
+│     • 开关=false → 走传统路径（原有 AActor::ReplicateActor）    │
+│                                                                 │
+│  3️⃣ 接口兼容                                                    │
+│     UEngineReplicationBridge 实现了与传统系统相同的语义：        │
+│     • BeginReplication() ≈ 传统的 bReplicates=true              │
+│     • EndReplication()   ≈ 传统的 bReplicates=false             │
+│     • 游戏代码无需修改，桥接层自动适配                           │
+│                                                                 │
+│  4️⃣ 渐进迁移                                                    │
+│     可以先在测试环境启用 Iris，验证无问题后再全面切换            │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-05-05" tabindex="-1">🔧 关键接口</h3><div><pre><code>// 🔌 UEngineReplicationBridge 的关键方法（简化版）
+
+class UEngineReplicationBridge : public UObjectReplicationBridge
+{
+    // 🆕 开始复制一个 Actor
+    FNetRefHandle BeginReplication(AActor* Actor);
+
+    // 🗑️ 结束复制一个 Actor
+    void EndReplication(AActor* Actor);
+
+    // 🔍 获取 Actor 的网络句柄
+    FNetRefHandle GetNetRefHandle(const AActor* Actor);
+
+    // 🔍 从网络句柄获取 Actor
+    AActor* GetActor(FNetRefHandle Handle);
+
+    // 🧩 处理 Actor 的组件
+    void UpdateComponentsToReplicate(AActor* Actor);
+};</code></pre></div><blockquote> 💡 <strong>新手理解</strong>：引擎桥接层就像机场的海关——它检查每个”旅客”（Actor）是否有”护照”（需要复制），然后给他们发放”签证”（NetRefHandle）。</blockquote><hr><h2 id="section-06" tabindex="-1">🧩 2.4 对象桥接层 (Object Replication Bridge)</h2><h3 id="section-06-01" tabindex="-1">🤔 这一层是什么？</h3><p>对象桥接层是引擎桥接层的<strong>基类</strong>，处理更通用的 UObject 复制逻辑。如果说引擎桥接层是”Actor 专家”，那对象桥接层就是”通用对象专家”。</p><div><pre><code>📊 继承关系：
+
+🔷 UReplicationBridge（抽象基类）
+       │
+       ▼
+🔶 UObjectReplicationBridge（处理 UObject）
+       │
+       ▼
+🔵 UEngineReplicationBridge（处理 Actor/Component）</code></pre></div><h3 id="section-06-02" tabindex="-1">📋 UObjectReplicationBridge 的核心职责</h3><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│              🧩 UObjectReplicationBridge 职责                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ 过滤/优先级配置                                             │
+│     • 为每个对象类型配置过滤器                                   │
+│     • 为每个对象类型配置优先级策略                                 │
+│                                                                 │
+│  2️⃣ 轮询/脏数据检测                                             │
+│     • 检测哪些对象的属性发生了变化                               │
+│     • 管理轮询频率                                               │
+│                                                                 │
+│  3️⃣ 根对象与子对象管理                                          │
+│     • 区分独立复制的对象（根对象）                               │
+│     • 管理依附于其他对象的子对象                                 │
+│                                                                 │
+│  4️⃣ 休眠 (Dormancy) 管理                                        │
+│     • 暂停不活跃对象的复制                                       │
+│     • 节省带宽和 CPU                                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-06-03" tabindex="-1">🌳 <a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=3&amp;q=%E6%A0%B9%E5%AF%B9%E8%B1%A1&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">根对象</a> vs 子对象</h3><div><pre><code>🌳 根对象 (Root Object)：
+• 独立存在，有自己的 NetRefHandle
+• 例如：ACharacter、AWeapon、AVehicle
+
+🍃 子对象 (Sub Object)：
+• 依附于根对象，随根对象一起复制
+• 例如：UActorComponent、UInventoryItem
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   🌳 ACharacter (根对象)                                         │
+│   ├── 🍃 USkeletalMeshComponent (子对象)                        │
+│   ├── 🍃 UCharacterMovementComponent (子对象)                   │
+│   └── 🍃 UInventoryComponent (子对象)                           │
+│       ├── 🍂 UWeaponItem (子对象的子对象)                       │
+│       └── 🍂 UArmorItem (子对象的子对象)                        │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+📌 复制时：
+• 根对象决定"是否复制"
+• 子对象跟随根对象一起复制</code></pre></div><h3 id="section-06-04" tabindex="-1">⚙️ 过滤和优先级配置</h3><div><pre><code>📋 对象桥接层为每种类型的对象配置"规则"：
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 🎯 类型配置示例                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│ 👹 AEnemy:                                                      │
+│   🔍 过滤器: GridFilter (只同步给附近的玩家)                     │
+│   ⭐ 优先级策略: SphereWithOwnerBoost (距离越近优先级越高)         │
+│   ⏱️ 轮询频率: 每 2 帧检查一次                                   │
+│                                                                 │
+│ 🚀 AProjectile:                                                 │
+│   🔍 过滤器: 无 (同步给所有人)                                   │
+│   ⭐ 优先级策略: Sphere (纯距离优先级)                             │
+│   ⏱️ 轮询频率: 每帧检查                                          │
+│                                                                 │
+│ 💎 APickupItem:                                                 │
+│   🔍 过滤器: GridFilter                                         │
+│   ⭐ 优先级策略: 无 (默认优先级)                                   │
+│   ⏱️ 轮询频率: 每 10 帧检查一次 (物品不常变化)                   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-06-05" tabindex="-1">🔍 脏数据检测</h3><div><pre><code>💩 "脏"数据 = 发生了变化的数据
+
+🔍 检测方式：
+
+📊 方式 1：轮询 (Poll)
+  每隔 N 帧检查一次属性是否变化
+
+  帧 1: Health = 100 → 📝 记录
+  帧 2: Health = 100 → ✅ 没变，跳过
+  帧 3: Health = 80  → 🚨 变了！标记为脏
+
+⚡ 方式 2：推送 (Push)
+  属性变化时主动通知
+
+  Health = 80;  // 设置属性
+  MARK_PROPERTY_DIRTY(this, Health);  // 🏷️ 主动标记为脏
+
+  ✨ 优点：不需要每帧检查，更高效</code></pre></div><h3 id="section-06-06" tabindex="-1">😴 <a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=1&amp;q=%E4%BC%91%E7%9C%A0%E7%AE%A1%E7%90%86&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">休眠管理</a></h3><div><pre><code>😴 休眠 (Dormancy) = 暂停复制
+
+🎬 场景：一个敌人站在远处不动
+
+❌ 不休眠：
+  每帧都检查 → 每帧都发现没变化 → 浪费 CPU 😰
+
+✅ 休眠：
+  检测到长时间没变化 → 进入休眠 → 停止检查 😴
+  检测到变化 → 唤醒 → 恢复检查 ⚡
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  ⚡ 活跃状态            😴 休眠状态             ⚡ 活跃状态      │
+│  [每帧检查] ──(5秒没变化)──→ [停止检查] ──(属性变化)──→ [每帧检查]│
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><blockquote> 💡 <strong>新手理解</strong>：对象桥接层就像物业管理公司——它知道每个住户（对象）的情况，决定谁需要特殊服务（过滤/优先级），谁可以少打扰（休眠）。</blockquote><hr><h2 id="section-07" tabindex="-1">🔗 2.5 复制桥接层 (Replication Bridge)</h2><h3 id="section-07-01" tabindex="-1">🤔 这一层是什么？</h3><p>复制桥接层是 Bridge 层的<strong>基类</strong>，定义了网络对象的基本复制协议。它是 <code>UObjectReplicationBridge</code> 和 <code>UEngineReplicationBridge</code> 的父类。</p><div><pre><code>📊 继承关系（从下往上看）：
+
+🔗 UReplicationBridge（基类）← 第 4 层：定义复制协议
+       ↑
+🧩 UObjectReplicationBridge  ← 第 3 层：处理 UObject
+       ↑
+🔌 UEngineReplicationBridge  ← 第 2 层：处理 Actor/Component</code></pre></div><h3 id="section-07-02" tabindex="-1">📋 UReplicationBridge 的核心职责</h3><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│              🔗 UReplicationBridge 职责                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ 网络对象创建/销毁                                           │
+│     • 管理复制对象的生命周期                                     │
+│     • 分配和回收 NetRefHandle                                    │
+│                                                                 │
+│  2️⃣ 子对象管理                                                  │
+│     • 处理 SubObject 的注册和注销                                │
+│     • 维护父子对象关系                                           │
+│                                                                 │
+│  3️⃣ 关卡组管理                                                  │
+│     • 支持关卡流送的过滤组                                       │
+│     • 管理对象所属的关卡                                         │
+│                                                                 │
+│  4️⃣ 复制协议管理                                                │
+│     • 定义对象的复制规则                                         │
+│     • 管理 ReplicationProtocol                                   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-07-03" tabindex="-1">🔧 关键概念</h3><div><pre><code>🎫 NetRefHandle：
+  • 每个网络对象的唯一标识符
+  • 服务器和客户端通过它识别同一个对象
+  • 类似于"身份证号"
+
+📜 ReplicationProtocol：
+  • 描述对象如何复制
+  • 包含哪些属性、如何序列化等信息
+  • 类似于"复制说明书"
+
+🌳 关卡组：
+  • 按关卡分组管理对象
+  • 支持关卡流送时的批量过滤
+  • 类似于"按楼层管理住户"</code></pre></div><blockquote> 💡 <strong>新手理解</strong>：复制桥接层就像户籍管理处——它给每个”居民”（网络对象）发放”身份证”（NetRefHandle），制定”户籍规则”（ReplicationProtocol），并按”社区”（关卡组）管理。</blockquote><hr><h2 id="section-08" tabindex="-1">🧠 2.6 复制系统层 (Replication System)</h2><h3 id="section-08-01" tabindex="-1">🤔 这一层是什么？</h3><p>复制系统层是 Iris 的<strong>大脑和心脏</strong>。它协调所有的复制工作，就像一个大型物流中心的<a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=1&amp;q=%E8%B0%83%E5%BA%A6%E4%B8%AD%E5%BF%83&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">调度中心</a>。</p><div><pre><code>🏭 生活比喻：快递分拣中心
+
+                    ┌─────────────────┐
+                    │   🧠 调度中心    │
+                    │ (ReplicationSystem)
+                    └────────┬────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+        ▼                    ▼                    ▼
+   ┌─────────┐         ┌─────────┐         ┌─────────┐
+   │ 🔍 过滤  │         │ ⭐ 优先级│         │ 🔗 连接  │
+   │ "这个包裹│         │ "先送哪个│         │ "送到哪个│
+   │  送不送？"│         │  包裹？" │         │  地址？" │
+   └─────────┘         └─────────┘         └─────────┘</code></pre></div><h3 id="section-08-02" tabindex="-1">📋 UReplicationSystem 的核心职责</h3><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                  🧠 UReplicationSystem 职责                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ 主更新循环 (NetUpdate)                                      │
+│     • 每帧调用，驱动整个复制流程                                 │
+│     • 协调过滤、优先级、序列化                                   │
+│                                                                 │
+│  2️⃣ 连接管理                                                    │
+│     • 管理所有客户端连接                                         │
+│     • 每个连接有独立的复制状态                                   │
+│                                                                 │
+│  3️⃣ 过滤系统                                                    │
+│     • 决定哪些对象发送给哪些客户端                               │
+│     • 调用各种过滤器                                             │
+│                                                                 │
+│  4️⃣ 优先级系统                                                  │
+│     • 决定对象的发送顺序                                         │
+│     • 带宽不够时优先发送重要对象                                 │
+│                                                                 │
+│  5️⃣ 组管理                                                      │
+│     • 管理复制组（如关卡流送组）                                 │
+│     • 批量控制对象的复制状态                                     │
+│                                                                 │
+│  6️⃣ RPC 处理                                                    │
+│     • 处理远程过程调用                                           │
+│     • 保证 RPC 的可靠性                                          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-08-03" tabindex="-1">🔄 主更新循环 (NetUpdate)</h3><div><pre><code>⏱️ 每帧的复制流程：
+
+┌─────────────────────────────────────────────────────────────────┐
+│                      🔄 NetUpdate() 流程                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ 收集脏对象                                                  │
+│     "哪些对象的属性变了？" 🔍                                    │
+│     ↓                                                           │
+│  2️⃣ 过滤                                                        │
+│     "这些对象应该发给哪些客户端？" 🎯                            │
+│     ↓                                                           │
+│  3️⃣ 优先级排序                                                  │
+│     "带宽有限，先发哪些？" ⭐                                    │
+│     ↓                                                           │
+│  4️⃣ 序列化                                                      │
+│     "把对象数据打包成二进制" 📦                                  │
+│     ↓                                                           │
+│  5️⃣ 发送                                                        │
+│     "通过网络发出去" 🚀                                          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-08-04" tabindex="-1">🔗 连接管理</h3><div><pre><code>🌐 每个客户端连接都是独立的：
+
+🖥️ 服务器
+  │
+  ├── 🔗 连接 1 (玩家 A 👤)
+  │   ├── 🔍 过滤结果：可见对象 [Enemy1, Enemy2, Item1]
+  │   ├── ⭐ 优先级：Enemy1 &gt; Item1 &gt; Enemy2
+  │   └── 📬 待发送队列：[Enemy1 的数据, Item1 的数据...]
+  │
+  ├── 🔗 连接 2 (玩家 B 👤)
+  │   ├── 🔍 过滤结果：可见对象 [Enemy2, Enemy3, Item2]
+  │   ├── ⭐ 优先级：Enemy3 &gt; Enemy2 &gt; Item2
+  │   └── 📬 待发送队列：[Enemy3 的数据, Enemy2 的数据...]
+  │
+  └── 🔗 连接 3 (玩家 C 👤)
+      ├── 🔍 过滤结果：可见对象 [Enemy1, Enemy3]
+      ├── ⭐ 优先级：Enemy1 &gt; Enemy3
+      └── 📬 待发送队列：[Enemy1 的数据, Enemy3 的数据...]
+
+💡 每个玩家看到的世界是不同的！</code></pre></div><h3 id="section-08-05" tabindex="-1">🔍 过滤系统工作原理</h3><div><pre><code>🔍 过滤 = 决定"谁能看到什么"
+
+🎬 场景：大逃杀游戏，100 个玩家
+
+❌ 不过滤：
+  每个玩家都收到 99 个其他玩家的数据
+  总数据量 = 100 × 99 = 9900 份数据/帧
+  💥 带宽爆炸！
+
+✅ 过滤后：
+  每个玩家只收到附近 10 个玩家的数据
+  总数据量 = 100 × 10 = 1000 份数据/帧
+  🎉 节省 90% 带宽！
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  👁️ 玩家 A 的视野                                               │
+│  ┌─────────────────────────────────┐                            │
+│  │     ·  ·  ·                     │                            │
+│  │   ·        ·                    │  · = 其他玩家              │
+│  │  ·    🅰️    ·   ← 只同步这些    │  🅰️ = 玩家 A               │
+│  │   ·        ·                    │                            │
+│  │     ·  ·  ·                     │                            │
+│  └─────────────────────────────────┘                            │
+│                                                                 │
+│  🚫 视野外的玩家不同步，节省带宽                                 │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-08-06" tabindex="-1">⭐ 优先级系统工作原理</h3><div><pre><code>⭐ 优先级 = 决定"先发什么"
+
+🎬 场景：带宽只够发 5 个对象，但有 10 个对象需要发送
+
+📊 优先级排序：
+  1. 🔴 正在攻击你的敌人 (优先级: 100)
+  2. 🎯 你瞄准的目标 (优先级: 90)
+  3. 👥 附近的队友 (优先级: 80)
+  4. 💎 附近的物品 (优先级: 50)
+  5. 👹 远处的敌人 (优先级: 30)
+  ─────────────────────────────── 📶 带宽上限
+  6. 📦 远处的物品 (优先级: 20) ← ⏳ 下一帧再发
+  7. 🧑 背景 NPC (优先级: 10)  ← ⏳ 下一帧再发
+  ...
+
+✨ 结果：重要的对象优先同步，不重要的可以延迟</code></pre></div><blockquote> 💡 <strong>新手理解</strong>：复制系统层就像机场的航班调度中心——它决定哪些航班（对象）可以起飞（发送），什么时候起飞（优先级），飞往哪里（连接）。</blockquote><hr><h2 id="section-09" tabindex="-1">📦 2.7 数据流层 (Data Streams)</h2><h3 id="section-09-01" tabindex="-1">🤔 这一层是什么？</h3><p>数据流层负责<strong>实际的数据打包和传输</strong>。如果复制系统层是”决策者”，数据流层就是”执行者”。</p><div><pre><code>📦 生活比喻：快递打包员
+
+📋 调度中心说："把这个手机发给客户 A"
+👷 打包员做：
+  1. 📱 拿出手机
+  2. 🫧 用气泡膜包好
+  3. 📦 放进纸箱
+  4. 🏷️ 贴上地址标签
+  5. 🚚 交给快递员</code></pre></div><h3 id="section-09-02" tabindex="-1">📋 UDataStream 的核心职责</h3><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                     📦 UDataStream 职责                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ 数据序列化                                                  │
+│     • 把游戏对象转换成二进制数据                                 │
+│     • 把二进制数据还原成游戏对象                                 │
+│                                                                 │
+│  2️⃣ 可靠/不可靠传输                                             │
+│     • ✅ 可靠：保证送达，如 RPC、重要状态                        │
+│     • ⚡ 不可靠：可能丢失，如位置更新                            │
+│                                                                 │
+│  3️⃣ 带宽管理                                                    │
+│     • 控制每帧发送的数据量                                       │
+│     • 防止网络拥塞                                               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-09-03" tabindex="-1">🔄 序列化过程</h3><div><pre><code>🔄 序列化 = 把对象变成字节流
+
+🎮 游戏对象                           💾 二进制数据
+┌─────────────────┐                 ┌─────────────────┐
+│ 👹 AEnemy       │                 │ 01 00 00 00     │ ← 🎫 NetRefHandle
+│ - Health: 100   │  ──序列化──→    │ 64 00 00 00     │ ← ❤️ Health (100)
+│ - Position: ... │                 │ 00 00 C8 42     │ ← 📍 Position.X
+│ - Rotation: ... │                 │ 00 00 96 43     │ ← 📍 Position.Y
+└─────────────────┘                 │ ...             │
+                                    └─────────────────┘
+
+🔄 反序列化 = 把字节流变回对象（接收端执行）</code></pre></div><h3 id="section-09-04" tabindex="-1">✍️ ReplicationWriter 和 📖 ReplicationReader</h3><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  🖥️ 服务器端                          💻 客户端                  │
+│                                                                 │
+│  ✍️ ReplicationWriter                📖 ReplicationReader       │
+│  ┌─────────────────┐                 ┌─────────────────┐        │
+│  │ 1. 收集脏对象 🔍 │                 │ 1. 接收数据包 📨 │        │
+│  │ 2. 序列化属性 📦 │  ──网络传输──→  │ 2. 反序列化属性 🔓│        │
+│  │ 3. 打包发送 🚀   │                 │ 3. 更新对象 ✨   │        │
+│  │ 4. 记录基线 📝   │                 │ 4. 调用 RepNotify 🔔│     │
+│  └─────────────────┘                 └─────────────────┘        │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-09-05" tabindex="-1">✅ 可靠 vs ⚡ 不可靠传输</h3><div><pre><code>✅ 可靠传输 (Reliable)：
+  • 保证送达 💯
+  • 丢包会重传 🔄
+  • 有序到达 📋
+  • 适用于：RPC、重要状态变化、对象创建/销毁
+
+⚡ 不可靠传输 (Unreliable)：
+  • 不保证送达 ❓
+  • 丢包不重传 🚫
+  • 可能乱序 🔀
+  • 适用于：位置更新、动画状态（下一帧会覆盖）
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  ✅ 可靠传输                                                     │
+│  发送: [1️⃣] [2️⃣] [3️⃣]                                           │
+│  丢失:      [2️⃣] ❌                                              │
+│  重传:      [2️⃣] 🔄                                              │
+│  接收: [1️⃣] [2️⃣] [3️⃣] ← 完整有序 ✨                              │
+│                                                                 │
+│  ⚡ 不可靠传输                                                   │
+│  发送: [1️⃣] [2️⃣] [3️⃣]                                           │
+│  丢失:      [2️⃣] ❌                                              │
+│  接收: [1️⃣]      [3️⃣] ← 丢了就丢了，继续 🏃                      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-09-06" tabindex="-1">📊 带宽管理</h3><div><pre><code>📊 带宽 = 每秒能发送的数据量
+
+🎬 场景：带宽上限 10KB/帧，但有 50KB 数据要发
+
+❌ 不管理：
+  强行发送 50KB → 网络拥塞 → 延迟飙升 → 游戏卡顿 😰
+
+✅ 带宽管理：
+  第 1 帧：发送最重要的 10KB 🥇
+  第 2 帧：发送次重要的 10KB 🥈
+  第 3 帧：发送第三重要的 10KB 🥉
+  ...
+
+  ✨ 结果：网络平稳，重要数据优先送达
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  📊 带宽分配示意                                                 │
+│                                                                 │
+│  ████████████████████████████████████████ 📶 10KB 带宽上限      │
+│  ████████████ 👤 玩家状态 (高优先级)                             │
+│  ████████ 👹 敌人状态 (中优先级)                                 │
+│  ████ 💎 物品状态 (低优先级)                                     │
+│  ─────────────────────────────────────────                      │
+│  ⏳ 剩余数据下一帧发送                                           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><blockquote> 💡 <strong>新手理解</strong>：数据流层就像物流公司的打包和运输部门——它把货物（数据）打包好，选择合适的运输方式（可靠/不可靠），控制发货速度（带宽管理）。</blockquote><hr><h2 id="section-10" tabindex="-1">🌐 2.8 网络传输层 (Network Transport)</h2><h3 id="section-10-01" tabindex="-1">🤔 这一层是什么？</h3><p>网络传输层是 Iris 的<strong>最底层</strong>，负责实际的网络通信。它直接和操作系统的网络 API 打交道。</p><div><pre><code>🚴 生活比喻：快递员
+
+📦 打包员把包裹准备好 → 🚴 快递员骑车送到客户家
+
+🌐 网络传输层不关心包裹里是什么，只负责"送到"。</code></pre></div><h3 id="section-10-02" tabindex="-1">📋 UNetConnection 的职责</h3><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                    🌐 UNetConnection 职责                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1️⃣ 底层网络传输                                                │
+│     • 发送 UDP/TCP 数据包 📤                                     │
+│     • 接收网络数据 📥                                            │
+│                                                                 │
+│  2️⃣ 连接状态管理                                                │
+│     • 连接/断开检测 🔗                                           │
+│     • 心跳包 💓                                                  │
+│     • 超时处理 ⏰                                                │
+│                                                                 │
+│  3️⃣ 数据包管理                                                  │
+│     • 包序号 🔢                                                  │
+│     • 确认/重传 ✅                                               │
+│     • 拥塞控制 🚦                                                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-10-03" tabindex="-1">📨 网络数据包结构</h3><div><pre><code>📨 一个网络数据包的结构：
+
+┌─────────────────────────────────────────────────────────────────┐
+│                       📨 网络数据包                              │
+├─────────────────────────────────────────────────────────────────┤
+│  🏷️ 包头 (Header)                                               │
+│  ├── 🔢 包序号: 12345                                           │
+│  ├── ✅ 确认号: 12340 (确认收到对方的包)                         │
+│  └── 🚩 标志位: 可靠/不可靠                                      │
+├─────────────────────────────────────────────────────────────────┤
+│  📦 负载 (Payload)                                               │
+│  ├── 👹 对象 1 的数据                                            │
+│  ├── 💎 对象 2 的数据                                            │
+│  ├── 📞 RPC 调用数据                                             │
+│  └── ...                                                        │
+├─────────────────────────────────────────────────────────────────┤
+│  🔐 校验 (Checksum)                                              │
+│  └── CRC32 校验和                                                │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-10-04" tabindex="-1">🔗 连接状态</h3><div><pre><code>🔗 连接生命周期：
+
+  [🔴 未连接] ──(🤝 握手)──→ [🟡 连接中] ──(✅ 成功)──→ [🟢 已连接]
+                                              │
+                                              ├──(⏰ 超时)──→ [🔴 断开]
+                                              │
+                                              └──(👋 主动断开)──→ [🔴 断开]
+
+💓 心跳机制：
+  💻 客户端每 X 秒发送心跳包
+  🖥️ 服务器 Y 秒没收到心跳 → 判定断开 ❌</code></pre></div><h3 id="section-10-05" tabindex="-1">🔄 与上层的关系</h3><div><pre><code>🌐 网络传输层只做最简单的事情：
+
+📦 上层（数据流层）："这是 1024 字节数据，发给客户端 A"
+🌐 传输层："收到，发送中... 🚀"
+🌐 传输层："发送完成 ✅ / 发送失败 ❌"
+
+🤷 传输层不知道也不关心：
+  • 这些字节是什么意思
+  • 为什么要发给客户端 A
+  • 数据是否重要</code></pre></div><blockquote> 💡 <strong>新手理解</strong>：网络传输层就像邮局——它不拆开信封看内容，只负责按地址把信送到。</blockquote><hr><h2 id="section-11" tabindex="-1">🔄 2.9 数据流向概览</h2><h3 id="section-11-01" tabindex="-1">📤 发送流程（自上而下）</h3><p>让我们跟踪一个属性变化是如何从服务器发送到客户端的：</p><div><pre><code>🎬 场景：服务器上敌人的 Health 从 100 变成 80
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 🎮 第 1 层：游戏层                                               │
+│                                                                 │
+│   Enemy-&gt;Health = 80;  // 💻 游戏代码修改属性                    │
+│                                                                 │
+│   ↓ 🏷️ 属性被标记为"脏"                                         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🔌 第 2 层：引擎桥接层                                           │
+│                                                                 │
+│   🔍 检测到 Enemy Actor 有脏属性                                 │
+│   📢 通知对象桥接层                                              │
+│                                                                 │
+│   ↓                                                             │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🧩 第 3 层：对象桥接层                                           │
+│                                                                 │
+│   📝 将 Enemy 加入脏对象列表                                     │
+│   ⏱️ 检查轮询频率：可以发送 ✅                                   │
+│                                                                 │
+│   ↓                                                             │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🔗 第 4 层：复制桥接层                                           │
+│                                                                 │
+│   🎫 确认 Enemy 的 NetRefHandle                                  │
+│   📜 获取复制协议                                                │
+│                                                                 │
+│   ↓                                                             │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🧠 第 5 层：复制系统层                                           │
+│                                                                 │
+│   对每个连接：                                                   │
+│   ├── 🔍 过滤：客户端 A 能看到 Enemy 吗？ → ✅ 能                │
+│   ├── ⭐ 优先级：Enemy 的优先级是多少？ → 85                     │
+│   └── 📋 决定：加入客户端 A 的发送队列                           │
+│                                                                 │
+│   ↓                                                             │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 📦 第 6 层：数据流层                                             │
+│                                                                 │
+│   ✍️ ReplicationWriter:                                         │
+│   ├── 📖 读取 Enemy 的 Health 属性                               │
+│   ├── 🔄 序列化：80 → 0x50 0x00 0x00 0x00                       │
+│   ├── 🎭 计算变化掩码：只有 Health 变了                          │
+│   └── 📦 打包进数据包                                            │
+│                                                                 │
+│   ↓                                                             │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🌐 第 7 层：网络传输层                                           │
+│                                                                 │
+│   🔗 UNetConnection:                                            │
+│   ├── 🏷️ 添加包头（序号、确认号）                                │
+│   ├── 🔐 添加校验和                                              │
+│   └── 🚀 通过 UDP Socket 发送                                    │
+│                                                                 │
+│   → 📨 数据包飞向客户端...                                       │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-11-02" tabindex="-1">📥 接收流程（自下而上）</h3><div><pre><code>🎬 场景：客户端收到敌人 Health 变化的数据包
+
+                        📨 收到网络数据包
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🌐 第 7 层：网络传输层                                           │
+│                                                                 │
+│   🔗 UNetConnection:                                            │
+│   ├── 📥 收到 UDP 数据包                                         │
+│   ├── 🔐 验证校验和：正确 ✅                                     │
+│   ├── 🔢 检查包序号：正确顺序 ✅                                 │
+│   └── 📦 提取负载数据                                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 📦 第 6 层：数据流层                                             │
+│                                                                 │
+│   📖 ReplicationReader:                                         │
+│   ├── 🎭 解析变化掩码：只有 Health 变了                          │
+│   ├── 🔄 反序列化：0x50 0x00 0x00 0x00 → 80                     │
+│   └── 📋 准备更新对象                                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🧠 第 5 层：复制系统层                                           │
+│                                                                 │
+│   🔍 根据 NetRefHandle 找到对应的 Enemy 对象                     │
+│   📋 准备应用属性更新                                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🔗 第 4 层：复制桥接层                                           │
+│                                                                 │
+│   📜 根据复制协议处理数据                                        │
+│   🎫 验证 NetRefHandle 有效性                                    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🧩 第 3 层：对象桥接层                                           │
+│                                                                 │
+│   ✨ 应用属性更新到 Enemy 对象                                   │
+│   🔔 检查是否需要调用 RepNotify                                  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🔌 第 2 层：引擎桥接层                                           │
+│                                                                 │
+│   Enemy-&gt;Health = 80;  // ✨ 更新属性值                          │
+│   调用 OnRep_Health();  // 🔔 如果有 RepNotify                   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 🎮 第 1 层：游戏层                                               │
+│                                                                 │
+│   void AEnemy::OnRep_Health()                                   │
+│   {                                                             │
+│       UpdateHealthBar();  // 📊 更新血条 UI                      │
+│       if (Health &lt;= 0)                                          │
+│           PlayDeathAnimation();  // 💀 播放死亡动画              │
+│   }                                                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><h3 id="section-11-03" tabindex="-1">🌍 完整数据包旅程</h3><div><pre><code>🚀 一个属性变化的完整旅程：
+
+🖥️ 服务器                                          💻 客户端
+───────                                             ───────
+
+💻 游戏代码修改属性
+    │
+    ▼
+🔍 检测到脏数据
+    │
+    ▼
+🎯 过滤：该发给谁？
+    │
+    ▼
+⭐ 优先级：先发什么？
+    │
+    ▼
+📦 序列化成二进制
+    │
+    ▼
+📨 打包成网络数据包
+    │
+    ▼
+    ╔═══════════════════════════════════════════════════════╗
+    ║                   🌍 互联网                            ║
+    ║                                                       ║
+    ║   📨 [数据包] ─────────────────────────────→ 📨 [数据包]║
+    ║                                                       ║
+    ║   ⏱️ 延迟: 50ms                                        ║
+    ║   ⚠️ 可能丢包、乱序                                    ║
+    ╚═══════════════════════════════════════════════════════╝
+                                                    │
+                                                    ▼
+                                            📥 收到网络数据包
+                                                    │
+                                                    ▼
+                                            🔐 验证、排序
+                                                    │
+                                                    ▼
+                                            🔄 反序列化
+                                                    │
+                                                    ▼
+                                            ✨ 更新游戏对象
+                                                    │
+                                                    ▼
+                                            🔔 调用 RepNotify
+                                                    │
+                                                    ▼
+                                            🎮 游戏逻辑响应</code></pre></div><hr><h2 id="section-12" tabindex="-1">📚 本章小结</h2><div><pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                      🏗️ 七层架构总结                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  层次            职责                      类比                  │
+│  ────            ────                      ────                  │
+│  🎮 游戏层       写游戏代码                📦 仓库货物           │
+│  🔌 引擎桥接层   翻译 Actor/Component      📝 入库登记           │
+│  🧩 对象桥接层   管理对象、配置规则         📋 订单分拣           │
+│  🔗 复制桥接层   定义复制协议              📜 规则制定           │
+│  🧠 复制系统层   过滤、优先级、调度         ⚖️ 调度排期            │
+│  📦 数据流层     序列化、打包              📦 打包封装           │
+│  🌐 网络传输层   发送/接收数据包            🚚 物流配送           │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  🔑 核心要点：                                                   │
+│  1️⃣ 每层只关心自己的事情，不越界                                │
+│  2️⃣ 数据自上而下发送，自下而上接收                              │
+│  3️⃣ 游戏程序员只需要关心游戏层                                  │
+│  4️⃣ 分层设计让系统更容易维护和优化                              │
+│  5️⃣ Bridge 层（2-4层）是继承关系，共同负责"翻译"工作            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘</code></pre></div><blockquote> 💡 <strong>新手提示</strong>：不需要一次理解所有层次。作为<a href="https://zhida.zhihu.com/search?content_id=269277053&amp;content_type=Article&amp;match_order=1&amp;q=%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91%E8%80%85&amp;zhida_source=entity" target="_blank" rel="noopener noreferrer">游戏开发者</a>，你只需要知道：<br> </blockquote><ol><li>用 <code>UPROPERTY(Replicated)</code> 标记属性 🏷️</li><li>在服务器上修改属性值 ✏️</li><li>（可选）写 <code>OnRep_</code> 函数处理变化 🔔</li></ol><p> 其他的，Iris 会帮你搞定！ ✨</p><hr><p><i>本文档基于 Unreal Engine 5.5.0 Iris 源代码分析（源码目录：Engine/Source/Runtime/Experimental/Iris/）</i></p></article>
+
+      <footer class="article-footer">
+        <div class="article-footer__grid">
+          <div>
+            <h2>来源与版权说明</h2>
+            <p>文章来源：知乎专栏。原文《UE5-Iris 网络复制系统技术分析 - 第二部分：架构层次》由 Smartuil 发布；本页经授权转换为 HTML，原文发布于 2026-01-19，最后编辑于 2026-01-21。</p>
+          </div>
+          <a href="https://zhuanlan.zhihu.com/p/1996687209709991513" target="_blank" rel="noopener noreferrer">访问知乎原文 →</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="回到页面顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const sectionLinks = Array.from(document.querySelectorAll(".toc a[data-section]"));
+      const sections = sectionLinks
+        .map((link) => document.getElementById(link.dataset.section))
+        .filter(Boolean);
+
+      const updateScroll = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+
+        const activationLine = Math.min(180, window.innerHeight * 0.18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= activationLine) {
+            activeId = section.id;
+          } else {
+            break;
+          }
+        }
+
+        sectionLinks.forEach((link) => {
+          if (link.dataset.section === activeId) {
+            link.setAttribute("aria-current", "true");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      window.addEventListener("scroll", updateScroll, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      updateScroll();
+    })();
+  </script>
+
+
+</body></html>

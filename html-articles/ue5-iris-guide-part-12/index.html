@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十二部分：基于 Unreal Engine 5.7.4 源码，讲解 ObjectReferenceCache、NetDependencyData、NetTokenStore、NetObjectFactory、对象引用解析、依赖调度和远端对象创建。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M18 16h28v8H36v16h10v8H18v-8h10V24H18z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-12/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十二部分：对象引用与依赖 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --amber: #9b6923;
+      --amber-soft: #f2e5c9;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, .11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, .035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, .028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a, article h2, article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 16%, rgba(245, 177, 142, .2), transparent 28%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "IDENTITY";
+      position: absolute;
+      right: -.04em;
+      bottom: -.27em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(110px, 19vw, 285px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      pointer-events: none;
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 920px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; color: #d9def7; font-size: 13px; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .9);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] { color: var(--iris-dark); background: #eef0fb; border-left-color: var(--signal); }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 21px/1 var(--serif);
+    }
+    .source-note p { margin: 0; color: #333e5b; font-size: 14px; line-height: 1.65; }
+    .source-note a { white-space: nowrap; font-size: 13px; font-weight: 750; }
+
+    article {
+      overflow: hidden;
+      padding: clamp(26px, 5vw, 58px);
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article section { scroll-margin-top: 30px; }
+    article section + section { margin-top: 70px; padding-top: 66px; border-top: 1px solid var(--line); }
+    article h2 {
+      margin: 0 0 25px;
+      color: var(--iris-dark);
+      font: 800 clamp(27px, 4vw, 42px) / 1.2 var(--serif);
+      letter-spacing: -.025em;
+    }
+    article h2 .chapter-no {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--signal);
+      font: 800 11px/1 var(--mono);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    article h3 { margin: 38px 0 13px; color: var(--iris-dark); font-size: 21px; line-height: 1.45; }
+    article p { margin: 0 0 19px; }
+    article ul, article ol { padding-left: 1.25em; }
+    article li + li { margin-top: 8px; }
+    article strong { color: #202e62; }
+    article code {
+      padding: .12em .36em;
+      color: #9e3826;
+      background: #f5e8e1;
+      border-radius: 3px;
+      font: .88em/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+    pre {
+      max-width: 100%;
+      margin: 24px 0;
+      padding: 22px 24px;
+      overflow: auto;
+      color: #e8edff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      tab-size: 4;
+    }
+    pre code { padding: 0; color: inherit; background: transparent; border-radius: 0; font-size: 13px; overflow-wrap: normal; }
+    .eyebrow { margin-bottom: 7px; color: var(--signal); font: 800 11px/1.4 var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+    .lead { color: #303b54; font-size: 19px; line-height: 1.82; }
+    .pullquote {
+      margin: 31px 0;
+      padding: 23px 28px;
+      color: var(--iris-dark);
+      background: #edf0fb;
+      border-left: 6px solid var(--iris);
+      font: 700 20px/1.65 var(--serif);
+    }
+    .callout {
+      margin: 27px 0;
+      padding: 20px 23px;
+      background: var(--amber-soft);
+      border: 1px solid #d7bc82;
+      border-left: 5px solid var(--amber);
+    }
+    .callout--danger { background: var(--signal-soft); border-color: #dfa892; border-left-color: var(--signal); }
+    .callout--good { background: var(--green-soft); border-color: #9bc7b4; border-left-color: var(--green); }
+    .callout strong { display: block; margin-bottom: 5px; }
+    .callout p:last-child { margin-bottom: 0; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+      margin: 28px 0;
+    }
+    .card {
+      min-width: 0;
+      padding: 20px;
+      background: #f8f5ee;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--iris);
+    }
+    .card:nth-child(2n) { border-top-color: var(--signal); }
+    .card:nth-child(3n) { border-top-color: var(--green); }
+    .card small { color: var(--signal); font: 800 10px/1.3 var(--mono); letter-spacing: .1em; }
+    .card h3 { margin: 8px 0 8px; font-size: 18px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+
+    .scroll-frame {
+      max-width: 100%;
+      margin: 28px 0;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scrollbar-color: #aeb6d9 transparent;
+    }
+    .scroll-frame__hint { margin: -20px 0 25px; color: #7b8294; font-size: 12px; text-align: right; }
+
+    .reference-pipeline {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(130px, 1fr));
+      gap: 30px;
+      min-width: 1080px;
+      padding: 22px;
+      background: #edf0f8;
+      border: 1px solid #c8cee5;
+    }
+    .pipeline-node {
+      position: relative;
+      min-height: 126px;
+      padding: 17px 15px;
+      background: var(--white);
+      border: 1px solid #bbc3df;
+      border-top: 5px solid var(--iris);
+    }
+    .pipeline-node:nth-child(4), .pipeline-node:nth-child(7) { border-top-color: var(--signal); }
+    .pipeline-node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      top: 45%;
+      right: -27px;
+      color: var(--signal);
+      font: 900 23px/1 var(--sans);
+    }
+    .pipeline-node small { color: #8b91a2; font: 700 10px/1 var(--mono); }
+    .pipeline-node strong { display: block; margin: 8px 0 5px; color: var(--iris-dark); font-size: 14px; line-height: 1.4; }
+    .pipeline-node p { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.55; }
+
+    .identity-stack {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 14px;
+      min-width: 790px;
+    }
+    .identity-layer {
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 25px rgba(25, 35, 58, .06);
+    }
+    .identity-layer b { display: block; color: var(--iris-dark); }
+    .identity-layer span { color: var(--ink-soft); font-size: 13px; }
+    .identity-layer em { display: block; margin-top: 10px; color: var(--signal); font: normal 800 10px/1.4 var(--mono); }
+
+    .table-wrap { max-width: 100%; margin: 26px 0; overflow-x: auto; }
+    table {
+      width: 100%;
+      min-width: 690px;
+      border-collapse: collapse;
+      background: var(--white);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    th, td { padding: 14px 16px; text-align: left; vertical-align: top; border: 1px solid var(--line); }
+    th { color: var(--white); background: var(--iris-dark); font-size: 12px; letter-spacing: .03em; }
+    tr:nth-child(even) td { background: #f7f4ec; }
+    td:first-child { color: var(--iris-dark); font-weight: 750; }
+
+    .reference-shape {
+      display: grid;
+      grid-template-columns: .8fr 1fr 1.15fr;
+      min-width: 760px;
+      background: #172039;
+      border: 1px solid #11182a;
+    }
+    .reference-shape > div { padding: 24px; color: #e7ebff; border-right: 1px solid #495375; }
+    .reference-shape > div:last-child { border-right: 0; }
+    .reference-shape small { color: #f5b18e; font: 750 10px/1 var(--mono); }
+    .reference-shape strong { display: block; margin: 8px 0; color: #fff; }
+    .reference-shape p { margin: 0; color: #c9d0ee; font-size: 13px; line-height: 1.55; }
+
+    .cache-map {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      align-items: stretch;
+      min-width: 760px;
+      padding: 22px;
+      background: #f0ede5;
+      border: 1px solid var(--line);
+    }
+    .cache-map__box { padding: 21px; background: var(--white); border: 1px solid var(--line); }
+    .cache-map__box b { display: block; color: var(--iris-dark); }
+    .cache-map__box code { display: block; margin-top: 9px; }
+    .cache-map__arrow { display: grid; place-items: center; color: var(--signal); font-size: 28px; font-weight: 900; }
+
+    .resolution-state {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(145px, 1fr));
+      gap: 28px;
+      min-width: 920px;
+      padding: 24px;
+      background: #edf0f8;
+      border: 1px solid #c8cee5;
+    }
+    .state-node {
+      position: relative;
+      padding: 18px;
+      background: var(--white);
+      border: 2px solid #b7bfdc;
+    }
+    .state-node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -25px;
+      top: 38%;
+      color: var(--signal);
+      font-weight: 900;
+    }
+    .state-node b { display: block; color: var(--iris-dark); }
+    .state-node span { color: var(--ink-soft); font-size: 12px; }
+    .state-node--pending { border-color: #d5ad67; background: #fff8e8; }
+    .state-node--resolved { border-color: #72ad94; background: #eff9f4; }
+    .state-node--broken { border-color: #d5806e; background: #fff0ec; }
+
+    .queued-batch {
+      display: grid;
+      grid-template-columns: minmax(180px, .8fr) minmax(240px, 1.3fr) minmax(180px, .8fr);
+      gap: 18px;
+      min-width: 760px;
+      padding: 24px;
+      color: #e7ebff;
+      background: #172039;
+    }
+    .queue-box { padding: 20px; border: 1px solid #566181; }
+    .queue-box b { display: block; margin-bottom: 7px; color: #fff; }
+    .queue-box p { margin: 0; color: #cbd2ed; font-size: 13px; }
+    .queue-box--wait { border-color: #e2b368; background: rgba(226, 179, 104, .1); }
+    .queue-box--go { border-color: #78b79c; background: rgba(120, 183, 156, .1); }
+
+    .dependency-graph {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr;
+      gap: 24px;
+      align-items: center;
+      min-width: 820px;
+      padding: 28px;
+      background: #f0ede5;
+      border: 1px solid var(--line);
+    }
+    .graph-column { display: grid; gap: 12px; }
+    .graph-node { padding: 18px; background: var(--white); border: 1px solid var(--line); border-left: 5px solid var(--iris); }
+    .graph-node--child { border-left-color: var(--signal); }
+    .graph-node b { display: block; color: var(--iris-dark); }
+    .graph-node span { color: var(--ink-soft); font-size: 12px; }
+    .graph-edges { display: grid; gap: 20px; color: var(--signal); text-align: center; font: 800 12px/1.5 var(--mono); }
+    .graph-edges i { display: block; color: var(--iris); font-style: normal; font-size: 21px; }
+
+    .scheduling-lanes {
+      min-width: 900px;
+      padding: 24px;
+      background: #172039;
+      color: #e7ebff;
+    }
+    .schedule-row {
+      display: grid;
+      grid-template-columns: 190px repeat(4, 1fr);
+      gap: 8px;
+      align-items: center;
+      min-height: 76px;
+      border-bottom: 1px solid #3a4566;
+    }
+    .schedule-row:last-child { border-bottom: 0; }
+    .schedule-label { color: #f5b18e; font: 700 12px/1.5 var(--mono); }
+    .schedule-slot { padding: 12px; color: #cbd2ed; border: 1px dashed #566181; font-size: 12px; text-align: center; }
+    .schedule-slot--dep { color: #fff; background: #3f4fa0; border-style: solid; }
+    .schedule-slot--parent { color: #fff; background: #b74931; border-style: solid; }
+    .schedule-slot--wait { color: #ffe5b2; background: #6e4c1d; border-style: solid; }
+
+    .token-bits {
+      display: grid;
+      grid-template-columns: 20fr 3fr 1fr 8fr;
+      min-width: 760px;
+      overflow: hidden;
+      border: 1px solid #172039;
+    }
+    .token-bits div { padding: 23px 10px; color: #fff; text-align: center; background: var(--iris); border-right: 1px solid rgba(255,255,255,.35); }
+    .token-bits div:nth-child(2) { background: var(--signal); }
+    .token-bits div:nth-child(3) { background: var(--green); }
+    .token-bits div:nth-child(4) { background: #6c7284; }
+    .token-bits b { display: block; font-size: 14px; }
+    .token-bits span { display: block; margin-top: 5px; font: 700 10px/1 var(--mono); }
+
+    .token-ledger {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(235px, 1fr));
+      gap: 16px;
+      min-width: 790px;
+      padding: 22px;
+      background: #edf0f8;
+      border: 1px solid #c8cee5;
+    }
+    .ledger { background: var(--white); border: 1px solid #bbc3df; }
+    .ledger h3 { margin: 0; padding: 13px 16px; color: #fff; background: var(--iris-dark); font: 750 14px/1.4 var(--sans); }
+    .ledger ul { margin: 0; padding: 15px 18px 17px 34px; font-size: 13px; }
+    .ledger li + li { margin-top: 5px; }
+
+    .factory-flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(145px, 1fr));
+      gap: 28px;
+      min-width: 1030px;
+      padding: 24px;
+      background: #edf0f8;
+      border: 1px solid #c8cee5;
+    }
+    .factory-step {
+      position: relative;
+      min-height: 135px;
+      padding: 18px 16px;
+      background: var(--white);
+      border: 1px solid #bbc3df;
+      border-top: 5px solid var(--iris);
+    }
+    .factory-step:nth-child(n+4) { border-top-color: var(--signal); }
+    .factory-step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -25px;
+      top: 44%;
+      color: var(--signal);
+      font-size: 21px;
+      font-weight: 900;
+    }
+    .factory-step small { color: #8b91a2; font: 700 10px/1 var(--mono); }
+    .factory-step b { display: block; margin: 8px 0; color: var(--iris-dark); }
+    .factory-step p { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.55; }
+
+    .case-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(190px, 1fr));
+      gap: 15px;
+      min-width: 850px;
+    }
+    .case-step { padding: 21px; background: #f8f5ee; border: 1px solid var(--line); }
+    .case-step .num { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-bottom: 11px; color: #fff; background: var(--signal); font: 800 11px/1 var(--mono); }
+    .case-step b { display: block; color: var(--iris-dark); }
+    .case-step p { margin: 7px 0 0; color: var(--ink-soft); font-size: 13px; }
+
+    .source-tree {
+      margin: 25px 0;
+      padding: 22px;
+      overflow-x: auto;
+      color: #dfe5ff;
+      background: #172039;
+      font: 13px/1.75 var(--mono);
+      white-space: pre;
+    }
+    .sources {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 23px;
+    }
+    .sources a {
+      display: block;
+      padding: 14px 16px;
+      color: var(--iris-dark);
+      background: #f2f3fa;
+      border: 1px solid #ccd1e5;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .sources a:hover { color: var(--signal); border-color: #d7a18f; }
+
+    .chapter-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 42px;
+    }
+    .chapter-nav a {
+      display: block;
+      padding: 19px 21px;
+      color: var(--ink);
+      background: #f5f1e9;
+      border: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .chapter-nav a:last-child { text-align: right; }
+    .chapter-nav span { display: block; color: var(--signal); font: 800 10px/1.4 var(--mono); letter-spacing: .1em; }
+    .chapter-nav b { display: block; margin-top: 6px; color: var(--iris-dark); }
+
+    footer {
+      padding: 34px 24px 44px;
+      color: #cfd5eb;
+      background: #172039;
+      text-align: center;
+      font-size: 13px;
+    }
+    footer p { margin: 5px 0; }
+    footer a { color: #f5b18e; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      width: 46px;
+      height: 46px;
+      border: 0;
+      color: #fff;
+      background: var(--signal);
+      box-shadow: 0 9px 25px rgba(93, 34, 21, .25);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    @media (max-width: 980px) {
+      .layout { display: block; width: min(900px, calc(100% - 30px)); margin-top: 30px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .source-note { grid-template-columns: 44px minmax(0, 1fr); }
+      .source-note a { grid-column: 2; white-space: normal; }
+      .cards { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      body { font-size: 16px; line-height: 1.78; }
+      .hero { padding: 56px 21px 48px; }
+      .hero::before { content: "ID"; right: -.08em; font-size: 190px; }
+      .hero h1 { font-size: clamp(34px, 12vw, 52px); }
+      .hero__deck { font-size: 16px; }
+      .layout { width: calc(100% - 20px); }
+      article { padding: 28px 20px; }
+      article section + section { margin-top: 56px; padding-top: 52px; }
+      article h2 { font-size: 29px; }
+      article h3 { font-size: 19px; }
+      .cards, .sources { grid-template-columns: 1fr; }
+      .source-note { padding: 17px; }
+      .source-note__mark { width: 38px; height: 38px; }
+      .pullquote { padding: 20px; font-size: 18px; }
+      pre { margin-inline: -4px; padding: 18px; }
+      .chapter-nav { grid-template-columns: 1fr; }
+      .chapter-nav a:last-child { text-align: left; }
+      .back-top { right: 14px; bottom: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+
+    @media print {
+      .reading-progress, .hero::before, .toc, .toc-mobile, .back-top, .chapter-nav { display: none !important; }
+      body { color: #000; background: #fff; font-size: 11pt; }
+      .hero { padding: 24px 0; color: #000; background: #fff; border-bottom: 2px solid #000; }
+      .hero h1 span + span, .hero__deck, .hero__meta, .kicker { color: #000; }
+      .layout { display: block; width: 100%; margin: 20px 0; }
+      article { padding: 0; border: 0; box-shadow: none; }
+      article section + section { break-before: page; }
+      a { color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">UE 5.7.4 · Iris Replication System · Part 12</p>
+      <h1>
+        <span>对象引用与依赖</span>
+        <span>从网络身份到远端实例</span>
+      </h1>
+      <p class="hero__deck">指针只在本进程有效。Iris 必须把“这个对象是谁”“它依赖谁”“重复数据如何命名”“远端怎样创建它”拆成四套互相协作、却不能混为一谈的机制。本篇沿一条引用的完整旅程，连接 ObjectReferenceCache、NetDependencyData、NetTokenStore 与 NetObjectFactory。</p>
+      <div class="hero__meta">
+        <span>2026-07-24</span>
+        <span>约 35 分钟</span>
+        <span>源码基线：Unreal Engine 5.7.4</span>
+        <span><a href="#sources">源码与官方资料</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>目录</strong><span>PART 12</span></div>
+      <ol>
+        <li><a href="#pointer-is-local"><span>01</span><b>指针出不了进程</b></a></li>
+        <li><a href="#end-to-end"><span>02</span><b>引用的端到端旅程</b></a></li>
+        <li><a href="#four-relationships"><span>03</span><b>四种关系不要混</b></a></li>
+        <li><a href="#object-reference-cache"><span>04</span><b>12.1 ObjectReferenceCache</b></a></li>
+        <li><a href="#export-resolve"><span>05</span><b>导出、解析与 MustBeMapped</b></a></li>
+        <li><a href="#cycles-and-queues"><span>06</span><b>循环引用与等待队列</b></a></li>
+        <li><a href="#dependency-data"><span>07</span><b>12.2 NetDependencyData</b></a></li>
+        <li><a href="#scheduling-and-creation"><span>08</span><b>调度提示与创建依赖</b></a></li>
+        <li><a href="#net-token-store"><span>09</span><b>12.3 NetTokenStore</b></a></li>
+        <li><a href="#token-types"><span>10</span><b>Name、String 与 Struct Token</b></a></li>
+        <li><a href="#net-object-factory"><span>11</span><b>12.4 NetObjectFactory</b></a></li>
+        <li><a href="#actor-subobject-custom"><span>12</span><b>Actor、SubObject 与自定义工厂</b></a></li>
+        <li><a href="#case-debug-summary"><span>13</span><b>案例、排错与总结</b></a></li>
+      </ol>
+    </nav>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开本篇目录（13 节）</summary>
+        <ol>
+          <li><a href="#pointer-is-local"><span>01</span><b>指针出不了进程</b></a></li>
+          <li><a href="#end-to-end"><span>02</span><b>引用的端到端旅程</b></a></li>
+          <li><a href="#four-relationships"><span>03</span><b>四种关系不要混</b></a></li>
+          <li><a href="#object-reference-cache"><span>04</span><b>12.1 ObjectReferenceCache</b></a></li>
+          <li><a href="#export-resolve"><span>05</span><b>导出、解析与 MustBeMapped</b></a></li>
+          <li><a href="#cycles-and-queues"><span>06</span><b>循环引用与等待队列</b></a></li>
+          <li><a href="#dependency-data"><span>07</span><b>12.2 NetDependencyData</b></a></li>
+          <li><a href="#scheduling-and-creation"><span>08</span><b>调度提示与创建依赖</b></a></li>
+          <li><a href="#net-token-store"><span>09</span><b>12.3 NetTokenStore</b></a></li>
+          <li><a href="#token-types"><span>10</span><b>Name、String 与 Struct Token</b></a></li>
+          <li><a href="#net-object-factory"><span>11</span><b>12.4 NetObjectFactory</b></a></li>
+          <li><a href="#actor-subobject-custom"><span>12</span><b>Actor、SubObject 与自定义工厂</b></a></li>
+          <li><a href="#case-debug-summary"><span>13</span><b>案例、排错与总结</b></a></li>
+        </ol>
+      </details>
+
+      <aside class="source-note" aria-label="文章来源">
+        <div class="source-note__mark">源</div>
+        <p><strong>文章来源：</strong>本文由 Jossy Zhang 根据《UE5 Iris 网络复制系统技术分析指南》系列大纲原创扩写；技术结论依据本地 Unreal Engine 5.7.4 源码、ReplicationSystemTestPlugin 自动化测试与 Epic Games 官方文档。</p>
+        <a href="#sources">查看依据</a>
+      </aside>
+
+      <article>
+        <section id="pointer-is-local">
+          <p class="eyebrow">Chapter 01 · Problem Space</p>
+          <h2><span class="chapter-no">第十二部分开场</span>指针出不了进程：复制的第一步是重建“身份”</h2>
+          <p class="lead">服务器上的 <code>UObject*</code> 只是服务器地址空间里的一串位。把它原样写进网络包，客户端既不能解引用，也无法判断它对应场景中的哪个实例。网络复制真正需要传递的是一种<strong>双方可以独立解释的身份</strong>。</p>
+          <div class="pullquote">对象引用解决“它是谁”；依赖关系解决“谁应先被调度或创建”；NetToken 解决“重复身份数据如何只导出一次”；NetObjectFactory 解决“远端怎样得到实例”。</div>
+          <p>这四个问题处于同一条接收链路，却属于不同层次。Iris 把它们拆开，换来更明确的缓存、排序和生命周期边界。代价是：看到一个引用字段时，不能再用“序列化一个地址”来解释，而要追踪 Handle、Path、Token、Creation Header 与队列状态。</p>
+
+          <div class="cards">
+            <div class="card">
+              <small>IDENTITY</small>
+              <h3>网络可寻址</h3>
+              <p><code>FNetObjectReference</code> 用 Handle 和可选 PathToken 表达远端能够理解的对象身份。</p>
+            </div>
+            <div class="card">
+              <small>ORDER</small>
+              <h3>调度与创建顺序</h3>
+              <p><code>FNetDependencyData</code> 保存松散调度边和更强的创建前置边。</p>
+            </div>
+            <div class="card">
+              <small>INSTANTIATION</small>
+              <h3>远端落地</h3>
+              <p><code>UNetObjectFactory</code> 把 Creation Header 解释为查找、绑定、Spawn 或 NewObject。</p>
+            </div>
+          </div>
+
+          <div class="callout callout--good">
+            <strong>本篇阅读坐标</strong>
+            <p>我们以“动态角色引用一个静态资产和一个动态装备”为贯穿案例：资产可能需要加载，装备需要在角色存在后创建，重复路径通过 Token 导出，而角色与装备分别由 Actor/SubObject Factory 落地。</p>
+          </div>
+        </section>
+
+        <section id="end-to-end">
+          <p class="eyebrow">Chapter 02 · End-to-end</p>
+          <h2><span class="chapter-no">先看全景</span>一条对象引用从发送端走到接收端</h2>
+          <p>以下流程不是说每个引用都必然触发全部步骤，而是展示最完整的路径。已知引用会命中缓存，已导出的 Token 不必重复携带原始数据，已存在的动态实例也不需要再次创建。</p>
+
+          <div class="scroll-frame" role="region" aria-label="对象引用端到端流水线" tabindex="0">
+            <div class="reference-pipeline">
+              <div class="pipeline-node"><small>01 / GAME</small><strong>UObject* 进入量化</strong><p>NetSerializer/ReferenceCollector 发现属性中的对象引用。</p></div>
+              <div class="pipeline-node"><small>02 / CACHE</small><strong>构造 Reference</strong><p>查找或创建 RefHandle，必要时生成路径 Token 与 Outer 链。</p></div>
+              <div class="pipeline-node"><small>03 / EXPORT</small><strong>收集待导出身份</strong><p>先记录 Token export，再记录 object reference export。</p></div>
+              <div class="pipeline-node"><small>04 / WIRE</small><strong>写入包</strong><p>导出区先写，随后正文状态只引用较紧凑的标识。</p></div>
+              <div class="pipeline-node"><small>05 / REMOTE</small><strong>导入远端映射</strong><p>Remote Token State 与 ObjectReferenceCache 得到新映射。</p></div>
+              <div class="pipeline-node"><small>06 / RESOLVE</small><strong>解析或排队</strong><p>已存在则返回 UObject；依赖未就绪则把对象批次挂起。</p></div>
+              <div class="pipeline-node"><small>07 / FACTORY</small><strong>创建并应用状态</strong><p>Factory 绑定/创建实例，Bridge 应用初始复制状态。</p></div>
+            </div>
+          </div>
+          <p class="scroll-frame__hint">图表可横向滚动 →</p>
+
+          <h3>为什么导出必须在正文之前？</h3>
+          <p>正文里的量化值可能只保存一个 Token 或 Handle。如果接收端先读正文，它还没有“索引 → 原始数据/对象身份”的映射。UE 5.7.4 的写端在 <code>WritePendingExports</code> 中先处理 Token exports，再处理对象引用 exports；读端也先建立这些映射，才让状态反序列化使用它们。</p>
+
+          <h3>“收到身份”和“拿到对象”之间还有距离</h3>
+          <p>静态对象可能尚未加载，动态对象可能尚未收到创建批次，Streaming Level 可能已加载却不可见，Creation Dependency 的 Parent 也可能尚不存在。因此解析结果不只有“成功/失败”，还需要<strong>可重试的 Pending</strong>和<strong>不应继续等待的 Broken</strong>。</p>
+        </section>
+
+        <section id="four-relationships">
+          <p class="eyebrow">Chapter 03 · Mental Model</p>
+          <h2><span class="chapter-no">先划边界</span>对象引用、调度依赖、创建依赖、SubObject 所属</h2>
+          <p>工程中最常见的误用，是看到两个对象“有关联”就把四种机制互换。下面这张矩阵应当先于任何 API 记忆。</p>
+
+          <div class="table-wrap">
+            <table class="relationship-matrix">
+              <thead>
+                <tr><th>关系</th><th>回答的问题</th><th>发送端作用</th><th>接收端作用</th><th>不能替代</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>对象引用</td><td>属性里的对象是谁？</td><td>收集并导出 Handle/Path</td><td>解析为本地 UObject</td><td>不保证调度或创建顺序</td></tr>
+                <tr><td>调度依赖</td><td>Parent 发送时，Dependent 怎么排？</td><td>联动优先级、过滤和发送候选</td><td>按收到的批次正常应用</td><td>不保证同包，不等于硬前置</td></tr>
+                <tr><td>创建依赖</td><td>Child 创建前谁必须存在？</td><td>写入 Parent Handle</td><td>缺 Parent 时挂起 Child 批次</td><td>不表达属性指针值</td></tr>
+                <tr><td>SubObject 所属</td><td>谁是 Root/Outer，生命周期归谁？</td><td>组织 Root 与 SubObject 批次</td><td>绑定或创建到正确 Root/Outer</td><td>不等于任意对象依赖图</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="scroll-frame" role="region" aria-label="四层身份与关系" tabindex="0">
+            <div class="identity-stack">
+              <div class="identity-layer"><b>Property Edge</b><span>WeaponAsset 属性指向静态资产</span><em>FNetObjectReference</em></div>
+              <div class="identity-layer"><b>Schedule Edge</b><span>角色更新带动背包更新</span><em>AddDependentObject</em></div>
+              <div class="identity-layer"><b>Create Edge</b><span>武器实例要等角色存在</span><em>AddCreationDependencyLink</em></div>
+              <div class="identity-layer"><b>Ownership Edge</b><span>武器组件属于角色 Root</span><em>SubObject / Outer</em></div>
+            </div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>两个重要的“不保证”</strong>
+            <p><code>AddDependentObject</code> 是 loose dependency，官方文档明确说明不保证数据位于同一个 packet；对象属性持有另一个对象引用，也不会自动建立创建依赖。需要硬创建前置时，应显式使用 <code>AddCreationDependencyLink</code>。</p>
+          </div>
+        </section>
+
+        <section id="object-reference-cache">
+          <p class="eyebrow">Chapter 04 · 12.1</p>
+          <h2><span class="chapter-no">12.1 ObjectReferenceCache</span>双向缓存、引用形态与 Authority</h2>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetObjectReference?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>FNetObjectReference</code></a> 是“网络可寻址对象”的值类型。UE 5.7.4 中，它可以同时携带：</p>
+
+          <div class="scroll-frame" role="region" aria-label="FNetObjectReference 组成" tabindex="0">
+            <div class="reference-shape">
+              <div><small>IDENTITY</small><strong>FNetRefHandle</strong><p>Authority 分配的对象身份；可区分 Static 与 Dynamic。</p></div>
+              <div><small>PATH</small><strong>FNetToken PathToken</strong><p>稳定对象的相对或完整路径，需结合相应 Token Store State 解释。</p></div>
+              <div><small>CAPABILITY</small><strong>ENetObjectReferenceTraits</strong><p>例如引用是否可导出。引用只要 Handle 或 PathToken 有效即可被视为有效。</p></div>
+            </div>
+          </div>
+
+          <h3>缓存为何需要双向索引</h3>
+          <p>发送端从属性拿到 <code>UObject*</code>，需要快速得到网络引用；接收端拿到 Handle，需要反向找到缓存对象、路径、Outer 与解析状态。因此 <code>FObjectReferenceCache</code> 同时维护 Object→Handle 和 Handle→CachedReference。</p>
+
+          <div class="scroll-frame" role="region" aria-label="ObjectReferenceCache 双向映射" tabindex="0">
+            <div class="cache-map">
+              <div class="cache-map__box"><b>ObjectToNetReferenceHandle</b><code>TMap&lt;const UObject*, FNetRefHandle&gt;</code><p>量化和引用收集时从本地实例出发。</p></div>
+              <div class="cache-map__arrow">⇄</div>
+              <div class="cache-map__box"><b>ReferenceHandleToCachedReference</b><code>TMap&lt;FNetRefHandle, FCachedNetObjectReference&gt;</code><p>解析时从线上身份回到弱对象、路径、Outer 和状态。</p></div>
+            </div>
+          </div>
+
+          <p>缓存项不是简单的 <code>Handle → UObject*</code>。它还保存弱对象、ObjectKey、RelativePath Token、Outer Handle，以及 <code>bNoLoad</code>、<code>bIsPackage</code>、<code>bIsPending</code>、<code>bIsBroken</code>、<code>bIgnoreWhenMissing</code>、<code>bIsPreRegistered</code> 等状态。</p>
+
+          <h3>静态对象与动态对象</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>类型</th><th>典型对象</th><th>身份来源</th><th>缺失时</th></tr></thead>
+              <tbody>
+                <tr><td>Static</td><td>Package、稳定命名 Actor、资产、默认 SubObject</td><td>Static Handle + PathToken + Outer 链</td><td>可查找、加载、Pending 或 Broken</td></tr>
+                <tr><td>Dynamic</td><td>运行时 Spawn Actor、动态 SubObject</td><td>Authority 分配的 Dynamic Handle</td><td>等待复制创建；不能靠路径加载出同一实例</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Authority 负责分配权威 Handle。客户端可以使用服务端已经分配并告知的预注册引用，但不能自行伪造一个权威 Handle。对客户端发送给服务端的稳定对象引用，Iris 还可以使用相对 Outer 的路径或完整静态路径表达。</p>
+        </section>
+
+        <section id="export-resolve">
+          <p class="eyebrow">Chapter 05 · Export &amp; Resolve</p>
+          <h2><span class="chapter-no">引用解析</span>先导出身份，再解析；解析不了就让批次等待</h2>
+          <h3>发送端：Compact Reference 与 Full Reference</h3>
+          <p>已被对端认识的引用可以只写紧凑 Handle。首次出现、静态路径或尚未导出的引用需要 Full Reference：写入 Handle、是否必须导出、NoLoad、是否带 Path、Path Token 数据，以及递归的 Outer Reference。写端通过 ExportContext 记录已导出的 Token/Handle，避免同一导出区重复写。</p>
+
+          <pre><code>// 逻辑顺序示意，不是 UE 源码逐行拷贝
+CollectReferences(QuantizedState);
+
+for (FNetToken Token : PendingTokenExports)
+{
+    WriteTokenAndAssociatedData(Token);
+}
+
+for (FNetObjectReference Ref : PendingObjectExports)
+{
+    WriteFullReference(Ref);
+}
+
+WriteMustBeMappedList();
+WriteReplicatedState();</code></pre>
+
+          <h3>接收端：从快速命中到递归解析</h3>
+          <div class="scroll-frame" role="region" aria-label="对象引用解析状态" tabindex="0">
+            <div class="resolution-state">
+              <div class="state-node"><b>Lookup</b><span>先按 Handle 查缓存的弱对象。</span></div>
+              <div class="state-node"><b>Resolve Outer</b><span>静态路径先递归确保 Outer 已解析。</span></div>
+              <div class="state-node state-node--pending"><b>Pending</b><span>异步加载或前置对象未完成，可稍后重试。</span></div>
+              <div class="state-node state-node--resolved"><b>Resolved</b><span>找到对象并回填缓存。</span></div>
+              <div class="state-node state-node--broken"><b>Broken</b><span>确认不可解析，不再无休止等待。</span></div>
+            </div>
+          </div>
+
+          <p>解析相对路径前，接收端必须从<strong>当前连接的 Remote NetTokenStoreState</strong>还原字符串。随后尝试在 Outer 中查找对象；Package 或可加载静态对象可能进入同步/异步加载。对象所在 Level 还必须满足 Bridge 的可见性判断。</p>
+
+          <h3>MustBeMapped：这是对象批次的应用门槛</h3>
+          <p>当一个可加载静态引用必须在状态应用前存在，写端把它列入 MustBeMapped。读端若暂时解析不了，会把包含该引用的<strong>整个对象批次</strong>放入 Pending 队列，而不是先把属性写成一个错误指针。</p>
+
+          <div class="scroll-frame" role="region" aria-label="MustBeMapped 批次等待" tabindex="0">
+            <div class="queued-batch">
+              <div class="queue-box"><b>Batch Arrives</b><p>状态中引用 /Game/Weapons/Rifle，但本地尚未加载。</p></div>
+              <div class="queue-box queue-box--wait"><b>PendingMustBeMappedReferences</b><p>批次连同待解析 Handle 和异步优先级一起排队；后续帧重试。</p></div>
+              <div class="queue-box queue-box--go"><b>Apply or Break</b><p>解析成功后重新处理；确认 Broken 后停止等待并报告问题。</p></div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>MustBeMapped 不是 ACK</strong>
+            <p>ACK 回答“数据包是否送达”；MustBeMapped 回答“接收端应用这批状态前，指定对象身份是否已经能映射到 UObject”。两者处于不同层次。</p>
+          </div>
+        </section>
+
+        <section id="cycles-and-queues">
+          <p class="eyebrow">Chapter 06 · Cycles</p>
+          <h2><span class="chapter-no">循环引用处理</span>A 指向 B、B 指向 A，为什么不会无限递归？</h2>
+          <p>复制对象图不是把 UObject 内容递归内联。A 的属性引用 B 时，量化结果保存 B 的网络身份；B 引回 A 时保存 A 的身份。对象自身状态仍由各自 NetObject/Protocol 复制。于是环变成两个可去重的<strong>身份边</strong>：</p>
+
+          <pre><code>Object A state: Target = RefHandle(B)
+Object B state: Owner  = RefHandle(A)
+
+ExportContext:
+  exported A? yes → do not write A identity again
+  exported B? yes → do not write B identity again</code></pre>
+
+          <h3>真正存在递归的地方：Outer 引用链</h3>
+          <p>Full Reference 可以递归携带 Outer Reference。UE 5.7.4 的读取路径设置了 16 层递归上限，超过后把序列化上下文标为内部错误。这是对畸形或异常深引用链的防御，不是允许业务构造 16 层循环。</p>
+
+          <h3>Pending 与 Broken 必须区分</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>状态</th><th>含义</th><th>处理方式</th><th>常见原因</th></tr></thead>
+              <tbody>
+                <tr><td>Unresolved</td><td>当前没有 UObject</td><td>判断是否可加载/可等待</td><td>首次遇到引用</td></tr>
+                <tr><td>Pending</td><td>存在进行中的可恢复工作</td><td>保留批次，后续重试</td><td>异步加载、Parent 未创建</td></tr>
+                <tr><td>Resolved</td><td>已得到有效 UObject</td><td>缓存并应用状态</td><td>缓存命中或加载完成</td></tr>
+                <tr><td>Broken</td><td>确认无法再正确解析</td><td>停止永久等待，报告/断开策略按上下文执行</td><td>非法路径、加载失败、前置对象已 Broken</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>ReplicationSystemTestPlugin 中的 <code>TestPartialResolveOfArrayReferences</code>、<code>TestOutOfOrderResolveInFastArray</code> 等测试说明，引用可以乱序到达并在后续修正；这正是“量化引用身份”和“最终解析 UObject”分阶段的价值。</p>
+
+          <div class="callout callout--danger">
+            <strong>不要把所有 Null 都当成数据丢失</strong>
+            <p>调试时先区分：引用本身无效、远端映射尚未导入、静态对象正在加载、动态对象尚未创建、Level 不可见，还是缓存已经标记 Broken。只有最后一类通常不应继续重试。</p>
+          </div>
+        </section>
+
+        <section id="dependency-data">
+          <p class="eyebrow">Chapter 07 · 12.2</p>
+          <h2><span class="chapter-no">12.2 NetDependencyData</span>用稀疏关系图记录“谁带动谁”</h2>
+          <p><code>FNetDependencyData</code> 以 InternalIndex 为键保存稀疏关系。它不仅记录 Parent→Dependent，还保留 Dependent→Parent 的反向索引，以便对象移除、过滤更新和图遍历。</p>
+
+          <div class="scroll-frame" role="region" aria-label="NetDependencyData 双向关系" tabindex="0">
+            <div class="dependency-graph">
+              <div class="graph-column">
+                <div class="graph-node"><b>Parent: Character</b><span>Dependent list: Inventory, AbilityState</span></div>
+                <div class="graph-node"><b>Creation Parent</b><span>Weapon 必须等待 Character</span></div>
+              </div>
+              <div class="graph-edges"><span>Parent → Child<i>⇄</i>Child → Parent</span><span>Creation<i>⇒</i>Hard gate</span></div>
+              <div class="graph-column">
+                <div class="graph-node graph-node--child"><b>Dependent: Inventory</b><span>Parent list: Character + SchedulingHint</span></div>
+                <div class="graph-node graph-node--child"><b>Child: Weapon</b><span>Creation parent indices: Character</span></div>
+              </div>
+            </div>
+          </div>
+
+          <h3>添加调度依赖时做了什么检查？</h3>
+          <p><code>UObjectReplicationBridge::AddDependentObject</code> 会检查：</p>
+          <ul>
+            <li>Parent 与 Dependent Handle 必须有效，且不能相同；</li>
+            <li>当前实现只接受 Root Object，不能把 SubObject 当作这些关系的端点；</li>
+            <li>重复关系的 SchedulingHint 必须一致；</li>
+            <li>沿 Dependent 图遍历，拒绝会形成环的边；</li>
+            <li>成功后同时更新 Parent→Dependent 和 Dependent→Parent，并刷新相关位图/缓存标志。</li>
+          </ul>
+
+          <pre><code>UObjectReplicationBridge* Bridge = /* 已初始化的 Bridge */;
+
+Bridge-&gt;AddDependentObject(
+    CharacterHandle,
+    InventoryHandle,
+    UE::Net::EDependentObjectSchedulingHint::ScheduleBeforeParentIfInitialState);
+
+// 生命周期结束或关系变化时成对移除
+Bridge-&gt;RemoveDependentObject(CharacterHandle, InventoryHandle);</code></pre>
+
+          <div class="callout">
+            <strong>调度边不是强一致事务</strong>
+            <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridge/AddDependentObject?application_version=5.7" target="_blank" rel="noopener noreferrer">Epic 的 API 说明</a>称其为 very loose form of dependency：Dependent 可以独立复制，也可以因 Parent 被复制而进入调度，但最终数据不保证位于同一 packet。</p>
+          </div>
+        </section>
+
+        <section id="scheduling-and-creation">
+          <p class="eyebrow">Chapter 08 · Scheduling</p>
+          <h2><span class="chapter-no">依赖调度</span>三种 Scheduling Hint，以及更强的创建依赖</h2>
+          <p><code>EDependentObjectSchedulingHint</code> 不是简单的“前/后”枚举；它还影响初始状态尚未发送、包容量不足时 Parent 能否继续。</p>
+
+          <div class="scroll-frame" role="region" aria-label="三种依赖调度提示" tabindex="0">
+            <div class="scheduling-lanes">
+              <div class="schedule-row">
+                <div class="schedule-label">Default</div>
+                <div class="schedule-slot schedule-slot--parent">Parent</div>
+                <div class="schedule-slot schedule-slot--dep">Dependent</div>
+                <div class="schedule-slot">其余对象</div>
+                <div class="schedule-slot">尽量同 batch，非同包保证</div>
+              </div>
+              <div class="schedule-row">
+                <div class="schedule-label">ScheduleBeforeParent</div>
+                <div class="schedule-slot schedule-slot--dep">Dependent</div>
+                <div class="schedule-slot schedule-slot--parent">Parent</div>
+                <div class="schedule-slot schedule-slot--wait">放不下：Parent 等待</div>
+                <div class="schedule-slot">后续重试</div>
+              </div>
+              <div class="schedule-row">
+                <div class="schedule-label">BeforeParentIfInitialState</div>
+                <div class="schedule-slot schedule-slot--dep">首次：Dependent</div>
+                <div class="schedule-slot schedule-slot--parent">首次：Parent</div>
+                <div class="schedule-slot schedule-slot--parent">后续：Parent</div>
+                <div class="schedule-slot schedule-slot--dep">后续：Dependent</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Hint</th><th>初始状态</th><th>后续更新</th><th>适用意图</th></tr></thead>
+              <tbody>
+                <tr><td>Default</td><td>Dependent 尚未复制时与 Parent 同 batch</td><td>Parent 被调度时带动 Dependent</td><td>宽松关联、无需严格前置</td></tr>
+                <tr><td>ScheduleBeforeParent</td><td>Dependent 先；必要时 Parent 等待</td><td>持续保持 Dependent 前置</td><td>Parent 更新依赖 Dependent 的最新状态</td></tr>
+                <tr><td>ScheduleBeforeParentIfInitialState</td><td>首次把 Dependent 放在 Parent 前</td><td>退回 Parent 后随行</td><td>只要求初始化时先准备依赖</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>创建依赖：没有 Parent，就不创建 Child</h3>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridge/AddCreationDependencyLink?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>AddCreationDependencyLink</code></a> 比调度依赖强：它要求 Child 在客户端只于 Parent 已存在后创建，并使 Child 在 Parent 不相关时也不能相关。</p>
+
+          <pre><code>Bridge-&gt;AddCreationDependencyLink(CharacterHandle, WeaponHandle);
+
+// 关系不再需要时移除
+Bridge-&gt;RemoveCreationDependencyLink(CharacterHandle, WeaponHandle);</code></pre>
+
+          <p>Writer 把 Parent Handle 写入 Child 创建批次。Reader 若找不到 Parent，就把 Child 批次与 <code>CreationDependentParents</code> 一起排队；Parent 到达后重试。若 Parent 已 Broken，Child 也不能继续创建。这里的等待发生在<strong>实例化之前</strong>，不同于普通属性引用稍后重新映射。</p>
+
+          <div class="callout callout--good">
+            <strong>选择规则</strong>
+            <p>只是希望两个对象一起被考虑发送，用调度依赖；Child 的构造、Outer 或初始化确实要求 Parent 先存在，用创建依赖；只是属性要指向对方，保留对象引用即可；属于同一个 Root 的复制子对象，则使用 SubObject 关系。</p>
+          </div>
+        </section>
+
+        <section id="net-token-store">
+          <p class="eyebrow">Chapter 09 · 12.3</p>
+          <h2><span class="chapter-no">12.3 NetTokenStore</span>首次导出完整数据，后续只传类型化标识</h2>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/NetCore/FNetToken?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>FNetToken</code></a> 用来代表稳定、可重复的数据。它不是一个只为对象路径服务的类：名称、字符串以及自定义结构体都可以有自己的 Token DataStore。</p>
+
+          <div class="scroll-frame" role="region" aria-label="FNetToken 32 位布局" tabindex="0">
+            <div class="token-bits">
+              <div><b>Index</b><span>20 bits · 0 invalid</span></div>
+              <div><b>TypeId</b><span>3 bits</span></div>
+              <div><b>Authority</b><span>1 bit</span></div>
+              <div><b>Padding</b><span>8 bits</span></div>
+            </div>
+          </div>
+
+          <p>20 位 Index 给出最多 <code>2^20 - 1</code> 个有效索引；3 位 TypeId 最多表达 8 种 Token 类型；Authority 位区分该 Token 是否由 Authority 分配。改变这些位宽会影响网络兼容性。</p>
+
+          <h3>StoreKey 与 Token Index 不是同一个命名空间</h3>
+          <p><code>FNetTokenDataStore</code> 保存具体类型的数据，并以内部 StoreKey 访问；<code>FNetTokenStoreState</code> 保存 Token Index→StoreKey 的映射。<a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetTokenStore?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>FNetTokenStore</code></a> 拥有一个 Local State，并为每条连接维护 Remote State。</p>
+
+          <div class="scroll-frame" role="region" aria-label="NetToken 本地与每连接远端账本" tabindex="0">
+            <div class="token-ledger">
+              <div class="ledger">
+                <h3>Local Store State</h3>
+                <ul><li>本节点创建的 Token</li><li>Index → 本地 StoreKey</li><li>Authority 与节点角色一致</li></ul>
+              </div>
+              <div class="ledger">
+                <h3>Connection A Remote State</h3>
+                <ul><li>A 发来的 Token 映射</li><li>A 已导出哪些数据</li><li>解析必须传入此 State</li></ul>
+              </div>
+              <div class="ledger">
+                <h3>Connection B Remote State</h3>
+                <ul><li>与 A 独立的远端命名空间</li><li>相同 Index 可映射不同 StoreKey</li><li>不能当全局字符串池</li></ul>
+              </div>
+            </div>
+          </div>
+
+          <h3>第一次为什么不一定省？</h3>
+          <p>首次使用 Token 时，发送端既要写 Token，又要导出其关联数据；只有对端确认掌握映射后，后续出现才主要支付 Token 成本。因此重复次数、原始数据大小、唯一值数量和连接生命周期共同决定收益。</p>
+
+          <div class="callout">
+            <strong>NetToken 是同步字典，不是魔法压缩</strong>
+            <p>一次性 UUID、每帧变化的长字符串、玩家输入拼出的无界文本，可能让 Store 持续增长且几乎没有复用收益。Token 最适合小集合、稳定、重复率高的数据。</p>
+          </div>
+        </section>
+
+        <section id="token-types">
+          <p class="eyebrow">Chapter 10 · Token Types</p>
+          <h2><span class="chapter-no">名称、字符串、结构体 Token</span>三个 DataStore 的行为与成本</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>DataStore</th><th>本地去重键</th><th>导出数据</th><th>主要边界</th></tr></thead>
+              <tbody>
+                <tr><td>FNameTokenStore</td><td><code>FName</code></td><td>名称字符串</td><td>接收端重建 FName；首次仍写文本</td></tr>
+                <tr><td>FStringTokenStore</td><td>字符串的 CityHash64</td><td>完整 FString</td><td>持久复制字符串；当前实现按 Hash 查 Key</td></tr>
+                <tr><td>TStructNetTokenDataStore</td><td><code>GetUniqueKey()</code></td><td>结构体序列化结果</td><td>完整 Shadow Copy，无自动淘汰</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Name Token</h3>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNameTokenStore?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>FNameTokenStore</code></a> 维护 <code>FNameToKey</code> 和 <code>StoredFNames</code>。创建 Token 时先复用已有 StoreKey；导出时把名称转成字符串写出，接收端再构造 FName 并建立 Remote 映射。</p>
+
+          <h3>String Token</h3>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FStringTokenStore?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>FStringTokenStore</code></a> 把字符串复制到持久内存，并以 CityHash64→StoreKey 查找。工程上应控制输入集合，并把散列碰撞视为需要规避的正确性风险，而不是依赖“概率足够低”。</p>
+
+          <h3>Struct Token：为小而稳定的值集合准备</h3>
+          <p><code>TStructNetTokenDataStore&lt;T&gt;</code> 可以让一个 USTRUCT 自动以 Token 形式序列化。每个相同 <code>GetUniqueKey()</code> 的值共享 Token；Store 会保存结构体完整副本，而且<strong>没有 age-out 机制</strong>。</p>
+
+          <pre><code>USTRUCT()
+struct FMyStableData : public FNetTokenStructBase
+{
+    GENERATED_BODY()
+    UE_NET_NETTOKEN_GENERATED_BODY(MyStableData)
+
+    UPROPERTY()
+    uint16 ItemType = 0;
+
+    UPROPERTY()
+    uint8 Variant = 0;
+
+    uint64 GetUniqueKey() const
+    {
+        return (uint64(ItemType) &lt;&lt; 8) | uint64(Variant);
+    }
+};
+
+UE_NET_DECLARE_NAMED_NETTOKEN_STRUCT_SERIALIZERS(MyStableData, MYGAME_API)
+
+// .cpp
+UE_NET_IMPLEMENT_NAMED_NETTOKEN_STRUCT_SERIALIZERS(MyStableData)</code></pre>
+
+          <pre><code>; DefaultEngine.ini —— TypeID 必须未被其他 Store 使用
+[/Script/IrisCore.NetTokenTypeIdConfig]
++ReservedTypeIds=(StoreTypeName="MyStableData", TypeID=4)</code></pre>
+
+          <div class="callout callout--danger">
+            <strong>Struct Token 的硬边界</strong>
+            <p>结构体应被视为不可变值，不要保存指向可变子数据的指针；不要嵌套其他 NetToken、ObjectReference、FName、GameplayTag 或含 NetGUID 的类型；<code>GetUniqueKey()</code> 必须在语义上唯一。大结构、无界排列、复杂散列都会把带宽收益换成内存和 CPU 成本。</p>
+          </div>
+        </section>
+
+        <section id="net-object-factory">
+          <p class="eyebrow">Chapter 11 · 12.4</p>
+          <h2><span class="chapter-no">12.4 NetObjectFactory</span>Creation Header 是远端实例化协议</h2>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UNetObjectFactory?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>UNetObjectFactory</code></a> 的职责不是复制属性，而是回答：远端收到一个新 NetObject 时，如何查找、绑定或创建对应 UObject？为此，发送端先生成 <code>FNetObjectCreationHeader</code>，Header 带有 ProtocolId 和 FactoryId，并由具体 Factory 序列化自定义内容。</p>
+
+          <div class="scroll-frame" role="region" aria-label="NetObjectFactory 创建流水线" tabindex="0">
+            <div class="factory-flow">
+              <div class="factory-step"><small>SENDER 01</small><b>CreateHeader</b><p>基类验证 Handle，派生类填充具体 Creation Header。</p></div>
+              <div class="factory-step"><small>SENDER 02</small><b>WriteHeader</b><p>具体 Factory 把类型、引用和 Spawn/Template 数据写入位流。</p></div>
+              <div class="factory-step"><small>WIRE 03</small><b>FactoryId + ProtocolId</b><p>远端知道用哪个 Factory，以及用哪个 Replication Protocol。</p></div>
+              <div class="factory-step"><small>RECEIVER 04</small><b>ReadHeader</b><p>对应 Factory 分配 Header 类型并反序列化。</p></div>
+              <div class="factory-step"><small>RECEIVER 05</small><b>Instantiate</b><p>Resolve、Spawn、NewObject 或绑定预注册实例。</p></div>
+              <div class="factory-step"><small>RECEIVER 06</small><b>Apply + Callbacks</b><p>Bridge 应用初始状态，再进入 PostInit/生命周期回调。</p></div>
+            </div>
+          </div>
+
+          <h3>基类接口的职责切分</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>接口</th><th>执行端</th><th>职责</th></tr></thead>
+              <tbody>
+                <tr><td>CreateAndFillHeader</td><td>发送端</td><td>从本地实例提取远端创建所需数据</td></tr>
+                <tr><td>SerializeHeader</td><td>双向配对</td><td>定义 Header 的线上格式</td></tr>
+                <tr><td>CreateAndDeserializeHeader</td><td>接收端</td><td>分配正确 Header 类型并读取</td></tr>
+                <tr><td>InstantiateReplicatedObjectFromHeader</td><td>接收端</td><td>返回 Instance、可选 Template 和 Bridge Flags</td></tr>
+                <tr><td>PostInstantiation</td><td>接收端</td><td>实例已存在、初始属性尚未应用</td></tr>
+                <tr><td>PostInit</td><td>接收端</td><td>初始复制状态已经应用</td></tr>
+                <tr><td>DetachedFromReplication</td><td>接收端</td><td>销毁动态实例、重置稳定对象或回收到池</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Factory 返回的 Flags 决定远端是否允许销毁实例、是否在状态应用后触发 SubObject 创建回调等。Factory 创建成功也只是第一步：Bridge 仍需用 Header 中的 ProtocolId 找到一致的 Replication Protocol，分配状态并应用初始数据。</p>
+        </section>
+
+        <section id="actor-subobject-custom">
+          <p class="eyebrow">Chapter 12 · Factories</p>
+          <h2><span class="chapter-no">内置与扩展</span>NetActorFactory、NetSubObjectFactory 与自定义注册</h2>
+          <h3>UNetActorFactory：查找、预注册或 Spawn</h3>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/Engine/UNetActorFactory?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>UNetActorFactory</code></a> 根据 ActorReference 选择三种 Header：</p>
+          <div class="cards">
+            <div class="card"><small>STATIC</small><h3>Static Actor</h3><p>Header 携带 ObjectReference；接收端按稳定路径查找已有 Actor，不新建。</p></div>
+            <div class="card"><small>PRE-REGISTERED</small><h3>预注册 Actor</h3><p>Handle 已关联本地实例，Header 当前不需额外创建数据。</p></div>
+            <div class="card"><small>DYNAMIC</small><h3>Dynamic Actor</h3><p>Header 携带 Archetype、Level、Location、Rotation、Scale、Velocity 与自定义创建位。</p></div>
+          </div>
+
+          <p>动态 Actor 在接收端先解析 Archetype 和可选 Level，再用 <code>SpawnActorAbsolute</code> 创建远端拥有的实例。Streaming Level 若当前不可用，创建不能凭空继续。</p>
+
+          <h3>UNetSubObjectFactory：稳定对象绑定，动态对象 NewObject</h3>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/Engine/UNetSubObjectFactory?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>UNetSubObjectFactory</code></a> 只负责 SubObject：</p>
+          <ul>
+            <li>稳定命名或 Static Handle：Header 携带 ObjectReference，远端找到既有 SubObject；</li>
+            <li>动态 SubObject：Header 携带 TemplateReference，以及 Transient、Root 或 OuterReference 的选择；</li>
+            <li>远端解析 Template 和 Outer 后，用 <code>NewObject</code> 创建；</li>
+            <li>若自定义 Outer 不可解析，当前实现可以回退到 RootObject，并可通过 CVar 打印警告；</li>
+            <li>创建结果请求 Bridge 在所属 Actor 状态应用后再触发 SubObject 回调。</li>
+          </ul>
+
+          <h3>自定义 Factory：注册必须早于 Iris ReplicationSystem</h3>
+          <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetObjectFactoryRegistry?application_version=5.7" target="_blank" rel="noopener noreferrer"><code>FNetObjectFactoryRegistry</code></a> 保存 Factory 模板。UE 5.7.4 的默认上限是 16，注册名称必须唯一，类必须派生自 <code>UNetObjectFactory</code>。</p>
+
+          <pre><code>namespace UE::Net
+{
+    void InitMyNetFactories()
+    {
+        FNetObjectFactoryRegistry::RegisterFactory(
+            UMyNetObjectFactory::StaticClass(),
+            UMyNetObjectFactory::GetFactoryName());
+    }
+
+    void ShutdownMyNetFactories()
+    {
+        FNetObjectFactoryRegistry::UnregisterFactory(
+            UMyNetObjectFactory::GetFactoryName());
+    }
+}</code></pre>
+
+          <div class="callout callout--danger">
+            <strong>注册时机是协议的一部分</strong>
+            <p>所有 Factory 必须在任意 Iris ReplicationSystem 创建前注册；运行中注册/注销会被拒绝。注销后 Registry 保留槽位位置，后续 Factory 可能复用旧 FactoryId，因此缓存 ID 的代码必须同时维护有效期，不能把 ID 当永久类型号。</p>
+          </div>
+
+          <p>ReplicationSystemTestPlugin 的 <code>UReplicatedTestObjectFactory</code> 是很好的最小参考：自定义 Header 保存 Archetype 和组件数量，实现填充、序列化、反序列化、实例化、PostInit、Detach 与 SubObject 回调；<code>NetFactoryRegistration</code> 测试还展示了注销后 ID 槽位复用。</p>
+        </section>
+
+        <section id="case-debug-summary">
+          <p class="eyebrow">Chapter 13 · Practice</p>
+          <h2><span class="chapter-no">案例、排错与源码导航</span>把四套机制串成一条可验证的链</h2>
+          <h3>案例：角色、武器实例与静态配置资产</h3>
+          <div class="scroll-frame" role="region" aria-label="角色武器对象引用案例" tabindex="0">
+            <div class="case-flow">
+              <div class="case-step"><span class="num">1</span><b>角色进入复制</b><p>NetActorFactory 为动态角色写 Archetype、Level 与 SpawnInfo。</p></div>
+              <div class="case-step"><span class="num">2</span><b>配置资产被引用</b><p>ObjectReferenceCache 为稳定资产生成 PathToken；首次向该连接导出字符串。</p></div>
+              <div class="case-step"><span class="num">3</span><b>武器等待角色</b><p>Creation Dependency 让 Weapon Child 批次在 Character 存在前保持 Pending。</p></div>
+              <div class="case-step"><span class="num">4</span><b>SubObject 落地</b><p>NetSubObjectFactory 解析 Template/Outer，用 NewObject 创建并在初始状态后回调 Actor。</p></div>
+            </div>
+          </div>
+
+          <p>如果配置资产还在异步加载，角色批次可能因 MustBeMapped 暂停；如果角色已创建但背包对象只要求更新顺序，可以另加 <code>ScheduleBeforeParentIfInitialState</code>。注意这两个等待分别来自<strong>引用解析</strong>与<strong>依赖调度</strong>，日志和修复方向不同。</p>
+
+          <h3>排错清单：从身份到实例逐层排</h3>
+          <ol>
+            <li><strong>Reference 是否有效：</strong>Handle 或 PathToken 是否存在，Traits 是否允许导出？</li>
+            <li><strong>Export 是否发生：</strong>Token 与 Full Reference 是否先于使用它们的状态写出？</li>
+            <li><strong>Remote State 是否正确：</strong>解析远端 Token 时是否使用当前连接对应的 State？</li>
+            <li><strong>Resolve 状态是什么：</strong>缓存命中、Pending、Level 不可见，还是 Broken？</li>
+            <li><strong>批次在等谁：</strong>MustBeMapped Reference，还是 CreationDependentParents？</li>
+            <li><strong>调度边是否合理：</strong>是否意外形成环，或把 SubObject 当作 Root 关系端点？</li>
+            <li><strong>Factory 是否一致：</strong>两端是否以相同顺序和名称在 Iris 启动前注册？</li>
+            <li><strong>Header 是否足够：</strong>动态实例的 Archetype、Level、Template、Outer 是否都能解析？</li>
+            <li><strong>Token 集合是否失控：</strong>是否不断创建高基数 Token，Struct Store 是否无界增长？</li>
+          </ol>
+
+          <h3 id="sources">UE 5.7.4 源码导航</h3>
+          <div class="source-tree">Engine/Source/Runtime/Net/
+├─ Core/Public/Net/Core/NetToken/NetToken.h
+└─ Iris/
+   ├─ Public/Iris/Core/NetObjectReference.h
+   ├─ Public/Iris/ReplicationSystem/
+   │  ├─ NetTokenStore.h
+   │  ├─ StructNetTokenDataStore.h
+   │  ├─ NetObjectFactory.h
+   │  ├─ NetObjectFactoryRegistry.h
+   │  └─ ObjectReplicationBridge.h
+   └─ Private/Iris/ReplicationSystem/
+      ├─ ObjectReferenceCache.cpp
+      ├─ NetDependencyData.cpp
+      ├─ NetTokenStore.cpp
+      ├─ NameTokenStore.cpp
+      ├─ StringTokenStore.cpp
+      ├─ ReplicationWriter.cpp
+      └─ ReplicationReader.cpp
+
+Engine/Source/Runtime/Engine/.../Net/Iris/ReplicationSystem/
+├─ NetActorFactory.h/.cpp
+├─ NetSubObjectFactory.h/.cpp
+└─ NetEngineFactories.cpp
+
+Engine/Plugins/Runtime/ReplicationSystemTestPlugin/.../ReplicationSystem/
+├─ TestObjectReferences.cpp
+├─ TestDependentObjects.cpp
+├─ TestStructNetTokenDataStore.cpp
+├─ TestNetObjectFactory.cpp
+└─ ReplicatedTestObjectFactory.h/.cpp</div>
+
+          <h3>Epic Games 官方资料</h3>
+          <div class="sources">
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetObjectReference?application_version=5.7" target="_blank" rel="noopener noreferrer">FNetObjectReference</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridge/AddDependentObject?application_version=5.7" target="_blank" rel="noopener noreferrer">AddDependentObject</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridge/AddCreationDependencyLink?application_version=5.7" target="_blank" rel="noopener noreferrer">AddCreationDependencyLink</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetTokenStore?application_version=5.7" target="_blank" rel="noopener noreferrer">FNetTokenStore</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UNetObjectFactory?application_version=5.7" target="_blank" rel="noopener noreferrer">UNetObjectFactory</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/Engine/UNetActorFactory?application_version=5.7" target="_blank" rel="noopener noreferrer">UNetActorFactory</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/Engine/UNetSubObjectFactory?application_version=5.7" target="_blank" rel="noopener noreferrer">UNetSubObjectFactory</a>
+            <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetObjectFactoryRegistry?application_version=5.7" target="_blank" rel="noopener noreferrer">FNetObjectFactoryRegistry</a>
+          </div>
+
+          <h3>本篇结论</h3>
+          <div class="cards">
+            <div class="card"><small>REFERENCE</small><h3>身份先于指针</h3><p>Handle/Path/Token 让远端重建身份；解析可能 Pending，也可能 Broken。</p></div>
+            <div class="card"><small>DEPENDENCY</small><h3>关系各司其职</h3><p>调度依赖是 loose ordering，创建依赖是实例化门槛，SubObject 负责所属。</p></div>
+            <div class="card"><small>FACTORY</small><h3>Header 驱动创建</h3><p>Factory 把线上 Creation Header 变成本地实例，属性状态随后才真正落地。</p></div>
+          </div>
+
+          <div class="pullquote">Iris 不复制“地址”，它复制可解析的身份；不把所有关联都叫依赖，而是分别约束调度、创建和所属；也不假设远端已经有实例，而是用 Factory 明确定义创建协议。</div>
+
+          <p>下一部分将进入条件复制（Conditionals），继续讨论对象已经可寻址、可调度之后，哪些成员在什么连接、什么阶段、什么条件下才应该进入 ChangeMask 与最终输出。</p>
+
+          <nav class="chapter-nav" aria-label="系列文章导航">
+            <a href="/html-articles/ue5-iris-guide-part-11/"><span>← PREVIOUS</span><b>第十一部分：轮询与脏数据检测</b></a>
+            <a href="/html-articles/ue5-iris-guide-part-13/"><span>NEXT →</span><b>第十三部分：条件复制</b></a>
+          </nav>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <p>UE5 Iris 网络复制系统技术分析 · 第十二部分</p>
+    <p>原创扩写与整理：Jossy Zhang · 技术基线：Unreal Engine 5.7.4</p>
+    <p><a href="/">返回博客首页</a></p>
+  </footer>
+
+  <button class="back-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.reading-progress');
+      const backTop = document.querySelector('.back-top');
+      const sections = [...document.querySelectorAll('article section[id]')];
+      const tocLinks = [...document.querySelectorAll('.toc a')];
+      const mobileToc = document.querySelector('.toc-mobile');
+
+      const updateScrollUI = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = `${maxScroll > 0 ? Math.min(100, scrollTop / maxScroll * 100) : 0}%`;
+        backTop.classList.toggle('is-visible', scrollTop > 650);
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+
+        if (!visible) return;
+        tocLinks.forEach((link) => {
+          const active = link.getAttribute('href') === `#${visible.target.id}`;
+          if (active) link.setAttribute('aria-current', 'true');
+          else link.removeAttribute('aria-current');
+        });
+      }, { rootMargin: '-18% 0px -66% 0px', threshold: [0, .05, .2] });
+
+      sections.forEach((section) => observer.observe(section));
+      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      window.addEventListener('resize', updateScrollUI);
+      updateScrollUI();
+
+      backTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      });
+
+      document.querySelectorAll('.toc-mobile a').forEach((link) => {
+        link.addEventListener('click', () => { mobileToc.open = false; });
+      });
+    })();
+  </script>
+</body>
+</html>
