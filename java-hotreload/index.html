@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="为什么删掉一条日志，会导致 Java 热更失败？" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    为什么删掉一条日志，会导致 Java 热更失败？
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-09-28</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.5k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：9分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%88%A0%E6%8E%89%E4%B8%80%E6%9D%A1%E6%97%A5%E5%BF%97%EF%BC%8C%E4%BC%9A%E5%AF%BC%E8%87%B4-Java-%E7%83%AD%E6%9B%B4%E5%A4%B1%E8%B4%A5%EF%BC%9F"><span class="post-toc-text">为什么删掉一条日志，会导致 Java 热更失败？</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="为什么删掉一条日志，会导致-Java-热更失败？"><a href="#为什么删掉一条日志，会导致-Java-热更失败？" class="headerlink" title="为什么删掉一条日志，会导致 Java 热更失败？"></a>为什么删掉一条日志，会导致 Java 热更失败？</h1><p>一次业务修复中，开发者删除了一个不再适用的校验分支，包括分支中的日志和提前返回，并调整了后续处理逻辑。代码能够正常编译，源码也没有显式增删字段、方法或修改继承关系。然而，热更新时报错：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">java.lang.UnsupportedOperationException:</span><br><span class="line">class redefinition failed: attempted to delete a method</span><br></pre></td></tr></table></figure>
+
+<p>排查后的结论是：<strong>删除日志减少了对父类 <code>protected</code> 字段的访问，导致 javac 少生成了一个合成访问器。JVM 检查新旧 class 时，发现方法被删除，因此拒绝热更。</strong></p>
+<p>本文根据一次实际排查整理，项目、业务、类名和包名均已泛化。代码片段用于解释机制，不代表完整业务实现；字节码摘录保留了问题相关的结构，类名作了对应替换。复现环境为 Temurin OpenJDK 25+36，热更入口为标准 <code>Instrumentation.redefineClasses</code>。</p>
+<p>先看这个场景的类关系。父类位于一个包中，声明了日志字段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// demo.core.BaseHandler</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">BaseHandler</span> &#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span></span><br><span class="line">            LoggerFactory.getLogger(BaseHandler.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>业务 Handler 位于另一个包中，并在方法内部创建匿名任务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// demo.feature.RequestHandler</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RequestHandler</span> <span class="keyword">extends</span> <span class="title class_">BaseHandler</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">handle</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Task</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">process</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="comment">// 省略业务处理</span></span><br><span class="line">                logger.error(<span class="string">&quot;validation failed&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>Task</code> 代表一个无关的任务基类，不继承 <code>BaseHandler</code>。编译后，实际上存在三个独立的类：</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>继承关系</th>
+<th>所在包</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>BaseHandler</code></td>
+<td>日志字段的声明者</td>
+<td><code>demo.core</code></td>
+</tr>
+<tr>
+<td><code>RequestHandler</code></td>
+<td>继承 <code>BaseHandler</code></td>
+<td><code>demo.feature</code></td>
+</tr>
+<tr>
+<td><code>RequestHandler$1</code></td>
+<td>继承 <code>Task</code></td>
+<td><code>demo.feature</code></td>
+</tr>
+</tbody></table>
+<p><code>RequestHandler$1</code> 是匿名内部类。它在源码中嵌套于 Handler，但并没有因此继承 Handler。Java 的包名也不赋予层级访问权限：不同包之间，即使名字存在前缀关系，也不能按同包处理。</p>
+<p>这就带来了访问权限上的差异。外层 <code>RequestHandler</code> 是 <code>BaseHandler</code> 的子类，可以跨包访问其 <code>protected static logger</code>。匿名类 <code>$1</code> 本身既不是 <code>BaseHandler</code> 的子类，也不在 <code>demo.core</code> 包中，不能以自己的身份直接读取这个字段。</p>
+<p>不过，从 Java 源码层面看，这段访问位于外层子类的类体之内，符合语言规则，因此可以通过编译。<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.6.2.1">JLS 对 protected 访问的规定</a></p>
+<p>为了让合法的源码满足 JVM 对实际访问类的检查，javac 在外层 Handler 中生成一个中转方法。下面是便于理解的伪代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RequestHandler</span> <span class="keyword">extends</span> <span class="title class_">BaseHandler</span> &#123;</span><br><span class="line">    <span class="comment">// 编译器生成，源码中没有这个声明</span></span><br><span class="line">    <span class="keyword">static</span> <span class="type">Logger</span> <span class="title function_">access$000</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> logger;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RequestHandler$1</span> <span class="keyword">extends</span> <span class="title class_">Task</span> &#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">process</span><span class="params">()</span> &#123;</span><br><span class="line">        RequestHandler.access$<span class="number">000</span>().error(<span class="string">&quot;validation failed&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这条访问路径可以画成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">匿名类 RequestHandler$1.process()</span><br><span class="line">        │ 调用同包可见的方法</span><br><span class="line">        ▼</span><br><span class="line">外层类 RequestHandler.access$000()</span><br><span class="line">        │ 以 BaseHandler 子类的身份读取字段</span><br><span class="line">        ▼</span><br><span class="line">父类 BaseHandler.logger</span><br></pre></td></tr></table></figure>
+
+<p>匿名类与外层类位于同一包，可以调用这个包可见的静态方法；真正读取 <code>logger</code> 的字节码位于外层子类中，满足 <code>protected</code> 访问要求。<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4.4">JVM 字段与方法的访问检查规则</a></p>
+<p><strong><code>access$000()</code> 是 class 文件中的真实方法。</strong> 用 <code>javap -v -p</code> 可以看到类似下面的结果：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">static org.slf4j.Logger access$000();</span><br><span class="line">  descriptor: ()Lorg/slf4j/Logger;</span><br><span class="line">  flags: ACC_STATIC, ACC_SYNTHETIC</span><br><span class="line">  Code:</span><br><span class="line">    0: getstatic  ... logger:Lorg/slf4j/Logger;</span><br><span class="line">    3: areturn</span><br></pre></td></tr></table></figure>
+
+<p><code>ACC_STATIC</code> 表示静态方法；<code>ACC_SYNTHETIC</code> 表示这是编译器生成的合成方法；描述符 <code>()Lorg/slf4j/Logger;</code> 表示它无参数、返回 <code>Logger</code>。方法体只做两件事：读取静态字段并返回。</p>
+<p><code>SYNTHETIC</code> 标记不会让这个方法免于热更检查。它有自己的名称、描述符和访问标志，也属于类的方法集合。严格来说，这里是“合成访问器”，与泛型擦除产生、带有 <code>ACC_BRIDGE</code> 标记的桥接方法是不同机制。</p>
+<p>回到这次变更。在所用编译器的实际产物中，修改前有四处日志访问，分别使用四个合成访问器。删除其中一处后，结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>日志位置（已泛化）</th>
+<th>修改前调用</th>
+<th>修改后调用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前置状态检查失败</td>
+<td><code>access$000()</code></td>
+<td><code>access$000()</code></td>
+</tr>
+<tr>
+<td>规则配置缺失</td>
+<td><code>access$100()</code></td>
+<td><code>access$100()</code></td>
+</tr>
+<tr>
+<td>累计数量达到阈值，被旧逻辑判为异常</td>
+<td><code>access$200()</code></td>
+<td>该日志被删除</td>
+</tr>
+<tr>
+<td>后续处理失败</td>
+<td><code>access$300()</code></td>
+<td><code>access$200()</code></td>
+</tr>
+</tbody></table>
+<p>四个访问器的方法体都只是返回同一个 <code>logger</code>。源码删除了第三处访问，重新编译后，最后一处访问的编号前移，最终消失的是 <code>access$300()</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">旧 RequestHandler.class</span><br><span class="line">  access$000() → Logger</span><br><span class="line">  access$100() → Logger</span><br><span class="line">  access$200() → Logger</span><br><span class="line">  access$300() → Logger</span><br><span class="line"></span><br><span class="line">新 RequestHandler.class</span><br><span class="line">  access$000() → Logger</span><br><span class="line">  access$100() → Logger</span><br><span class="line">  access$200() → Logger</span><br></pre></td></tr></table></figure>
+
+<p><strong>这不是 Java 语言保证的“一条日志对应一个访问器”。</strong> 访问器是否生成、是否复用以及如何编号，属于编译器实现细节。这里的数量和编号来自本次实际产物，换用其他编译器或版本时，应重新检查字节码。</p>
+<p>热更系统拿到这些 class 后，通常会执行类似的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Class</span>&lt;?&gt; <span class="variable">loadedClass</span> <span class="operator">=</span> Class.forName(className);</span><br><span class="line"><span class="type">ClassDefinition</span> <span class="variable">definition</span> <span class="operator">=</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ClassDefinition</span>(loadedClass, replacementBytes);</span><br><span class="line"></span><br><span class="line">instrumentation.redefineClasses(definition);</span><br></pre></td></tr></table></figure>
+
+<p>这会更新已经加载的类，同时保留现有类身份和对象。标准重定义接口允许修改方法体，但对类结构有明确约束，例如禁止增删字段或方法、修改方法签名以及改变继承关系。<a target="_blank" rel="noopener" href="https://docs.oracle.com/en/java/javase/25/docs/specs/jvmti.html#RedefineClasses">JVMTI RedefineClasses 约束</a></p>
+<p>JVM 比较的是新旧 class 定义。因此，这次失败的因果链是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">删除校验分支中的日志</span><br><span class="line">    → 对继承的 protected logger 少了一处访问</span><br><span class="line">    → javac 少生成一个合成访问器</span><br><span class="line">    → 新 class 缺少旧 class 中的 access$300()</span><br><span class="line">    → JVM 判定发生了方法删除</span><br><span class="line">    → 热更失败</span><br></pre></td></tr></table></figure>
+
+<p>即使新代码已经不再调用 <code>access$300()</code>，也不能通过这项结构检查。接口不会因为一个方法“看起来已无调用者”就允许删除它。</p>
+<p>如果一次 <code>redefineClasses</code> 调用提交了多个类，其中一个类违反限制，会导致这次调用中的所有类都不安装新定义。这是单次调用的整体语义；如果热更平台分多次调用，就需要分别分析每批结果。<a target="_blank" rel="noopener" href="https://docs.oracle.com/en/java/javase/25/docs/specs/jvmti.html#RedefineClasses">JVMTI 对失败与安装结果的说明</a></p>
+<p>排查时，验证分成两部分。首先，用相同编译环境分别编译修改前后的源码，比较外层类和匿名内部类的方法、字段与描述符。其次，用隔离类加载器加载旧版本，再通过 Java Agent 提供的 <code>Instrumentation</code> 实际执行重定义，无需启动完整业务服务。</p>
+<p>字节码对比表明：匿名内部类的字段、构造器和原有 Lambda 方法签名没有变化；外层类缺少一个合成访问器。重定义实验则直接复现了 <code>attempted to delete a method</code>。</p>
+<p>为了进一步确认因果关系，在实验副本中保留业务修复，同时在原日志位置恢复一次合理的日志访问。例如，旧逻辑把“累计数量已经满足要求”视为异常，新逻辑允许继续完成操作，可以改成：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">remaining</span> <span class="operator">=</span> Math.max(<span class="number">0</span>, required - accumulated);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (remaining == <span class="number">0</span>) &#123;</span><br><span class="line">    logger.info(</span><br><span class="line">            <span class="string">&quot;Requirements already satisfied, accumulated=&#123;&#125;, required=&#123;&#125;&quot;</span>,</span><br><span class="line">            accumulated, required);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 按新规则继续处理，不在这里报错返回</span></span><br></pre></td></tr></table></figure>
+
+<p>这样既保留了业务修复，又保留了这一处 <code>logger</code> 访问。本次编译生成的四个访问器恢复，方法结构与旧版本一致，验证结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>旧版本 → 删除日志后的版本</td>
+<td>重定义失败：尝试删除方法</td>
+</tr>
+<tr>
+<td>旧版本 → 保留合理日志访问的修正版</td>
+<td>外层类与匿名内部类重定义成功</td>
+</tr>
+</tbody></table>
+<p>这个实验验证的是类重定义兼容性。业务处理、日志频率和部署流程仍应按各自的验证要求检查，不能用重定义成功代替业务测试。</p>
+<p>这里需要保留的是编译产物中的结构，而不是单纯保留一行源码。<code>if (false) &#123; logger.info(...); &#125;</code> 之类的不可达代码可能在编译时被消除，不能用作可靠的结构占位。仅仅保证日志数量相同也不是通用判据：访问的成员、生成的方法名、描述符和标志都需要与实际旧产物核对。</p>
+<p>这个现象也不会因为使用新版本 JDK 就自动消失。现代 JVM 的 Nestmates 机制允许同一个 nest 中的类相互访问 <code>private</code> 成员，但不会让匿名类自动获得外层类跨包访问父类 <code>protected</code> 成员的资格。本次 JDK 25 产物中，<code>NestMembers</code> 属性与 <code>access$...</code> 方法同时存在。<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4.4">JVM 对 nest 与访问权限的定义</a></p>
+<p>在实践中，发布前可以先检查实际产物：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -p 显示全部访问级别的方法；-s 显示描述符</span></span><br><span class="line">javap -p -s <span class="string">&#x27;RequestHandler.class&#x27;</span></span><br><span class="line">javap -p -s <span class="string">&#x27;RequestHandler$1.class&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -v 查看 synthetic 等标志；-c 查看具体调用与字段访问</span></span><br><span class="line">javap -v -p <span class="string">&#x27;RequestHandler.class&#x27;</span></span><br><span class="line">javap -c -p <span class="string">&#x27;RequestHandler$1.class&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>比较时应覆盖外层类、匿名内部类以及 Lambda 等生成的方法，尤其留意 <code>access$...</code>、<code>lambda$...</code>、捕获变量字段、构造器参数和访问标志。<code>javap</code> 适合人工定位；自动化检查可以解析 class 结构，再结合实际重定义实验验证。</p>
+<p>比较基准应尽量使用与线上已加载版本一致的产物。只重新编译一份“旧源码”，可能遗漏原编译器、编译参数、依赖或已有补丁造成的差异。如果运行时还有字节码增强，也需要把增强后的定义纳入分析。</p>
+<p>这次问题留下的经验是：<strong>源码层面的“只改方法体”，并不保证字节码层面也只改了方法体。</strong> 对 Java 热更而言，编译器生成的成员同样属于兼容性边界，最终应以 class 结构和实际重定义结果为依据。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-09-28</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/ds-aws-graviton/'>在 AWS Graviton 上跑虚幻引擎 DS</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/fortnite-ds-build/">Fortnite DS 构建管线与多 CPU 架构产物调研</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

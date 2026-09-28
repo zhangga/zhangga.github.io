@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十七部分：基于 Unreal Engine 5.7.4 源码，讲解自定义 Filter、Prioritizer、ReplicationFragment、大规模多人优化与 GAS、网络物理、AI 集成。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M12 17h18v8H12zm22 0h18v8H34zM12 30h11v17H12zm15 0h25v7H27zm0 11h25v6H27z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-17/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十七部分：高级主题 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --amber: #9b6923;
+      --amber-soft: #f2e5c9;
+      --red: #a83d32;
+      --red-soft: #f4ded9;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, .11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, .035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, .028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a, article h2, article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 16%, rgba(245, 177, 142, .2), transparent 28%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "EXTEND";
+      position: absolute;
+      right: -.025em;
+      bottom: -.19em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(68px, 15vw, 210px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1080px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 960px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__deck strong { color: #fff; }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; color: #d9def7; font-size: 13px; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .92);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] { color: var(--iris-dark); background: #eef0fb; border-left-color: var(--signal); }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile {
+      display: none;
+      margin-bottom: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .toc-mobile summary { cursor: pointer; padding: 14px 17px; color: var(--iris-dark); font-weight: 800; }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 24px;
+      margin-bottom: 34px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(25, 35, 58, .05);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      color: var(--white);
+      background: var(--iris-dark);
+      font: 800 15px/1 var(--mono);
+      border-radius: 50%;
+    }
+    .source-note p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.62; }
+    .source-note strong { display: block; margin-bottom: 3px; color: var(--ink); }
+    .source-note__tag { color: var(--signal); font: 800 10px/1 var(--mono); letter-spacing: .1em; white-space: nowrap; }
+
+    article {
+      background: rgba(255, 253, 248, .87);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article section { padding: 58px clamp(28px, 6vw, 70px); scroll-margin-top: 24px; }
+    article section + section { border-top: 1px solid var(--line); }
+    article section:nth-child(even) { background: rgba(233, 225, 210, .22); }
+    article p { margin: 0 0 20px; }
+    article ul, article ol { margin: 0 0 22px; padding-left: 1.35em; }
+    article li + li { margin-top: 7px; }
+    article h2 {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 15px;
+      align-items: baseline;
+      margin: 0 0 30px;
+      color: var(--iris-dark);
+      font: 800 clamp(29px, 4vw, 43px) / 1.2 var(--serif);
+      letter-spacing: -.025em;
+      scroll-margin-top: 24px;
+    }
+    article h2::before {
+      content: attr(data-no);
+      color: var(--signal);
+      font: 800 12px/1 var(--mono);
+      letter-spacing: .08em;
+    }
+    article h3 {
+      margin: 36px 0 16px;
+      color: var(--ink);
+      font: 800 23px/1.35 var(--serif);
+    }
+    article h4 { margin: 26px 0 10px; color: var(--iris-dark); font-size: 16px; }
+    article code {
+      color: #803d2b;
+      background: #f1e8da;
+      padding: .12em .34em;
+      border-radius: 3px;
+      font: .91em/1.5 var(--mono);
+    }
+    article p code, article li code, article td code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .lede {
+      margin-bottom: 29px;
+      color: var(--ink-soft);
+      font: 500 clamp(19px, 2.4vw, 23px) / 1.72 var(--serif);
+    }
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 13px;
+      color: var(--signal);
+      font: 800 10px/1 var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .dropcap::first-letter {
+      float: left;
+      margin: .12em .13em 0 0;
+      color: var(--iris-dark);
+      font: 800 4.2em/.78 var(--serif);
+    }
+    .pullquote {
+      margin: 34px 0;
+      padding: 25px 28px 25px 32px;
+      color: var(--iris-dark);
+      background: linear-gradient(90deg, var(--signal-soft), rgba(242, 214, 202, .35));
+      border-left: 6px solid var(--signal);
+      font: 700 clamp(20px, 2.7vw, 27px) / 1.55 var(--serif);
+    }
+
+    .callout {
+      margin: 28px 0;
+      padding: 21px 24px;
+      background: #eef0fb;
+      border: 1px solid #c7ccee;
+      border-left: 5px solid var(--iris);
+    }
+    .callout strong { display: block; margin-bottom: 5px; color: var(--iris-dark); }
+    .callout strong,
+    .callout strong code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout--warn { background: var(--amber-soft); border-color: #d9c292; border-left-color: var(--amber); }
+    .callout--warn strong { color: #755019; }
+    .callout--danger { background: var(--red-soft); border-color: #deb4ac; border-left-color: var(--red); }
+    .callout--danger strong { color: var(--red); }
+    .callout--success { background: var(--green-soft); border-color: #bad5c8; border-left-color: var(--green); }
+    .callout--success strong { color: var(--green); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 29px 0;
+    }
+    .card {
+      padding: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 9px 28px rgba(25, 35, 58, .055);
+    }
+    .card small { color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .12em; }
+    .card h3 { margin: 10px 0 9px; font-size: 20px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .card--green { border-top: 5px solid var(--green); }
+    .card--signal { border-top: 5px solid var(--signal); }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      margin: 25px 0 32px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    table { width: 100%; min-width: 690px; border-collapse: collapse; font-size: 14px; line-height: 1.58; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid #ddd5c8; }
+    th { color: var(--white); background: var(--iris-dark); font-size: 12px; letter-spacing: .035em; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:nth-child(even) { background: rgba(233, 225, 210, .33); }
+
+    .code-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 3px 0 -17px;
+      padding: 7px 10px;
+      color: var(--white);
+      background: var(--signal);
+      font: 800 9px/1 var(--mono);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .code-label--api { background: var(--green); }
+    .code-label--direction { background: var(--iris); }
+
+    .codeblock, .tree {
+      overflow-x: auto;
+      margin: 24px 0 30px;
+      padding: 22px 24px;
+      color: #e8ebff;
+      background: #172038;
+      border: 1px solid #344372;
+      border-left: 5px solid #f28a62;
+      font: 13px/1.72 var(--mono);
+      white-space: pre;
+      tab-size: 2;
+    }
+    .codeblock .comment { color: #98a5c7; }
+    .codeblock .key { color: #f5b18e; }
+    .codeblock .value { color: #9ed8be; }
+    .tree { color: #d9def7; background: #20294a; }
+
+    .extension-ladder { display: grid; gap: 7px; margin: 32px 0; }
+    .extension-step {
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1.1fr) minmax(150px, .75fr);
+      align-items: stretch;
+      margin-right: calc(var(--level) * 4%);
+    }
+    .extension-step__rank {
+      display: grid;
+      place-items: center;
+      color: var(--white);
+      background: var(--signal);
+      font: 800 12px/1 var(--mono);
+    }
+    .extension-step__main { padding: 13px 17px; background: var(--white); border-block: 1px solid var(--line); }
+    .extension-step__main b { display: block; color: var(--iris-dark); }
+    .extension-step__main span { color: var(--ink-soft); font-size: 13px; }
+    .extension-step__cost { padding: 13px 16px; color: #e9ecff; background: var(--iris-dark); font-size: 12px; line-height: 1.5; }
+
+    .decision {
+      display: grid;
+      gap: 10px;
+      margin: 30px 0;
+    }
+    .decision__row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 36px minmax(210px, 1.15fr);
+      gap: 10px;
+      align-items: center;
+    }
+    .decision__question, .decision__answer {
+      padding: 15px 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .decision__question { color: var(--ink-soft); }
+    .decision__question b { color: var(--iris-dark); }
+    .decision__arrow { color: var(--signal); text-align: center; font-size: 23px; font-weight: 900; }
+    .decision__answer { color: var(--white); background: var(--iris-dark); border-color: var(--iris-dark); }
+    .decision__answer code { color: #fff; background: rgba(255,255,255,.12); }
+
+    .lifecycle {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 34px 0;
+      counter-reset: life;
+    }
+    .lifecycle__node {
+      position: relative;
+      min-height: 142px;
+      padding: 41px 15px 17px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      counter-increment: life;
+    }
+    .lifecycle__node::before {
+      content: "0" counter(life);
+      position: absolute;
+      top: 13px;
+      left: 15px;
+      color: var(--signal);
+      font: 800 10px/1 var(--mono);
+    }
+    .lifecycle__node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -20px;
+      top: 52px;
+      color: var(--signal);
+      font: 900 22px/1 var(--sans);
+    }
+    .lifecycle__node b { display: block; color: var(--iris-dark); font-family: var(--serif); }
+    .lifecycle__node span { display: block; margin-top: 7px; color: var(--ink-soft); font-size: 11px; line-height: 1.45; }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 150px repeat(5, minmax(80px, 1fr));
+      margin: 28px 0;
+      overflow-x: auto;
+      background: var(--white);
+      border: 1px solid var(--line);
+      font-size: 12px;
+    }
+    .matrix > div { min-width: 90px; padding: 12px 10px; border-right: 1px solid #ddd5c8; border-bottom: 1px solid #ddd5c8; text-align: center; }
+    .matrix > div:nth-child(6n) { border-right: 0; }
+    .matrix__head { color: var(--white); background: var(--iris-dark); font-weight: 800; }
+    .matrix__label { color: var(--iris-dark); background: #eef0fb; font-weight: 800; text-align: left !important; }
+    .matrix__yes { color: var(--green); font-weight: 900; }
+    .matrix__no { color: var(--red); font-weight: 900; }
+    .matrix__project { color: var(--amber); font-weight: 800; }
+
+    .score {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 5px;
+      margin: 31px 0;
+      align-items: stretch;
+    }
+    .score__term {
+      position: relative;
+      min-height: 136px;
+      padding: 22px 14px;
+      color: var(--white);
+      background: var(--iris-dark);
+      text-align: center;
+    }
+    .score__term:nth-child(2), .score__term:nth-child(4) { background: #3f4fa0; }
+    .score__term:nth-child(5) { background: var(--green); }
+    .score__term:last-child { background: var(--signal); }
+    .score__term:not(:last-child)::after {
+      content: "+";
+      position: absolute;
+      z-index: 2;
+      top: 44px;
+      right: -12px;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      color: var(--iris-dark);
+      background: var(--white);
+      border-radius: 50%;
+      font-weight: 900;
+    }
+    .score__term:nth-last-child(2)::after { content: "="; }
+    .score__term b { display: block; font: 800 15px/1.35 var(--serif); }
+    .score__term span { display: block; margin-top: 9px; color: rgba(255,255,255,.74); font: 700 11px/1.5 var(--mono); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 5px;
+      margin: 34px 0;
+    }
+    .pipeline__stage {
+      position: relative;
+      min-height: 170px;
+      padding: 46px 15px 18px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border-bottom: 7px solid #8d98cf;
+    }
+    .pipeline__stage:nth-child(2) { background: #354487; }
+    .pipeline__stage:nth-child(3) { background: #3f4fa0; }
+    .pipeline__stage:nth-child(4) { background: #3d7068; border-bottom-color: #8bc1b4; }
+    .pipeline__stage:nth-child(5) { background: #9b6923; border-bottom-color: #e1bd78; }
+    .pipeline__stage:nth-child(6) { background: var(--signal); border-bottom-color: #f5b18e; }
+    .pipeline__stage::before {
+      content: attr(data-stage);
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      color: rgba(255,255,255,.54);
+      font: 800 10px/1 var(--mono);
+    }
+    .pipeline__stage b { display: block; font: 800 16px/1.35 var(--serif); }
+    .pipeline__stage span { display: block; margin-top: 9px; color: rgba(255,255,255,.74); font-size: 11px; line-height: 1.5; }
+
+    .traits {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 29px 0;
+    }
+    .trait-group { padding: 22px; background: var(--white); border: 1px solid var(--line); border-top: 6px solid var(--iris); }
+    .trait-group:nth-child(2) { border-top-color: var(--green); }
+    .trait-group:nth-child(3) { border-top-color: var(--signal); }
+    .trait-group:nth-child(4) { border-top-color: var(--amber); }
+    .trait-group h3 { margin: 0 0 12px; font-size: 20px; }
+    .trait-group p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+    .trait-group code { display: inline-block; margin: 4px 2px 0 0; }
+
+    .upgrade {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 20px;
+      margin: 31px 0;
+    }
+    .upgrade__step {
+      position: relative;
+      min-height: 154px;
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .upgrade__step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -20px;
+      top: 56px;
+      color: var(--signal);
+      font-size: 23px;
+      font-weight: 900;
+    }
+    .upgrade__step small { color: var(--signal); font: 800 9px/1 var(--mono); }
+    .upgrade__step b { display: block; margin: 10px 0 7px; color: var(--iris-dark); }
+    .upgrade__step span { color: var(--ink-soft); font-size: 11px; line-height: 1.45; }
+
+    .scale-equation {
+      display: grid;
+      grid-template-columns: repeat(9, auto);
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 29px 0;
+      padding: 28px 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      font: 800 13px/1.35 var(--mono);
+    }
+    .scale-equation b { padding: 12px; color: var(--iris-dark); background: #eef0fb; text-align: center; }
+    .scale-equation i { color: var(--signal); font-style: normal; }
+    .scale-equation strong { padding: 12px; color: var(--white); background: var(--green); }
+
+    .budget-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: 28px 0;
+    }
+    .budget {
+      min-height: 190px;
+      padding: 22px;
+      color: var(--white);
+      background: var(--iris-dark);
+    }
+    .budget:nth-child(2) { background: #3f4fa0; }
+    .budget:nth-child(3) { background: var(--green); }
+    .budget:nth-child(4) { background: var(--signal); }
+    .budget small { font: 800 9px/1 var(--mono); letter-spacing: .12em; opacity: .68; }
+    .budget h3 { margin: 11px 0 10px; color: var(--white); font-size: 20px; }
+    .budget p { margin: 0; color: rgba(255,255,255,.76); font-size: 12px; line-height: 1.6; }
+
+    .funnel { display: grid; gap: 5px; margin: 30px auto; max-width: 720px; }
+    .funnel__step {
+      width: calc(100% - var(--inset));
+      margin-inline: auto;
+      padding: 13px 18px;
+      color: var(--white);
+      background: var(--iris-dark);
+      text-align: center;
+      font-size: 13px;
+    }
+    .funnel__step:nth-child(2), .funnel__step:nth-child(3) { background: #354487; }
+    .funnel__step:nth-child(4), .funnel__step:nth-child(5) { background: #3d7068; }
+    .funnel__step:nth-child(6) { background: #9b6923; }
+    .funnel__step:nth-child(7) { background: var(--signal); }
+
+    .boundary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 68px minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+      margin: 30px 0;
+    }
+    .boundary__side { padding: 25px; background: var(--white); border: 1px solid var(--line); }
+    .boundary__side:first-child { border-top: 7px solid var(--iris); }
+    .boundary__side:last-child { border-top: 7px solid var(--signal); }
+    .boundary__side h3 { margin: 0 0 13px; }
+    .boundary__side ul { margin: 0; font-size: 13px; }
+    .boundary__divider {
+      display: grid;
+      place-items: center;
+      color: var(--white);
+      background: var(--ink);
+      font: 800 10px/1.4 var(--mono);
+      letter-spacing: .08em;
+      writing-mode: vertical-rl;
+    }
+
+    .integration {
+      display: grid;
+      gap: 18px;
+      margin: 30px 0;
+    }
+    .integration__row {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1fr);
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .integration__name {
+      display: grid;
+      align-content: center;
+      padding: 22px;
+      color: var(--white);
+      background: var(--iris-dark);
+    }
+    .integration__row:nth-child(2) .integration__name { background: var(--green); }
+    .integration__row:nth-child(3) .integration__name { background: var(--signal); }
+    .integration__name small { font: 800 9px/1 var(--mono); opacity: .7; }
+    .integration__name b { margin-top: 9px; font: 800 23px/1.2 var(--serif); }
+    .integration__cell { padding: 22px; border-left: 1px solid var(--line); }
+    .integration__cell strong { display: block; margin-bottom: 8px; color: var(--iris-dark); }
+    .integration__cell p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 28px 0;
+    }
+    .checklist > div { padding: 22px; background: var(--white); border: 1px solid var(--line); }
+    .checklist h3 { margin: 0 0 13px; font-size: 20px; }
+    .checklist ul { margin: 0; padding-left: 0; list-style: none; font-size: 13px; }
+    .checklist li { position: relative; padding-left: 22px; }
+    .checklist li::before { content: "◆"; position: absolute; left: 0; color: var(--signal); font-size: 10px; }
+
+    .sources {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 18px 0 30px;
+    }
+    .sources a {
+      padding: 8px 11px;
+      color: var(--iris-dark);
+      background: #eef0fb;
+      border: 1px solid #cbd0ee;
+      text-decoration: none;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .sources a:hover { color: var(--white); background: var(--signal); border-color: var(--signal); }
+
+    .chapter-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 42px;
+    }
+    .chapter-nav a, .chapter-nav div {
+      display: grid;
+      gap: 6px;
+      min-height: 92px;
+      padding: 20px;
+      color: var(--ink);
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .chapter-nav a:last-child, .chapter-nav div:last-child { text-align: right; }
+    .chapter-nav span { color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .11em; }
+    .chapter-nav b { font-family: var(--serif); }
+    .chapter-nav a:hover { color: var(--white); background: var(--iris-dark); border-color: var(--iris-dark); }
+
+    footer {
+      padding: 42px 24px 52px;
+      color: #dce1fa;
+      background: #172038;
+      text-align: center;
+      font-size: 13px;
+    }
+    footer p { margin: 5px 0; }
+    footer a { color: #f5b18e; }
+    .back-top {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 30;
+      width: 45px;
+      height: 45px;
+      color: var(--white);
+      background: var(--signal);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 8px 24px rgba(25, 35, 58, .25);
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px);
+      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .back-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 230px minmax(0, 1fr); gap: 24px; width: min(100% - 28px, 1080px); }
+      article section { padding-inline: clamp(25px, 4vw, 50px); }
+      .lifecycle { grid-template-columns: repeat(3, 1fr); }
+      .lifecycle__node:nth-child(3)::after { display: none; }
+      .score { grid-template-columns: repeat(3, 1fr); }
+      .score__term:nth-child(3)::after { display: none; }
+      .pipeline { grid-template-columns: repeat(3, 1fr); }
+      .upgrade { grid-template-columns: repeat(3, 1fr); }
+      .upgrade__step:nth-child(3)::after { display: none; }
+      .budget-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 820px) {
+      .hero { padding: 58px 24px 52px; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 24px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .source-note { grid-template-columns: 50px minmax(0, 1fr); padding: 17px; }
+      .source-note__mark { width: 50px; height: 50px; }
+      .source-note__tag { grid-column: 2; }
+      .cards, .checklist { grid-template-columns: 1fr; }
+      .traits { grid-template-columns: 1fr; }
+      .extension-step { margin-right: 0; }
+      .scale-equation { grid-template-columns: 1fr; justify-items: stretch; text-align: center; }
+      .scale-equation i { transform: rotate(90deg); }
+      .boundary { grid-template-columns: 1fr; }
+      .boundary__divider { min-height: 42px; writing-mode: initial; }
+      .integration__row { grid-template-columns: 1fr 1fr; }
+      .integration__name { grid-column: 1 / -1; min-height: 110px; }
+      .integration__cell:first-of-type { border-left: 0; }
+    }
+
+    @media (max-width: 580px) {
+      body { font-size: 16px; }
+      .hero h1 { font-size: 39px; }
+      .hero::before { font-size: 86px; }
+      article section { padding: 42px 21px; }
+      article h2 { grid-template-columns: 1fr; gap: 7px; font-size: 31px; }
+      .extension-step { grid-template-columns: 46px minmax(0, 1fr); }
+      .extension-step__cost { grid-column: 2; }
+      .decision__row { grid-template-columns: 1fr; }
+      .decision__arrow { transform: rotate(90deg); }
+      .lifecycle, .score, .pipeline, .upgrade, .budget-grid { grid-template-columns: 1fr; }
+      .lifecycle__node, .score__term, .pipeline__stage, .upgrade__step { min-height: auto; }
+      .lifecycle__node::after, .score__term::after, .upgrade__step::after { display: none !important; }
+      .integration__row { grid-template-columns: 1fr; }
+      .integration__cell { border-left: 0; border-top: 1px solid var(--line); }
+      .chapter-nav { grid-template-columns: 1fr; }
+      .chapter-nav a:last-child, .chapter-nav div:last-child { text-align: left; }
+      .codeblock, .tree { margin-inline: -8px; padding: 18px; font-size: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+
+    @media print {
+      .reading-progress, .toc, .toc-mobile, .back-top { display: none !important; }
+      .hero { color: var(--ink); background: white; border-bottom-color: var(--ink); }
+      .hero__deck, .hero__meta, .kicker { color: var(--ink); }
+      .layout { display: block; width: auto; margin: 0; }
+      article { box-shadow: none; border: 0; }
+      article section { break-inside: avoid; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">PART 17 · ADVANCED TOPICS</p>
+      <h1>
+        <span>UE5 Iris 网络复制系统技术分析</span>
+        <span>第十七部分：高级主题</span>
+      </h1>
+      <p class="hero__deck">高级定制不是“把所有基类都继承一遍”，而是找到<strong>最窄、最便宜、最容易证明收益的扩展点</strong>。本篇以 Unreal Engine 5.7.4 源码为准，从 Filter、Prioritizer 到 ReplicationFragment，建立一条能落地、能度量、能回退的扩展路线。</p>
+      <div class="hero__meta">
+        <span>原创扩写：Jossy Zhang</span>
+        <span>技术基线：Unreal Engine 5.7.4</span>
+        <span>源码位置：Engine/Source/Runtime/Net/Iris</span>
+        <span><a href="/ue5-iris-guide/">返回系列目录</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>本篇目录</strong><span>13 SECTIONS</span></div>
+      <ol>
+        <li><a href="#decision-gate"><span>17.0</span><b>为什么需要高级定制</b></a></li>
+        <li><a href="#extension-map"><span>MAP</span><b>扩展点与源码地图</b></a></li>
+        <li><a href="#filter-contract"><span>17.1A</span><b>Filter 批处理契约</b></a></li>
+        <li><a href="#stealth-filter"><span>17.1B</span><b>隐身系统 Filter</b></a></li>
+        <li><a href="#filter-performance"><span>17.1C</span><b>Filter 性能与排障</b></a></li>
+        <li><a href="#prioritizer-contract"><span>17.2A</span><b>Prioritizer 契约</b></a></li>
+        <li><a href="#combat-prioritizer"><span>17.2B</span><b>战斗优先级器</b></a></li>
+        <li><a href="#filter-priority-pipeline"><span>PIPE</span><b>Filter 与优先级协作</b></a></li>
+        <li><a href="#fragment-contract"><span>17.3A</span><b>Fragment 契约</b></a></li>
+        <li><a href="#gameplay-fragment"><span>17.3B</span><b>GAS Fragment 源码案例</b></a></li>
+        <li><a href="#scale"><span>17.4</span><b>千人规模优化</b></a></li>
+        <li><a href="#gameplay-integration"><span>17.5</span><b>Gameplay 系统集成</b></a></li>
+        <li><a href="#checklist"><span>17.6</span><b>检查表与源码索引</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开本篇目录（13 节）</summary>
+        <ol>
+          <li><a href="#decision-gate"><span>17.0</span><b>为什么需要高级定制</b></a></li>
+          <li><a href="#extension-map"><span>MAP</span><b>扩展点与源码地图</b></a></li>
+          <li><a href="#filter-contract"><span>17.1A</span><b>Filter 批处理契约</b></a></li>
+          <li><a href="#stealth-filter"><span>17.1B</span><b>隐身系统 Filter</b></a></li>
+          <li><a href="#filter-performance"><span>17.1C</span><b>Filter 性能与排障</b></a></li>
+          <li><a href="#prioritizer-contract"><span>17.2A</span><b>Prioritizer 契约</b></a></li>
+          <li><a href="#combat-prioritizer"><span>17.2B</span><b>战斗优先级器</b></a></li>
+          <li><a href="#filter-priority-pipeline"><span>PIPE</span><b>Filter 与优先级协作</b></a></li>
+          <li><a href="#fragment-contract"><span>17.3A</span><b>Fragment 契约</b></a></li>
+          <li><a href="#gameplay-fragment"><span>17.3B</span><b>GAS Fragment 源码案例</b></a></li>
+          <li><a href="#scale"><span>17.4</span><b>千人规模优化</b></a></li>
+          <li><a href="#gameplay-integration"><span>17.5</span><b>Gameplay 系统集成</b></a></li>
+          <li><a href="#checklist"><span>17.6</span><b>检查表与源码索引</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note">
+        <div class="source-note__mark">17</div>
+        <p><strong>文章来源与技术说明</strong>本篇依据 Smartuil 发布的《UE5-Iris 网络复制系统技术分析指南 - 大纲》进行原创扩写；接口、默认行为与源码路径以本地 Unreal Engine 5.7.4 为技术基线，并参考 Epic Games 官方 Iris 文档。</p>
+        <span class="source-note__tag">SOURCE VERIFIED</span>
+      </div>
+
+      <article>
+        <section>
+          <span class="eyebrow">17.0 · THE NARROWEST SEAM</span>
+          <h2 id="decision-gate" data-no="01" tabindex="-1">为什么需要“高级定制”？</h2>
+          <p class="lede dropcap">Iris 提供 Filter、Prioritizer、NetSerializer、ReplicationFragment、Bridge 和 DataStream 等多个扩展面。它们不是一套要全部实现的“高级套餐”，而是一组成本相差很大的工具。真正成熟的做法，是先证明内置机制不能表达需求，再进入最窄的一层。</p>
+
+          <div class="pullquote">高级不是代码更深，而是边界更清楚：你只替换必须替换的那一小段，其余路径继续交给引擎。</div>
+
+          <h3>从“买成品”到“改结构”</h3>
+          <p>把网络复制想成装修：改配色和家具对应调配置；移动一面非承重墙对应写 Filter 或 Prioritizer；重新设计水电和承重结构才对应 Fragment、Bridge 或 DataStream。越向下，能力越强，协议兼容、内存布局、生命周期和版本升级成本也越高。</p>
+
+          <div class="extension-ladder" aria-label="Iris 自定义难度阶梯">
+            <div class="extension-step" style="--level:0">
+              <div class="extension-step__rank">L0</div>
+              <div class="extension-step__main"><b>配置内置机制</b><span>Grid、Owner、Sphere、FOV、Poll、Delta</span></div>
+              <div class="extension-step__cost">成本最低；先调参和度量。</div>
+            </div>
+            <div class="extension-step" style="--level:1">
+              <div class="extension-step__rank">L1</div>
+              <div class="extension-step__main"><b>Connection / Group / Static Priority</b><span>固定受众、队伍、频道、常量优先级</span></div>
+              <div class="extension-step__cost">事件驱动；通常比动态策略便宜。</div>
+            </div>
+            <div class="extension-step" style="--level:2">
+              <div class="extension-step__rank">L2</div>
+              <div class="extension-step__main"><b>自定义 Dynamic Filter</b><span>对象 × 连接的高频可见性规则</span></div>
+              <div class="extension-step__cost">每连接运行；CPU 风险明显。</div>
+            </div>
+            <div class="extension-step" style="--level:3">
+              <div class="extension-step__rank">L3</div>
+              <div class="extension-step__main"><b>自定义 Prioritizer</b><span>项目特有的候选排序与保底策略</span></div>
+              <div class="extension-step__cost">要防尺度失控与对象饥饿。</div>
+            </div>
+            <div class="extension-step" style="--level:4">
+              <div class="extension-step__rank">L4</div>
+              <div class="extension-step__main"><b>NetSerializer / Fragment</b><span>特殊值编码、采集、应用与回调</span></div>
+              <div class="extension-step__cost">进入协议、量化和 GC 边界。</div>
+            </div>
+            <div class="extension-step" style="--level:5">
+              <div class="extension-step__rank">L5</div>
+              <div class="extension-step__main"><b>Bridge / DataStream</b><span>非标准对象生命周期或传输语义</span></div>
+              <div class="extension-step__cost">引擎级维护；升级审计最重。</div>
+            </div>
+          </div>
+
+          <h3>先问六个问题</h3>
+          <div class="decision">
+            <div class="decision__row">
+              <div class="decision__question"><b>只给 Owner？</b> 规则天然是一对一。</div>
+              <div class="decision__arrow">→</div>
+              <div class="decision__answer">使用 <code>ToOwnerFilterHandle</code></div>
+            </div>
+            <div class="decision__row">
+              <div class="decision__question"><b>固定少量连接？</b> 受众变化不频繁。</div>
+              <div class="decision__arrow">→</div>
+              <div class="decision__answer">使用 Connection Filter</div>
+            </div>
+            <div class="decision__row">
+              <div class="decision__question"><b>大量对象共享受众？</b> 队伍、频道、Streaming Level。</div>
+              <div class="decision__arrow">→</div>
+              <div class="decision__answer">使用 Group Filter</div>
+            </div>
+            <div class="decision__row">
+              <div class="decision__question"><b>规则是空间范围？</b> 位置和裁剪距离可表达。</div>
+              <div class="decision__arrow">→</div>
+              <div class="decision__answer">使用 <code>UNetObjectGridFilter</code></div>
+            </div>
+            <div class="decision__row">
+              <div class="decision__question"><b>只想调整“先发谁”？</b> 对象仍应对该连接可见。</div>
+              <div class="decision__arrow">→</div>
+              <div class="decision__answer">Static / Dynamic Prioritizer</div>
+            </div>
+            <div class="decision__row">
+              <div class="decision__question"><b>状态如何采集或应用不同？</b> 普通属性和 Serializer 不够。</div>
+              <div class="decision__arrow">→</div>
+              <div class="decision__answer">最后才进入 ReplicationFragment</div>
+            </div>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>Dynamic Filter 是最后手段，不是“比 Group 更高级”的默认选择</strong>
+            <p>Epic 官方文档明确提示：动态 Filter 会持续运行，CPU 成本显著高于 Connection / Group Filter；而且一个对象同一时间只能设置一个动态 Filter。先把能事件驱动的规则移出每连接热路径。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">CONTRACTS BEFORE CODE</span>
+          <h2 id="extension-map" data-no="02" tabindex="-1">三个扩展点，一条发送管线</h2>
+          <p class="lede">Filter、Prioritizer 和 Fragment 经常被并列介绍，但它们处理的是不同问题、出现在不同阶段。先把三者放回发送管线，后续每个接口的职责就会变得清楚。</p>
+
+          <div class="cards">
+            <div class="card">
+              <small>SET MEMBERSHIP</small>
+              <h3>Filter</h3>
+              <p>回答“这个对象能不能发给这个连接”。输出的是允许集合，不是排序分数。</p>
+            </div>
+            <div class="card card--green">
+              <small>ORDER CANDIDATES</small>
+              <h3>Prioritizer</h3>
+              <p>回答“有资格、有变化的对象先发谁”。改变竞争顺序，不改变相关性。</p>
+            </div>
+            <div class="card card--signal">
+              <small>MOVE STATE</small>
+              <h3>Fragment</h3>
+              <p>回答“Gameplay 状态如何进入和离开复制系统”，包括采集、应用与回调。</p>
+            </div>
+          </div>
+
+          <div class="pipeline" aria-label="Iris 高级扩展点管线">
+            <div class="pipeline__stage" data-stage="01"><b>Connection / Group</b><span>用事件驱动规则先削减 scope。</span></div>
+            <div class="pipeline__stage" data-stage="02"><b>Dynamic Filter</b><span>对剩余对象做连接相关判断。</span></div>
+            <div class="pipeline__stage" data-stage="03"><b>Dirty / Resend</b><span>只保留有变化或需要重发的对象。</span></div>
+            <div class="pipeline__stage" data-stage="04"><b>Prioritizer</b><span>为本连接批量计算或抬高分数。</span></div>
+            <div class="pipeline__stage" data-stage="05"><b>Budget</b><span>带宽、包窗口、依赖共同裁决。</span></div>
+            <div class="pipeline__stage" data-stage="06"><b>Fragment</b><span>采集、量化、写入；接收端反向应用。</span></div>
+          </div>
+
+          <div class="callout">
+            <strong>一条不可逆的推论</strong>
+            <p>对象一旦被 Connection、Group 或 Dynamic Filter 排除，后面的 Prioritizer 再给多高分也不能把它“救回来”。相反，Filter 允许对象也不代表它本帧一定发送；它还必须有可发送变化，并通过预算与依赖检查。</p>
+          </div>
+
+          <h3>源码地图：Public 是契约，Private 是解释</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>主题</th><th>UE 5.7.4 入口</th><th>阅读目标</th></tr></thead>
+              <tbody>
+                <tr><td>Filter API</td><td><code>.../Filtering/NetObjectFilter.h</code></td><td>生命周期、参数、Traits、8-byte per-object info</td></tr>
+                <tr><td>Filter 注册</td><td><code>.../Filtering/NetObjectFilterDefinitions.h</code></td><td>Name → Class → ConfigClass</td></tr>
+                <tr><td>Filter 管线</td><td><code>Private/.../Filtering/ReplicationFiltering.cpp</code></td><td>阶段顺序、分配和组合规则</td></tr>
+                <tr><td>Prioritizer API</td><td><code>.../Prioritization/NetObjectPrioritizer.h</code></td><td>累积、1.0 阈值、max 合成</td></tr>
+                <tr><td>批处理实现</td><td><code>Private/.../SphereNetObjectPrioritizer.cpp</code></td><td>SoA、1024 批次、多 View、SIMD 思路</td></tr>
+                <tr><td>Fragment API</td><td><code>.../ReplicationFragment.h</code></td><td>Traits、Apply、Poll、RepNotify、注册</td></tr>
+                <tr><td>默认 Fragment</td><td><code>.../ReplicationFragmentUtil.h</code></td><td>普通 UPROPERTY 的首选入口</td></tr>
+                <tr><td>生产案例</td><td><code>GameplayAbilities/.../MinimalGameplayCue...Fragment.cpp</code></td><td>自定义 Serializer 与 Fragment 如何协作</td></tr>
+                <tr><td>测试样板</td><td><code>ReplicationSystemTestPlugin/.../MockNetObjectFilter.*</code></td><td>验证调用次数、Add / Remove 和批次契约</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>项目代码应依赖 Public 头文件。Private 实现和 TestPlugin 很适合回答“引擎为什么这样调用”，但不要为了省一次数据建模，就让游戏模块长期依赖 <code>GetReplicationSystemInternal()</code> 一类私有入口。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.1A · DYNAMIC FILTER CONTRACT</span>
+          <h2 id="filter-contract" data-no="03" tabindex="-1">Filter 不是逐 Actor 回调，而是批处理门禁</h2>
+          <p class="lede">传统相关性代码容易形成“给我一个 Actor 和 Viewer，我返回 true / false”的心智模型。Iris 的动态 Filter 接口刻意换成对象索引、bit array、连接视图和批次，目的是让相同工作在连续内存上完成。</p>
+
+          <h3>生命周期不是只有 <code>Filter()</code></h3>
+          <div class="lifecycle">
+            <div class="lifecycle__node"><b>OnInit</b><span>保存配置，按 absolute / current max 分配结构，声明 Traits。</span></div>
+            <div class="lifecycle__node"><b>Add Connection</b><span>建立连接级缓存；Remove 时对称清理。</span></div>
+            <div class="lifecycle__node"><b>Add Object</b><span>验证协议，分配小索引；失败返回 false。</span></div>
+            <div class="lifecycle__node"><b>Update Objects</b><span>只为变化对象刷新可复用快照。</span></div>
+            <div class="lifecycle__node"><b>PreFilter</b><span>每轮过滤前一次性准备跨连接公共数据。</span></div>
+            <div class="lifecycle__node"><b>Filter</b><span>按连接、按批次设置允许位；同一连接可能多次调用。</span></div>
+            <div class="lifecycle__node"><b>PostFilter</b><span>释放本轮临时状态或提交统计。</span></div>
+            <div class="lifecycle__node"><b>Remove Object</b><span>回收 AddObject 创建的索引和缓存。</span></div>
+            <div class="lifecycle__node"><b>OnDeinit</b><span>断开系统引用，清理所有持久资源。</span></div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong><code>OutAllowedObjects</code> 进来时内容未定义</strong>
+            <p>Filter 必须为自己负责的对象完整写出结果。不能假定数组默认全 0，也不能只“设置允许位”却忘记清除上一次批次的残留。引擎只关心分配给该 Filter 的对象，但实现仍要明确初始化自己的输出。</p>
+          </div>
+
+          <h3>五组参数各自解决什么</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>类型</th><th>重要字段</th><th>正确用途</th><th>常见误用</th></tr></thead>
+              <tbody>
+                <tr><td><code>FNetObjectFilterInitParams</code></td><td>ReplicationSystem、Config、三种容量</td><td>建立容量上限和配置引用</td><td>把 CurrentMax 当成永不增长的绝对上限</td></tr>
+                <tr><td><code>FNetObjectFilteringInfo</code></td><td><code>uint16 Data[4]</code></td><td>保存小索引、偏移或 flags</td><td>塞大型 gameplay 状态或未管理的裸指针</td></tr>
+                <tr><td><code>FNetObjectFilterAddObjectParams</code></td><td>Protocol、InstanceProtocol、StateBuffer、ProfileName</td><td>定位 RepTag / Descriptor，并建立缓存索引</td><td>把量化 StateBuffer 直接转成 gameplay struct</td></tr>
+                <tr><td><code>FNetObjectFilterUpdateParams</code></td><td>ObjectIndices、ObjectCount、FilteringInfos</td><td>批量刷新变化对象的快照</td><td>无差别重新扫描全部对象</td></tr>
+                <tr><td><code>FNetObjectFilteringParams</code></td><td>OutAllowedObjects、ConnectionId、View、GroupFilteredOutObjects</td><td>在连接上下文中写允许集合</td><td>忽略多 View，或试图放回 Group 已排除对象</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>两个 Traits 决定额外调用</h3>
+          <div class="cards">
+            <div class="card">
+              <small>ENetFilterTraits</small>
+              <h3>Spatial</h3>
+              <p>声明该 Filter 按对象 WorldLocation 工作。空间 Filter 仍需维护位置、边界与移动更新，Trait 不是算法本身。</p>
+            </div>
+            <div class="card card--green">
+              <small>ENetFilterTraits</small>
+              <h3>NeedsUpdate</h3>
+              <p>要求系统为脏对象调用 <code>UpdateObjects</code>。没有该 Trait，就不要期待更新回调为缓存刷新。</p>
+            </div>
+            <div class="card card--signal">
+              <small>GROWTH CONTRACT</small>
+              <h3>Max Index Grow</h3>
+              <p><code>OnMaxInternalNetRefIndexIncreased</code> 是容量增长契约；所有按 ObjectIndex 索引的数组都要同步扩容。</p>
+            </div>
+          </div>
+
+          <span class="code-label code-label--direction">可编译方向骨架 · 项目需补全</span>
+          <pre class="codeblock"><code><span class="comment">// StealthNetObjectFilter.h — 展示接口形状，不包含项目快照来源</span>
+UCLASS(Config=Engine)
+class MYGAME_API UStealthNetObjectFilterConfig
+    : public UNetObjectFilterConfig
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(Config)
+    uint32 MaxTrackedTeams = 8;
+};
+
+UCLASS()
+class MYGAME_API UStealthNetObjectFilter
+    : public UNetObjectFilter
+{
+    GENERATED_BODY()
+protected:
+    virtual void OnInit(
+        const FNetObjectFilterInitParams&amp; Params) override;
+    virtual void OnDeinit() override;
+    virtual void OnMaxInternalNetRefIndexIncreased(
+        uint32 NewMaxInternalIndex) override;
+
+    virtual void AddConnection(uint32 ConnectionId) override;
+    virtual void RemoveConnection(uint32 ConnectionId) override;
+    virtual bool AddObject(
+        uint32 ObjectIndex,
+        FNetObjectFilterAddObjectParams&amp; Params) override;
+    virtual void RemoveObject(
+        uint32 ObjectIndex,
+        const FNetObjectFilteringInfo&amp; Info) override;
+
+    virtual void UpdateObjects(
+        FNetObjectFilterUpdateParams&amp; Params) override;
+    virtual void PreFilter(
+        FNetObjectPreFilteringParams&amp; Params) override;
+    virtual void Filter(
+        FNetObjectFilteringParams&amp; Params) override;
+    virtual void PostFilter(
+        FNetObjectPostFilteringParams&amp; Params) override;
+
+private:
+    <span class="comment">// Project hook: 由服务器权威系统提供只读快照。</span>
+    <span class="comment">// Filter 热路径只保存索引并做 bit-array 运算。</span>
+    TArray&lt;uint32&gt; VisibilityRecordByObject;
+};</code></pre>
+
+          <p>方向骨架故意没有展示“如何从 ObjectIndex 取回 UObject”。引擎测试代码可以通过内部管理器这样做，但那是 Private 依赖，不应成为游戏模块的长期接口。更稳妥的做法是让服务器权威可见性系统生成批量只读快照，Filter 只保留快照索引。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.1B · STEALTH AS A SET PROBLEM</span>
+          <h2 id="stealth-filter" data-no="04" tabindex="-1">手把手建模：隐身系统过滤器</h2>
+          <p class="lede">隐身不是一个布尔值，而是“对象、连接、队伍、侦测与观战策略”的关系。直接在 <code>Filter()</code> 里问 Gameplay 世界会把这段关系变成每连接、每对象的昂贵查询；先把它转成集合，算法才会稳定。</p>
+
+          <h3>第一步：写清可见性矩阵</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>对象状态</th><th>Owner</th><th>队友</th><th>敌方已侦测</th><th>敌方未侦测</th><th>观战连接</th></tr></thead>
+              <tbody>
+                <tr><td>普通</td><td>允许</td><td>允许</td><td>允许</td><td>允许</td><td>按观战策略</td></tr>
+                <tr><td>隐身</td><td>允许</td><td>允许</td><td>允许</td><td>禁止</td><td>按权限策略</td></tr>
+                <tr><td>隐藏调试对象</td><td>按权限</td><td>按权限</td><td>禁止</td><td>禁止</td><td>管理员可见</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>“已侦测”必须来自服务器权威状态</strong>
+            <p>客户端可以上报瞄准、视线或能力输入，但不能直接宣布“我看见了这个隐身敌人”。服务器应验证侦测规则，再把结果写入连接可见性快照。Filter 只是执行决策，不是反作弊系统。</p>
+          </div>
+
+          <h3>第二步：把业务状态压成缓存</h3>
+          <div class="matrix" role="table" aria-label="隐身 Filter 缓存布局">
+            <div class="matrix__head">缓存</div><div class="matrix__head">Owner</div><div class="matrix__head">Team</div><div class="matrix__head">Stealth</div><div class="matrix__head">Detected</div><div class="matrix__head">Spectator</div>
+            <div class="matrix__label">来源</div><div>对象 owner</div><div>权威阵营</div><div>权威状态</div><div>连接侦测集</div><div>连接权限</div>
+            <div class="matrix__label">更新位置</div><div>Update</div><div>Update</div><div>Update</div><div>PreFilter</div><div>Add / Update Conn</div>
+            <div class="matrix__label">热路径表示</div><div class="matrix__yes">ID</div><div class="matrix__yes">uint8</div><div class="matrix__yes">bit</div><div class="matrix__yes">bitset</div><div class="matrix__yes">flags</div>
+            <div class="matrix__label">禁止行为</div><div colspan="5" style="grid-column:span 5;text-align:left">逐对象 UObject 查找、Tag 容器遍历、射线、动态分配、Verbose 日志</div>
+          </div>
+
+          <p><code>FNetObjectFilteringInfo</code> 只有 8 字节，适合保存 <code>VisibilityRecordByObject</code> 的索引；真正的 owner、team 和状态数组放在 Filter 自己维护的 SoA 中。对象移除时回收索引，最大内部索引增长时只扩 ObjectIndex → Record 映射。</p>
+
+          <h3>第三步：用集合表达规则</h3>
+          <span class="code-label">项目算法伪代码 · 不是 UE API</span>
+          <pre class="tree"><code>Allowed(Connection)
+  = OwnedObjects(Connection)
+  ∪ SameTeamObjects(Connection)
+  ∪ DetectedStealthObjects(Connection)
+  ∪ SpectatorPolicyObjects(Connection)
+  ∪ NonStealthObjects
+
+Allowed(Connection)
+  = Allowed(Connection)
+  − GroupFilteredOutObjects
+
+OutAllowedObjects
+  = Allowed(Connection)
+  ∩ FilteredObjects</code></pre>
+
+          <p>这里用差集强调一个事实：动态 Filter 发生在 Connection / Group 之后，它不能把前面已经排除的对象重新放进 scope。实现时也不必真的构造五个临时集合；可以在预分配 bit array 上用 OR / AND-NOT 完成。</p>
+
+          <h3>第四步：注册 Filter</h3>
+          <span class="code-label code-label--api">真实配置接口</span>
+          <pre class="codeblock"><code><span class="comment">; DefaultEngine.ini</span>
+[/Script/IrisCore.NetObjectFilterDefinitions]
++NetObjectFilterDefinitions=(
+    FilterName=Stealth,
+    ClassName=/Script/MyGame.StealthNetObjectFilter,
+    ConfigClassName=/Script/MyGame.StealthNetObjectFilterConfig)
+
+[/Script/MyGame.StealthNetObjectFilterConfig]
+MaxTrackedTeams=8</code></pre>
+
+          <p><code>FilterName</code> 是运行时查询键；<code>ClassName</code> 和 <code>ConfigClassName</code> 必须是完整脚本路径。定义由 <code>UNetObjectFilterDefinitions</code> 读取并自动创建实例。更改定义后，应重建网络会话，不把它当作现有 ReplicationSystem 的热更新配置。</p>
+
+          <h3>第五步：把已经复制的对象分配给 Filter</h3>
+          <span class="code-label code-label--api">真实公开 API</span>
+          <pre class="codeblock"><code>const UE::Net::FNetObjectFilterHandle StealthHandle =
+    ReplicationSystem-&gt;GetFilterHandle(TEXT("Stealth"));
+
+if (StealthHandle == UE::Net::InvalidNetObjectFilterHandle)
+{
+    UE_LOG(LogNet, Error, TEXT("Stealth filter is not registered."));
+    return;
+}
+
+const bool bAssigned =
+    ReplicationSystem-&gt;SetFilter(ObjectHandle, StealthHandle);
+
+if (!bAssigned)
+{
+    UE_LOG(LogNet, Warning,
+        TEXT("Failed to assign Stealth filter to %s."),
+        *ObjectHandle.ToString());
+    <span class="comment">// Project fallback: 回到经过验证的 Group / Grid 策略。</span>
+}</code></pre>
+
+          <p><code>ObjectHandle</code> 必须是已经由 Bridge 开始复制的有效 <code>FNetRefHandle</code>。同一个对象只能有一个 Dynamic Filter；如果“空间 + 隐身”都需要动态逻辑，优先让 Grid 先缩 scope，再评估组合 Filter，或把队伍 / 侦测关系迁移到 Group。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.1C · HOT PATH DISCIPLINE</span>
+          <h2 id="filter-performance" data-no="05" tabindex="-1">Filter 性能：省掉查询，而不是写更聪明的 if</h2>
+          <p class="lede">动态 Filter 的规模近似“连接数 × 参与对象数 × 调用频率”。对象判断只省几条分支并不能逆转错误的数据流；真正的收益来自事件驱动、批量快照和连续内存。</p>
+
+          <div class="cards">
+            <div class="card card--green">
+              <small>PRECOMPUTE</small>
+              <h3>早做一次</h3>
+              <p>在 Gameplay 状态变化时更新权威关系；在 <code>PreFilter</code> 构建本轮连接快照，而不是每个对象重新求解。</p>
+            </div>
+            <div class="card">
+              <small>BATCH</small>
+              <h3>连续处理</h3>
+              <p>用 SoA、bit array 和复用的 scratch buffer，让 Filter 内层循环只有索引、位运算和简单比较。</p>
+            </div>
+            <div class="card card--signal">
+              <small>MEASURE</small>
+              <h3>按规模验证</h3>
+              <p>分别记录对象数、连接数、每轮更新数、每连接 Filter 时间和 scope 命中率，不只看平均帧。</p>
+            </div>
+          </div>
+
+          <h3>热路径检查表</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>推荐</th><th>原因</th><th>应避免</th><th>替代方案</th></tr></thead>
+              <tbody>
+                <tr><td>dirty 对象才进 Update</td><td>减少重复状态提取</td><td>每帧全量扫描</td><td>Push / 事件索引</td></tr>
+                <tr><td>PreFilter 构建共享快照</td><td>跨连接复用不变量</td><td>每连接重复建世界索引</td><td>双缓冲只读快照</td></tr>
+                <tr><td>按 ObjectIndex 连续访问</td><td>缓存友好</td><td>TMap 嵌套查找</td><td>索引 → SoA record</td></tr>
+                <tr><td>预分配 bit array</td><td>无热路径分配</td><td>临时 TSet / TArray</td><td>复用 scratch</td></tr>
+                <tr><td>聚合统计</td><td>日志成本可控</td><td>逐对象逐连接日志</td><td>采样与计数器</td></tr>
+                <tr><td>服务器预计算侦测</td><td>逻辑权威且可测</td><td>Filter 内射线</td><td>感知系统事件</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>常见问题速查</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>症状</th><th>第一检查点</th><th>典型原因</th><th>修复方向</th></tr></thead>
+              <tbody>
+                <tr><td><code>GetFilterHandle</code> 无效</td><td>Definitions 日志</td><td>模块名、类路径或配置类错误</td><td>核对完整脚本路径并重启会话</td></tr>
+                <tr><td><code>AddObject</code> 从未调用</td><td><code>SetFilter</code> 返回值</td><td>Handle 无效、对象尚未开始复制</td><td>在有效 NetRefHandle 后分配</td></tr>
+                <tr><td>所有对象突然消失</td><td>OutAllowedObjects</td><td>输出未完整初始化</td><td>对负责对象显式设位 / 清位</td></tr>
+                <tr><td>Group 排除后无法放回</td><td>过滤阶段顺序</td><td>把动态 Filter 当成 override</td><td>重新设计 Group 状态</td></tr>
+                <tr><td>隐身变化延迟</td><td>快照交换时机</td><td>Gameplay 写入发生在 PreFilter 后</td><td>固定 update barrier</td></tr>
+                <tr><td>分屏第二个玩家漏对象</td><td><code>View.Views</code></td><td>只读取第一个 View</td><td>对所有 View 做并集</td></tr>
+                <tr><td>CPU 随连接数陡升</td><td>Filter per-connection 时间</td><td>规则本应使用 Group / Connection</td><td>事件驱动 scope</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.2A · PRIORITY IS NOT PROBABILITY</span>
+          <h2 id="prioritizer-contract" data-no="06" tabindex="-1">Prioritizer：不是 0～1 概率，而是累积门槛</h2>
+          <p class="lede">大纲里“0.0～1.0”的说法很容易让人以为优先级是归一化概率。UE 5.7.4 的真实契约是：优先级至少为 0；小于 1 时本 tick 不进入候选，达到或超过 1 才有资格；它可以继续大于 1。</p>
+
+          <div class="pullquote">1.0 是候选阈值，不是上限；高分是排序信号，不是“本帧必发”的保证。</div>
+
+          <div class="cards">
+            <div class="card">
+              <small>0 ≤ P &lt; 1</small>
+              <h3>继续积累</h3>
+              <p>本网络 tick 暂不进入复制候选。只要对象未发送，其优先级可以跨 tick 累积。</p>
+            </div>
+            <div class="card card--green">
+              <small>P ≥ 1</small>
+              <h3>有资格竞争</h3>
+              <p>对象还必须有 dirty state 或 resend 需求；满足阈值不等于一定有数据可发。</p>
+            </div>
+            <div class="card card--signal">
+              <small>AFTER SEND</small>
+              <h3>发送后重置</h3>
+              <p>高分对象仍可能因带宽、包窗口、依赖或其他预算推迟；发送成功后该连接上的累积值重置。</p>
+            </div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>只能抬高已有值，不能随意覆盖</strong>
+            <p><code>FNetObjectPrioritizationParams</code> 的文档要求实现尊重已经写入的优先级。多个 View、静态值或其他逻辑可能已经提供更高分；自定义 Prioritizer 应使用 <code>Max(existing, calculated)</code>。</p>
+          </div>
+
+          <span class="code-label code-label--api">UE 5.7.4 契约写法</span>
+          <pre class="codeblock"><code>for (const uint32 ObjectIndex :
+     MakeArrayView(Params.ObjectIndices, Params.ObjectCount))
+{
+    const float CalculatedPriority =
+        FMath::Max(0.0f, CalculatePriority(ObjectIndex, Params));
+
+    Params.Priorities[ObjectIndex] =
+        FMath::Max(
+            Params.Priorities[ObjectIndex],
+            CalculatedPriority);
+}</code></pre>
+
+          <h3>生命周期与 Filter 相似，但输入集合更窄</h3>
+          <div class="lifecycle">
+            <div class="lifecycle__node"><b>Init</b><span>验证 Config，建立 ObjectIndex 到 SoA record 的映射。</span></div>
+            <div class="lifecycle__node"><b>Add Object</b><span>检查 Protocol / RepTag，创建对象级缓存。</span></div>
+            <div class="lifecycle__node"><b>Update Objects</b><span>刷新位置、战斗 flags、owner connection。</span></div>
+            <div class="lifecycle__node"><b>PrePrioritize</b><span>准备本轮公共快照；只调用一次。</span></div>
+            <div class="lifecycle__node"><b>Prioritize</b><span>按连接、按批次处理 dirty / resend 对象。</span></div>
+            <div class="lifecycle__node"><b>PostPrioritize</b><span>汇总统计或释放本轮 scratch。</span></div>
+            <div class="lifecycle__node"><b>Remove Object</b><span>回收 record，清除 owner / flags。</span></div>
+            <div class="lifecycle__node"><b>Max Index Grow</b><span>扩 ObjectIndex 映射，不一定扩 absolute pool。</span></div>
+            <div class="lifecycle__node"><b>Deinit</b><span>释放缓存并断开 ReplicationSystem 引用。</span></div>
+          </div>
+
+          <p><code>ObjectIndices</code> 是当前批次列表，但 <code>Priorities</code> 和 <code>PrioritizationInfos</code> 仍以真正的 <code>ObjectIndex</code> 索引。不要写成 <code>Priorities[BatchIt]</code>。引擎源码中的 Sphere Prioritizer 会先把离散对象索引整理成局部连续批次，再做向量化计算，最后写回。</p>
+
+          <h3>多 View 是正常情况</h3>
+          <p><code>FReplicationView</code> 里是一个 <code>Views</code> 数组，每个 View 包含 Controller、ViewTarget、位置、方向和 FOV。分屏、子连接或项目自定义视点都可能产生多个 View。通常要取“任一 View 下的最高重要度”，不能默认 <code>Views[0]</code> 就代表整个连接。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.2B · COMBAT TRIAGE</span>
+          <h2 id="combat-prioritizer" data-no="07" tabindex="-1">手把手建模：战斗优先级器</h2>
+          <p class="lede">大逃杀或竞技游戏里，纯距离并不等于重要度。远处狙击手、正在伤害你的对象、锁定目标和 owner 控制对象，都可能比近处静态装饰更值得先发。关键是把这些信号压成廉价快照，而不是在 Prioritize 中重跑 Gameplay 系统。</p>
+
+          <h3>分数模型</h3>
+          <div class="score" aria-label="战斗优先级分数组成">
+            <div class="score__term"><b>Base</b><span>0.25</span></div>
+            <div class="score__term"><b>In Combat</b><span>+ 0.55</span></div>
+            <div class="score__term"><b>Locked Target</b><span>+ 0.60</span></div>
+            <div class="score__term"><b>Recent Damage</b><span>+ 0.35</span></div>
+            <div class="score__term"><b>Owner Boost</b><span>+ 0.75</span></div>
+            <div class="score__term"><b>Final</b><span>MAX(existing, clamp 0…3)</span></div>
+          </div>
+
+          <p>这些数字只是解释模型的起点，不是跨项目最佳值。它们要与网络 tick rate、对象变化率、连接带宽和其他对象类别一起测。特别是 Base 小于 1 的对象会依靠跨 tick 累积进入候选；若业务代码每帧把它错误重置，就会制造永久饥饿。</p>
+
+          <h3>推荐数据布局</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>数据</th><th>写入时机</th><th>存储</th><th>Prioritize 中的操作</th></tr></thead>
+              <tbody>
+                <tr><td>WorldLocation</td><td>对象更新</td><td>连续 FVector / packed position</td><td>与所有 View 求最有利距离 / FOV</td></tr>
+                <tr><td>Combat flags</td><td>战斗状态变化</td><td>bit field</td><td>无分支或少分支加权</td></tr>
+                <tr><td>Recent damage age</td><td>受伤事件</td><td>小整数 / time bucket</td><td>查表衰减</td></tr>
+                <tr><td>Owning connection</td><td>owner 变化</td><td>ConnectionId</td><td>等值比较加 boost</td></tr>
+                <tr><td>Target relation</td><td>锁定变化</td><td>per-connection bitset</td><td>按连接取位</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout">
+            <strong>StateBuffer 是量化后的内部网络表示</strong>
+            <p><code>AddObject</code> 和 <code>UpdateObjects</code> 提供的 StateBuffer 不能因为成员在 gameplay 中是 <code>float</code>，就直接 <code>reinterpret_cast&lt;float*&gt;</code>。要先通过 RepTag / Descriptor 找到成员和 Serializer，再按对应配置解量化。引擎 Mock 里存在直接读取的测试捷径，源码也明确警告它“一般并不安全”。</p>
+          </div>
+
+          <span class="code-label code-label--direction">核心算法骨架 · 快照来源由项目补全</span>
+          <pre class="codeblock"><code>void UCombatNetObjectPrioritizer::Prioritize(
+    FNetObjectPrioritizationParams&amp; Params)
+{
+    for (const uint32 ObjectIndex :
+         MakeArrayView(Params.ObjectIndices, Params.ObjectCount))
+    {
+        const FCombatPriorityRecord&amp; Record =
+            Records[GetRecordIndex(
+                Params.PrioritizationInfos[ObjectIndex])];
+
+        float Score = Config-&gt;BasePriority;
+        Score += Record.bInCombat
+            ? Config-&gt;CombatBoost : 0.0f;
+        Score += WasRecentlyDamaged(Record)
+            ? Config-&gt;RecentDamageBoost : 0.0f;
+        Score += IsOwnedBy(Record, Params.ConnectionId)
+            ? Config-&gt;OwnerBoost : 0.0f;
+        Score += BestViewScore(Record, Params.View);
+
+        Score = FMath::Clamp(
+            Score, 0.0f, Config-&gt;MaxPriority);
+
+        Params.Priorities[ObjectIndex] =
+            FMath::Max(
+                Params.Priorities[ObjectIndex],
+                Score);
+    }
+}</code></pre>
+
+          <h3>配置、分配与安全回退</h3>
+          <span class="code-label code-label--api">真实配置接口</span>
+          <pre class="codeblock"><code>[/Script/IrisCore.NetObjectPrioritizerDefinitions]
++NetObjectPrioritizerDefinitions=(
+    PrioritizerName=Combat,
+    ClassName=/Script/MyGame.CombatNetObjectPrioritizer,
+    ConfigClassName=/Script/MyGame.CombatNetObjectPrioritizerConfig)
+
+[/Script/MyGame.CombatNetObjectPrioritizerConfig]
+BasePriority=0.25
+CombatBoost=0.55
+RecentDamageBoost=0.35
+OwnerBoost=0.75
+MaxPriority=3.0</code></pre>
+
+          <span class="code-label code-label--api">真实公开 API</span>
+          <pre class="codeblock"><code>const UE::Net::FNetObjectPrioritizerHandle CombatHandle =
+    ReplicationSystem-&gt;GetPrioritizerHandle(TEXT("Combat"));
+
+if (!ReplicationSystem-&gt;SetPrioritizer(
+        ObjectHandle, CombatHandle))
+{
+    UE_LOG(LogNet, Warning,
+        TEXT("Combat prioritizer assignment failed."));
+
+    <span class="comment">// 失败不静默：回到经过验证的静态优先级。</span>
+    ReplicationSystem-&gt;SetStaticPriority(ObjectHandle, 1.0f);
+}</code></pre>
+
+          <h3>别只看“高优先级对象确实先发了”</h3>
+          <ul>
+            <li>记录每类对象从 dirty 到真正发送的平均值、P95 和最大等待 tick；</li>
+            <li>记录连续超过阈值却没有发送的对象数，发现饥饿；</li>
+            <li>比较 owner、锁定目标、交战对象和背景对象的实际发送率；</li>
+            <li>在多 View、拥塞、丢包和高对象变化率下重复测试；</li>
+            <li>同时观察 Write Bytes：排序更合理不等于总带宽变大。</li>
+          </ul>
+        </section>
+
+        <section>
+          <span class="eyebrow">FILTER × PRIORITY</span>
+          <h2 id="filter-priority-pipeline" data-no="08" tabindex="-1">VIP 通道和 VIP 排队系统如何协作</h2>
+          <p class="lede">演唱会安检先决定谁能进场，场内分诊再决定谁先服务。把两个阶段倒过来不仅浪费计算，还会误以为优先级能绕过权限。Iris 的管线正是先缩集合，再为有变化的候选排序。</p>
+
+          <div class="pipeline">
+            <div class="pipeline__stage" data-stage="SCOPE 1"><b>Connection</b><span>少量对象、静态连接关系。</span></div>
+            <div class="pipeline__stage" data-stage="SCOPE 2"><b>Group</b><span>队伍、频道、Level 等共享受众。</span></div>
+            <div class="pipeline__stage" data-stage="SCOPE 3"><b>Dynamic</b><span>最后处理高频对象 × 连接规则。</span></div>
+            <div class="pipeline__stage" data-stage="READY"><b>Dirty / Resend</b><span>没有变化就没有状态候选。</span></div>
+            <div class="pipeline__stage" data-stage="ORDER"><b>Prioritize</b><span>保留已有值，抬高最重要对象。</span></div>
+            <div class="pipeline__stage" data-stage="WRITE"><b>Budget</b><span>包空间、依赖与可靠历史最终裁决。</span></div>
+          </div>
+
+          <h3>四条工程推论</h3>
+          <div class="cards">
+            <div class="card">
+              <small>01 · NO REVIVAL</small>
+              <h3>不能复活</h3>
+              <p>高优先级不能重新放行已经被 Connection、Group 或 Dynamic Filter 排除的对象。</p>
+            </div>
+            <div class="card card--green">
+              <small>02 · NO DIRTY</small>
+              <h3>不能造变化</h3>
+              <p>对象没有 dirty state 或 resend 需求时，优先级再高也不会凭空生成复制状态。</p>
+            </div>
+            <div class="card card--signal">
+              <small>03 · NO BANDWIDTH</small>
+              <h3>不能扩带宽</h3>
+              <p>Prioritizer 只重排既有预算；需要更多吞吐要从带宽、频率和数据量解决。</p>
+            </div>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <small>04 · NO POLICY IN FRAGMENT</small>
+              <h3>别把策略塞进 Fragment</h3>
+              <p>Fragment 应专注状态采集和应用；连接相关性放 Filter，竞争顺序放 Prioritizer。</p>
+            </div>
+            <div class="card card--green">
+              <small>05 · DEPENDENCIES</small>
+              <h3>依赖仍有约束</h3>
+              <p>对象引用、子对象和创建顺序可能要求先发送依赖；这会影响最终写入顺序。</p>
+            </div>
+            <div class="card card--signal">
+              <small>06 · OBSERVABILITY</small>
+              <h3>每阶段都要能解释</h3>
+              <p>排障时分别证明：是否在 scope、是否 dirty、分数多少、为何未写入、接收端是否应用。</p>
+            </div>
+          </div>
+
+          <div class="callout callout--success">
+            <strong>推荐调优顺序</strong>
+            <p>先用更便宜的 scope 机制减少对象，再检查 dirty / poll 浪费，最后调整优先级。若先写复杂 Prioritizer，它只会替一个过大的候选集合更精细地排队，CPU 和带宽根因仍在。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.3A · GAMEPLAY ↔ REPLICATION</span>
+          <h2 id="fragment-contract" data-no="09" tabindex="-1">ReplicationFragment：特殊快递包裹的装卸接口</h2>
+          <p class="lede"><code>FReplicationFragment</code> 把一个或多个 ReplicationState 绑定到 gameplay owner。发送端，它把源状态带进复制系统；接收端，它把收到的状态应用回对象，并可参与 owner 收集、RepNotify、轮询和调试输出。</p>
+
+          <h3>先区分四个扩展点</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>扩展点</th><th>决定什么</th><th>不决定什么</th><th>首选时机</th></tr></thead>
+              <tbody>
+                <tr><td>NetSerializer</td><td>一个值如何量化、比较和写位流</td><td>对象是否对连接可见</td><td>特殊值表示或压缩</td></tr>
+                <tr><td>ReplicationFragment</td><td>状态如何采集、应用和回调</td><td>连接带宽和 scope</td><td>特殊生命周期 / 应用语义</td></tr>
+                <tr><td>Filter</td><td>对象对某连接是否允许</td><td>属性编码和 RepNotify</td><td>动态相关性</td></tr>
+                <tr><td>Prioritizer</td><td>候选对象的竞争顺序</td><td>权威 gameplay 状态</td><td>项目特有重要度</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Traits 是 Fragment 与系统的契约</h3>
+          <div class="traits">
+            <div class="trait-group">
+              <h3>方向</h3>
+              <p><code>CanReplicate</code> 表示可作为发送源；<code>CanReceive</code> 表示可接收并应用。服务器和客户端实例可能得到不同组合。</p>
+            </div>
+            <div class="trait-group">
+              <h3>生命周期</h3>
+              <p><code>DeleteWithInstanceProtocol</code> 把 Fragment 生命周期交给 InstanceProtocol。自行 new 的 Fragment 若忘记它，容易泄漏或悬挂。</p>
+            </div>
+            <div class="trait-group">
+              <h3>状态形态</h3>
+              <p><code>HasPersistentTargetStateBuffer</code> 让 Fragment 管理接收目标；<code>SupportsPartialDequantizedState</code> 声明可部分解量化。</p>
+            </div>
+            <div class="trait-group">
+              <h3>脏标记与回调</h3>
+              <p><code>NeedsPoll</code>、Push Traits、<code>HasRepNotifies</code>、<code>NeedsLegacyCallbacks</code>、<code>KeepPreviousState</code> 必须与真实实现匹配。</p>
+            </div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong><code>HasInterpolation</code> 在 UE 5.7.4 仍标记为 “Not implemented”</strong>
+            <p>不要仅设置这个 Trait 就宣称获得了通用网络插值。渲染插值、物理预测或状态平滑仍属于对应 Gameplay / Network Physics 系统。</p>
+          </div>
+
+          <h3>从简单机制逐层升级</h3>
+          <div class="upgrade" aria-label="ReplicationFragment 升级路径">
+            <div class="upgrade__step"><small>L0</small><b>UPROPERTY</b><span>普通复制属性、RPC、RepNotify。</span></div>
+            <div class="upgrade__step"><small>L1</small><b>Property Fragment</b><span><code>FReplicationFragmentUtil</code> 自动创建。</span></div>
+            <div class="upgrade__step"><small>L2</small><b>FastArray</b><span>动态集合和增量条目语义。</span></div>
+            <div class="upgrade__step"><small>L3</small><b>NetSerializer</b><span>特殊值编码、量化与比较。</span></div>
+            <div class="upgrade__step"><small>L4</small><b>Custom Fragment</b><span>特殊采集、应用、持久缓冲和回调。</span></div>
+          </div>
+
+          <p>绝大多数 UObject 只需要覆写 <code>RegisterReplicationFragments</code>，然后调用 <code>FReplicationFragmentUtil::CreateAndRegisterFragmentsForObject</code>。这个工具会根据 Class Descriptor 创建 Property Replication Fragments，并由 ReplicationSystem 管理生命周期。</p>
+
+          <span class="code-label code-label--api">普通 UObject 的首选做法</span>
+          <pre class="codeblock"><code>#if UE_WITH_IRIS
+void UMyReplicatedObject::RegisterReplicationFragments(
+    UE::Net::FFragmentRegistrationContext&amp; Context,
+    UE::Net::EFragmentRegistrationFlags Flags)
+{
+    UE::Net::FReplicationFragmentUtil::
+        CreateAndRegisterFragmentsForObject(
+            this, Context, Flags);
+}
+#endif</code></pre>
+
+          <p>只有普通属性 Fragment 无法表达特殊接收逻辑、持久目标缓冲或自定义回调时，才值得自己实现 <code>ApplyReplicatedState</code>、<code>PollReplicatedState</code>、<code>CollectOwner</code> 与 <code>CallRepNotifies</code>。</p>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.3B · A REAL UE 5.7.4 CASE</span>
+          <h2 id="gameplay-fragment" data-no="10" tabindex="-1">技能系统 Fragment：用引擎真实案例替代玩具代码</h2>
+          <p class="lede">GameplayAbilities 模块中的 <code>FMinimalGameplayCueReplicationProxyReplicationFragment</code> 是很好的生产级样本：它既有自定义 NetSerializer，又需要特殊状态应用、持久目标缓冲、Push / Poll 协作和 RepNotify。</p>
+
+          <h3>注册链</h3>
+          <div class="pipeline">
+            <div class="pipeline__stage" data-stage="01"><b>Property Registry</b><span>把结构类型映射到专用 NetSerializer。</span></div>
+            <div class="pipeline__stage" data-stage="02"><b>Custom Fragment Info</b><span>宏同时注册 Fragment creator。</span></div>
+            <div class="pipeline__stage" data-stage="03"><b>Create</b><span>继承 Context Traits，并加入删除语义。</span></div>
+            <div class="pipeline__stage" data-stage="04"><b>Register</b><span>Descriptor、Fragment、source state buffer 三者绑定。</span></div>
+            <div class="pipeline__stage" data-stage="05"><b>Poll / Serialize</b><span>发送端只在 key 或 dirty 状态变化时采集。</span></div>
+            <div class="pipeline__stage" data-stage="06"><b>Apply / Notify</b><span>接收端解量化、执行 Cue 语义和回调。</span></div>
+          </div>
+
+          <span class="code-label code-label--direction">原创结构骨架 · 对照引擎源码阅读</span>
+          <pre class="codeblock"><code>FReplicationFragment* CreateCustomFragment(
+    UObject* Owner,
+    const FReplicationStateDescriptor* Descriptor,
+    FFragmentRegistrationContext&amp; Context)
+{
+    const EReplicationFragmentTraits Traits =
+        Context.GetFragmentTraits()
+        | EReplicationFragmentTraits::DeleteWithInstanceProtocol;
+
+    FMyFragment* Fragment =
+        new FMyFragment(Traits, Owner, Descriptor);
+
+    Fragment-&gt;Register(Context);
+    return Fragment;
+}
+
+FMyFragment::FMyFragment(
+    EReplicationFragmentTraits InTraits,
+    UObject* InOwner,
+    const FReplicationStateDescriptor* InDescriptor)
+    : FReplicationFragment(InTraits)
+    , Descriptor(InDescriptor)
+    , Owner(InOwner)
+{
+    Traits |=
+        EReplicationFragmentTraits::HasPersistentTargetStateBuffer;
+
+    if (EnumHasAnyFlags(
+            InTraits,
+            EReplicationFragmentTraits::CanReplicate))
+    {
+        Traits |= EReplicationFragmentTraits::NeedsPoll;
+        <span class="comment">// 建立发送端 FPropertyReplicationState。</span>
+    }
+
+    if (EnumHasAnyFlags(
+            InTraits,
+            EReplicationFragmentTraits::CanReceive))
+    {
+        <span class="comment">// 只有真实支持时才声明 RepNotify / legacy callback。</span>
+    }
+}</code></pre>
+
+          <h3>发送端做了什么</h3>
+          <ol>
+            <li>如果 Fragment 能发送，就创建 <code>FPropertyReplicationState</code> 作为缓存；</li>
+            <li>Descriptor 支持 Push-based dirtiness 时，把对应 Traits 传播到 Fragment；</li>
+            <li><code>PollReplicatedState</code> 先看 Poll flags 与 Push dirty，再比较 GameplayCue 的 source key；</li>
+            <li>只有需要时才调用 PropertyReplicationState 采集和比较；</li>
+            <li>NetSerializer 负责值的量化、相等判断和位流表示。</li>
+          </ol>
+
+          <h3>接收端做了什么</h3>
+          <ol>
+            <li>Fragment 声明持久目标缓冲，不让系统每次构造临时外部状态；</li>
+            <li><code>ApplyReplicatedState</code> 根据 Descriptor 找到 owner 中的真实属性位置；</li>
+            <li>从 Context 取得 raw quantized state，调用该成员对应的 NetSerializer <code>Dequantize</code>；</li>
+            <li>根据本地连接是否为 owner，执行 GameplayCue 的特殊接收规则；</li>
+            <li><code>CollectOwner</code> 让 legacy receive callback 找到正确 UObject；</li>
+            <li><code>CallRepNotifies</code> 在正确阶段触发项目需要的通知。</li>
+          </ol>
+
+          <div class="callout callout--success">
+            <strong>Serializer 与 Fragment 的分工</strong>
+            <p>Serializer 解决“这个 GameplayCue 代理如何成为量化状态、如何比较和解量化”；Fragment 解决“何时采集、目标缓冲在哪里、接收后如何执行 Cue 语义与回调”。两者协作，但不能互相替代。</p>
+          </div>
+
+          <h3>为什么不把引擎实现整段复制进项目</h3>
+          <ul>
+            <li>该 Fragment 针对 <code>FMinimalGameplayCueReplicationProxy</code> 的数据布局和行为，不是通用技能状态容器；</li>
+            <li>它依赖对应 Descriptor Traits、Serializer 和 Property Registry 注册；</li>
+            <li>owner connection、LocalTags、bit mask 和 RepNotify 都是 GAS 语义；</li>
+            <li>版本升级可能改变内部结构，项目应学习模式，而不是 fork 大段源码。</li>
+          </ul>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.4 · WHEN 1000 PLAYERS CONNECT</span>
+          <h2 id="scale" data-no="11" tabindex="-1">大规模多人优化：先拆乘法，再谈千人</h2>
+          <p class="lede">“1000 人在线”不是一个可直接调参的指标。决定复制成本的是总对象、每连接 scope、变化比例、单次编码位数和连接数的乘积；同时还要承担协议、每连接状态、baseline、history 和 join burst。</p>
+
+          <div class="scale-equation" aria-label="大规模复制成本乘法模型">
+            <b>Total<br>Objects</b><i>×</i>
+            <b>Scope<br>Ratio</b><i>×</i>
+            <b>Dirty<br>Ratio</b><i>×</i>
+            <b>Bits per<br>Update</b><i>×</i>
+            <strong>Connections</strong>
+          </div>
+
+          <p>这个式子不是精确带宽公式，但能帮助定位杠杆：如果每个连接只看见 2% 的对象，Filter / Group 的价值远大于把每个属性再压缩 3 bit；如果 90% 对象每 tick 都 dirty，先解决状态模型和 Poll / Push，复杂 Prioritizer 只是把洪水排队。</p>
+
+          <h3>四张预算表必须一起看</h3>
+          <div class="budget-grid">
+            <div class="budget"><small>CPU</small><h3>计算预算</h3><p>Poll、copy、filter、prioritize、serialize、write、receive、apply。至少看每阶段 P95，而不只看总 GameThread。</p></div>
+            <div class="budget"><small>BANDWIDTH</small><h3>连接预算</h3><p>State、RPC、NetBlob、header、ack、重发。平均值之外还要看出生、传送和战斗爆发。</p></div>
+            <div class="budget"><small>MEMORY</small><h3>状态预算</h3><p>Protocol、quantized state、per-connection scope、baseline、reliable history 和 scratch。</p></div>
+            <div class="budget"><small>OPERATIONS</small><h3>运营预算</h3><p>Join burst、travel、reconnect、版本兼容、观战、回放、分片迁移和故障回退。</p></div>
+          </div>
+
+          <h3>推荐优化顺序：从漏斗上游开始</h3>
+          <div class="funnel">
+            <div class="funnel__step" style="--inset:0%">1 · 减少复制对象、子对象与 Fragment 数量</div>
+            <div class="funnel__step" style="--inset:6%">2 · Push Model 与分级 Poll，消灭无效采集</div>
+            <div class="funnel__step" style="--inset:12%">3 · Streaming Level / Connection / Group / Grid 缩小 scope</div>
+            <div class="funnel__step" style="--inset:18%">4 · 对剩余 dirty 候选做 Prioritization</div>
+            <div class="funnel__step" style="--inset:24%">5 · 调 frequency、delta、packet 与可靠预算</div>
+            <div class="funnel__step" style="--inset:30%">6 · 用 Insights、CSV、日志和坏网复测</div>
+            <div class="funnel__step" style="--inset:36%">7 · 最后评估自定义批处理和引擎扩展</div>
+          </div>
+
+          <h3>对象数量：空间分区、AOI、休眠各管一层</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>策略</th><th>减少什么</th><th>适合</th><th>不要混淆</th></tr></thead>
+              <tbody>
+                <tr><td>Streaming Level / Group</td><td>连接 scope</td><td>明确世界分区、实例、副本</td><td>不是距离算法</td></tr>
+                <tr><td>Grid / AOI</td><td>空间候选</td><td>开放世界、密集对象</td><td>不能表达所有权限规则</td></tr>
+                <tr><td>Dormancy</td><td>无变化对象的采集 / 发送</td><td>长期静止或低变化对象</td><td>不等于不相关</td></tr>
+                <tr><td>Object Pool</td><td>Gameplay 创建 / 销毁成本</td><td>高频临时对象</td><td>池中对象仍需正确 Begin / End Replication</td></tr>
+                <tr><td>Prioritizer</td><td>拥塞时的候选顺序</td><td>带宽不足</td><td>不减少注册对象总数</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>服务器分片：Iris 管复制，不管分布式世界</h3>
+          <div class="boundary">
+            <div class="boundary__side">
+              <h3>Iris / ReplicationSystem</h3>
+              <ul>
+                <li>管理本系统内 NetObject；</li>
+                <li>维护连接级 scope 和状态；</li>
+                <li>过滤、排序、序列化和传输；</li>
+                <li>处理引用、依赖和复制生命周期。</li>
+              </ul>
+            </div>
+            <div class="boundary__divider">BOUNDARY</div>
+            <div class="boundary__side">
+              <h3>项目在线架构</h3>
+              <ul>
+                <li>区域服 / 实例服的负载分配；</li>
+                <li>玩家与对象跨区 handoff；</li>
+                <li>跨分片消息和全局事件；</li>
+                <li>持久化、会话、故障恢复和一致性。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>不要把“千人世界”写成“千人单 ReplicationSystem”</strong>
+            <p>一个逻辑世界可以由多个进程、区域或实例组成，每个区域有自己的 NetDriver / ReplicationSystem。对象所有权转移、状态接力和跨区可见性仍要由项目协议设计；Iris 不会自动提供分布式一致性。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.5 · SYSTEM BOUNDARIES</span>
+          <h2 id="gameplay-integration" data-no="12" tabindex="-1">与 GAS、网络物理和 AI 集成</h2>
+          <p class="lede">Iris 是复制框架，不是所有多人 Gameplay 问题的总控层。最稳的集成方式，是保留每个系统自己的权威、预测和回调语义，让 Iris 负责可见性、调度与状态运输。</p>
+
+          <div class="integration">
+            <div class="integration__row">
+              <div class="integration__name"><small>GAMEPLAY</small><b>GAS</b></div>
+              <div class="integration__cell"><strong>Iris 负责</strong><p>兼容属性、Tag、Effect、Cue、Montage 等状态的 Serializer / Fragment 和传输；对象相关性与优先级可由 Iris 控制。</p></div>
+              <div class="integration__cell"><strong>GAS 继续负责</strong><p>Ability authority、PredictionKey、预测窗口、服务器接纳 / 拒绝、GameplayEffect 回滚和 GameplayCue 语义。</p></div>
+            </div>
+            <div class="integration__row">
+              <div class="integration__name"><small>SIMULATION</small><b>Physics</b></div>
+              <div class="integration__cell"><strong>Iris 负责</strong><p>权威刚体 / 运动状态的复制可见性、排序、编码和交付。</p></div>
+              <div class="integration__cell"><strong>Network Physics 负责</strong><p>Default Replication、Predictive Interpolation、Resimulation、输入历史、误差校正和渲染插值。</p></div>
+            </div>
+            <div class="integration__row">
+              <div class="integration__name"><small>DECISION</small><b>AI</b></div>
+              <div class="integration__cell"><strong>Iris 负责</strong><p>复制客户端有权观察的姿态、目标、动画意图、战斗阶段和远端代理状态。</p></div>
+              <div class="integration__cell"><strong>Server AI 负责</strong><p>感知、行为树、导航、决策、作弊敏感信息和权威结果；客户端代理只做表现。</p></div>
+            </div>
+          </div>
+
+          <h3>GAS：预测和复制是两条协作链</h3>
+          <div class="pipeline">
+            <div class="pipeline__stage" data-stage="INPUT"><b>Local Predict</b><span>玩家立即执行可预测能力。</span></div>
+            <div class="pipeline__stage" data-stage="KEY"><b>PredictionKey</b><span>把本地动作与服务器验证关联。</span></div>
+            <div class="pipeline__stage" data-stage="AUTH"><b>Server Authority</b><span>接纳、修正或拒绝能力结果。</span></div>
+            <div class="pipeline__stage" data-stage="STATE"><b>GAS State</b><span>Attribute、Effect、Tag、Cue、Montage。</span></div>
+            <div class="pipeline__stage" data-stage="IRIS"><b>Serializer / Fragment</b><span>把兼容状态搬进复制系统。</span></div>
+            <div class="pipeline__stage" data-stage="CLIENT"><b>Reconcile</b><span>应用权威状态和 GAS 回调。</span></div>
+          </div>
+
+          <p>本地 UE 5.7.4 的 GameplayAbilities 已为 PredictionKey、TargetData、EffectContext、Montage、GameplayTagCountContainer 和 Minimal GameplayCue 等类型提供 Iris 专用 Serializer 或 Fragment。接入时优先验证现有路径，不要先写一套平行的“技能复制协议”。</p>
+
+          <div class="callout callout--warn">
+            <strong><code>AbilitySystem.Fix.ReplicateTagCountContainerWithIris</code> 在本地 5.7.4 默认为 false</strong>
+            <p>源码中的说明文字与构造默认值并不完全一致。把它当成需要专项回归的兼容开关：分别测试 full / mixed / minimal replication mode，以及 server、owner、simulated proxy 下 Tag、Effect 和 Cue 的结果，不给出无条件生产启用建议。</p>
+          </div>
+
+          <h3>GAS 回归矩阵</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>路径</th><th>Server</th><th>Owner</th><th>Simulated Proxy</th><th>坏网重点</th></tr></thead>
+              <tbody>
+                <tr><td>Attribute</td><td>权威值</td><td>预测 + 校正</td><td>可观察值</td><td>拒绝预测后的回滚</td></tr>
+                <tr><td>GameplayEffect</td><td>应用 / 移除</td><td>预测 effect</td><td>按模式复制</td><td>堆叠与顺序</td></tr>
+                <tr><td>GameplayTag</td><td>权威计数</td><td>local / replicated 合并</td><td>minimal map</td><td>快速增删</td></tr>
+                <tr><td>GameplayCue</td><td>触发来源</td><td>避免重复播放</td><td>加入 / 移除</td><td>丢包、重发、owner skip</td></tr>
+                <tr><td>Montage</td><td>位置 / section</td><td>本地响应</td><td>表现同步</td><td>晚到和 section 跳转</td></tr>
+                <tr><td>TargetData / Context</td><td>验证引用</td><td>预测提交</td><td>通常受限</td><td>未解析对象引用</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>网络物理：状态运输 ≠ 物理预测</h3>
+          <p>Filter 决定一个刚体是否对连接可见，Prioritizer 决定拥塞时它的竞争顺序，Serializer 决定状态如何编码；但位置平滑、预测轨迹、错误修正和重模拟属于网络物理。UE 5.7.4 的 <code>UNetworkPhysicsSettingsComponent</code> 暴露 Default Replication、Predictive Interpolation、Resimulation 和 Render Interpolation 等独立设置。</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>模式 / 机制</th><th>目标</th><th>需要复制什么</th><th>主要风险</th></tr></thead>
+              <tbody>
+                <tr><td>Default Replication</td><td>追随权威刚体</td><td>位置、旋转、速度、sleep 等</td><td>延迟下抖动和 hard snap</td></tr>
+                <tr><td>Predictive Interpolation</td><td>平滑推进到预测目标</td><td>周期性权威状态</td><td>高速碰撞后的误差</td></tr>
+                <tr><td>Resimulation</td><td>回到历史帧重跑输入</td><td>输入 / 状态历史和校正</td><td>CPU、历史内存、非确定性</td></tr>
+                <tr><td>Render Interpolation</td><td>视觉平滑</td><td>模拟结果与渲染时间线</td><td>视觉延迟与穿透</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>“确定性物理”是项目、平台、固定步长、输入和模拟实现共同达成的约束，不是 Iris 承诺。即使传输完全可靠，不确定模拟也会让重放结果分叉。</p>
+
+          <h3>AI：复制结果，不复制思考过程</h3>
+          <div class="cards">
+            <div class="card">
+              <small>NEAR</small>
+              <h3>近距离 AI</h3>
+              <p>复制精确移动、战斗状态、目标表现和关键 Cue；服务器保留感知与决策权威。</p>
+            </div>
+            <div class="card card--green">
+              <small>MID</small>
+              <h3>中距离 AI</h3>
+              <p>降低 Poll / 更新频率，只复制宏观姿态、路径意图和阶段，不发每个行为树节点。</p>
+            </div>
+            <div class="card card--signal">
+              <small>FAR</small>
+              <h3>远距离代理</h3>
+              <p>使用聚合状态、表现代理或完全过滤；客户端代理不成为权威 AI，也不持有隐藏感知信息。</p>
+            </div>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>相关性也是安全边界</strong>
+            <p>不要把隐身目标、AI 感知黑板、服务器路径、未公开任务或反作弊状态复制到“反正画面不显示”的客户端。数据一旦进入客户端内存，就已经越过安全边界；Filter 应在传输前阻止它。</p>
+          </div>
+        </section>
+
+        <section>
+          <span class="eyebrow">17.6 · SHIP WITH EVIDENCE</span>
+          <h2 id="checklist" data-no="13" tabindex="-1">检查表、故障矩阵与学习路径</h2>
+          <p class="lede">高级扩展的完成标准不是“类写完了”，而是能证明它比内置方案更合适、在规模下更便宜、失败时能回退，并且在版本升级后仍能快速审计。</p>
+
+          <div class="checklist">
+            <div>
+              <h3>扩展前</h3>
+              <ul>
+                <li>需求不能被 Owner / Connection / Group / Grid 表达</li>
+                <li>基线记录对象、连接、scope、dirty 和 bytes</li>
+                <li>明确项目最低 UE 版本</li>
+                <li>给出禁用自定义实现的回退路径</li>
+              </ul>
+            </div>
+            <div>
+              <h3>实现时</h3>
+              <ul>
+                <li>对称处理 Add / Remove / Grow / Deinit</li>
+                <li>热路径无 UObject 查找和动态分配</li>
+                <li>StateBuffer 按 Serializer 正确解量化</li>
+                <li>Traits 与真实能力完全一致</li>
+              </ul>
+            </div>
+            <div>
+              <h3>上线前</h3>
+              <ul>
+                <li>多 View、Join、Travel、Reconnect</li>
+                <li>拥塞、延迟、丢包、重排和断线</li>
+                <li>owner / team / spectator / security</li>
+                <li>CPU、带宽、内存 P95 和回退演练</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3>高级扩展故障矩阵</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>症状</th><th>第一证据</th><th>高概率原因</th><th>修复方向</th></tr></thead>
+              <tbody>
+                <tr><td>Filter 未创建</td><td>Definition / class load 日志</td><td>脚本路径或 ConfigClass 错</td><td>核对模块名和完整路径</td></tr>
+                <tr><td>对象全被过滤</td><td>Output bitset</td><td>未初始化或批次索引错</td><td>显式写负责对象，补单测</td></tr>
+                <tr><td>Priority 看似无效</td><td>dirty / resend 集合</td><td>对象没变化或仍 &lt; 1</td><td>先证明进入候选</td></tr>
+                <tr><td>低优先级永久不发</td><td>累计值和等待 tick</td><td>每帧错误覆盖 / 重置</td><td>尊重系统累积，使用 max</td></tr>
+                <tr><td>远端状态乱码</td><td>Serializer / Descriptor</td><td>量化 buffer 被直接转换</td><td>按 Serializer 解量化</td></tr>
+                <tr><td>RepNotify 不触发</td><td>Fragment Traits</td><td>HasRepNotifies / legacy callbacks 不匹配</td><td>按真实回调路径声明</td></tr>
+                <tr><td>Fragment 泄漏</td><td>InstanceProtocol 销毁</td><td>缺少 DeleteWithInstanceProtocol</td><td>明确 ownership</td></tr>
+                <tr><td>GAS 重复 Cue</td><td>owner / PredictionKey</td><td>预测与复制回调重复</td><td>按 GAS owner 语义回归</td></tr>
+                <tr><td>物理对象抖动</td><td>模拟 / 渲染误差</td><td>把传输当成预测</td><td>选择正确 Physics 模式</td></tr>
+                <tr><td>AI 信息泄漏</td><td>客户端内存 / trace</td><td>只隐藏表现，未过滤数据</td><td>服务器侧 scope 安全边界</td></tr>
+                <tr><td>千人压测 CPU 爆炸</td><td>每阶段 P95</td><td>scope 太大或动态规则下沉</td><td>从漏斗上游缩减</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>推荐学习路径</h3>
+          <ol>
+            <li>先读 <code>NetObjectFilter.h</code>、<code>NetObjectPrioritizer.h</code> 和 <code>ReplicationFragment.h</code> 的公开契约；</li>
+            <li>再读 TestPlugin 的 Mock，理解初始化、Add / Remove、批次和调用次数；</li>
+            <li>读 <code>SphereNetObjectPrioritizer.cpp</code>，观察 SoA、批次和多 View；</li>
+            <li>读 Grid Filter，理解空间索引为什么远比逐对象距离查询复杂；</li>
+            <li>读 GameplayAbilities 的专用 Serializer 与 Fragment，理解生产级组合；</li>
+            <li>最后再进入 ReplicationFiltering、ReplicationPrioritization 和 Protocol 的 Private 实现。</li>
+          </ol>
+
+          <h3>本篇技术来源</h3>
+          <div class="sources">
+            <a href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">知乎：系列大纲</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/introduction-to-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Introduction to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Components of Iris</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-filtering-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Iris Filtering</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-prioritization-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Iris Prioritization</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/migrate-to-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">Epic：Migrate to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/understanding-the-unreal-engine-gameplay-ability-system" target="_blank" rel="noopener noreferrer">Epic：Gameplay Ability System</a>
+          </div>
+
+          <h3>UE 5.7.4 源文件速查</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>主题</th><th>本地源码路径（相对 Engine）</th></tr></thead>
+              <tbody>
+                <tr><td>版本</td><td><code>Build/Build.version</code></td></tr>
+                <tr><td>Filter 契约</td><td><code>Source/Runtime/Net/Iris/Public/Iris/ReplicationSystem/Filtering/NetObjectFilter.h</code></td></tr>
+                <tr><td>Filter 定义</td><td><code>Source/Runtime/Net/Iris/Public/Iris/ReplicationSystem/Filtering/NetObjectFilterDefinitions.h</code></td></tr>
+                <tr><td>Prioritizer 契约</td><td><code>Source/Runtime/Net/Iris/Public/Iris/ReplicationSystem/Prioritization/NetObjectPrioritizer.h</code></td></tr>
+                <tr><td>Sphere 实现</td><td><code>Source/Runtime/Net/Iris/Private/Iris/ReplicationSystem/Prioritization/SphereNetObjectPrioritizer.cpp</code></td></tr>
+                <tr><td>Fragment 契约</td><td><code>Source/Runtime/Net/Iris/Public/Iris/ReplicationSystem/ReplicationFragment.h</code></td></tr>
+                <tr><td>普通 Fragment 工具</td><td><code>Source/Runtime/Net/Iris/Public/Iris/ReplicationSystem/ReplicationFragmentUtil.h</code></td></tr>
+                <tr><td>Filter Mock</td><td><code>Plugins/Runtime/ReplicationSystemTestPlugin/Source/Private/Tests/ReplicationSystem/Filtering/MockNetObjectFilter.*</code></td></tr>
+                <tr><td>Prioritizer Mock</td><td><code>Plugins/Runtime/ReplicationSystemTestPlugin/Source/Private/Tests/ReplicationSystem/Prioritization/MockNetObjectPrioritizer.*</code></td></tr>
+                <tr><td>GAS Fragment</td><td><code>Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/Serialization/MinimalGameplayCueReplicationProxyReplicationFragment.cpp</code></td></tr>
+                <tr><td>网络物理设置</td><td><code>Source/Runtime/Engine/Public/Physics/NetworkPhysicsSettingsComponent.h</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout">
+            <strong>验证边界</strong>
+            <p>本篇完成了 UE 5.7.4 本地源码静态核对和博客页面构建验证；没有修改或编译 Unreal Engine，没有运行游戏插件自动化测试，也没有声称完成真实千人联机压测。文中的项目数值和方向骨架必须在你的模块、网络模型和目标平台中编译、联机和 profiling。</p>
+          </div>
+
+          <p>第十八部分已经把前十七篇的机制压回项目流程：从性能证据闭环和过滤策略开始，给出 FPS / 开放世界 / 大逃杀 / MMO 四类案例蓝图，并用五阶段迁移跑道、发布闸门和回退条件完成系列收束。</p>
+
+          <nav class="chapter-nav" aria-label="系列文章导航">
+            <a href="/html-articles/ue5-iris-guide-part-16/"><span>← PREVIOUS</span><b>第十六部分：配置与集成</b></a>
+            <a href="/html-articles/ue5-iris-guide-part-18/"><span>NEXT →</span><b>第十八部分：最佳实践与实战案例</b></a>
+          </nav>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <p>UE5 Iris 网络复制系统技术分析 · 第十七部分</p>
+    <p>原创扩写与整理：Jossy Zhang · 技术基线：Unreal Engine 5.7.4</p>
+    <p><a href="/ue5-iris-guide/">返回系列目录</a> · <a href="/">返回博客首页</a></p>
+  </footer>
+
+  <button class="back-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.reading-progress');
+      const backTop = document.querySelector('.back-top');
+      const tocLinks = [...document.querySelectorAll('.toc a')];
+      const sections = tocLinks
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .map((heading) => heading ? heading.closest('section') : null)
+        .filter(Boolean);
+
+      const updateScrollUI = () => {
+        const root = document.documentElement;
+        const scrollable = root.scrollHeight - root.clientHeight;
+        const ratio = scrollable > 0 ? root.scrollTop / scrollable : 0;
+        progress.style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+        backTop.classList.toggle('is-visible', root.scrollTop > 620);
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (!visible.length) return;
+        const activeId =
+          visible[0].target.querySelector('h2[id]')?.id;
+        if (!activeId) return;
+        tocLinks.forEach((link) => {
+          if (link.getAttribute('href') === `#${activeId}`) {
+            link.setAttribute('aria-current', 'true');
+          } else {
+            link.removeAttribute('aria-current');
+          }
+        });
+      }, { rootMargin: '-18% 0px -68% 0px', threshold: [0, 0.08] });
+
+      sections.forEach((section) => observer.observe(section));
+      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      window.addEventListener('resize', updateScrollUI);
+      backTop.addEventListener('click', () => {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      });
+      updateScrollUI();
+    })();
+  </script>
+</body>
+</html>
