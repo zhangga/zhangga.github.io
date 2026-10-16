@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第七部分：基于 Unreal Engine 5.7.4 源码，讲解 FNetSerializer、量化、BitStream、ChangeMask、数组、字符串、PackedInt 与自定义 Health Serializer。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M18 16h28v8H36v16h10v8H18v-8h10V24H18z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-7/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第七部分：序列化系统 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, .2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "BITS";
+      position: absolute;
+      right: -.04em;
+      bottom: -.39em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 900px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; font-size: 13px; color: #d9def7; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .9);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: #eef0fb;
+      border-left-color: var(--signal);
+    }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 21px/1 var(--serif);
+    }
+    .source-note p { margin: 0; color: #333e5b; font-size: 14px; line-height: 1.6; }
+    .source-note > a { white-space: nowrap; font-size: 13px; font-weight: 800; }
+
+    article, .article-footer {
+      background: rgba(255, 253, 248, .96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article { padding: clamp(28px, 5vw, 68px); }
+    article > :first-child { margin-top: 0; }
+    article h2, article h3, article h4 { scroll-margin-top: 25px; color: var(--ink); }
+    article h2 {
+      position: relative;
+      margin: 76px 0 28px;
+      padding: 0 0 16px;
+      font: 800 clamp(27px, 3vw, 39px) / 1.25 var(--serif);
+      letter-spacing: -.02em;
+      border-bottom: 2px solid var(--line);
+    }
+    article h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 86px; height: 4px; background: var(--signal); }
+    article h3 { margin: 46px 0 15px; font: 800 23px/1.35 var(--serif); }
+    article h4 { margin: 30px 0 10px; font-size: 17px; }
+    article p { margin: 0 0 18px; }
+    article ul, article ol { padding-left: 1.35em; }
+    article li { margin: 6px 0; }
+    article strong { color: #15204a; }
+    article hr { margin: 56px 0; border: 0; border-top: 1px solid var(--line); }
+    article blockquote {
+      margin: 25px 0;
+      padding: 21px 24px 21px 28px;
+      color: #2c3854;
+      background: #f0eee7;
+      border-left: 5px solid var(--signal);
+      font-family: var(--serif);
+      font-size: 19px;
+    }
+    code {
+      padding: .12em .34em;
+      color: #303b80;
+      background: #eaecf7;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: .88em;
+    }
+    article p code,
+    article li code,
+    article td code,
+    article blockquote code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    pre { margin: 0; }
+    article pre {
+      overflow-x: auto;
+      padding: 22px 24px;
+      color: #e7ebff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      font: 14px/1.68 var(--mono);
+      tab-size: 4;
+    }
+    article pre code { padding: 0; color: inherit; background: none; border-radius: 0; font-size: inherit; }
+    .code-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+      padding: 8px 13px;
+      color: #dfe4ff;
+      background: #29355b;
+      border-left: 5px solid var(--signal);
+      font: 700 11px/1.5 var(--mono);
+      letter-spacing: .04em;
+    }
+    .code-label + pre { border-top: 1px solid #455178; }
+    .table-scroll { overflow-x: auto; margin: 25px 0 31px; border: 1px solid var(--line); }
+    table { width: 100%; min-width: 680px; border-collapse: collapse; background: var(--white); font-size: 14px; line-height: 1.55; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-right: 1px solid #ded7ca; border-bottom: 1px solid #ded7ca; }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: #fff; background: var(--iris-dark); font-size: 12px; letter-spacing: .02em; }
+    tbody tr:nth-child(even) { background: #f5f2eb; }
+    .article-callout {
+      margin: 25px 0;
+      padding: 19px 22px;
+      background: var(--signal-soft);
+      border: 1px solid #dfa990;
+      border-left: 6px solid var(--signal);
+    }
+    .article-callout--green { background: var(--green-soft); border-color: #9bc5b4; border-left-color: var(--green); }
+    .article-callout--blue { background: #e8ebf8; border-color: #b8c0e1; border-left-color: var(--iris); }
+    .article-callout > strong { display: block; margin-bottom: 5px; }
+    .article-callout p:last-child { margin-bottom: 0; }
+    .stats, .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 26px 0;
+    }
+    .stat, .card {
+      padding: 19px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--iris);
+    }
+    .stat b { display: block; color: var(--signal); font: 800 30px/1.15 var(--serif); }
+    .stat span { color: var(--ink-soft); font-size: 13px; }
+    .card h4 { margin: 0 0 8px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .formula {
+      margin: 25px 0;
+      padding: 22px 24px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--iris-dark), var(--iris));
+      border-bottom: 5px solid var(--signal);
+      font: 700 16px/1.8 var(--mono);
+    }
+    .formula span { display: block; color: #f4b79b; }
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin: 27px 0;
+    }
+    .journey div {
+      position: relative;
+      padding: 16px 13px;
+      text-align: center;
+      background: #eceef8;
+      border: 1px solid #c5cae5;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .journey div:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--signal);
+      font-size: 17px;
+    }
+    .bitbar { display: flex; min-width: 660px; height: 54px; margin: 16px 0 8px; color: #fff; font: 700 12px/54px var(--mono); text-align: center; }
+    .bitbar span { display: block; border-right: 2px solid var(--white); }
+    .bitbar .mask { flex: 5; background: #6774bc; }
+    .bitbar .health { flex: 14; background: var(--signal); }
+    .bitbar .ammo { flex: 10; background: var(--green); }
+    .bitbar .other { flex: 20; background: #7b8293; }
+    .badge {
+      display: inline-block;
+      margin: 0 5px 5px 0;
+      padding: 2px 8px;
+      color: var(--iris-dark);
+      background: #e7eaf7;
+      border: 1px solid #bcc3df;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-left: 30px; }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; top: 1px; color: var(--green); font-weight: 900; }
+    .article-footer {
+      margin-top: 28px;
+      padding: 28px 34px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .article-footer p { margin: 0 0 8px; }
+    .back-home { display: inline-block; margin-top: 12px; font-weight: 800; }
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      width: 46px;
+      height: 46px;
+      color: #fff;
+      background: var(--iris-dark);
+      border: 0;
+      box-shadow: 0 9px 28px rgba(25, 35, 58, .22);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: minmax(210px, 250px) minmax(0, 1fr); gap: 26px; width: min(1120px, calc(100% - 30px)); }
+      article { padding: 35px; }
+      .source-note { grid-template-columns: 42px 1fr; }
+      .source-note > a { grid-column: 2; }
+    }
+    @media (max-width: 790px) {
+      body { font-size: 16px; }
+      .hero { padding: 58px 22px 53px; }
+      .hero::before { font-size: 180px; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 25px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .toc-mobile a { padding: 8px 18px; }
+      article { padding: 27px 20px; }
+      article h2 { margin-top: 58px; }
+      article h3 { margin-top: 37px; }
+      .source-note { padding: 17px; }
+      .stats, .cards { grid-template-columns: 1fr; }
+      .journey { grid-template-columns: 1fr 1fr; }
+      .journey div:nth-child(2)::after { display: none; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 34px; }
+      .hero__meta { display: grid; }
+      .journey { grid-template-columns: 1fr; }
+      .journey div::after { display: none; }
+      .source-note { display: block; }
+      .source-note__mark { margin-bottom: 12px; }
+      .source-note > a { display: inline-block; margin-top: 10px; white-space: normal; }
+      article pre { padding: 18px 16px; font-size: 12px; }
+      .article-footer { padding: 23px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.7.4 · Iris Replication System</p>
+      <h1>
+        <span>UE5-Iris 网络复制系统技术分析</span>
+        <span>第七部分：序列化系统</span>
+      </h1>
+      <p class="hero__deck">沿一份角色生命值的完整旅程，拆解 Descriptor、FNetSerializer、量化状态、ChangeMask 与 BitStream；再把数组、字符串、名称、旋转和整数装回百人大逃杀角色状态，算清精度、位数、CPU 与动态内存。</p>
+      <div class="hero__meta" aria-label="文章信息">
+        <span>作者 Jossy Zhang</span>
+        <span>发布 2026-07-24</span>
+        <span>基于 Unreal Engine 5.7.4</span>
+        <span>7.1–7.19 · 源码核对</span>
+        <span><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetSerializer" target="_blank" rel="noopener noreferrer">FNetSerializer API ↗</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>内容索引</strong><span>CONTENTS</span></div>
+      <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第七部分导读</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>🧭 7.1 系统概述</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>🧱 7.2 FNetSerializer</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>📐 7.3 量化深入解析</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>🧰 7.4 内置序列化器</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>❤️ 7.5 Health 完整实现</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>✍️ 7.6 BitStream 读写</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>Δ 7.7 Delta 基础接口</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>🎭 7.8 ChangeMask</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>📦 7.9 数组序列化器</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>🔤 7.10 字符串与名称</b></a></li>
+        <li><a href="#section-12" data-section="section-12"><span>12</span><b>🧭 7.11 Rotator 变体</b></a></li>
+        <li><a href="#section-13" data-section="section-13"><span>13</span><b>🔢 7.12 PackedInt</b></a></li>
+        <li><a href="#section-14" data-section="section-14"><span>14</span><b>🔌 7.13 注册与宏</b></a></li>
+        <li><a href="#section-15" data-section="section-15"><span>15</span><b>📋 7.14 速查表</b></a></li>
+        <li><a href="#section-16" data-section="section-16"><span>16</span><b>🎮 7.15 游戏场景</b></a></li>
+        <li><a href="#section-17" data-section="section-17"><span>17</span><b>🏭 7.16 生产化指南</b></a></li>
+        <li><a href="#section-18" data-section="section-18"><span>18</span><b>🧯 7.17 故障排查</b></a></li>
+        <li><a href="#section-19" data-section="section-19"><span>19</span><b>⚡ 7.18 性能建议</b></a></li>
+        <li><a href="#section-20" data-section="section-20"><span>20</span><b>✅ 7.19 总结</b></a></li>
+        <li><a href="#section-21" data-section="section-21"><span>21</span><b>📁 源码与资料索引</b></a></li>
+        <li><a href="#section-22" data-section="section-22"><span>22</span><b>💡 下一步</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 22 个章节</summary>
+        <ol>
+          <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第七部分导读</b></a></li>
+          <li><a href="#section-02" data-section="section-02"><span>02</span><b>🧭 7.1 系统概述</b></a></li>
+          <li><a href="#section-03" data-section="section-03"><span>03</span><b>🧱 7.2 FNetSerializer</b></a></li>
+          <li><a href="#section-04" data-section="section-04"><span>04</span><b>📐 7.3 量化深入解析</b></a></li>
+          <li><a href="#section-05" data-section="section-05"><span>05</span><b>🧰 7.4 内置序列化器</b></a></li>
+          <li><a href="#section-06" data-section="section-06"><span>06</span><b>❤️ 7.5 Health 完整实现</b></a></li>
+          <li><a href="#section-07" data-section="section-07"><span>07</span><b>✍️ 7.6 BitStream 读写</b></a></li>
+          <li><a href="#section-08" data-section="section-08"><span>08</span><b>Δ 7.7 Delta 基础接口</b></a></li>
+          <li><a href="#section-09" data-section="section-09"><span>09</span><b>🎭 7.8 ChangeMask</b></a></li>
+          <li><a href="#section-10" data-section="section-10"><span>10</span><b>📦 7.9 数组序列化器</b></a></li>
+          <li><a href="#section-11" data-section="section-11"><span>11</span><b>🔤 7.10 字符串与名称</b></a></li>
+          <li><a href="#section-12" data-section="section-12"><span>12</span><b>🧭 7.11 Rotator 变体</b></a></li>
+          <li><a href="#section-13" data-section="section-13"><span>13</span><b>🔢 7.12 PackedInt</b></a></li>
+          <li><a href="#section-14" data-section="section-14"><span>14</span><b>🔌 7.13 注册与宏</b></a></li>
+          <li><a href="#section-15" data-section="section-15"><span>15</span><b>📋 7.14 速查表</b></a></li>
+          <li><a href="#section-16" data-section="section-16"><span>16</span><b>🎮 7.15 游戏场景</b></a></li>
+          <li><a href="#section-17" data-section="section-17"><span>17</span><b>🏭 7.16 生产化指南</b></a></li>
+          <li><a href="#section-18" data-section="section-18"><span>18</span><b>🧯 7.17 故障排查</b></a></li>
+          <li><a href="#section-19" data-section="section-19"><span>19</span><b>⚡ 7.18 性能建议</b></a></li>
+          <li><a href="#section-20" data-section="section-20"><span>20</span><b>✅ 7.19 总结</b></a></li>
+          <li><a href="#section-21" data-section="section-21"><span>21</span><b>📁 源码与资料索引</b></a></li>
+          <li><a href="#section-22" data-section="section-22"><span>22</span><b>💡 下一步</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note" role="note">
+        <span class="source-note__mark" aria-hidden="true">据</span>
+        <p><strong>技术依据</strong>本文为 Jossy Zhang 原创技术整理，以本地 Unreal Engine 5.7.4 源码快照和 Epic Games UE 5.7 官方文档为准。代码示例经过源码接口核对，但未执行完整 UE 工程构建。</p>
+        <a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetSerializer" target="_blank" rel="noopener noreferrer">查看 UE 5.7 API ↗</a>
+      </div>
+
+      <article>
+        <h2 id="section-01" tabindex="-1">🎯 第七部分：序列化系统</h2>
+        <blockquote>过滤决定“发给谁”，优先级决定“谁先发”，序列化决定“一个游戏值最终变成哪些比特”。这三件事依次收缩问题，却不能互相替代。</blockquote>
+        <p>设想服务器里一名角色从 100.0 点生命降到 87.3。游戏层看到的是一个 <code>float</code>；Descriptor 知道它属于哪个复制成员；Serializer 把它映射成离散索引 873；ChangeMask 表示这个成员变了；Writer 把 14 个有效比特写入包；客户端读取后得到同一个量化索引，再还原为 87.3 并应用到对象。本文就沿着这一个值走完全程。</p>
+        <div class="journey" aria-label="一份属性的网络旅程">
+          <div>Gameplay Value</div><div>Descriptor</div><div>Quantize</div><div>ChangeMask</div>
+          <div>Serialize</div><div>BitStream</div><div>Dequantize</div><div>Apply / RepNotify</div>
+        </div>
+        <p>本文不是把所有 Serializer API 罗列一遍，而是回答四个工程问题：<strong>表达是否足够准确、平均与最坏需要多少位、量化状态由谁拥有、错误在哪一层被发现</strong>。最后会把结论放回位置、旋转、生命、弹药、背包和玩家名称组成的大逃杀角色状态中。</p>
+        <div class="article-callout article-callout--blue">
+          <strong>版本边界</strong>
+          <p>分析基线是 UE 5.7.4。当前源码根目录为 <code>Engine/Source/Runtime/Net/Iris/</code>；旧文章常见的 <code>Engine/Source/Runtime/Experimental/Iris/Core/</code> 是较早版本布局。复制旧路径、宏或注册时机前，先确认目标引擎版本。</p>
+        </div>
+
+        <h2 id="section-02" tabindex="-1">🧭 7.1 序列化系统概述</h2>
+        <h3 id="section-02-01" tabindex="-1">它和存档序列化有什么不同</h3>
+        <p>普通存档经常追求“完整、稳定、方便演进”；网络状态序列化首先受实时预算约束：数据要按连接调度，允许在业务容忍范围内损失精度，要能跳过未变化成员，还要处理基线、对象引用、包边界和恶意输入。<code>FArchive</code> 的通用性很有价值，但 Iris 的热路径需要更明确的类型、量化状态和比特级读写契约。</p>
+        <p>可以把它类比成搬运乐高城堡。游戏对象是已经搭好的城堡；<strong>SourceType</strong> 是城堡当前形态；<strong>QuantizedType</strong> 是按颜色和格点整理后的零件清单；<strong>BitStream</strong> 是把清单紧密装进运输箱。接收端按同一规则拆箱，再搭成业务可用的近似城堡。规则不一致，得到的不是“精度差一点”，而是从错位的比特开始全部误读。</p>
+
+        <h3 id="section-02-02" tabindex="-1">四层职责不能混淆</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>层次</th><th>回答的问题</th><th>典型机制</th><th>常见误区</th></tr></thead>
+          <tbody>
+            <tr><td>变化检测</td><td>什么变了？</td><td>Poll、Push Model、<code>IsEqual</code>、ChangeMask</td><td>以为量化会自动标脏</td></tr>
+            <tr><td>量化</td><td>用什么离散形式表示？</td><td><code>Quantize / Dequantize</code></td><td>只看位数，不定义范围和误差</td></tr>
+            <tr><td>序列化</td><td>按什么顺序写入/读出？</td><td><code>Serialize / Deserialize</code>、BitStream</td><td>发送端与接收端条件分支不对称</td></tr>
+            <tr><td>调度</td><td>本帧是否有机会发送？</td><td>过滤、优先级、Writer 位预算</td><td>以为省 18 位就一定降低整包 18 位</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-02-03" tabindex="-1">为什么 Iris 保存量化状态副本</h3>
+        <p>Iris 在复制系统内部保留完整的量化网络状态。这样，昂贵的 Gameplay 读取与量化可以在 Pre-Send 阶段做一次，结果供多个连接共享；连接级 Writer 在填包时主要访问复制系统内部的紧凑状态，而不反复触碰 UObject。官方 Components 文档也把“维护量化状态副本、共享一次性工作、便于并行”列为核心设计。</p>
+        <p>代价同样真实：量化状态占内存；字符串、数组、软引用等还可能持有动态分配；基线需要生命周期管理。优化不能只盯网络位数，还要把量化 CPU、缓存局部性和动态状态分配算进去。</p>
+
+        <h3 id="section-02-04" tabindex="-1">UE 5.7.4 源码规模</h3>
+        <div class="stats">
+          <div class="stat"><b>104</b><span>Public + Private Serialization 目录文件</span></div>
+          <div class="stat"><b>77</b><span>文件名包含 NetSerializer</span></div>
+          <div class="stat"><b>69</b><span>实现宏去重后的运行时 Serializer 定义</span></div>
+        </div>
+        <p>统计口径是本地 5.7.4 快照：<code>Public/Iris/Serialization</code> 与 <code>Private/Iris/Serialization</code> 共 52 个头文件、51 个 <code>.cpp</code> 和 1 个 <code>.inl</code>。69 是扫描 <code>UE_NET_IMPLEMENT_SERIALIZER</code> 与 <code>UE_NET_IMPLEMENT_SERIALIZER_INTERNAL</code> 后按名称去重的结果，包含内部实现；它不是“所有项目都可直接引用的 69 个公开 API”。</p>
+
+        <h3 id="section-02-05" tabindex="-1">发送端与接收端</h3>
+        <div class="code-label"><span>解释性流程图</span><span>不是逐函数调用栈</span></div>
+        <pre><code>发送端
+Gameplay / UPROPERTY
+  → Descriptor 找到 Member + Serializer + Config
+  → Validate(Source)
+  → IsEqual / Poll / Push Model 产生 ChangeMask
+  → Quantize(Source → Quantized State)
+  → Filtering / Prioritization / Scheduling
+  → 写稀疏 ChangeMask
+  → Serialize 或 SerializeDelta
+  → FNetBitStreamWriter → Packet
+
+接收端
+Packet
+  → FNetBitStreamReader
+  → 读 ChangeMask
+  → Deserialize 或 DeserializeDelta
+  → Quantized Receive State
+  → Dequantize(Quantized → Source)
+  → Apply（如 Serializer 自定义）或复制状态应用
+  → Gameplay Object / RepNotify</code></pre>
+
+        <h2 id="section-03" tabindex="-1">🧱 7.2 FNetSerializer 结构详解</h2>
+        <h3 id="section-03-01" tabindex="-1">它是一张函数表，也是一份数据契约</h3>
+        <p>UE 5.7.4 的 <code>FNetSerializer</code> 不是一个靠虚函数继承的 UObject，而是由 <code>TNetSerializerBuilder</code> 根据实现结构在编译期拼出的函数表。它保存版本、Traits、所有入口、默认 Config，以及量化类型与 Config 的大小和对齐。Descriptor 最终持有的正是这张表和对应 Config。</p>
+        <div class="code-label"><span>UE 5.7.4 源码摘录</span><span>NetSerializer.h · 省略 typedef</span></div>
+        <pre><code>struct FNetSerializer
+{
+    uint32 Version;
+    ENetSerializerTraits Traits;
+
+    NetSerializeFunction Serialize;
+    NetDeserializeFunction Deserialize;
+    NetSerializeDeltaFunction SerializeDelta;
+    NetDeserializeDeltaFunction DeserializeDelta;
+    NetQuantizeFunction Quantize;
+    NetDequantizeFunction Dequantize;
+    NetIsEqualFunction IsEqual;
+    NetValidateFunction Validate;
+    NetCloneDynamicStateFunction CloneDynamicState;
+    NetFreeDynamicStateFunction FreeDynamicState;
+    NetCollectNetReferencesFunction CollectNetReferences;
+    NetApplyFunction Apply;
+
+    const FNetSerializerConfig* DefaultConfig;
+    uint16 QuantizedTypeSize;
+    uint16 QuantizedTypeAlignment;
+    uint16 ConfigTypeSize;
+    uint16 ConfigTypeAlignment;
+    const TCHAR* Name;
+};</code></pre>
+
+        <h3 id="section-03-02" tabindex="-1">入口按数据方向理解</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>入口</th><th>输入状态</th><th>输出/作用</th><th>关键约束</th></tr></thead>
+          <tbody>
+            <tr><td><code>Serialize</code></td><td>量化 Source</td><td>写 BitStream</td><td>只写约定的位；不应重新读取 Gameplay</td></tr>
+            <tr><td><code>Deserialize</code></td><td>BitStream</td><td>量化 Target</td><td>验证长度、枚举或无效编码；与 Serialize 完全对称</td></tr>
+            <tr><td><code>SerializeDelta</code></td><td>当前量化 Source + 已确认 Prev</td><td>写相对基线的数据</td><td>Prev 语义由系统保证，不能自行猜测客户端值</td></tr>
+            <tr><td><code>DeserializeDelta</code></td><td>BitStream + Prev</td><td>量化 Target</td><td>即使等于 Prev，也必须形成有效 Target</td></tr>
+            <tr><td><code>Quantize</code></td><td>非量化 Source</td><td>量化 Target</td><td>Target 初始内容未知；结果要可位确定比较</td></tr>
+            <tr><td><code>Dequantize</code></td><td>量化 Source</td><td>非量化 Target</td><td>定义误差与非法状态行为</td></tr>
+            <tr><td><code>IsEqual</code></td><td>两个 Source；可能已量化</td><td>网络语义相等</td><td><code>bStateIsQuantized</code> 决定解释方式</td></tr>
+            <tr><td><code>Validate</code></td><td>非量化 Source</td><td>布尔合法性</td><td>它不替代接收端对不可信比特流的检查</td></tr>
+            <tr><td><code>CloneDynamicState</code></td><td>有效量化 Source</td><td>深拷贝到 Target</td><td>通过 Context 分配，不能只拷指针</td></tr>
+            <tr><td><code>FreeDynamicState</code></td><td>量化状态</td><td>释放并复位</td><td>要求可重入；最好恢复零状态</td></tr>
+            <tr><td><code>CollectNetReferences</code></td><td>量化 Source + Collector</td><td>上报对象引用</td><td>漏报会破坏引用解析和依赖关系</td></tr>
+            <tr><td><code>Apply</code></td><td>非量化 Source + Target</td><td>选择性写回业务对象</td><td>只在需要自定义成员应用时实现</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-03-03" tabindex="-1">SourceType、QuantizedType、Config、Context</h3>
+        <div class="cards">
+          <div class="card"><h4>SourceType</h4><p>Gameplay 看到的类型。可能是 <code>float</code>、<code>FString</code> 或 USTRUCT；Validate 与非量化 IsEqual 面向它。</p></div>
+          <div class="card"><h4>QuantizedType</h4><p>Iris 内部与线上编码面向的状态。应为 POD、位确定，零初始化必须代表有效状态；动态数据通过显式生命周期管理。</p></div>
+          <div class="card"><h4>ConfigType</h4><p>Serializer 的配置契约，继承 <code>FNetSerializerConfig</code>。Descriptor 将 Serializer 与具体 Config 配对。</p></div>
+          <div class="card"><h4>Context</h4><p>携带 Reader/Writer、ChangeMask、连接、Token Store、内部内存与错误上下文。连接相关序列化会降低共享能力。</p></div>
+        </div>
+        <div class="article-callout">
+          <strong>量化状态最容易被低估的规则</strong>
+          <p>UE 5.7.4 源码明确要求 QuantizedType 是 POD、具有位确定性，零初始化应有效，并避免未初始化 padding。只要状态含指针或动态分配，就必须提供深拷贝与释放；否则基线、接收状态和缓存之间会出现浅拷贝、重复释放或悬空指针。</p>
+        </div>
+
+        <h3 id="section-03-04" tabindex="-1">Traits 是系统承诺，不是装饰标签</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>ENetSerializerTraits</th><th>含义</th><th>工程影响</th></tr></thead>
+          <tbody>
+            <tr><td><code>IsForwardingSerializer</code></td><td>转发到其他 Serializer</td><td>Builder 会更严格要求可能入口齐全</td></tr>
+            <tr><td><code>HasDynamicState</code></td><td>量化状态持有动态资源</td><td>必须实现 Clone/Free</td></tr>
+            <tr><td><code>HasConnectionSpecificSerialization</code></td><td>输出依赖连接</td><td>难以跨连接共享序列化结果，增加 CPU/内存</td></tr>
+            <tr><td><code>HasCustomNetReference</code></td><td>含需收集的网络引用</td><td>必须实现 CollectNetReferences</td></tr>
+            <tr><td><code>UseSerializerIsEqual</code></td><td>脏检测使用网络语义相等</td><td>可让落在同一量化格点的值不产生无效更新</td></tr>
+            <tr><td><code>HasApply</code></td><td>提供自定义 Apply</td><td>适合只覆盖结构体部分成员的 Serializer</td></tr>
+          </tbody>
+        </table></div>
+        <p><code>bUseDefaultDelta</code> 会影响 Builder 选择默认 Delta 路径，但它不是上述公开 Trait 枚举的一项。默认实现通常先写一位“是否与 Prev 相同”；如果关闭默认 same-value 优化，Builder 会让 Delta 入口直接转发普通 Serialize/Deserialize。</p>
+
+        <h3 id="section-03-05" tabindex="-1">三条核心调用路径</h3>
+        <pre><code>比较路径：Source A/B → IsEqual(non-quantized) → 是否标记成员变化
+发送路径：Source → Validate → Quantize → Serialize[Delta] → Writer
+接收路径：Reader → Deserialize[Delta] → Quantized → Dequantize → Apply</code></pre>
+        <p>这些入口不保证只调用一次，也不能依赖 UObject 可随时访问。特别是 Serialize 阶段，应把计算尽量前移到 Quantize：后者通常每对象每帧至多执行一次，而 Serialize 可能为多个连接执行。</p>
+
+        <h2 id="section-04" tabindex="-1">📐 7.3 量化深入解析</h2>
+        <h3 id="section-04-01" tabindex="-1">连续值如何变成有限状态</h3>
+        <div class="formula">
+          StateCount = floor((Max - Min) / Step) + 1
+          <span>RequiredBits = ceil(log2(StateCount))</span>
+        </div>
+        <p>对范围 0–1000、步长 0.1 的生命值，状态索引是 0–10000，共 10001 种，需要 14 位，因为 2<sup>13</sup>=8192 不够，而 2<sup>14</sup>=16384。多出来的 6383 个码位是无效状态，接收端必须拒绝，不能把它们静默夹成 1000。</p>
+        <pre><code>Quantized = round((clamp(Value, Min, Max) - Min) / Step)
+Value'    = Min + Quantized * Step
+MaxError  ≈ Step / 2</code></pre>
+
+        <h3 id="section-04-02" tabindex="-1">32 位精度不等于 32 位价值</h3>
+        <p>IEEE 754 <code>float</code> 能表达大量业务永远不会使用的中间值，也包含 NaN、Infinity、正负零等特殊表示。生命值 UI 只显示一位小数时，传完整 32 位尾数没有直接玩家价值；但物理积分、确定性回滚或极大坐标附近的精细差值可能确实需要更多信息。量化标准应来自<strong>可感知误差和后续算法</strong>，不是“网络字段一律压缩”。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>模型</th><th>每分量状态</th><th>步长</th><th>最大舍入误差</th><th>三分量最坏负载</th></tr></thead>
+          <tbody>
+            <tr><td>Rotator Byte</td><td>256</td><td>1.40625°</td><td>约 0.703125°</td><td>3 标志 + 24 数据 = 27 bits</td></tr>
+            <tr><td>Rotator Short</td><td>65536</td><td>约 0.005493°</td><td>约 0.002747°</td><td>3 标志 + 48 数据 = 51 bits</td></tr>
+            <tr><td>原始 3×float（概念对照）</td><td>巨大</td><td>随指数变化</td><td>远小于多数视觉需求</td><td>至少 96 bits，未计协议</td></tr>
+          </tbody>
+        </table></div>
+        <p>UE 5.7.4 的 <code>FRotatorNetSerializer</code>、<code>FRotatorAsShortNetSerializer</code>、<code>FRotator3fNetSerializer</code> 和 <code>FRotator3dNetSerializer</code> 都走 Short 量化基类；只有 <code>FRotatorAsByteNetSerializer</code> 走 Byte。3f/3d 描述 Source 精度，不代表线上仍发送 32/64 位每分量。</p>
+
+        <h3 id="section-04-03" tabindex="-1">舍入、夹取与非法值</h3>
+        <ul>
+          <li><strong>舍入：</strong>发送端和接收端共享离散公式。最大理论误差约为半个步长，但多次业务运算可能累积。</li>
+          <li><strong>夹取：</strong>是防御措施，不应掩盖业务越界。先由 Validate 报错，再让 Quantize 保证即便异常值漏入也不写出非法索引。</li>
+          <li><strong>NaN/Infinity：</strong>比较、Clamp 和哈希都可能产生反直觉结果，应在 Validate 明确拒绝，防御性量化映射到安全默认值。</li>
+          <li><strong>无效码位：</strong>14 位能表示到 16383，Health 只允许到 10000；Deserialize 必须设置 Context 错误。</li>
+          <li><strong>版本变更：</strong>一旦修改 Min、Max、Step 或位数，旧客户端会用另一套规则解释同一串比特，这是协议兼容性变化。</li>
+        </ul>
+        <div class="article-callout article-callout--green">
+          <strong>什么时候量化可能是负优化</strong>
+          <p>低频字段本就很少发送；为了省 2 位却增加分支、查表、动态分配和跨版本维护，CPU 与复杂度可能超过带宽收益。先测字段分布和发送频率，再决定是否自定义。</p>
+        </div>
+
+        <h2 id="section-05" tabindex="-1">🧰 7.4 内置序列化器详解</h2>
+        <h3 id="section-05-01" tabindex="-1">整数：已知值域优先固定宽度</h3>
+        <p>UE 5.7.4 有 Int/Uint 8、16、32、64，Range 变体和各尺寸 Enum 变体。固定整数 Config 提供 BitCount；序列化只写低 BitCount 位，带符号读取后进行符号扩展。Validate 会检查 BitCount 合法并确认值所需位数不超配置。</p>
+        <p>整数基类在 <code>BitCount &gt;= 16</code> 时启用零值优化：先写一位“是否为零”。零只花 1 位，非零花 <code>BitCount + 1</code>。所以“16 位整数固定只用 16 位”并不总成立；实际成本取决于值与配置。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>场景</th><th>建议</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>弹匣 0–60</td><td>6-bit Range/定宽模型</td><td>值域明确，成本稳定</td></tr>
+            <tr><td>枚举 0–7</td><td>对应 Enum Serializer</td><td>保留类型语义并验证值宽</td></tr>
+            <tr><td>稀疏大 ID</td><td>先判断是否应使用 Token/引用</td><td>整数压缩不能解决跨进程标识语义</td></tr>
+            <tr><td>数值分布偏小、上界大</td><td>PackedInt</td><td>用少量前缀换平均小值成本</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-05-02" tabindex="-1">PackedInt：按字节数自适应，不是 ZigZag</h3>
+        <p>32 位 PackedInt 先写 2 位字节数前缀，再写 1–4 个字节，因此成本是 10、18、26 或 34 位。64 位版本用 3 位前缀，成本是 11、19、27、35、43、51、59 或 67 位。UE 5.7.4 的有符号实现按所需有符号位数选择字节数，读取后符号扩展；它<strong>不是 ZigZag</strong>。</p>
+        <p>这意味着 127 和 -1 都可能很便宜，但一个接近 32 位极值的值会比直接固定 32 位多 2 位。是否划算取决于真实分布，不取决于类型最大值。</p>
+
+        <h3 id="section-05-03" tabindex="-1">Float：保留比特表示，只优化零</h3>
+        <p><code>FFloatNetSerializer</code> 把 SourceType 视为 <code>uint32</code> 位模式，以区分 <code>+0.0</code> 和 <code>-0.0</code>。普通 Serialize 先写 1 位非零标志：正零位模式花 1 位，其他值花 33 位。Double 对应 1 或 65 位。它们有自己的 Delta 位数表，但普通路径并没有替你做“保留两位小数”的业务量化。</p>
+        <div class="code-label"><span>UE 5.7.4 源码摘录</span><span>FloatNetSerializers.cpp</span></div>
+        <pre><code>if (Writer-&gt;WriteBool(Value != 0))
+{
+    Writer-&gt;WriteBits(Value, 32U);
+}</code></pre>
+        <p>因此“用内置 Float 就是 32 位”不精确，“内置 Float 已经有损压缩”也不正确。正零是 1 位，非零是 33 位，Delta 另算；数值精度仍保持原始位模式。</p>
+
+        <h3 id="section-05-04" tabindex="-1">Rotator：先写存在标志，再写非零分量</h3>
+        <p>Byte 与 Short 基类都先写 3 位 <code>XYZIsNotZero</code>，只为量化后非零的 Pitch/Yaw/Roll 写 8 或 16 位。纯 Yaw 角色朝向因此分别是 11 位或 19 位；三分量都非零才到 27 或 51 位。Delta 路径同样先写三分量变化掩码。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>用途</th><th>推荐起点</th><th>理由</th></tr></thead>
+          <tbody>
+            <tr><td>第三人称角色身体朝向</td><td>Byte，实测观感</td><td>约 0.7° 最大误差通常可接受</td></tr>
+            <tr><td>炮塔精确瞄准</td><td>Short</td><td>小角度误差会放大到远距离落点</td></tr>
+            <tr><td>高速车辆姿态</td><td>Short + 插值</td><td>三轴变化频繁，视觉稳定性更重要</td></tr>
+            <tr><td>不影响玩法的装饰物</td><td>Byte 或降低更新频率</td><td>先减少更新，再压位数</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-06" tabindex="-1">❤️ 7.5 自定义 FHealthNetSerializer 完整实现</h2>
+        <p>下面实现一个固定业务契约：<code>FReplicatedHealth</code> 范围 0.0–1000.0，步长 0.1，量化索引 0–10000，线上固定 14 位。它展示 UE 5.7.4 的类型、函数表、注册和使用路径。</p>
+        <div class="article-callout">
+          <strong>验证级别</strong>
+          <p>以下代码按本地 UE 5.7.4 的 <code>NetSerializer.h</code>、<code>PropertyNetSerializerInfoRegistry.h</code>、BitStream 与引擎内置 Serializer 写法逐项核对，属于“可编译导向示例”；本文没有创建完整游戏模块并运行 UnrealBuildTool。请将 <code>MYGAME_API</code> 替换为项目模块导出宏。</p>
+        </div>
+
+        <h3 id="section-06-01" tabindex="-1">头文件：业务类型、Config 与声明</h3>
+        <div class="code-label"><span>源码核对的可编译导向示例</span><span>ReplicatedHealthNetSerializer.h</span></div>
+        <pre><code>#pragma once
+
+#include "CoreMinimal.h"
+#include "Iris/Serialization/NetSerializer.h"
+#include "ReplicatedHealthNetSerializer.generated.h"
+
+USTRUCT(BlueprintType)
+struct FReplicatedHealth
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Value = 1000.0f;
+};
+
+// 即使当前没有可调字段，也显式声明 Config，给协议演进留下边界。
+USTRUCT()
+struct FHealthNetSerializerConfig : public FNetSerializerConfig
+{
+    GENERATED_BODY()
+};
+
+namespace UE::Net
+{
+UE_NET_DECLARE_SERIALIZER(FHealthNetSerializer, MYGAME_API);
+}</code></pre>
+
+        <h3 id="section-06-02" tabindex="-1">实现：14 位读写、量化、比较与验证</h3>
+        <div class="code-label"><span>源码核对的可编译导向示例</span><span>ReplicatedHealthNetSerializer.cpp · Part 1</span></div>
+        <pre><code>#include "ReplicatedHealthNetSerializer.h"
+
+#include "Iris/ReplicationState/PropertyNetSerializerInfoRegistry.h"
+#include "Iris/Serialization/NetBitStreamReader.h"
+#include "Iris/Serialization/NetBitStreamWriter.h"
+#include "Iris/Serialization/NetErrorContext.h"
+
+namespace UE::Net
+{
+
+struct FHealthNetSerializer
+{
+    static constexpr uint32 Version = 0;
+
+    // ChangeMask 已筛掉绝大多数未变字段；Delta 入口直接转发普通 14-bit 路径。
+    static constexpr bool bUseDefaultDelta = false;
+
+    // 非量化比较也按网络可见的 0.1 精度判断，避免同一格点反复标脏。
+    static constexpr bool bUseSerializerIsEqual = true;
+
+    using SourceType = FReplicatedHealth;
+    using QuantizedType = uint16;
+    using ConfigType = FHealthNetSerializerConfig;
+
+    inline static const ConfigType DefaultConfig;
+
+    static constexpr float MinValue = 0.0f;
+    static constexpr float MaxValue = 1000.0f;
+    static constexpr float Step = 0.1f;
+    static constexpr uint32 MaxQuantizedValue = 10000U;
+    static constexpr uint32 BitCount = 14U;
+
+    static void Serialize(FNetSerializationContext&, const FNetSerializeArgs&);
+    static void Deserialize(FNetSerializationContext&, const FNetDeserializeArgs&);
+    static void Quantize(FNetSerializationContext&, const FNetQuantizeArgs&);
+    static void Dequantize(FNetSerializationContext&, const FNetDequantizeArgs&);
+    static bool IsEqual(FNetSerializationContext&, const FNetIsEqualArgs&);
+    static bool Validate(FNetSerializationContext&, const FNetValidateArgs&);
+
+private:
+    static QuantizedType QuantizeValue(float Value);
+};
+
+UE_NET_IMPLEMENT_SERIALIZER(FHealthNetSerializer);
+
+FHealthNetSerializer::QuantizedType
+FHealthNetSerializer::QuantizeValue(float Value)
+{
+    // Validate 会拒绝非法值；这里仍保证发布版本得到安全、有效的量化状态。
+    const float FiniteValue = FMath::IsFinite(Value) ? Value : MinValue;
+    const float ClampedValue = FMath::Clamp(FiniteValue, MinValue, MaxValue);
+    return static_cast&lt;QuantizedType&gt;(
+        FMath::RoundToInt((ClampedValue - MinValue) / Step));
+}
+
+void FHealthNetSerializer::Serialize(
+    FNetSerializationContext&amp; Context,
+    const FNetSerializeArgs&amp; Args)
+{
+    const QuantizedType Value =
+        *reinterpret_cast&lt;const QuantizedType*&gt;(Args.Source);
+    Context.GetBitStreamWriter()-&gt;WriteBits(Value, BitCount);
+}
+
+void FHealthNetSerializer::Deserialize(
+    FNetSerializationContext&amp; Context,
+    const FNetDeserializeArgs&amp; Args)
+{
+    QuantizedType&amp; Target =
+        *reinterpret_cast&lt;QuantizedType*&gt;(Args.Target);
+    Target = 0U; // 错误退出时仍保持有效零状态。
+
+    const uint32 Value = Context.GetBitStreamReader()-&gt;ReadBits(BitCount);
+    if (Value &gt; MaxQuantizedValue)
+    {
+        Context.SetError(GNetError_InvalidValue);
+        return;
+    }
+
+    Target = static_cast&lt;QuantizedType&gt;(Value);
+}</code></pre>
+
+        <div class="code-label"><span>源码核对的可编译导向示例</span><span>ReplicatedHealthNetSerializer.cpp · Part 2</span></div>
+        <pre><code>void FHealthNetSerializer::Quantize(
+    FNetSerializationContext&amp;,
+    const FNetQuantizeArgs&amp; Args)
+{
+    const SourceType&amp; Source =
+        *reinterpret_cast&lt;const SourceType*&gt;(Args.Source);
+    QuantizedType&amp; Target =
+        *reinterpret_cast&lt;QuantizedType*&gt;(Args.Target);
+    Target = QuantizeValue(Source.Value);
+}
+
+void FHealthNetSerializer::Dequantize(
+    FNetSerializationContext&amp;,
+    const FNetDequantizeArgs&amp; Args)
+{
+    const QuantizedType Source =
+        *reinterpret_cast&lt;const QuantizedType*&gt;(Args.Source);
+    SourceType&amp; Target =
+        *reinterpret_cast&lt;SourceType*&gt;(Args.Target);
+    Target.Value = MinValue + static_cast&lt;float&gt;(Source) * Step;
+}
+
+bool FHealthNetSerializer::IsEqual(
+    FNetSerializationContext&amp;,
+    const FNetIsEqualArgs&amp; Args)
+{
+    if (Args.bStateIsQuantized)
+    {
+        return *reinterpret_cast&lt;const QuantizedType*&gt;(Args.Source0)
+            == *reinterpret_cast&lt;const QuantizedType*&gt;(Args.Source1);
+    }
+
+    const SourceType&amp; A =
+        *reinterpret_cast&lt;const SourceType*&gt;(Args.Source0);
+    const SourceType&amp; B =
+        *reinterpret_cast&lt;const SourceType*&gt;(Args.Source1);
+    return QuantizeValue(A.Value) == QuantizeValue(B.Value);
+}
+
+bool FHealthNetSerializer::Validate(
+    FNetSerializationContext&amp;,
+    const FNetValidateArgs&amp; Args)
+{
+    const SourceType&amp; Source =
+        *reinterpret_cast&lt;const SourceType*&gt;(Args.Source);
+    return FMath::IsFinite(Source.Value)
+        &amp;&amp; Source.Value &gt;= MinValue
+        &amp;&amp; Source.Value &lt;= MaxValue;
+}</code></pre>
+
+        <h3 id="section-06-03" tabindex="-1">注册：在 Registry Freeze 前绑定 USTRUCT</h3>
+        <div class="code-label"><span>UE 5.7.4 注册路径</span><span>ReplicatedHealthNetSerializer.cpp · Part 3</span></div>
+        <pre><code>static const FName
+    PropertyNetSerializerRegistry_NAME_ReplicatedHealth(
+        TEXT("ReplicatedHealth"));
+
+UE_NET_IMPLEMENT_NAMED_STRUCT_NETSERIALIZER_INFO(
+    PropertyNetSerializerRegistry_NAME_ReplicatedHealth,
+    FHealthNetSerializer);
+
+UE_NET_IMPLEMENT_NETSERIALIZER_REGISTRY_DELEGATES(ReplicatedHealth);
+
+} // namespace UE::Net</code></pre>
+        <p>最后一个宏生成一个 <code>FNetSerializerRegistryDelegates</code> 实例，在 <code>OnPreFreezeNetSerializerRegistry</code> 中注册具名结构体信息，并在可卸载的非 Monolithic 构建中注销。Descriptor Builder 遇到 <code>FReplicatedHealth</code> 的 Struct Property 时，会按结构体名找到这项绑定。</p>
+
+        <h3 id="section-06-04" tabindex="-1">Gameplay 使用</h3>
+        <div class="code-label"><span>项目接入示例</span><span>普通 UPROPERTY 复制方式不变</span></div>
+        <pre><code>UPROPERTY(Replicated)
+FReplicatedHealth Health;
+
+void ACombatCharacter::GetLifetimeReplicatedProps(
+    TArray&lt;FLifetimeProperty&gt;&amp; OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(ACombatCharacter, Health);
+}</code></pre>
+        <p>Serializer 注册解决“这个 USTRUCT 用哪种网络表示”，并不替代 UPROPERTY 的复制声明、Push Model 标脏、过滤或优先级。Value 修改后仍要按项目的复制模式触发状态更新。</p>
+
+        <h3 id="section-06-05" tabindex="-1">位数收益与测试矩阵</h3>
+        <div class="stats">
+          <div class="stat"><b>14 bits</b><span>Health 字段量化负载</span></div>
+          <div class="stat"><b>18 bits</b><span>相对原始 32-bit float 的字段差值</span></div>
+          <div class="stat"><b>56.25%</b><span>字段负载降幅，不是整包降幅</span></div>
+        </div>
+        <div class="table-scroll"><table>
+          <thead><tr><th>输入/状态</th><th>预期</th><th>要验证的契约</th></tr></thead>
+          <tbody>
+            <tr><td>0.0</td><td>索引 0，往返 0.0</td><td>下边界</td></tr>
+            <tr><td>1000.0</td><td>索引 10000，往返 1000.0</td><td>上边界</td></tr>
+            <tr><td>123.45</td><td>索引约 1235，往返约 123.5</td><td>舍入误差不超过约 0.05</td></tr>
+            <tr><td>-0.1 / 1000.1</td><td>Validate=false；Quantize 仍夹取</td><td>错误报告与防御编码并存</td></tr>
+            <tr><td>NaN / ±Infinity</td><td>Validate=false；防御量化到 0</td><td>非法浮点不污染状态</td></tr>
+            <tr><td>线上码位 10001–16383</td><td>Context InvalidValue</td><td>不可信输入不能静默夹取</td></tr>
+            <tr><td>100.01 与 100.04</td><td>网络语义可相等</td><td><code>UseSerializerIsEqual</code> 避免无效标脏</td></tr>
+          </tbody>
+        </table></div>
+        <p>完整测试应包含正反向往返、所有 10001 个合法量化索引、随机合法浮点、非法码位、Reader/Writer 容量不足，以及注册后 Descriptor 选中的 Serializer 名称。这里的 18 位节省只比较字段值本身；真实包还包含 ChangeMask、对象记录、创建信息、引用、协议和其他状态。</p>
+
+        <h2 id="section-07" tabindex="-1">✍️ 7.6 BitStream 读写</h2>
+        <h3 id="section-07-01" tabindex="-1">为什么按位而不是按字节</h3>
+        <p>14 位 Health 如果强制按字节存放，至少需要 16 位；按比特连续写入，可以让后一个字段紧跟在第 15 位开始。Iris 的 <code>FNetBitStreamWriter</code> 写 Value 的最低 BitCount 位，Reader 也把读取结果放在返回值低位。属性边界不要求字节对齐。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Writer/Reader 行为</th><th>UE 5.7.4 契约</th><th>工程含义</th></tr></thead>
+          <tbody>
+            <tr><td><code>InitBytes</code></td><td>Buffer 至少 4 字节对齐，ByteCount 是 4 的倍数</td><td>这是底层缓冲约束，不等于字段按 4 字节写</td></tr>
+            <tr><td><code>WriteBits</code></td><td>写最低 N 位；空间不足时一位不写并置 overflow</td><td>不能假设发生部分写入</td></tr>
+            <tr><td><code>InitBits</code></td><td>Reader 使用 4 字节对齐 Buffer 和有效 BitCount</td><td>末尾可以不是整字节</td></tr>
+            <tr><td><code>ReadBits</code></td><td>越界返回 0 并置 overflow</td><td>0 可能是失败默认，不可仅看返回值</td></tr>
+            <tr><td><code>WriteBool / ReadBool</code></td><td>精确 1 位</td><td>常用于存在标志和分支</td></tr>
+            <tr><td><code>WriteBitStream / ReadBitStream</code></td><td>复制任意位数块</td><td>源/目标布局必须符合低位到高位约定</td></tr>
+            <tr><td><code>CommitWrites</code></td><td>把 pending 写入提交到 Buffer</td><td>读取 Buffer 前必须确保提交</td></tr>
+            <tr><td><code>CreateSubstream</code></td><td>限定最大位数，可 Commit/Discard</td><td>适合尝试性写入和局部预算</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-07-02" tabindex="-1">Health 的对称读写</h3>
+        <div class="code-label"><span>源码核对的最小片段</span><span>14-bit 对称契约</span></div>
+        <pre><code>// Sender: QuantizedValue 必须在 [0, 10000]
+Writer-&gt;WriteBits(QuantizedValue, 14U);
+
+// Receiver
+const uint32 QuantizedValue = Reader-&gt;ReadBits(14U);
+if (QuantizedValue &gt; 10000U)
+{
+    Context.SetError(GNetError_InvalidValue);
+    return;
+}</code></pre>
+        <p><code>WriteBits</code> 自己会记录 overflow；业务非法值应调用 <code>Context.SetError</code>，默认还会让当前 BitStream overflow。统一判断可用 <code>Context.HasErrorOrOverflow()</code>。不要捕获错误后继续按正常路径读下一字段，否则一次错位会把余下包解释成随机数据。</p>
+        <div class="article-callout">
+          <strong>读写对称的真正含义</strong>
+          <p>不仅位数相同，条件分支也必须相同。例如发送端只在 <code>bHasValue</code> 为真时写 14 位，接收端必须先读同一标志，再决定是否读 14 位。任何一侧多读或少读一位，错误会沿整个流传播。</p>
+        </div>
+
+        <h3 id="section-07-03" tabindex="-1">位置、容量与溢出</h3>
+        <p>Writer/Reader 都提供 <code>GetPosBits</code>、<code>GetAbsolutePosBits</code>、<code>GetBitsLeft</code>、<code>Seek</code> 和 <code>IsOverflown</code>。调试自定义 Serializer 时，最有效的最小证据是记录入口前后位置：发送写了多少位、接收读了多少位、在哪个字段第一次不相等。<code>Seek</code> 能在回到有效位置后清除 overflow，但生产 Serializer 不应靠反复回退掩盖错误设计。</p>
+
+        <h2 id="section-08" tabindex="-1">Δ 7.7 Delta Compression 基础接口</h2>
+        <h3 id="section-08-01" tabindex="-1">当前值、Prev 与 Delta</h3>
+        <p>Delta Serializer 接收的是当前量化状态与一个已确认的 Prev 量化状态。它可以写“与 Prev 相同”、写差值，或按类型定制压缩。接收端必须用同一个 Prev 重建有效 Target。</p>
+        <pre><code>Current Quantized State  ─┐
+                           ├─ SerializeDelta → Delta Bits
+Acked Prev/Baseline State ─┘
+
+Delta Bits + 同一 Prev → DeserializeDelta → Target Quantized State</code></pre>
+        <p>基线不是“服务器上一帧值”，而是协议路径提供、双方对齐的已确认状态。若基线不可用、未确认或该类型不适合 Delta，系统需要走非 Delta 路径或使用默认状态；自定义 Serializer 不应在函数内部从 Gameplay 对象猜一个 Prev。</p>
+
+        <h3 id="section-08-02" tabindex="-1">Builder 提供的默认行为</h3>
+        <p>若实现没有自定义 Delta 且 <code>bUseDefaultDelta=true</code>，Builder 的默认 SerializeDelta 会先写 1 位网络相等标志：相同则结束，不同则调用普通 Serialize。DeserializeDelta 读到相同标志时会从 Prev 构造 Target；动态状态会先释放 Target，再深拷 Prev。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Health 路径</th><th>未变</th><th>已变</th><th>适用条件</th></tr></thead>
+          <tbody>
+            <tr><td>默认 same-value Delta</td><td>1 bit</td><td>1 + 14 = 15 bits</td><td>调用中经常出现与 Prev 相同</td></tr>
+            <tr><td>本文实现：关闭默认 Delta</td><td>14 bits</td><td>14 bits</td><td>上游 ChangeMask 已保证通常只调用变化成员</td></tr>
+            <tr><td>自定义小差值编码</td><td>取决于方案</td><td>可能低于 14 bits</td><td>变化幅度分布稳定，值得增加复杂度</td></tr>
+          </tbody>
+        </table></div>
+        <p>本文的 Health 实现设置 <code>bUseDefaultDelta=false</code>，所以 Builder 生成的 Delta 入口直接转发普通 14 位读写。这是一个明确而简单的起点，不声称对所有负载最优。真正的差值位数表、基线维护、确认与系统级启用策略留到本系列第十部分。</p>
+
+        <h3 id="section-08-03" tabindex="-1">什么时候不要急着写 Delta</h3>
+        <ul>
+          <li>固定负载本来只有几位，前缀可能抵消收益。</li>
+          <li>值变化接近随机，差值分布与原值分布没有明显差异。</li>
+          <li>ChangeMask 已把未变成员跳过，而 Serializer 只在变化时调用。</li>
+          <li>动态状态深拷与基线内存成本高于节省的网络位。</li>
+          <li>还没有真实分布数据，只凭几个示例决定编码。</li>
+        </ul>
+
+        <h2 id="section-09" tabindex="-1">🎭 7.8 ChangeMask 系统</h2>
+        <h3 id="section-09-01" tabindex="-1">它回答“一个 State 里的哪些成员变了”</h3>
+        <p>对象进入脏集合，只说明复制系统需要关注它；一个对象可能包含多个 Replication State，每个 State 又有多个成员。ChangeMask 把变化细化到成员，使 Serializer 只处理需要发送的部分。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>层次</th><th>含义</th><th>例子</th></tr></thead>
+          <tbody>
+            <tr><td>对象脏</td><td>这个 Net Object 有待处理状态</td><td>角色任一复制属性变化</td></tr>
+            <tr><td>State 脏</td><td>某个 Replication State 有变化位</td><td>常规属性 State 发生变化</td></tr>
+            <tr><td>成员脏</td><td>Descriptor 指定的成员位区间有任意位为 1</td><td>Health、Ammo 两个成员变化</td></tr>
+            <tr><td>数组元素变化</td><td>数组拥有位之外，额外位映射到元素</td><td>背包第 7 格数量变化</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-09-02" tabindex="-1">Descriptor 如何把成员映射到位</h3>
+        <p><code>FReplicationStateMemberChangeMaskDescriptor</code> 为每个成员记录 <code>BitOffset</code> 和 <code>BitCount</code>。普通成员通常占 1 位；数组等特殊类型可以占多位。<code>FReplicationStateOperations::SerializeWithMask</code> 检查成员区间是否有任意位被置位，只有命中时才构造 Args 并调用该成员 Serializer。</p>
+        <div class="code-label"><span>UE 5.7.4 源码逻辑简化</span><span>ReplicationOperations.cpp</span></div>
+        <pre><code>const uint32 Offset =
+    StateChangeMaskOffset + MemberChangeMaskDescriptor.BitOffset;
+
+if (ChangeMask.IsAnyBitSet(Offset, MemberChangeMaskDescriptor.BitCount))
+{
+    FNetSerializeArgs Args;
+    Args.Source = InternalState + MemberDescriptor.InternalMemberOffset;
+    Args.ChangeMaskInfo.BitOffset = Offset;
+    Args.ChangeMaskInfo.BitCount = MemberChangeMaskDescriptor.BitCount;
+    MemberSerializer-&gt;Serialize(Context, Args);
+}</code></pre>
+        <p>Serializer 接收到的 <code>ChangeMaskInfo</code> 是自己在整个 Protocol ChangeMask 中的位区间。普通 Health 不需要读取它；数组 Serializer 会用额外位筛选元素。</p>
+
+        <h3 id="section-09-03" tabindex="-1">内存与线上表示不是同一件事</h3>
+        <p>UE 5.7.4 的 Replication Writer/Reader 记录使用 <code>FChangeMaskStorageOrPointer</code>：不超过 64 位时把掩码直接内联在一个 <code>uint64</code> 中，超过 64 位才通过提供的 Allocator 分配存储。这是连接记录等内部结构的存储优化，不能泛化成“所有 ChangeMask 永远只有 64 位”；State Buffer 也会按 Descriptor 位数保存自己的掩码区域。</p>
+        <p>线上并不是机械写出全部原始位。Protocol 路径调用 <code>WriteSparseBitArray</code> / <code>ReadSparseBitArray</code> 编码完整 ChangeMask，初始状态还可使用“多数为 1”的 Hint。稀疏掩码的真实成本取决于位数和分布，所以预算表不能简单把 100 个成员写成固定 100 位。</p>
+
+        <h3 id="section-09-04" tabindex="-1">只改变 Health 与 Ammo</h3>
+        <pre><code>Member             Mask
+Position           0
+Rotation           0
+Health             1  → 调用 FHealthNetSerializer → 14 bits
+Shield             0
+Weapon             0
+Ammo               1  → 调用整数/PackedInt Serializer
+Inventory          0
+PlayerName         0</code></pre>
+        <p>ChangeMask 节省的是“完全不调用未变化成员 Serializer，也不写它们的值”；量化节省的是被调用字段自身的表达位数。两种收益叠加，却来自不同层次。</p>
+        <div class="article-callout article-callout--blue">
+          <strong>初始状态是特殊路径</strong>
+          <p>新对象通常需要建立完整可解释状态。UE 5.7.4 可相对 Descriptor 默认状态做初始 Delta，但这与普通更新的成员脏位语义不同。不要拿“普通帧只变两个字段”的位数套到对象创建包。</p>
+        </div>
+
+        <h2 id="section-10" tabindex="-1">📦 7.9 数组序列化器</h2>
+        <h3 id="section-10-01" tabindex="-1">数组不只是“长度 + N 个元素”</h3>
+        <p>动态数组同时包含长度、元素布局、增删改、动态分配、元素引用和元素自身 Serializer。UE 5.7.4 的内部 <code>FArrayPropertyNetSerializer</code> 以 <code>FScriptArray</code> 为 SourceType，量化状态只保存容量、有效元素数和一块元素量化存储：</p>
+        <div class="code-label"><span>UE 5.7.4 源码摘录</span><span>ArrayPropertyNetSerializer.cpp</span></div>
+        <pre><code>struct FQuantizedType
+{
+    uint16 ElementCapacityCount;
+    uint16 ElementCount;
+    void* ElementStorage;
+};</code></pre>
+        <p>这显然不是可浅拷的纯值：Serializer 声明 <code>bHasDynamicState=true</code>，并实现 <code>CloneDynamicState</code> 与 <code>FreeDynamicState</code>。若元素自己也有动态状态，Clone/Free 还要逐元素转发。</p>
+
+        <h3 id="section-10-02" tabindex="-1">全量路径与元素复用</h3>
+        <p>普通 Serialize 先写 1 位空数组标志；非空时再写 <code>ElementCountBitCount</code> 位长度，然后根据元素 State Descriptor 逐个调用元素 Serializer。接收端若长度超过 <code>MaxElementCount</code>，会设置 <code>GNetError_ArraySizeTooLarge</code>。</p>
+        <pre><code>Empty array: 1 bit
+Non-empty:   1-bit not-empty
+           + ElementCountBitCount
+           + Σ serialized element payload</code></pre>
+        <p>因此数组并没有一套“万能元素格式”；<code>TArray&lt;FReplicatedHealth&gt;</code> 可以复用 Health 的 14 位量化，<code>TArray&lt;UObject*&gt;</code> 则需要对象引用收集和解析。</p>
+
+        <h3 id="section-10-03" tabindex="-1">元素级 ChangeMask 与碰撞</h3>
+        <p>当数组成员分到多于 1 个 ChangeMask 位时，第一个位属于数组属性，剩余位映射元素。UE 5.7.4 当前使用简单的模映射：</p>
+        <pre><code>ElementMaskBit =
+    MemberBitOffset + 1 + (ElementIndex % (MemberBitCount - 1))</code></pre>
+        <p>如果元素数多于可用位，多个元素会共享一个位；这个位变脏时，对应的多个元素都可能被序列化。它是有限掩码和精度之间的折中，不等于每个元素永远拥有独占位。</p>
+
+        <h3 id="section-10-04" tabindex="-1">背包三种变化的解释性预算</h3>
+        <p>假设背包最多 40 格，长度 6 位，每个量化元素 48 位，并且元素 ChangeMask 足够区分本例涉及的格子。以下只算数组 Serializer 的概念负载，不含稀疏 ChangeMask 自身和 Protocol 外壳：</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>操作</th><th>解释性计算</th><th>约负载</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td>首次发送 40 格</td><td>1 + 6 + 40×48</td><td>1927 bits</td><td>普通全量路径</td></tr>
+            <tr><td>只改一格堆叠数</td><td>1 + 6 + 1×48</td><td>55 bits</td><td>普通带元素 Mask 的示意；真实 Header 依路径变化</td></tr>
+            <tr><td>末尾新增一格</td><td>1 个长度变化标志 + 6 + 48</td><td>约 55 bits</td><td>Delta 路径且其他元素不脏的示意</td></tr>
+            <tr><td>全量替换 40 格</td><td>约 1 + 6 + 40×48</td><td>约 1927 bits</td><td>几乎无增量收益</td></tr>
+          </tbody>
+        </table></div>
+        <p>源码把这套 Array Property Delta 称为面向向后兼容的朴素路径：它依赖逐元素 Delta，并没有做昂贵的最长公共子序列。需要稳定 Item ID、增删记录、删除确认和按项回调时，优先评估 <code>FIrisFastArraySerializer</code>；小而低频的普通数组可继续用属性数组；高频、超大或权限差异明显的背包则应考虑拆分成独立对象或业务流。</p>
+
+        <h3 id="section-10-05" tabindex="-1">普通数组、Fast Array 还是拆分</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>方案</th><th>适合</th><th>代价/边界</th></tr></thead>
+          <tbody>
+            <tr><td>普通 TArray 属性</td><td>小数组、低频变化、元素简单</td><td>结构变化可能放大复制；通用语义有限</td></tr>
+            <tr><td>Fast Array</td><td>有稳定条目、频繁增删改单项</td><td>需要遵循 Fast Array ID/脏标记契约</td></tr>
+            <tr><td>拆成子对象/独立状态</td><td>元素生命周期、权限、过滤、优先级独立</td><td>对象与协议管理开销更高</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-11" tabindex="-1">🔤 7.10 字符串与名称序列化器</h2>
+        <h3 id="section-11-01" tabindex="-1">FString：ANSI 快路与 UE 自定义宽字符编码</h3>
+        <p><code>FStringNetSerializer</code> 的量化状态包含 <code>bIsEncoded</code>、容量、元素数和动态字节存储，因此同样具有 Dynamic State。纯 ANSI 字符串按单字节保存；非纯 ANSI 字符串使用 <code>TStringCodec</code>。</p>
+        <div class="article-callout">
+          <strong>UE 5.7.4 这里不是 UTF-8</strong>
+          <p>源码注释明确称该 Codec “比 UTF-8 更紧凑”，每个 Codepoint 最多 24 位；它按 7 位组和高位继续标志编码，并把 UTF-16 surrogate pair 合成一个 Codepoint。旧文章若直接写“FString 转 UTF-8”，在本版本并不准确。</p>
+        </div>
+        <p>线上格式是 1 位 <code>bIsEncoded</code>、PackedUint32 长度，再加不含终止符的字节流。接收端重新补零终止符，验证编码，并把编码长度限制在 65535 字节范围内。空字符串也有标志和长度成本，并不是零位。</p>
+        <div class="code-label"><span>UE 5.7.4 源码逻辑简化</span><span>StringNetSerializerUtils.cpp</span></div>
+        <pre><code>Writer-&gt;WriteBits(Value.bIsEncoded, 1U);
+WritePackedUint32(Writer, PayloadByteCount);
+Writer-&gt;WriteBitStream(Storage, 0U, PayloadByteCount * 8U);</code></pre>
+
+        <h3 id="section-11-02" tabindex="-1">FName：可能是硬编码 EName，也可能仍是字符串</h3>
+        <p><code>FNameNetSerializer</code> 先写 1 位 <code>bIsString</code>。可安全按硬编码名称复制的 EName 直接写一个固定宽整数；其他 FName 要写 Number 的编码方向、Packed Number、字符串编码标志、Packed 长度和字节内容。量化状态也包含动态字符串存储。</p>
+        <p>所以 FName 不是“天然只传一个很小的整数”。进程内 Name Index 不能直接当跨机器稳定 ID；只有双方共享可解释的硬编码 EName，或通过网络 Token Store 建立映射，才能安全压成稳定标识。</p>
+
+        <h3 id="section-11-03" tabindex="-1">FNameAsNetToken 与使用边界</h3>
+        <p><code>FNameAsNetTokenNetSerializer</code> 对非硬编码名称从 <code>FNameTokenStore</code> 获取/创建 Token，序列化 Token 并安排 Export；接收端在远端 Token State 中解析。重复稳定名称可避免每次发送完整字符串，但首次导出、Token Store 状态和解析仍有成本。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>数据</th><th>优先选择</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>玩家自由输入显示名</td><td>FString + 长度/内容校验</td><td>大小写与原始文本有业务意义</td></tr>
+            <tr><td>高频重复的物品类型名</td><td>稳定枚举、业务 ID 或 NetToken</td><td>避免反复发送文本</td></tr>
+            <tr><td>引擎硬编码名称</td><td>FName 的 EName 快路</td><td>双方共享同一语义集合</td></tr>
+            <tr><td>网络对象/资源</td><td>对象引用、Soft Object Path 或业务资产 ID</td><td>“名称相同”不等于“引用已解析”</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-12" tabindex="-1">🧭 7.11 Rotator 序列化器变体</h2>
+        <h3 id="section-12-01" tabindex="-1">UE 5.7.4 实际存在的五个变体</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Serializer</th><th>SourceType</th><th>量化</th><th>每分量数据</th><th>三分量最坏</th></tr></thead>
+          <tbody>
+            <tr><td><code>FRotatorNetSerializer</code></td><td>FRotator</td><td>Short 基类</td><td>16 bits</td><td>51 bits</td></tr>
+            <tr><td><code>FRotatorAsByteNetSerializer</code></td><td>FRotator</td><td>Byte</td><td>8 bits</td><td>27 bits</td></tr>
+            <tr><td><code>FRotatorAsShortNetSerializer</code></td><td>FRotator</td><td>Short</td><td>16 bits</td><td>51 bits</td></tr>
+            <tr><td><code>FRotator3fNetSerializer</code></td><td>FRotator3f</td><td>Short 基类</td><td>16 bits</td><td>51 bits</td></tr>
+            <tr><td><code>FRotator3dNetSerializer</code></td><td>FRotator3d</td><td>Short 基类</td><td>16 bits</td><td>51 bits</td></tr>
+          </tbody>
+        </table></div>
+        <p>每个变体都先写 3 位分量非零标志。量化后为零的分量没有数据负载，因此常见的“只同步 Yaw”分别是 11 或 19 位。这里的零指压缩后的轴值为 0，不一定等于源码浮点位模式严格为正零。</p>
+
+        <h3 id="section-12-02" tabindex="-1">精度选择表</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>场景</th><th>误差如何被放大</th><th>起始选择</th><th>还要配合</th></tr></thead>
+          <tbody>
+            <tr><td>角色移动朝向</td><td>主要影响动画与身体朝向</td><td>Byte</td><td>插值、动画朝向修正</td></tr>
+            <tr><td>远距离炮塔瞄准</td><td>0.7° 在 500 m 处约产生数米偏差</td><td>Short</td><td>瞄准点/命中仍以权威逻辑为准</td></tr>
+            <tr><td>车辆完整姿态</td><td>三轴连续变化，误差可造成抖动</td><td>Short</td><td>快照插值与物理校正</td></tr>
+            <tr><td>装饰旋转</td><td>只影响视觉</td><td>Byte 或不复制</td><td>客户端本地动画</td></tr>
+          </tbody>
+        </table></div>
+        <p>“Source 是 double”不意味着网络必须保持 double 精度。反过来，Byte 能省 24 位最坏负载，也不意味着炮塔瞄准就应接受它。先把角度误差换算成实际玩法空间误差，再做选择。</p>
+
+        <h3 id="section-12-03" tabindex="-1">Delta 的分量掩码</h3>
+        <p>Byte Delta 先比较当前与 Prev 的三个量化分量，写 3 位变化掩码，只为变化分量写新 8 位值；Short Delta 则写量化差值的 16 位。两者都不会为未变分量写完整值。这一层是 Serializer 内部的分量级 Delta，与外层成员 ChangeMask 是两级筛选。</p>
+
+        <h2 id="section-13" tabindex="-1">🔢 7.12 PackedInt 实现细节</h2>
+        <h3 id="section-13-01" tabindex="-1">32 位：2 位前缀 + 1–4 字节</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>值范围（uint32）</th><th>字节数前缀</th><th>数据位</th><th>总成本</th></tr></thead>
+          <tbody>
+            <tr><td>0–255</td><td>2 bits</td><td>8</td><td>10 bits</td></tr>
+            <tr><td>256–65,535</td><td>2 bits</td><td>16</td><td>18 bits</td></tr>
+            <tr><td>65,536–16,777,215</td><td>2 bits</td><td>24</td><td>26 bits</td></tr>
+            <tr><td>16,777,216–4,294,967,295</td><td>2 bits</td><td>32</td><td>34 bits</td></tr>
+          </tbody>
+        </table></div>
+        <p>Unsigned 路径用 <code>GetBitsNeeded(Value | 1U)</code> 保证 0 也至少写一个字节。Signed 路径根据包含符号位所需的位数选择字节数，读取后手动符号扩展，因此 -128–127 是 10 位，128 或 -129 进入 18 位。它没有 ZigZag 把负数映射成偶数/奇数。</p>
+
+        <h3 id="section-13-02" tabindex="-1">64 位：3 位前缀 + 1–8 字节</h3>
+        <p>64 位版本总成本从 11 位开始，每多一个字节增加 8 位，最坏 67 位。对绝大多数值很小但偶尔暴涨的经验值或金币，它可能降低平均成本；对随机哈希、加密 ID 或均匀分布的大整数，前缀只会增加最坏成本。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>业务分布</th><th>候选</th><th>解释</th></tr></thead>
+          <tbody>
+            <tr><td>Ammo：绝大多数 0–255</td><td>PackedUint32 = 10 bits，或更紧的已知范围定宽</td><td>若确定 0–60，6 位定宽更好</td></tr>
+            <tr><td>金币：常见 &lt; 65,536，少量百万</td><td>PackedUint32</td><td>常见 18 位，百万级 26 位</td></tr>
+            <tr><td>经验值：跨阶段逐渐变大</td><td>先测分位数，再选 Packed/Range</td><td>游戏后期分布可能让早期收益消失</td></tr>
+            <tr><td>随机 32-bit 标识</td><td>固定 32 位或 Token</td><td>Packed 最坏 34 位，且通常命中最坏</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-13-03" tabindex="-1">Delta 接口存在，但不是普通 Packed 格式</h3>
+        <p>PackedInt 四个实现都有专门的 SerializeDelta/DeserializeDelta。32 位使用 <code>{0, 4, 14}</code>，64 位使用 <code>{0, 14, 32}</code> 的差值位数候选表，再由 BitPacking 选择路径。这里先确认接口和设计目的：小变化可用更少位；具体索引、回退与基线生命周期在第十部分展开。</p>
+
+        <h2 id="section-14" tabindex="-1">🔌 7.13 序列化器注册与宏系统</h2>
+        <h3 id="section-14-01" tabindex="-1">声明、实现、获取</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>宏</th><th>产生什么</th><th>使用位置</th></tr></thead>
+          <tbody>
+            <tr><td><code>UE_NET_DECLARE_SERIALIZER</code></td><td><code>SerializerNameNetSerializerInfo</code> 声明</td><td>头文件，导出函数表和类型元信息</td></tr>
+            <tr><td><code>UE_NET_IMPLEMENT_SERIALIZER</code></td><td>调用 <code>TNetSerializer&lt;Impl&gt;::ConstructNetSerializer</code></td><td>实现文件</td></tr>
+            <tr><td><code>UE_NET_GET_SERIALIZER</code></td><td>取得 const <code>FNetSerializer&amp;</code></td><td>Descriptor/转发实现/测试</td></tr>
+            <tr><td><code>UE_NET_IMPLEMENT_NAMED_STRUCT_NETSERIALIZER_INFO</code></td><td>结构体名到 Serializer 的 Info</td><td>USTRUCT 自定义绑定</td></tr>
+            <tr><td><code>UE_NET_IMPLEMENT_NETSERIALIZER_REGISTRY_DELEGATES</code></td><td>PreFreeze 注册和卸载注销委托</td><td>模块静态生命周期</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-14-02" tabindex="-1">TNetSerializerBuilder 做了什么</h3>
+        <p>Builder 用模板检测实现结构是否声明 Version、SourceType、QuantizedType、ConfigType、DefaultConfig、Traits 和各函数。然后：</p>
+        <ol>
+          <li>验证必需的 Serialize/Deserialize 和类型契约。</li>
+          <li>把存在的函数放进函数表。</li>
+          <li>为缺失的 Quantize/Dequantize/IsEqual/Validate 提供合适的默认实现。</li>
+          <li>按 <code>bUseDefaultDelta</code> 和动态状态能力生成默认 Delta。</li>
+          <li>计算量化类型和 Config 的大小、对齐。</li>
+          <li>把实现名写入 <code>FNetSerializer::Name</code>，供调试和 Descriptor 使用。</li>
+        </ol>
+        <div class="code-label"><span>宏展开后的关键效果</span><span>为阅读简化</span></div>
+        <pre><code>const FNetSerializer FHealthNetSerializerNetSerializerInfo::Serializer =
+    TNetSerializer&lt;FHealthNetSerializer&gt;::ConstructNetSerializer(
+        TEXT("FHealthNetSerializer"));</code></pre>
+
+        <h3 id="section-14-03" tabindex="-1">从 FReplicatedHealth 到 Descriptor</h3>
+        <pre><code>FReplicatedHealth USTRUCT
+  → static FName("ReplicatedHealth")
+  → FNamedStructPropertyNetSerializerInfo
+  → OnPreFreezeNetSerializerRegistry 注册
+  → Descriptor Builder 查 StructProperty 的 Struct Name
+  → MemberSerializerDescriptor.Serializer = FHealthNetSerializer
+  → MemberSerializerDescriptor.SerializerConfig = DefaultConfig</code></pre>
+        <p>注册太晚、名字带错 F 前缀、模块没有加载或委托实例没有被链接进最终二进制，都会导致 Descriptor 没选中自定义 Serializer。排查时应直接打印 Descriptor 的 Serializer Name，不要只看“宏写过了”。</p>
+
+        <h3 id="section-14-04" tabindex="-1">5.5 到 5.7 的路径变化</h3>
+        <p>5.7.4 的核心公开头位于 <code>Engine/Source/Runtime/Net/Iris/Public/Iris/...</code>，模块 API 为 IrisCore；一些 5.5 或更早文章仍引用 <code>Runtime/Experimental/Iris/Core</code>。迁移时要同时核对 Build.cs 依赖、Include Path、宏签名、Config 和 Registry 生命周期，不能只全局替换目录字符串。</p>
+
+        <h2 id="section-15" tabindex="-1">📋 7.14 序列化器速查表</h2>
+        <h3 id="section-15-01" tabindex="-1">69 个运行时定义的分类</h3>
+        <p>以下按本地 UE 5.7.4 Runtime/Net/Iris 源码中的实现宏统计。数量是“定义”，不是公开头文件数量。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>分类</th><th>数量</th><th>主要 Serializer</th><th>量化/动态状态</th><th>Delta/引用与选择提示</th></tr></thead>
+          <tbody>
+            <tr><td>标量、枚举、范围</td><td>33</td><td>Bool、Bitfield、Int/Uint×8、Range×8、Enum×8、Packed×4、Float/Double、NetRole</td><td>多数 POD，无动态状态</td><td>固定整数、Packed、Float 等有专门或默认 Delta；先按值域与分布选</td></tr>
+            <tr><td>向量、四元数、旋转</td><td>15</td><td>Vector/3f/3d、NetQuantize 系列、UnitQuat 系列、5 个 Rotator</td><td>紧凑 POD 量化</td><td>多有分量/差值优化；精度必须按玩法误差选择</td></tr>
+            <tr><td>文本、路径、通用 ID</td><td>8</td><td>String、Name、NameAsNetToken、Guid、DateTime、FieldPath、SoftObjectPath、SoftClassPath</td><td>String/Name/Path 变体可含动态状态</td><td>Token、路径和动态字节有不同生命周期；文本不要当稳定 ID</td></tr>
+            <tr><td>对象与远端引用</td><td>8</td><td>Object、ObjectPtr、WeakObject、ScriptInterface、SoftObject、RemoteObjectId/Reference/ServerId</td><td>量化引用，部分含动态/远端路径</td><td>视变体收集 Net Reference；解析失败和 MustBeMapped 很关键</td></tr>
+            <tr><td>组合与兜底</td><td>5</td><td>ArrayProperty、Struct、InstancedStruct、LastResort、Nop</td><td>转发或动态状态常见</td><td>复用成员 Serializer；LastResort 是兼容兜底，不应成为默认设计</td></tr>
+          </tbody>
+        </table></div>
+        <p>完整名称还包括 <code>FFieldPathNetSerializer</code>、<code>FDateTimeNetSerializer</code>、<code>FSoftClassPathNetSerializer</code>、<code>FRemoteObjectReferenceNetSerializer</code> 等。源码目录中 77 个文件名含 NetSerializer，但多个类型共享同一文件，也有辅助文件不对应一个定义，所以不能用 77 代替 69。</p>
+
+        <h3 id="section-15-02" tabindex="-1">按特征选 Serializer</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>问题</th><th>是</th><th>否</th></tr></thead>
+          <tbody>
+            <tr><td>值域已知且稳定？</td><td>Range/定宽/业务量化</td><td>继续看分布</td></tr>
+            <tr><td>允许有损精度？</td><td>定义范围、步长与误差，再量化</td><td>原始 Float/Double 或无损整数</td></tr>
+            <tr><td>数值大多很小？</td><td>PackedInt，按分位数测平均值</td><td>固定宽度通常更稳</td></tr>
+            <tr><td>长度动态？</td><td>String/Array/Struct 动态状态；审计 Clone/Free</td><td>POD 量化优先</td></tr>
+            <tr><td>包含 UObject/远端引用？</td><td>用引用 Serializer 并收集 Net Reference</td><td>不必承担引用解析成本</td></tr>
+            <tr><td>已有内置类型满足业务？</td><td>复用内置，降低维护风险</td><td>才考虑自定义 USTRUCT Serializer</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-15-03" tabindex="-1">常用类型快速提示</h3>
+        <p>
+          <span class="badge">Bool：1 bit</span>
+          <span class="badge">Float：+0 为 1 bit，其他 33 bits</span>
+          <span class="badge">PackedUint32：10–34 bits</span>
+          <span class="badge">Rotator Byte：3–27 bits</span>
+          <span class="badge">Rotator Short：3–51 bits</span>
+          <span class="badge">String：动态长度 + 动态状态</span>
+          <span class="badge">Array：长度 + 元素 Serializer</span>
+          <span class="badge">Object：引用收集/解析</span>
+        </p>
+
+        <h2 id="section-16" tabindex="-1">🎮 7.15 实际游戏场景</h2>
+        <h3 id="section-16-01" tabindex="-1">百人大逃杀角色状态</h3>
+        <pre><code>Position + Rotation + Health + Shield + Weapon/Ammo
++ Dynamic Inventory + Player Display Name + Stable Player ID</code></pre>
+        <div class="table-scroll"><table>
+          <thead><tr><th>字段</th><th>候选表示</th><th>选择理由</th><th>主要风险</th></tr></thead>
+          <tbody>
+            <tr><td>Position</td><td>Packed/Quantized Vector</td><td>按世界范围和厘米级误差选</td><td>大世界坐标与高速移动误差放大</td></tr>
+            <tr><td>Rotation</td><td>角色 Yaw 用 Byte；瞄准/车辆用 Short</td><td>避免所有旋转一律高精度</td><td>远距离射线对角误差敏感</td></tr>
+            <tr><td>Health</td><td>本文 14-bit Serializer</td><td>0–1000，0.1 步长</td><td>协议范围变更</td></tr>
+            <tr><td>Shield</td><td>独立较小范围或复用 Health</td><td>取决于最大盾值和 UI 精度</td><td>盲目复用浪费状态空间</td></tr>
+            <tr><td>Weapon</td><td>枚举/稳定业务 ID</td><td>集合小且语义稳定</td><td>用 FName 文本反复发送</td></tr>
+            <tr><td>Ammo</td><td>6-bit Range 或 PackedUint32</td><td>弹匣值域明确；总弹药可能偏小分布</td><td>Packed 最坏成本被忽略</td></tr>
+            <tr><td>Inventory</td><td>Fast Array 或拆分</td><td>频繁按项增删改</td><td>动态状态、引用、权限与 Mask 碰撞</td></tr>
+            <tr><td>Display Name</td><td>FString，创建/变化时发送</td><td>保留玩家文本</td><td>长度、编码与内容校验</td></tr>
+            <tr><td>Stable Player ID</td><td>固定整数/Guid/Token</td><td>稳定标识不应依赖显示名</td><td>跨进程语义不一致</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-16-02" tabindex="-1">初始状态位预算：只用于建立直觉</h3>
+        <p>以下假设位置 66 位、单 Yaw Short 19 位、Health/Shield 各 14 位、Weapon 8 位、Ammo 10 位、8 格背包量化负载 327 位、显示名 82 位、稳定 ID 32 位、稀疏 ChangeMask 18 位：</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>项目</th><th>解释性 bits</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>Position + Rotation</td><td>66 + 19</td><td>假设的项目量化模型，不代表引擎固定值</td></tr>
+            <tr><td>Health + Shield</td><td>14 + 14</td><td>复用 0.1 步长模型</td></tr>
+            <tr><td>Weapon + Ammo</td><td>8 + 10</td><td>小枚举与 Packed 小值</td></tr>
+            <tr><td>Inventory</td><td>327</td><td>1+6 长度头 + 8×40-bit 元素的假设</td></tr>
+            <tr><td>Display Name + Stable ID</td><td>82 + 32</td><td>长度与内容按示例估算</td></tr>
+            <tr><td>ChangeMask</td><td>18</td><td>假设的稀疏编码结果</td></tr>
+            <tr><td><strong>合计</strong></td><td><strong>590 bits ≈ 73.75 bytes</strong></td><td>未含对象创建、引用 Export、Protocol、包头和可靠性数据</td></tr>
+          </tbody>
+        </table></div>
+        <p>这个数字不是引擎实测，更不能当容量规划结论。它的用途是暴露主导项：本例里背包比 Health 大一个数量级。若只在 Health 上省 18 位，却每帧全量发送背包，优化方向就错了。</p>
+
+        <h3 id="section-16-03" tabindex="-1">普通帧只改变 Health 与 Ammo</h3>
+        <div class="table-scroll">
+          <div class="bitbar" aria-label="仅生命值和弹药变化的位示意">
+            <span class="mask">稀疏 Mask 10</span><span class="health">Health 14</span><span class="ammo">Ammo 10</span><span class="other">对象记录等未计</span>
+          </div>
+        </div>
+        <p>在解释性假设下，成员值与 ChangeMask 约 34 位；其他六类字段都被跳过。若 Health 用普通非零 Float，字段会从 14 位变成 33 位，这一帧增加 19 位（相对“32 位原始负载”的设计对照为 18 位）。真实差值仍要用 NetTrace/Insights 测量 Writer 前后位位置。</p>
+
+        <h3 id="section-16-04" tabindex="-1">其他类型游戏的重点不同</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>类型</th><th>序列化重点</th><th>不要先做什么</th></tr></thead>
+          <tbody>
+            <tr><td>赛车</td><td>车辆姿态、速度和高精度位置；配合插值与物理校正</td><td>为省少量位把姿态压到可见抖动</td></tr>
+            <tr><td>MMO</td><td>大量 NPC 的低频小整数、状态枚举、重复名称 Token</td><td>让每个低价值 NPC 高频发送动态字符串</td></tr>
+            <tr><td>卡牌</td><td>稳定 Card ID、手牌 Fast Array、所有者可见性</td><td>把隐藏信息放进客户端可接收状态再靠 UI 隐藏</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-17" tabindex="-1">🏭 7.16 自定义序列化器生产化指南</h2>
+        <h3 id="section-17-01" tabindex="-1">什么时候值得自定义</h3>
+        <ul class="checklist">
+          <li>字段高频、对象数量大，且内置表示与业务可接受误差明显不匹配。</li>
+          <li>值域、精度和非法值策略稳定，能写成清晰协议契约。</li>
+          <li>真实分布证明平均位数节省可覆盖实现、测试和升级成本。</li>
+          <li>内置 Range、Packed、Vector、Rotator 或 Fast Array 不能直接满足。</li>
+          <li>团队愿意维护跨版本兼容、自动化测试和 Descriptor 注册验证。</li>
+        </ul>
+
+        <h3 id="section-17-02" tabindex="-1">协议与版本演进</h3>
+        <p><code>Version</code> 存在不代表可以随意改变线上格式。UE 5.7.4 的 Args 注释仍提醒 Version 当前没有在所有位置正确传播；项目不能只把 Version 从 0 改成 1 就假定旧客户端会自动分支。修改 BitCount、字段顺序、范围或 Codec 时，要把它当成网络协议变更：协调客户端/服务器版本、回滚策略、灰度环境和录制回放兼容。</p>
+        <p>Config 默认值也属于协议。若同一 Serializer 允许多套范围，必须确认 Descriptor 两端构造出相同 Config；否则 14 位可能被解释成另一套步长。</p>
+
+        <h3 id="section-17-03" tabindex="-1">动态状态所有权</h3>
+        <ul>
+          <li>零初始化的 QuantizedType 必须是有效、可释放的状态。</li>
+          <li>Clone 必须深拷所有分配，使用 Context 提供的内部内存接口。</li>
+          <li>Free 必须可重复调用，并把指针、容量和数量复位。</li>
+          <li>Deserialize 覆盖旧 Target 前，要遵守目标状态已有资源的生命周期。</li>
+          <li>结构体 padding 必须初始化，否则位比较、哈希和基线可能不确定。</li>
+        </ul>
+
+        <h3 id="section-17-04" tabindex="-1">引用、错误与不可信输入</h3>
+        <p>QuantizedType 若包含对象或远端引用，要声明 <code>bHasCustomNetReference</code> 并实现 CollectNetReferences。仅仅把指针或路径写进比特流并不能保证接收端对象已创建。Deserialize 要检查长度、枚举、无效码位和 Token 解析；业务错误用 Context 设置具体 Net Error，BitStream 容量错误由 Reader/Writer overflow 反映。</p>
+
+        <h3 id="section-17-05" tabindex="-1">测试分层</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>测试</th><th>目标</th><th>Health 示例</th></tr></thead>
+          <tbody>
+            <tr><td>单位往返</td><td>Quantize/Serialize/Deserialize/Dequantize 对称</td><td>0、1000、123.45</td></tr>
+            <tr><td>穷举量化空间</td><td>所有合法码位可往返</td><td>0–10000 共 10001 个索引</td></tr>
+            <tr><td>随机属性</td><td>误差上界和网络相等关系</td><td>合法随机 float，误差约 ≤0.05</td></tr>
+            <tr><td>非法输入</td><td>拒绝 NaN、越界、无效码位、截断流</td><td>10001–16383、Reader overflow</td></tr>
+            <tr><td>Descriptor 集成</td><td>注册名、Config、实际 Serializer</td><td>断言 Name 是 FHealthNetSerializer</td></tr>
+            <tr><td>跨版本</td><td>旧/新协议是否明确兼容或拒绝</td><td>范围/步长变更测试</td></tr>
+            <tr><td>动态状态</td><td>Clone/Free/覆盖无泄漏无双重释放</td><td>Health 无动态状态；String/Array 必测</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-17-06" tabindex="-1">构建与自动化命令模板</h3>
+        <div class="code-label"><span>命令模板</span><span>按项目路径、Target 和测试名替换</span></div>
+        <pre><code># 编译项目 Editor Target
+Engine/Build/BatchFiles/Build.bat MyGameEditor Win64 Development ^
+  -Project="X:/MyGame/MyGame.uproject" -WaitMutex
+
+# 运行专用网络 Serializer 自动化测试
+UnrealEditor-Cmd.exe "X:/MyGame/MyGame.uproject" ^
+  -ExecCmds="Automation RunTests MyGame.NetSerializer.Health;Quit" ^
+  -unattended -nop4 -NullRHI -TestExit="Automation Test Queue Empty"</code></pre>
+        <p>本文没有执行以上命令；它们用于项目落地阶段。CI 应保存 Automation Report、崩溃日志、目标引擎 Commit 和网络协议版本。</p>
+
+        <h3 id="section-17-07" tabindex="-1">开发检查清单</h3>
+        <ul class="checklist">
+          <li>SourceType、QuantizedType、ConfigType 和 DefaultConfig 已定义。</li>
+          <li>QuantizedType 为 POD、零状态有效、padding 已初始化。</li>
+          <li>Serialize/Deserialize 的位数、顺序、分支完全对称。</li>
+          <li>Validate 拒绝业务非法值；Deserialize 拒绝线上非法码位。</li>
+          <li>Quantize 对异常输入仍产生安全状态。</li>
+          <li>IsEqual 表达网络语义，而不只是 Source 的 <code>operator==</code>。</li>
+          <li>动态状态有深拷和可重入释放；引用已收集。</li>
+          <li>具名 USTRUCT 在 Registry Freeze 前注册，Descriptor 实测选中。</li>
+          <li>平均/最坏 bits、CPU、分配和缓存行为都有基线。</li>
+          <li>协议变更、回滚和跨版本策略已记录。</li>
+        </ul>
+
+        <h2 id="section-18" tabindex="-1">🧯 7.17 调试与故障排除</h2>
+        <h3 id="section-18-01" tabindex="-1">固定排查顺序</h3>
+        <pre><code>Descriptor / Serializer 选择
+→ Source 值合法性
+→ Quantized 值
+→ ChangeMask
+→ 写入位数与 Context 错误
+→ 读取位数
+→ Dequantized 值
+→ Apply / RepNotify</code></pre>
+        <p>这个顺序能避免在末端 UI 上猜原因。若 Descriptor 根本没选中 Health Serializer，继续研究 14 位 Writer 没有意义；若 Writer 写 14 位、Reader 读 15 位，继续调 RepNotify 也不会有答案。</p>
+
+        <h3 id="section-18-02" tabindex="-1">症状到证据</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>症状</th><th>优先证据</th><th>常见原因</th><th>修复方向</th></tr></thead>
+          <tbody>
+            <tr><td>客户端值长期不同</td><td>Descriptor Name、量化前后值</td><td>未注册、没标脏、Apply 未执行</td><td>先确认选择链和 ChangeMask</td></tr>
+            <tr><td>误差超过预期</td><td>Source、索引、Dequantized 三元组</td><td>Step 计算、重复量化、不同 Config</td><td>逐阶段打印并核对公式</td></tr>
+            <tr><td>Reader/Writer overflow</td><td>入口前后 GetPosBits、BitsLeft</td><td>位数不对称、包预算不足、长度损坏</td><td>找到第一个位置分叉</td></tr>
+            <tr><td>自定义 Serializer 未选中</td><td>Descriptor Dump</td><td>结构体名、注册时机、模块未链接</td><td>核对 PreFreeze 委托与 FName</td></tr>
+            <tr><td>动态状态泄漏/崩溃</td><td>Alloc/Clone/Free 计数</td><td>浅拷、覆盖前未释放、重复释放</td><td>零状态与所有权单元测试</td></tr>
+            <tr><td>对象引用偶发为空</td><td>Reference Collector 与 Export</td><td>漏声明 Trait 或漏 Collect</td><td>使用引用 Serializer/收集依赖</td></tr>
+            <tr><td>ChangeMask 错位</td><td>Member BitOffset/BitCount</td><td>Descriptor 不一致、数组位偏移错误</td><td>打印成员位区间和稀疏 Mask</td></tr>
+            <tr><td>数组增删后不同步</td><td>新旧 ElementCount、元素 Mask</td><td>MaxCount、模碰撞、动态状态覆盖</td><td>检查长度头与 Fast Array 适用性</td></tr>
+            <tr><td>包大小突然增长</td><td>每 Serializer 写入位数分布</td><td>Packed 值跨边界、字符串/数组全量、引用导出</td><td>看 P50/P95/P99，不只平均</td></tr>
+            <tr><td>5.5 示例在 5.7 编译失败</td><td>Include/模块/宏定义</td><td>Experimental 路径已迁移、接口变化</td><td>以目标版本源码为准重接入</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-18-03" tabindex="-1">最小可观测数据</h3>
+        <p>为一个字段记录如下信息通常足够定位大多数错误：</p>
+        <pre><code>Object Handle / Class
+Descriptor + Member Name
+Serializer Name + Version + Config
+Source Value
+Quantized bytes/index
+ChangeMask BitOffset/BitCount + 当前位
+Writer begin/end bit position + overflow/error
+Reader begin/end bit position + overflow/error
+Dequantized Value
+Apply/RepNotify 是否发生</code></pre>
+        <p>Shipping 构建不要无条件打印敏感玩家文本或每字段日志；用 NetTrace、采样、对象白名单和可控 Console Variable 缩小范围。</p>
+
+        <h2 id="section-19" tabindex="-1">⚡ 7.18 性能优化建议</h2>
+        <h3 id="section-19-01" tabindex="-1">三层优化金字塔</h3>
+        <div class="cards">
+          <div class="card"><h4>基础：少复制</h4><p>减少不必要对象、状态和变化；正确过滤、休眠、Push Model 与更新频率。一次不发送通常胜过省几个比特。</p></div>
+          <div class="card"><h4>中级：选对表示</h4><p>按值域、误差和分布选择 Range、Packed、Vector、Rotator、Fast Array、Token。</p></div>
+          <div class="card"><h4>高级：定制热字段</h4><p>只为高频高数量字段实现自定义量化/Delta，并用端到端数据证明收益。</p></div>
+        </div>
+
+        <h3 id="section-19-02" tabindex="-1">同时衡量六类指标</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>指标</th><th>为什么重要</th><th>建议统计</th></tr></thead>
+          <tbody>
+            <tr><td>平均 bits</td><td>决定常态带宽</td><td>按 Serializer/字段 P50</td></tr>
+            <tr><td>最坏 bits</td><td>影响包预算和尖峰</td><td>P95/P99/Max，特别是 Packed、String、Array</td></tr>
+            <tr><td>Quantize CPU</td><td>对象共享阶段可能处理大量脏状态</td><td>每对象/每状态耗时</td></tr>
+            <tr><td>Serialize CPU</td><td>可能按连接执行</td><td>每连接、每 Serializer 调用与耗时</td></tr>
+            <tr><td>动态分配</td><td>影响抖动、内存和基线 Clone</td><td>Alloc/Free 次数、峰值字节</td></tr>
+            <tr><td>缓存局部性</td><td>热路径常比算术位操作更贵</td><td>Insights CPU、Cache Miss、状态尺寸</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-19-03" tabindex="-1">大逃杀预算怎么排优先级</h3>
+        <ol>
+          <li>先确认背包和名称是否在普通战斗帧被跳过；避免大动态状态无效更新。</li>
+          <li>再确认位置、旋转的精度和更新频率，它们通常比单个 Health 字段更高频。</li>
+          <li>把 Health 32/33 位压到 14 位，适合大量角色且变化频繁的场景。</li>
+          <li>检查 Ammo 是 6 位定宽更优，还是因总弹药分布使用 10–18 位 Packed 更合适。</li>
+          <li>最后才考虑自定义 Delta 位数表；它会带来基线和兼容复杂度。</li>
+        </ol>
+        <p>FPS 更看重位置/朝向/武器状态的低延迟和误差；MMO 更看重对象数量、低频小整数、重复 Token 和动态状态分配。不存在一张跨类型游戏通用的“最省位 Serializer 表”。</p>
+        <div class="article-callout">
+          <strong>一个典型负优化</strong>
+          <p>为了把 14 位 Health 再省到平均 12 位，引入堆分配的可变 Delta 对象，并让每连接无法共享序列化结果。网络省 2 位，CPU、内存、缓存和维护全部变差。优化必须看系统总成本。</p>
+        </div>
+
+        <h2 id="section-20" tabindex="-1">✅ 7.19 总结与学习路径</h2>
+        <h3 id="section-20-01" tabindex="-1">重新串起一个值的旅程</h3>
+        <div class="journey">
+          <div>87.3 Gameplay</div><div>Descriptor 选 Health</div><div>Quantize = 873</div><div>Health Mask = 1</div>
+          <div>Write 14 bits</div><div>Read 14 bits</div><div>Dequantize = 87.3</div><div>Apply / RepNotify</div>
+        </div>
+        <p>这个流程里每一层都只解决一个问题：Descriptor 绑定类型与 Serializer；Validate 约束 Source；Quantize 定义网络可见精度；ChangeMask 跳过未变成员；Serialize 定义位布局；Reader 与 Context 拒绝损坏输入；Dequantize 和 Apply 把状态还给 Gameplay。</p>
+
+        <h3 id="section-20-02" tabindex="-1">五个带走的结论</h3>
+        <ol>
+          <li><strong>先定义语义，再数位。</strong>范围、步长、误差、非法值和版本是一个完整协议。</li>
+          <li><strong>量化状态有真实生命周期。</strong>数组、字符串和引用的动态内存不能靠 memcpy 糊过去。</li>
+          <li><strong>ChangeMask 与 Delta 不同。</strong>前者选择成员，后者相对 Prev 编码当前值。</li>
+          <li><strong>内置 Serializer 优先。</strong>Range、Packed、Rotator、Vector、Fast Array 和 Token 已覆盖大量场景。</li>
+          <li><strong>字段节省不等于整包节省。</strong>对象记录、掩码、引用、创建、协议和调度共同决定真实带宽。</li>
+        </ol>
+
+        <h3 id="section-20-03" tabindex="-1">推荐源码阅读顺序</h3>
+        <pre><code>NetSerializer.h
+→ NetSerializerBuilder.inl
+→ Float / Int / PackedInt / Rotator 实现
+→ NetBitStreamWriter.h + NetBitStreamReader.h
+→ ReplicationOperations.cpp（ChangeMask 调用）
+→ ArrayPropertyNetSerializer.cpp
+→ StringNetSerializerUtils + StringNetSerializers
+→ PropertyNetSerializerInfoRegistry.h
+→ ReplicationStateDescriptorBuilder.cpp</code></pre>
+        <p>按这个顺序先建立函数表契约，再看简单标量和 BitStream，之后进入组合类型与注册，阅读成本最低。</p>
+
+        <h2 id="section-21" tabindex="-1">📁 源码与资料索引</h2>
+        <h3 id="section-21-01" tabindex="-1">本地 UE 5.7.4 关键文件</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>主题</th><th>相对 Engine/Source/Runtime/Net/Iris 的路径</th><th>本文使用点</th></tr></thead>
+          <tbody>
+            <tr><td>核心契约</td><td><code>Public/Iris/Serialization/NetSerializer.h</code></td><td>Args、Traits、FNetSerializer、宏</td></tr>
+            <tr><td>Builder</td><td><code>Public/Iris/Serialization/NetSerializerBuilder.inl</code></td><td>默认入口、Delta、类型检测</td></tr>
+            <tr><td>BitStream</td><td><code>Public/Iris/Serialization/NetBitStreamWriter.h</code><br><code>NetBitStreamReader.h</code></td><td>对齐、位置、溢出、子流</td></tr>
+            <tr><td>标量</td><td><code>Private/Iris/Serialization/IntNetSerializerBase.h</code><br><code>FloatNetSerializers.cpp</code><br><code>PackedIntNetSerializers.cpp</code></td><td>零值、固定宽、Packed 与 Delta 表</td></tr>
+            <tr><td>旋转</td><td><code>Private/Iris/Serialization/RotatorNetSerializers.cpp</code></td><td>Byte/Short、3 位分量标志</td></tr>
+            <tr><td>数组</td><td><code>Private/Iris/Serialization/ArrayPropertyNetSerializer.cpp</code></td><td>动态状态、元素 Mask、Delta</td></tr>
+            <tr><td>字符串/名称</td><td><code>Private/Iris/Serialization/StringNetSerializerUtils.*</code><br><code>StringNetSerializers.cpp</code></td><td>自定义 Codec、FName、NetToken</td></tr>
+            <tr><td>ChangeMask 调用</td><td><code>Private/Iris/ReplicationSystem/ReplicationOperations.cpp</code><br><code>ChangeMaskUtil.h</code></td><td>稀疏编码、成员跳过、64 位内联</td></tr>
+            <tr><td>注册</td><td><code>Public/Iris/ReplicationState/PropertyNetSerializerInfoRegistry.h</code></td><td>Named Struct、PreFreeze 委托</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-21-02" tabindex="-1">Epic Games 官方资料</h3>
+        <ul>
+          <li><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetSerializer" target="_blank" rel="noopener noreferrer">FNetSerializer API（UE 5.7）</a>：函数表字段、头文件与模块位置。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Components of Iris（UE 5.7）</a>：量化状态副本与发送/接收流程。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/migrate-to-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Migrate to Iris（UE 5.7）</a>：Custom Network Serializers、Struct Config 与 Fast Array 边界。</li>
+        </ul>
+        <p>引擎源码快照：Unreal Engine 5.7.4（<code>Build.version</code> 的 <code>CompatibleChangelist</code> 为 <code>47537391</code>）。源码计数与内部实现结论均以该快照为准；后续 5.7 补丁或 5.8 可能改变实现细节。</p>
+
+        <h2 id="section-22" tabindex="-1">💡 下一步：数据传输流程</h2>
+        <p>下一部分将沿着已经生成的状态比特继续向外走：Replication Writer 如何把对象记录组织进 DataStream，包如何经过连接发送，Reader 又如何恢复并派发状态。本文只介绍 Delta 的接口边界；Baseline Manager、确认状态、位数表与系统级 Delta 决策会在第十部分单独展开。</p>
+        <p><a href="/html-articles/ue5-iris-guide-part-6/">← 回看第六部分：优先级系统</a></p>
+        <p><a href="/html-articles/ue5-iris-guide-outline/">返回系列大纲 →</a></p>
+      </article>
+
+      <footer class="article-footer">
+        <p><strong>文章来源：</strong>Jossy Zhang 原创整理。技术依据为本地 Unreal Engine 5.7.4 源码与 Epic Games UE 5.7 官方文档。</p>
+        <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/FNetSerializer" target="_blank" rel="noopener noreferrer">Epic Games：FNetSerializer（UE 5.7）</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Components of Iris（UE 5.7）</a></p>
+        <a class="back-home" href="/">← 返回博客首页</a>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="返回页面顶部">↑</button>
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const links = Array.from(document.querySelectorAll(".toc a[data-section], .toc-mobile a[data-section]"));
+      const sections = [...new Set(links.map((link) => document.getElementById(link.dataset.section)).filter(Boolean))];
+      const update = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+        const line = Math.min(180, window.innerHeight * .18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= line) activeId = section.id;
+          else break;
+        }
+        links.forEach((link) => {
+          if (link.dataset.section === activeId) link.setAttribute("aria-current", "true");
+          else link.removeAttribute("aria-current");
+        });
+      };
+      window.addEventListener("scroll", update, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      update();
+    })();
+  </script>
+</body>
+</html>

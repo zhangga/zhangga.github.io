@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十六部分：基于 Unreal Engine 5.7.4 源码，讲解 Iris 启用契约、配置对象、NetDriver 集成、PIE 多实例与项目迁移。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M14 17h36v8H14zm0 13h25v8H14zm0 13h17v8H14z' fill='%23f5b18e'/%3E%3Ccircle cx='48' cy='45' r='8' fill='%23fffdf8'/%3E%3Cpath d='M48 40v10m-5-5h10' stroke='%2327356f' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-16/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十六部分：配置与集成 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --amber: #9b6923;
+      --amber-soft: #f2e5c9;
+      --red: #a83d32;
+      --red-soft: #f4ded9;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, .11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, .035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, .028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a, article h2, article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 80% 16%, rgba(245, 177, 142, .2), transparent 28%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+    .hero::before {
+      content: "CONFIGURE";
+      position: absolute;
+      right: -.025em;
+      bottom: -.19em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(68px, 13vw, 190px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 940px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__deck strong { color: #fff; }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; color: #d9def7; font-size: 13px; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .92);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] { color: var(--iris-dark); background: #eef0fb; border-left-color: var(--signal); }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile {
+      display: none;
+      margin-bottom: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .toc-mobile summary { cursor: pointer; padding: 14px 17px; color: var(--iris-dark); font-weight: 800; }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 24px;
+      margin-bottom: 34px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(25, 35, 58, .05);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      color: var(--white);
+      background: var(--iris-dark);
+      font: 800 15px/1 var(--mono);
+      border-radius: 50%;
+    }
+    .source-note p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.62; }
+    .source-note strong { display: block; margin-bottom: 3px; color: var(--ink); }
+    .source-note__tag { color: var(--signal); font: 800 10px/1 var(--mono); letter-spacing: .1em; white-space: nowrap; }
+
+    article {
+      background: rgba(255, 253, 248, .87);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article section { padding: 58px clamp(28px, 6vw, 70px); scroll-margin-top: 24px; }
+    article section + section { border-top: 1px solid var(--line); }
+    article section:nth-child(even) { background: rgba(233, 225, 210, .22); }
+    article p { margin: 0 0 20px; }
+    article ul, article ol { margin: 0 0 22px; padding-left: 1.35em; }
+    article li + li { margin-top: 7px; }
+    article h2 {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 15px;
+      align-items: baseline;
+      margin: 0 0 30px;
+      color: var(--iris-dark);
+      font: 800 clamp(29px, 4vw, 43px) / 1.2 var(--serif);
+      letter-spacing: -.025em;
+    }
+    article h2::before {
+      content: attr(data-no);
+      color: var(--signal);
+      font: 800 12px/1 var(--mono);
+      letter-spacing: .08em;
+    }
+    article h3 {
+      margin: 36px 0 16px;
+      color: var(--ink);
+      font: 800 23px/1.35 var(--serif);
+    }
+    article h4 { margin: 26px 0 10px; color: var(--iris-dark); font-size: 16px; }
+    article code {
+      color: #803d2b;
+      background: #f1e8da;
+      padding: .12em .34em;
+      border-radius: 3px;
+      font: .91em/1.5 var(--mono);
+    }
+    article p code, article li code, article td code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .lede {
+      margin-bottom: 29px;
+      color: var(--ink-soft);
+      font: 500 clamp(19px, 2.4vw, 23px) / 1.72 var(--serif);
+    }
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 13px;
+      color: var(--signal);
+      font: 800 10px/1 var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .dropcap::first-letter {
+      float: left;
+      margin: .12em .13em 0 0;
+      color: var(--iris-dark);
+      font: 800 4.2em/.78 var(--serif);
+    }
+    .pullquote {
+      margin: 34px 0;
+      padding: 25px 28px 25px 32px;
+      color: var(--iris-dark);
+      background: linear-gradient(90deg, var(--signal-soft), rgba(242, 214, 202, .35));
+      border-left: 6px solid var(--signal);
+      font: 700 clamp(20px, 2.7vw, 27px) / 1.55 var(--serif);
+    }
+
+    .callout {
+      margin: 28px 0;
+      padding: 21px 24px;
+      background: #eef0fb;
+      border: 1px solid #c7ccee;
+      border-left: 5px solid var(--iris);
+    }
+    .callout strong { display: block; margin-bottom: 5px; color: var(--iris-dark); }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout--warn { background: var(--amber-soft); border-color: #d9c292; border-left-color: var(--amber); }
+    .callout--warn strong { color: #755019; }
+    .callout--danger { background: var(--red-soft); border-color: #deb4ac; border-left-color: var(--red); }
+    .callout--danger strong { color: var(--red); }
+    .callout--success { background: var(--green-soft); border-color: #bad5c8; border-left-color: var(--green); }
+    .callout--success strong { color: var(--green); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 29px 0;
+    }
+    .card {
+      padding: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 9px 28px rgba(25, 35, 58, .055);
+    }
+    .card small { color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .12em; }
+    .card h3 { margin: 10px 0 9px; font-size: 20px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .card--green { border-top: 5px solid var(--green); }
+    .card--signal { border-top: 5px solid var(--signal); }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      margin: 25px 0 32px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    table { width: 100%; min-width: 690px; border-collapse: collapse; font-size: 14px; line-height: 1.58; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid #ddd5c8; }
+    th { color: var(--white); background: var(--iris-dark); font-size: 12px; letter-spacing: .035em; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:nth-child(even) { background: rgba(233, 225, 210, .33); }
+
+    .codeblock, .tree {
+      overflow-x: auto;
+      margin: 24px 0 30px;
+      padding: 22px 24px;
+      color: #e8ebff;
+      background: #172038;
+      border: 1px solid #344372;
+      border-left: 5px solid #f28a62;
+      font: 13px/1.72 var(--mono);
+      white-space: pre;
+      tab-size: 2;
+    }
+    .codeblock .comment { color: #98a5c7; }
+    .codeblock .key { color: #f5b18e; }
+    .codeblock .value { color: #9ed8be; }
+    .tree { color: #d9def7; background: #20294a; }
+
+    .gate-stack {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0;
+      margin: 34px 0;
+      counter-reset: gates;
+    }
+    .gate {
+      position: relative;
+      min-height: 188px;
+      padding: 55px 18px 20px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border-right: 1px solid rgba(255,255,255,.18);
+      counter-increment: gates;
+    }
+    .gate:nth-child(even) { background: #354487; }
+    .gate:last-child { background: var(--signal); border-right: 0; }
+    .gate::before {
+      content: "0" counter(gates);
+      position: absolute;
+      top: 14px;
+      left: 17px;
+      color: rgba(255,255,255,.48);
+      font: 800 12px/1 var(--mono);
+    }
+    .gate:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -14px;
+      top: 75px;
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      color: var(--iris-dark);
+      background: var(--white);
+      border-radius: 50%;
+      font-weight: 900;
+    }
+    .gate b { display: block; margin-bottom: 8px; font: 800 20px/1.25 var(--serif); }
+    .gate p { margin: 0; color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.55; }
+
+    .equation {
+      display: grid;
+      grid-template-columns: repeat(9, auto);
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 28px 0;
+      padding: 27px 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      font: 800 14px/1.35 var(--mono);
+    }
+    .equation b { padding: 11px 12px; color: var(--iris-dark); background: #eef0fb; }
+    .equation i { color: var(--signal); font-style: normal; }
+    .equation strong { padding: 11px 13px; color: var(--white); background: var(--green); }
+
+    .ladder { display: grid; gap: 7px; margin: 31px 0; }
+    .ladder__row {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) minmax(150px, .62fr);
+      gap: 0;
+      align-items: stretch;
+    }
+    .ladder__rank {
+      display: grid;
+      place-items: center;
+      color: var(--white);
+      background: var(--signal);
+      font: 800 12px/1 var(--mono);
+    }
+    .ladder__main { padding: 13px 17px; background: var(--white); border-block: 1px solid var(--line); }
+    .ladder__main b { display: block; color: var(--iris-dark); }
+    .ladder__main span { color: var(--ink-soft); font-size: 13px; }
+    .ladder__guard { padding: 13px 16px; color: #e9ecff; background: var(--iris-dark); font-size: 12px; line-height: 1.5; }
+
+    .switches {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 26px 0;
+    }
+    .switch {
+      position: relative;
+      overflow: hidden;
+      padding: 23px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .switch::after {
+      content: "";
+      position: absolute;
+      right: -24px;
+      bottom: -32px;
+      width: 86px;
+      height: 86px;
+      border: 13px solid rgba(63,79,160,.07);
+      border-radius: 50%;
+    }
+    .switch small { color: var(--signal); font: 800 10px/1 var(--mono); letter-spacing: .1em; }
+    .switch h3 { margin: 10px 0 10px; }
+    .switch p { margin: 0 0 14px; color: var(--ink-soft); font-size: 14px; }
+    .switch code { position: relative; z-index: 1; display: inline-block; }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 12px;
+      margin: 34px 0;
+      padding-top: 31px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 13px;
+      left: 5%;
+      right: 5%;
+      height: 2px;
+      background: var(--iris);
+    }
+    .timeline__step {
+      position: relative;
+      min-height: 132px;
+      padding: 18px 12px 13px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+    .timeline__step::before {
+      content: "";
+      position: absolute;
+      top: -26px;
+      left: 50%;
+      width: 12px;
+      height: 12px;
+      margin-left: -7px;
+      background: var(--paper);
+      border: 3px solid var(--signal);
+      border-radius: 50%;
+    }
+    .timeline__step b { display: block; color: var(--iris-dark); font-size: 13px; line-height: 1.35; }
+    .timeline__step span { display: block; margin-top: 7px; color: var(--ink-soft); font-size: 11px; line-height: 1.45; }
+
+    .config-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin: 32px 0;
+    }
+    .config-layer {
+      position: relative;
+      padding: 54px 22px 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 7px solid var(--iris);
+    }
+    .config-layer:nth-child(2) { border-top-color: var(--signal); }
+    .config-layer:nth-child(3) { border-top-color: var(--green); }
+    .config-layer::before {
+      content: attr(data-layer);
+      position: absolute;
+      top: 15px;
+      left: 22px;
+      color: var(--ink-soft);
+      font: 800 10px/1 var(--mono);
+      letter-spacing: .12em;
+    }
+    .config-layer h3 { margin: 0 0 11px; }
+    .config-layer ul { margin: 0; color: var(--ink-soft); font-size: 13px; padding-left: 1.2em; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 26px;
+      margin: 32px 0;
+    }
+    .flow__node {
+      position: relative;
+      min-height: 137px;
+      padding: 21px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .flow__node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -23px;
+      top: 48px;
+      color: var(--signal);
+      font: 900 25px/1 var(--sans);
+    }
+    .flow__node small { color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .12em; }
+    .flow__node b { display: block; margin: 10px 0 6px; color: var(--iris-dark); }
+    .flow__node p { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.52; }
+
+    .topology {
+      display: grid;
+      grid-template-columns: minmax(150px, .7fr) 36px minmax(180px, 1fr) 36px minmax(180px, 1fr);
+      gap: 12px;
+      align-items: center;
+      margin: 31px 0;
+    }
+    .topology__world, .topology__driver, .topology__system {
+      padding: 23px;
+      text-align: center;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .topology__world { border-top: 6px solid var(--green); }
+    .topology__driver { border-top: 6px solid var(--signal); }
+    .topology__system { color: var(--white); background: var(--iris-dark); border-color: var(--iris-dark); }
+    .topology__world b, .topology__driver b, .topology__system b { display: block; }
+    .topology__world span, .topology__driver span, .topology__system span { display: block; margin-top: 6px; color: var(--ink-soft); font-size: 12px; }
+    .topology__system span { color: #cfd5fa; }
+    .topology__arrow { color: var(--signal); text-align: center; font-size: 25px; font-weight: 900; }
+
+    .profiles {
+      display: grid;
+      gap: 22px;
+      margin: 29px 0;
+    }
+    .profile {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(25, 35, 58, .05);
+    }
+    .profile__label {
+      display: grid;
+      align-content: center;
+      padding: 24px;
+      color: var(--white);
+      background: var(--iris-dark);
+    }
+    .profile:nth-child(2) .profile__label { background: var(--green); }
+    .profile:nth-child(3) .profile__label { background: var(--signal); }
+    .profile__label small { font: 800 10px/1 var(--mono); letter-spacing: .12em; opacity: .72; }
+    .profile__label b { margin-top: 10px; font: 800 25px/1.25 var(--serif); }
+    .profile__body { padding: 24px 27px; }
+    .profile__body p { margin-bottom: 13px; color: var(--ink-soft); }
+    .profile__body ul { margin-bottom: 0; font-size: 14px; }
+
+    .migration {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
+      margin: 34px 0;
+    }
+    .migration__step {
+      min-height: 224px;
+      padding: 24px 17px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border-bottom: 8px solid #8d98cf;
+    }
+    .migration__step:nth-child(2) { background: #303e80; }
+    .migration__step:nth-child(3) { background: #3f4fa0; }
+    .migration__step:nth-child(4) { background: #336d66; border-bottom-color: #70a69b; }
+    .migration__step:nth-child(5) { background: var(--signal); border-bottom-color: #f5b18e; }
+    .migration__step small { font: 800 10px/1 var(--mono); letter-spacing: .1em; opacity: .7; }
+    .migration__step b { display: block; margin: 12px 0 10px; font: 800 18px/1.3 var(--serif); }
+    .migration__step p { margin: 0; color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.55; }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 28px 0;
+    }
+    .checklist > div { padding: 22px; background: var(--white); border: 1px solid var(--line); }
+    .checklist h3 { margin: 0 0 13px; font-size: 20px; }
+    .checklist ul { margin: 0; padding-left: 0; list-style: none; font-size: 13px; }
+    .checklist li { position: relative; padding-left: 22px; }
+    .checklist li::before { content: "□"; position: absolute; left: 0; color: var(--signal); font-weight: 900; }
+
+    .sources {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 18px 0 30px;
+    }
+    .sources a {
+      padding: 8px 11px;
+      color: var(--iris-dark);
+      background: #eef0fb;
+      border: 1px solid #cbd0ee;
+      text-decoration: none;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .sources a:hover { color: var(--white); background: var(--signal); border-color: var(--signal); }
+
+    .chapter-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 42px;
+    }
+    .chapter-nav a, .chapter-nav div {
+      display: grid;
+      gap: 6px;
+      min-height: 92px;
+      padding: 20px;
+      color: var(--ink);
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .chapter-nav a:last-child, .chapter-nav div:last-child { text-align: right; }
+    .chapter-nav span { color: var(--signal); font: 800 9px/1 var(--mono); letter-spacing: .11em; }
+    .chapter-nav b { font-family: var(--serif); }
+    .chapter-nav a:hover { color: var(--white); background: var(--iris-dark); border-color: var(--iris-dark); }
+
+    footer {
+      padding: 42px 24px 52px;
+      color: #dce1fa;
+      background: #172038;
+      text-align: center;
+      font-size: 13px;
+    }
+    footer p { margin: 5px 0; }
+    footer a { color: #f5b18e; }
+    .back-top {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 30;
+      width: 45px;
+      height: 45px;
+      color: var(--white);
+      background: var(--signal);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 8px 24px rgba(25, 35, 58, .25);
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px);
+      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .back-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 230px minmax(0, 1fr); gap: 24px; width: min(100% - 28px, 1080px); }
+      article section { padding-inline: clamp(25px, 4vw, 50px); }
+      .gate-stack { grid-template-columns: repeat(3, 1fr); gap: 2px; }
+      .gate:nth-child(3)::after { display: none; }
+      .timeline { grid-template-columns: repeat(4, 1fr); row-gap: 32px; }
+      .timeline::before, .timeline__step::before { display: none; }
+      .migration { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 820px) {
+      .hero { padding: 58px 24px 52px; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 24px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .source-note { grid-template-columns: 50px minmax(0, 1fr); padding: 17px; }
+      .source-note__mark { width: 50px; height: 50px; }
+      .source-note__tag { grid-column: 2; }
+      .cards, .switches, .config-map, .checklist { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr 1fr; }
+      .flow__node:nth-child(2)::after { display: none; }
+      .profile { grid-template-columns: 1fr; }
+      .profile__label { min-height: 130px; }
+      .equation { grid-template-columns: 1fr; justify-items: stretch; text-align: center; }
+      .equation i { transform: rotate(90deg); }
+      .topology { grid-template-columns: 1fr; }
+      .topology__arrow { transform: rotate(90deg); }
+    }
+
+    @media (max-width: 580px) {
+      body { font-size: 16px; }
+      .hero h1 { font-size: 39px; }
+      .hero::before { font-size: 72px; }
+      article section { padding: 42px 21px; }
+      article h2 { grid-template-columns: 1fr; gap: 7px; font-size: 31px; }
+      .gate-stack, .timeline, .migration, .flow { grid-template-columns: 1fr; }
+      .gate { min-height: auto; padding: 46px 20px 20px; }
+      .gate::after, .flow__node::after { display: none !important; }
+      .ladder__row { grid-template-columns: 40px minmax(0, 1fr); }
+      .ladder__guard { grid-column: 2; }
+      .timeline__step { min-height: auto; text-align: left; }
+      .migration__step { min-height: auto; }
+      .chapter-nav { grid-template-columns: 1fr; }
+      .chapter-nav a:last-child, .chapter-nav div:last-child { text-align: left; }
+      .codeblock, .tree { margin-inline: -8px; padding: 18px; font-size: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+
+    @media print {
+      .reading-progress, .toc, .toc-mobile, .back-top { display: none !important; }
+      .hero { color: var(--ink); background: white; border-bottom-color: var(--ink); }
+      .hero__deck, .hero__meta, .kicker { color: var(--ink); }
+      .layout { display: block; width: auto; margin: 0; }
+      article { box-shadow: none; border: 0; }
+      article section { break-inside: avoid; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero__inner">
+      <p class="kicker">PART 16 · CONFIGURATION &amp; INTEGRATION</p>
+      <h1>
+        <span>UE5 Iris 网络复制系统技术分析</span>
+        <span>第十六部分：配置与集成</span>
+      </h1>
+      <p class="hero__deck">开关只是入口，<strong>NetDriver 创建时形成的启动契约</strong>才决定 Iris 是否真正工作。本篇以 Unreal Engine 5.7.4 源码为准，把插件、编译依赖、能力许可、策略选择、配置 CDO、系统实例与迁移验证接成一条可证明的工程路径。</p>
+      <div class="hero__meta">
+        <span>原创扩写：Jossy Zhang</span>
+        <span>技术基线：Unreal Engine 5.7.4</span>
+        <span>源码核对：C:\work\st-unreal-engine</span>
+        <span><a href="/ue5-iris-guide/">返回系列目录</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>目录</strong><span>CONTROL PLANE</span></div>
+      <ol>
+        <li><a href="#boot-contract" aria-current="true"><span>01</span><b>配置是一份启动契约</b></a></li>
+        <li><a href="#control-plane"><span>02</span><b>五层控制面</b></a></li>
+        <li><a href="#selection"><span>03</span><b>NetDriver 选择优先级</b></a></li>
+        <li><a href="#enable"><span>04</span><b>16.1 正确启用 Iris</b></a></li>
+        <li><a href="#module-load"><span>05</span><b>IrisCore 模块加载</b></a></li>
+        <li><a href="#config-map"><span>06</span><b>16.2 配置对象地图</b></a></li>
+        <li><a href="#polling"><span>07</span><b>轮询频率配置</b></a></li>
+        <li><a href="#filter-priority"><span>08</span><b>过滤与优先级配置</b></a></li>
+        <li><a href="#advanced-config"><span>09</span><b>Delta、Grid 与 Descriptor</b></a></li>
+        <li><a href="#netdriver"><span>10</span><b>16.3 NetDriver 集成</b></a></li>
+        <li><a href="#pie"><span>11</span><b>16.4 PIE 多实例</b></a></li>
+        <li><a href="#profiles"><span>12</span><b>16.5 三类项目配置</b></a></li>
+        <li><a href="#migration"><span>13</span><b>16.6 迁移、验证与速查</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录</summary>
+        <ol>
+          <li><a href="#boot-contract"><span>01</span><b>配置是一份启动契约</b></a></li>
+          <li><a href="#control-plane"><span>02</span><b>五层控制面</b></a></li>
+          <li><a href="#selection"><span>03</span><b>NetDriver 选择优先级</b></a></li>
+          <li><a href="#enable"><span>04</span><b>16.1 正确启用 Iris</b></a></li>
+          <li><a href="#module-load"><span>05</span><b>IrisCore 模块加载</b></a></li>
+          <li><a href="#config-map"><span>06</span><b>16.2 配置对象地图</b></a></li>
+          <li><a href="#polling"><span>07</span><b>轮询频率配置</b></a></li>
+          <li><a href="#filter-priority"><span>08</span><b>过滤与优先级配置</b></a></li>
+          <li><a href="#advanced-config"><span>09</span><b>Delta、Grid 与 Descriptor</b></a></li>
+          <li><a href="#netdriver"><span>10</span><b>16.3 NetDriver 集成</b></a></li>
+          <li><a href="#pie"><span>11</span><b>16.4 PIE 多实例</b></a></li>
+          <li><a href="#profiles"><span>12</span><b>16.5 三类项目配置</b></a></li>
+          <li><a href="#migration"><span>13</span><b>16.6 迁移、验证与速查</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note">
+        <div class="source-note__mark">16</div>
+        <p><strong>文章来源与技术口径</strong>本篇由 Jossy Zhang 根据 Smartuil 发布的系列大纲原创扩写；启用条件、默认值和调用顺序以本地 Unreal Engine 5.7.4 源码为准，并与 Epic Games 官方 Iris 文档交叉核对。</p>
+        <a class="source-note__tag" href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">查看大纲原文 ↗</a>
+      </div>
+
+      <article>
+        <section id="boot-contract">
+          <span class="eyebrow">THE REAL SWITCH</span>
+          <h2 data-no="01">配置不是参数表，而是一份启动契约</h2>
+          <p class="lede dropcap">很多项目第一次接入 Iris 时，会把问题简化成“把 <code>net.Iris.UseIrisReplication</code> 设为 1”。但 UE 5.7.4 真正做决定的时刻，是 <code>UEngine::CreateNetDriver_Local</code> 创建 NetDriver 时。</p>
+
+          <p>在那个时刻，引擎同时检查：Iris 代码是否可见、插件模块是否已经加载、这个 NetDriver 是否被允许使用 Iris、当前策略要求哪套复制系统，以及最终能否构造 Replication Bridge 和 ReplicationSystem。任何一环失败，结果都可能是 Legacy / Generic Replication System，或者创建了 NetDriver 却没有可工作的 Iris 实例。</p>
+
+          <div class="gate-stack" aria-label="Iris 启动的五道门">
+            <div class="gate"><b>编译可见</b><p>模块能包含 Iris API，宏和 IrisCore 依赖已准备。</p></div>
+            <div class="gate"><b>插件装载</b><p>Iris Runtime 模块启动，并把 IrisCore 加入运行时。</p></div>
+            <div class="gate"><b>能力许可</b><p>目标 NetDriver 命中 bCanUseIris=true 的配置。</p></div>
+            <div class="gate"><b>策略选择</b><p>CVar、GameMode、PIE 与命令行得出最终选择。</p></div>
+            <div class="gate"><b>实例创建</b><p>Bridge、ReplicationSystem 和 RepSystemId 真正建立。</p></div>
+          </div>
+
+          <div class="equation" aria-label="Iris 启动逻辑">
+            <b>代码可见</b><i>∧</i><b>模块已加载</b><i>∧</i><b>Driver 获准</b><i>∧</i><b>策略选 Iris</b><i>→</i><strong>使用 Iris</strong>
+          </div>
+
+          <div class="callout callout--danger">
+            <strong>最重要的边界：CVar 不是热切换器</strong>
+            <p>运行中把 <code>net.Iris.UseIrisReplication</code> 从 0 改成 1，只会影响之后参与选择的新 NetDriver。它不会把已经存在、已有连接的 NetDriver 原地改造成 Iris。无缝旅行通常复用现有 NetDriver，因此也不能把 GameMode 改值当作旅行中的热迁移方案。</p>
+          </div>
+
+          <p>因此，本篇不从“参数解释”开始，而从“这份配置在什么时候被谁读取、最终创建了哪个实例”开始。只要把配置与生命周期绑定，绝大多数“配置看着对、运行却不对”的问题都会变成可定位的条件判断。</p>
+        </section>
+
+        <section id="control-plane">
+          <span class="eyebrow">FIVE LAYERS</span>
+          <h2 data-no="02">五层控制面：每一层回答不同问题</h2>
+          <p class="lede">Iris 的配置分散在项目描述符、Build Rules、Engine.ini、GameMode / GameInstance 和 NetDriver 实例中。它们不是重复开关，而是五个不同层级。</p>
+
+          <div class="table-wrap" role="region" aria-label="Iris 五层控制面" tabindex="0">
+            <table>
+              <thead>
+                <tr><th>层</th><th>回答的问题</th><th>UE 5.7.4 入口</th><th>失败表现</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>编译层</td><td>Gameplay 模块能否调用 Iris API？</td><td><code>SetupIrisSupport(Target)</code></td><td>Header、宏或链接符号不可见</td></tr>
+                <tr><td>插件层</td><td>运行时是否加载 IrisCore？</td><td><code>Iris.uplugin</code>、<code>FIrisModule</code></td><td>选择 Iris 后因模块未加载而回退</td></tr>
+                <tr><td>能力层</td><td>某个 NetDriver 是否允许 Iris？</td><td><code>FIrisNetDriverConfig</code></td><td>即使命令行强制 1，也仍使用 Generic</td></tr>
+                <tr><td>策略层</td><td>这一次创建希望使用哪套系统？</td><td>CVar、GameMode、GameInstance、PIE、命令行</td><td>不同环境选择结果不一致</td></tr>
+                <tr><td>实例层</td><td>创建出的系统容量和行为是什么？</td><td><code>FNetDriverReplicationSystemConfig</code> 与配置 CDO</td><td>容量不足、映射无效或性能不合预期</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="cards">
+            <div class="card card--green"><small>CAPABILITY</small><h3>能不能</h3><p><code>bCanUseIris</code> 是安全门。策略只能在“获准”的 NetDriver 上选择 Iris。</p></div>
+            <div class="card"><small>POLICY</small><h3>想不想</h3><p>全局 CVar 是默认偏好；GameMode / GameInstance 和命令行可以改变某次创建。</p></div>
+            <div class="card card--signal"><small>INSTANCE</small><h3>实际是什么</h3><p>最终以 NetDriver 的 <code>IsUsingIrisReplication()</code>、创建日志和 RepSystemId 为证。</p></div>
+          </div>
+
+          <h3>配置变更的生效窗口</h3>
+          <div class="table-wrap" role="region" aria-label="配置生效窗口" tabindex="0">
+            <table>
+              <thead><tr><th>变更</th><th>安全生效点</th><th>是否建议热改</th></tr></thead>
+              <tbody>
+                <tr><td>插件启用、Build.cs</td><td>重新生成 / 编译并重启进程</td><td>否</td></tr>
+                <tr><td><code>IrisNetDriverConfigs</code></td><td>Engine 配置加载后、新 NetDriver 创建前</td><td>否</td></tr>
+                <tr><td><code>net.Iris.UseIrisReplication</code></td><td>新 NetDriver 创建前</td><td>仅用于受控测试</td></tr>
+                <tr><td>Bridge 的类映射配置</td><td>Replication Bridge 初始化前</td><td>建议重建网络会话</td></tr>
+                <tr><td>Grid / Prioritizer 参数</td><td>对应配置对象和系统初始化前</td><td>不要假设已有实例全量刷新</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pullquote">配置文件写了什么只是输入；NetDriver 创建时读到了什么、构造出了什么，才是运行事实。</div>
+        </section>
+
+        <section id="selection">
+          <span class="eyebrow">PRECEDENCE</span>
+          <h2 data-no="03">NetDriver 到底怎样选择 Iris</h2>
+          <p class="lede"><code>UEngine::WillNetDriverUseIris</code> 是 UE 5.7.4 的核心裁决点。它先判断资格，再叠加默认偏好、场景覆盖和命令行，最后检查模块。</p>
+
+          <div class="ladder" aria-label="Iris 选择优先级">
+            <div class="ladder__row"><div class="ladder__rank">01</div><div class="ladder__main"><b>NetDriver 能力许可</b><span>从 IrisNetDriverConfigs 查 bCanUseIris</span></div><div class="ladder__guard">没有许可，后面任何“选 Iris”都不能越过</div></div>
+            <div class="ladder__row"><div class="ladder__rank">02</div><div class="ladder__main"><b>引擎默认偏好</b><span>ShouldUseIrisReplication() 读取全局 CVar</span></div><div class="ladder__guard">初始结果 = capability ∧ default policy</div></div>
+            <div class="ladder__row"><div class="ladder__rank">03</div><div class="ladder__main"><b>GameInstance / GameMode</b><span>GetDesiredReplicationSystem()</span></div><div class="ladder__guard">Generic 可关闭；Iris 仍需 capability</div></div>
+            <div class="ladder__row"><div class="ladder__rank">04</div><div class="ladder__main"><b>PIE 服务器跟随</b><span>Dedicated Server PIE 的客户端 GameNetDriver 跟随服务端</span></div><div class="ladder__guard">只在特定 PIE 条件下介入</div></div>
+            <div class="ladder__row"><div class="ladder__rank">05</div><div class="ladder__main"><b>命令行最终覆盖</b><span>-UseIrisReplication=1 或 0</span></div><div class="ladder__guard">1 仍受 capability 限制；0 强制 Generic</div></div>
+            <div class="ladder__row"><div class="ladder__rank">06</div><div class="ladder__main"><b>IrisCore 模块检查</b><span>FModuleManager::IsModuleLoaded("IrisCore")</span></div><div class="ladder__guard">模块没加载，最终不能使用 Iris</div></div>
+          </div>
+
+          <h3><code>IrisNetDriverConfigs</code> 自己也有匹配优先级</h3>
+          <div class="flow">
+            <div class="flow__node"><small>FIRST</small><b>NetDriverName</b><p>精确匹配具体命名实例，例如 <code>GameNetDriver</code>。</p></div>
+            <div class="flow__node"><small>SECOND</small><b>Wildcard Name</b><p>例如 <code>UnitTestNetDriver*</code>，匹配一组命名实例。</p></div>
+            <div class="flow__node"><small>THIRD</small><b>Definition</b><p>匹配 <code>GameNetDriver</code>、<code>BeaconNetDriver</code> 等定义。</p></div>
+            <div class="flow__node"><small>NONE</small><b>无匹配</b><p><code>bConfigCanUseIris=false</code>，默认没有 Iris 资格。</p></div>
+          </div>
+
+          <div class="codeblock">[/Script/Engine.Engine]
+<span class="comment">; 最高优先级：精确命名实例</span>
++IrisNetDriverConfigs=(NetDriverName="MyGameNetDriver",bCanUseIris=true)
+
+<span class="comment">; 第二优先级：通配命名实例</span>
++IrisNetDriverConfigs=(NetDriverWildcardName="SecondaryNetDriver*",bCanUseIris=true)
+
+<span class="comment">; 第三优先级：NetDriverDefinition</span>
++IrisNetDriverConfigs=(NetDriverDefinition=GameNetDriver,bCanUseIris=true)
++IrisNetDriverConfigs=(NetDriverName=DemoNetDriver,bCanUseIris=false)</div>
+
+          <div class="callout callout--warn">
+            <strong>“混合模式”是每个 NetDriver 选择，不是每个 Actor 选择</strong>
+            <p>同一进程中可以让 GameNetDriver 用 Iris、DemoNetDriver 用 Generic；也可以让不同进程或服务器池使用不同系统。但同一个 NetDriver 里不能让一部分 Actor 由 Iris 复制、另一部分 Actor 由 Legacy 复制。Replication Graph 与 Iris 也不能同时驱动同一个 NetDriver。</p>
+          </div>
+        </section>
+
+        <section id="enable">
+          <span class="eyebrow">16.1 · ENABLE IRIS</span>
+          <h2 data-no="04">UE 5.7.4 中正确启用 Iris</h2>
+          <p class="lede">推荐把“编译、装载、资格、默认策略”都显式写进工程。这样 Local、CI、Dedicated Server 和回退流程看到的是同一份意图。</p>
+
+          <h3>第一步：启用 Iris 插件</h3>
+          <p>本地 UE 5.7.4 的插件仍位于 <code>Engine/Plugins/Experimental/Iris/</code>。描述符中 <code>EnabledByDefault=false</code>、<code>IsBetaVersion=true</code>，因此项目应显式启用：</p>
+
+          <div class="codeblock">{
+  "Plugins": [
+    {
+      "Name": "Iris",
+      "Enabled": true
+    }
+  ]
+}</div>
+
+          <h3>第二步：让 Gameplay 模块拥有 Iris 依赖</h3>
+          <p>如果游戏模块直接包含 Iris Header 或调用 Iris API，在模块的 <code>*.Build.cs</code> 中调用：</p>
+
+          <div class="codeblock">public class MyGame : ModuleRules
+{
+  public MyGame(ReadOnlyTargetRules Target) : base(Target)
+  {
+    <span class="key">SetupIrisSupport(Target);</span>
+  }
+}</div>
+
+          <p>在这份 UE 5.7.4 源码中，<code>SetupIrisSupport</code> 会加入 <code>UE_NET_HAS_IRIS_FASTARRAY_BINDING=1</code>、<code>UE_WITH_IRIS=1</code> 和 <code>IrisCore</code> 依赖。这里不照搬其他版本可能出现的 <code>TargetRules.bUseIris</code> 步骤，因为本地 5.7.4 的 TargetRules 并没有这项配置。</p>
+
+          <h3>第三步：写清 NetDriver 资格与默认策略</h3>
+          <div class="codeblock">[/Script/Engine.Engine]
++IrisNetDriverConfigs=(NetDriverDefinition=GameNetDriver,bCanUseIris=true)
+
+[SystemSettings]
+<span class="comment">; Iris 的注册式 SubObject 迁移前置条件</span>
+net.SubObjects.DefaultUseSubObjectReplicationList=1
+
+<span class="comment">; 让之后创建且获准的 NetDriver 默认选择 Iris</span>
+net.Iris.UseIrisReplication=1</div>
+
+          <p>引擎 <code>BaseEngine.ini</code> 已为 <code>GameNetDriver</code> 提供 <code>bCanUseIris=true</code>，并让 <code>DemoNetDriver</code> 不使用 Iris。项目里显式写出 GameNetDriver 的目的，是固定项目意图，也提醒团队：一旦项目用数组清理语法覆盖基础数组，就必须重新补齐需要的资格项。</p>
+
+          <h3>三种策略入口</h3>
+          <div class="switches">
+            <div class="switch"><small>PROJECT DEFAULT</small><h3>配置文件</h3><p>适合项目稳定默认。随进程启动加载，在创建 NetDriver 前就绪。</p><code>net.Iris.UseIrisReplication=1</code></div>
+            <div class="switch"><small>CI / ROLLBACK</small><h3>命令行</h3><p>适合 A/B、自动化矩阵和紧急回退，具有最终策略覆盖权。</p><code>-UseIrisReplication=1|0</code></div>
+            <div class="switch"><small>CONTROLLED TEST</small><h3>控制台 / C++</h3><p>只在创建新 NetDriver 前改变默认。已有 Driver 不会被热切换。</p><code>SetUseIrisReplication(true)</code></div>
+          </div>
+
+          <h3>第一次启动应该证明什么</h3>
+          <div class="checklist">
+            <div><h3>启动</h3><ul><li>Iris 插件确实启用</li><li>IrisCore 已加载</li><li>没有 Bridge class 加载错误</li><li>创建日志包含 RepSystemId</li></ul></div>
+            <div><h3>实例</h3><ul><li>NetDriver 报告正在使用 Iris</li><li>服务端和客户端选择一致</li><li>目标对象出现在 ReplicatedObjects</li><li>SubObject 注册路径有效</li></ul></div>
+            <div><h3>回退</h3><ul><li>命令行 0 可启动 Generic</li><li>正确性冒烟在两路都运行</li><li>回退不依赖热切换</li><li>配置与版本写入测试元数据</li></ul></div>
+          </div>
+        </section>
+
+        <section id="module-load">
+          <span class="eyebrow">MODULE BOOT</span>
+          <h2 data-no="05">IrisCore 模块加载：开关生效之前发生了什么</h2>
+          <p class="lede">插件描述符只声明一个名为 <code>Iris</code> 的 Runtime 模块。真正的基础设施位于 <code>IrisCore</code>，由 Iris 模块在启动时加载。</p>
+
+          <div class="timeline" aria-label="Iris 模块启动时间线">
+            <div class="timeline__step"><b>Iris.uplugin</b><span>Runtime / Default Loading Phase</span></div>
+            <div class="timeline__step"><b>FIrisModule</b><span>StartupModule</span></div>
+            <div class="timeline__step"><b>Load IrisCore</b><span>进入基础复制模块</span></div>
+            <div class="timeline__step"><b>Load NetCore</b><span>IrisCore 的前置依赖</span></div>
+            <div class="timeline__step"><b>解析命令行</b><span>尽早应用 UseIrisReplication</span></div>
+            <div class="timeline__step"><b>注册 Serializer</b><span>建立并冻结默认选择器</span></div>
+            <div class="timeline__step"><b>监听 Factory</b><span>跟踪 RepSystem 创建与销毁</span></div>
+          </div>
+
+          <div class="codeblock">FIrisModule::StartupModule()
+└─ LoadModule("IrisCore")
+   └─ FIrisCoreModule::StartupModule()
+      ├─ LoadModuleChecked("NetCore")
+      ├─ GetUseIrisReplicationCmdlineValue()
+      ├─ SetUseIrisReplication(...)
+      ├─ RegisterDefaultPropertyNetSerializerInfos()
+      ├─ UE_NET_IRIS_INIT_LEGACY_PUSH_MODEL()
+      └─ subscribe ReplicationSystem created / destroyed</div>
+
+          <p><code>FIrisCoreModule</code> 特意在启动早期解析 <code>-UseIrisReplication</code>，因为 NetDriver 的选择也发生在初始化期。模块还会跟踪运行中的 ReplicationSystem 数量：如果有活跃系统后又加载了可能注册多态网络类型的新模块，源码会警告建议重启 ReplicationSystem 或 NetDriver，以避免协议注册时序带来的风险。</p>
+
+          <div class="callout">
+            <strong>为什么“插件已勾选”仍然不等于“正在使用 Iris”</strong>
+            <p>插件启用只能保证 IrisCore 有机会被加载。某个 NetDriver 仍要命中 <code>bCanUseIris=true</code>，并在创建时由策略选择 Iris。验证时要看 NetDriver 和 ReplicationSystem 实例，而不是只看 Plugins 面板。</p>
+          </div>
+
+          <h3>关键源码入口</h3>
+          <div class="tree">Engine/Plugins/Experimental/Iris/
+├─ Iris.uplugin
+└─ Source/Iris/Private/Iris/IrisModule.cpp
+
+Engine/Source/Runtime/Net/Iris/
+├─ Public/Iris/IrisConfig.h
+└─ Private/Iris/
+   ├─ IrisConfig.cpp
+   └─ IrisCoreModule.cpp
+
+Engine/Source/Runtime/Engine/
+├─ Classes/Engine/Engine.h
+├─ Private/UnrealEngine.cpp
+├─ Classes/Engine/NetDriver.h
+└─ Private/NetDriver.cpp</div>
+        </section>
+
+        <section id="config-map">
+          <span class="eyebrow">16.2 · CONFIG OBJECTS</span>
+          <h2 data-no="06">配置对象地图：定义、映射、参数</h2>
+          <p class="lede">Iris 的 Filter 和 Prioritizer 配置最容易出错，因为同一个行为跨越三个配置层：先注册名字，再把 Gameplay 类映射到名字，最后配置实现类的算法参数。</p>
+
+          <div class="config-map" aria-label="Iris 三层配置地图">
+            <div class="config-layer" data-layer="LAYER 01 · DEFINITIONS">
+              <h3>名字注册</h3>
+              <ul>
+                <li><code>NetObjectFilterDefinitions</code></li>
+                <li><code>NetObjectPrioritizerDefinitions</code></li>
+                <li>名字 → 实现类 → ConfigClass</li>
+                <li>系统初始化时创建有效实现</li>
+              </ul>
+            </div>
+            <div class="config-layer" data-layer="LAYER 02 · CLASS MAPPING">
+              <h3>Gameplay 类映射</h3>
+              <ul>
+                <li><code>ObjectReplicationBridgeConfig</code></li>
+                <li>Poll / Filter / Prioritizer</li>
+                <li>Delta / Critical Class</li>
+                <li>继承树决定覆盖关系</li>
+              </ul>
+            </div>
+            <div class="config-layer" data-layer="LAYER 03 · ALGORITHM">
+              <h3>算法参数</h3>
+              <ul>
+                <li><code>NetObjectGridFilterConfig</code></li>
+                <li>Sphere / FOV / Count Limiter</li>
+                <li><code>ReplicationFilteringConfig</code></li>
+                <li>半径、Cell、帧数、优先级</li>
+              </ul>
+            </div>
+          </div>
+
+          <p>例如，下面三段分别完成“注册 Spatial 名字”“让 Pickup 使用 Spatial”“给 Spatial 使用的 Grid 实现配置数值”。缺任意一段，行为都可能与预期不同：</p>
+
+          <div class="codeblock">[/Script/IrisCore.NetObjectFilterDefinitions]
++NetObjectFilterDefinitions=(FilterName=Spatial,ClassName=/Script/IrisCore.NetObjectGridWorldLocFilter,ConfigClassName=/Script/IrisCore.NetObjectGridFilterConfig)
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++FilterConfigs=(ClassName=/Script/MyGame.MyPickup,DynamicFilterName=Spatial,FilterProfile=StablePickup)
+
+[/Script/IrisCore.NetObjectGridFilterConfig]
+CellSizeX=12000
+CellSizeY=12000
+DefaultCullDistance=12000
++FilterProfiles=(FilterProfileName=StablePickup,FrameCountBeforeCulling=8)</div>
+
+          <h3><code>UObjectReplicationBridgeConfig</code> 是类策略中枢</h3>
+          <div class="table-wrap" role="region" aria-label="ObjectReplicationBridgeConfig 字段" tabindex="0">
+            <table>
+              <thead><tr><th>字段</th><th>用途</th><th>主要边界</th></tr></thead>
+              <tbody>
+                <tr><td><code>PollConfigs</code></td><td>按类覆盖非 Push 状态的轮询频率</td><td>更深子类优先；Actor / Object 禁止</td></tr>
+                <tr><td><code>FilterConfigs</code></td><td>按类分配 Dynamic Filter 与 Profile</td><td>FilterName 必须先注册</td></tr>
+                <tr><td><code>PrioritizerConfigs</code></td><td>按类分配动态 Prioritizer</td><td>固定优先级实例会忽略类映射</td></tr>
+                <tr><td><code>DeltaCompressionConfigs</code></td><td>按类和继承树打开 / 关闭 Delta</td><td>还受全局开关、容量、Baseline 限制</td></tr>
+                <tr><td><code>CriticalClassConfigs</code></td><td>协议不匹配时决定是否断开</td><td>适合真正无法继续的关键类</td></tr>
+                <tr><td><code>DefaultSpatialFilterName</code></td><td>需要空间过滤但无显式类映射时的默认 Filter</td><td>基础配置默认是 Spatial</td></tr>
+                <tr><td><code>RequiredNetDriverChannelClassName</code></td><td>对象复制所需的 Channel 类</td><td>基础配置为 DataStreamChannel</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout--warn">
+            <strong>配置 CDO 不是热更新承诺</strong>
+            <p>这些类是 <code>config=Engine</code> 的 transient UObject，Bridge 和 ReplicationSystem 在初始化时读取它们。开发时修改 ini 后，最稳妥的验证方式是结束并重建网络会话；不要假设已有实例的类树缓存、Filter、Prioritizer 和 Delta 映射都会被完整刷新。</p>
+          </div>
+        </section>
+
+        <section id="polling">
+          <span class="eyebrow">POLL CONFIG</span>
+          <h2 data-no="07">轮询频率：从“每秒次数”落到帧周期</h2>
+          <p class="lede">Iris 希望尽可能使用 Push Model，但仍支持轮询。对没有可靠脏标记的对象，<code>PollConfigs</code> 决定多长时间检查一次 Gameplay 状态。</p>
+
+          <div class="codeblock">[/Script/IrisCore.ObjectReplicationBridgeConfig]
+<span class="comment">; 每帧轮询：PollFrequency=0</span>
++PollConfigs=(ClassName=/Script/MyGame.MyProjectile,PollFrequency=0,bIncludeSubclasses=true)
+
+<span class="comment">; 30 次/秒，具体帧周期依赖 MaxTickRate</span>
++PollConfigs=(ClassName=/Script/MyGame.MyCharacter,PollFrequency=30,bIncludeSubclasses=true)
+
+<span class="comment">; NPC 10 次/秒；某个 Boss 子类可再写更具体覆盖</span>
++PollConfigs=(ClassName=/Script/MyGame.MyNPC,PollFrequency=10,bIncludeSubclasses=true)
+
+<span class="comment">; 静态交互物 2 次/秒</span>
++PollConfigs=(ClassName=/Script/MyGame.MyWorldItem,PollFrequency=2,bIncludeSubclasses=true)</div>
+
+          <h3>源码怎样换算</h3>
+          <p><code>UObjectReplicationBridge::ConvertPollFrequencyIntoFrames</code> 使用当前 <code>MaxTickRate</code> 将频率换成帧间隔，并限制在 <code>uint8</code> 能表达的 0～255。<code>PollFrequency &lt;= 0</code> 返回 0，即每帧可轮询。</p>
+
+          <div class="equation" aria-label="PollFrequency 换算公式">
+            <b>MaxTickRate</b><i>÷</i><b>PollFrequency</b><i>−</i><b>1</b><i>→</i><b>Clamp 0..255</b><i>→</i><strong>PollFramePeriod</strong>
+          </div>
+
+          <p>这意味着 <code>PollFrequency</code> 不是独立的高精度墙钟定时器，而是网络 Tick 的帧调度输入。服务器 TickRate 改变后，同一配置对应的帧间隔会重新解释。上限 255 帧在 30Hz 下大约是 8.5 秒量级。</p>
+
+          <h3>类继承与禁止项</h3>
+          <div class="cards">
+            <div class="card"><small>DEEPER WINS</small><h3>更具体类优先</h3><p>父类配置可以覆盖整棵树；更深子类的条目会替换更通用的频率。</p></div>
+            <div class="card card--signal"><small>FORBIDDEN</small><h3>不要配置 Actor / Object</h3><p>源码明确禁止把最顶层 <code>Actor</code> 或 <code>Object</code> 作为轮询覆盖类名，以避免全局性能灾难。</p></div>
+            <div class="card card--green"><small>SUBOBJECT</small><h3>SubObject 跟随 Root</h3><p>Bridge 会安排 SubObject 与 Root Object 在同一帧轮询，避免父子状态错开。</p></div>
+          </div>
+
+          <h3>Push Model 与 Poll 的正确关系</h3>
+          <p>Push Model 正确标脏时，Iris 不需要持续扫描每个成员；没有 Push 支持的对象会按 <code>NetUpdateFrequency</code> 或类覆盖频率轮询。<code>net.Iris.AllowPollPeriodOverrides</code> 默认允许 Bridge 配置覆盖，<code>net.Iris.UseFrequencyBasedPolling</code> 默认启用频率调度。</p>
+
+          <div class="callout callout--danger">
+            <strong>降低 PollFrequency 不是免费优化</strong>
+            <p>它减少检查次数，也扩大“Gameplay 值已改变、Iris 尚未观察到”的最长窗口。先用 Part 15 的 Poll Count / Poll Waste 判断扫描浪费，再用延迟指标确认降频不会破坏玩法响应。对于完全 Push 的关键类，优先修正脏标记，而不是靠每帧 Poll 掩盖漏标。</p>
+          </div>
+        </section>
+
+        <section id="filter-priority">
+          <span class="eyebrow">FILTER &amp; PRIORITY</span>
+          <h2 data-no="08">过滤与优先级：先决定“能否进入”，再决定“先发谁”</h2>
+          <p class="lede">Filter 减少每条连接的候选集，Prioritizer 在候选集中分配发送机会。两个系统都以“名字注册 + 类映射”的方式接入，但不能互相替代。</p>
+
+          <h3>Filter：注册、映射与 Profile</h3>
+          <div class="codeblock">[/Script/IrisCore.NetObjectFilterDefinitions]
+<span class="comment">; BaseEngine.ini 已有这两项；项目通常无需重复</span>
++NetObjectFilterDefinitions=(FilterName=Spatial,ClassName=/Script/IrisCore.NetObjectGridWorldLocFilter,ConfigClassName=/Script/IrisCore.NetObjectGridFilterConfig)
++NetObjectFilterDefinitions=(FilterName=NotRouted,ClassName=/Script/IrisCore.FilterOutNetObjectFilter,ConfigClassName=/Script/IrisCore.FilterOutNetObjectFilterConfig)
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++FilterConfigs=(ClassName=/Script/MyGame.MyPickup,DynamicFilterName=Spatial,FilterProfile=StablePickup)
++FilterConfigs=(ClassName=/Script/MyGame.MyServerOnlyInfo,DynamicFilterName=NotRouted)
++FilterConfigs=(ClassName=/Script/MyGame.MyGlobalInfo,DynamicFilterName=None)</div>
+
+          <div class="table-wrap" role="region" aria-label="Filter 配置语义" tabindex="0">
+            <table>
+              <thead><tr><th>DynamicFilterName</th><th>含义</th><th>不要误解为</th></tr></thead>
+              <tbody>
+                <tr><td><code>Spatial</code></td><td>按 Grid / 距离和连接 View 计算相关性</td><td>对象一定会在 CullDistance 内每帧发送</td></tr>
+                <tr><td><code>NotRouted</code></td><td>由 FilterOut 实现排除该类对象</td><td>销毁对象或停止 Gameplay 生命周期</td></tr>
+                <tr><td><code>None</code></td><td>不为该类分配 Dynamic Filter</td><td>绕过 Owner、Group、Connection 等全部规则</td></tr>
+                <tr><td>自定义名字</td><td>使用 Definitions 注册的实现和 ConfigClass</td><td>只写名字就能自动找到任意 C++ 类</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><code>bForceEnableOnAllInstances=true</code> 会要求类映射在实例具有 <code>bAlwaysRelevant</code> 或 <code>bOnlyRelevantToOwner</code> 等设置时仍强制使用。只有当团队清楚这些实例语义为何需要被覆盖时才启用。</p>
+
+          <h3>Prioritizer：默认空间算法与专用算法</h3>
+          <div class="codeblock">[/Script/IrisCore.NetObjectPrioritizerDefinitions]
++NetObjectPrioritizerDefinitions=(PrioritizerName=FPSOwnerBoost,ClassName=/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizer,ConfigClassName=/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizerConfig)
++NetObjectPrioritizerDefinitions=(PrioritizerName=RacingFOV,ClassName=/Script/IrisCore.FieldOfViewNetObjectPrioritizer,ConfigClassName=/Script/IrisCore.FieldOfViewNetObjectPrioritizerConfig)
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++PrioritizerConfigs=(ClassName=/Script/MyGame.MyCharacter,PrioritizerName=FPSOwnerBoost)
++PrioritizerConfigs=(ClassName=/Script/MyGame.MyRaceVehicle,PrioritizerName=RacingFOV)
++PrioritizerConfigs=(ClassName=/Script/MyGame.MyWorldItem,PrioritizerName=Default)</div>
+
+          <div class="table-wrap" role="region" aria-label="内置 Prioritizer" tabindex="0">
+            <table>
+              <thead><tr><th>实现</th><th>决策依据</th><th>适合场景</th></tr></thead>
+              <tbody>
+                <tr><td>Sphere</td><td>距各 View 的内外半径与线性插值</td><td>通用三维世界位置对象</td></tr>
+                <tr><td>SphereWithOwnerBoost</td><td>Sphere 结果 + 对 owning connection 的加成</td><td>玩家控制对象、Owned 装备</td></tr>
+                <tr><td>FieldOfView</td><td>内外球、前方视锥、视线胶囊取最大值</td><td>高速前向运动、竞速</td></tr>
+                <tr><td>NetObjectCountLimiter</td><td>每次只考虑固定数量，RoundRobin 或 Fill</td><td>PlayerState、低频大集合</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout">
+            <strong>第一条有效 Prioritizer 定义具有特殊地位</strong>
+            <p><code>UNetObjectPrioritizerDefinitions</code> 会把第一条有效定义当作默认空间 Prioritizer。UE 5.7.4 的基础配置先注册 <code>DefaultPrioritizer</code> 对应 Sphere。项目追加专用实现时不要无意清空并改变这条顺序。</p>
+          </div>
+
+          <p>优先级会跨网络 Tick 累积。0.2 并不表示“只有 20% 数据会发送”，而表示当对象处于该区域时，优先级以较慢速度到达考虑阈值。提高某类优先级只改变预算内的先后顺序，不会凭空增加总带宽。</p>
+        </section>
+
+        <section id="advanced-config">
+          <span class="eyebrow">DELTA · GRID · DESCRIPTOR</span>
+          <h2 data-no="09">高级配置：把空间、滞后、Delta 与协议安全分开</h2>
+          <p class="lede">这些配置都能改变网络结果，但作用层完全不同：Grid 决定空间候选，Hysteresis 防止边界抖动，Delta 改变状态编码，Descriptor 配置约束协议构建。</p>
+
+          <h3>Delta Compression：类映射只是第一道条件</h3>
+          <div class="codeblock">[/Script/IrisCore.ObjectReplicationBridgeConfig]
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyCharacter,bEnableDeltaCompression=true)
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyInventoryState,bEnableDeltaCompression=true)
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyTinyTransientActor,bEnableDeltaCompression=false)</div>
+
+          <div class="equation" aria-label="Delta Compression 启用条件">
+            <b>全局开关</b><i>∧</i><b>类映射</b><i>∧</i><b>Manager 容量</b><i>∧</i><b>Baseline 可用</b><i>→</i><strong>Delta Path</strong>
+          </div>
+
+          <p><code>net.Iris.EnableDeltaCompression</code> 默认启用，但系统还受 <code>MaxDeltaCompressedObjectCount</code>、Baseline 创建间隔、ACK/Lost 和对象状态大小影响。对非常小或生命周期很短的对象，维护 Baseline 可能不划算。具体成本模型见<a href="/html-articles/ue5-iris-guide-part-10/">第十部分：增量压缩</a>。</p>
+
+          <h3>Grid：UE 5.7.4 源码默认值</h3>
+          <div class="table-wrap" role="region" aria-label="NetObjectGridFilter 默认配置" tabindex="0">
+            <table>
+              <thead><tr><th>字段</th><th>默认值</th><th>作用</th></tr></thead>
+              <tbody>
+                <tr><td><code>ViewPosRelevancyFrameCount</code></td><td>2</td><td>非精确距离模式下保留最近 View Cell</td></tr>
+                <tr><td><code>DefaultFrameCountBeforeCulling</code></td><td>4</td><td>对象离开后再保留的默认帧数</td></tr>
+                <tr><td><code>CellSizeX / CellSizeY</code></td><td>20000 / 20000</td><td>二维空间网格尺寸，单位为 Unreal Unit</td></tr>
+                <tr><td><code>DefaultCullDistance</code></td><td>15000</td><td>对象没有 NetCullDistanceSquared / override 时的距离</td></tr>
+                <tr><td><code>bUseExactCullDistance</code></td><td>true</td><td>按精确距离而不是整个 Cell 相关计算</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="codeblock">[/Script/IrisCore.NetObjectGridFilterConfig]
+CellSizeX=30000
+CellSizeY=30000
+DefaultCullDistance=24000
+bUseExactCullDistance=true
+ViewPosRelevancyFrameCount=2
+DefaultFrameCountBeforeCulling=6
++FilterProfiles=(FilterProfileName=FastMover,FrameCountBeforeCulling=12)
++FilterProfiles=(FilterProfileName=StableWorldItem,FrameCountBeforeCulling=24)</div>
+
+          <h3>两种“滞后”不是同一个机制</h3>
+          <div class="cards">
+            <div class="card"><small>GRID LOCAL</small><h3>Grid 最近记录</h3><p>Grid Filter 自己保存最近 View Cell 和最近相关对象，缓解跨 Cell / Cull 边界的瞬时闪烁。</p></div>
+            <div class="card card--green"><small>SCOPE GLOBAL</small><h3>Filtering Hysteresis</h3><p>对象被 Dynamic Filter 排除后，仍按 Profile 在该连接作用域中保留若干帧。</p></div>
+            <div class="card card--signal"><small>LATENCY</small><h3>不能无限加帧</h3><p>更稳定也意味着更晚离开作用域、更多候选和更高带宽，要与移动速度一起测量。</p></div>
+          </div>
+
+          <div class="codeblock">[/Script/IrisCore.ReplicationFilteringConfig]
+bEnableObjectScopeHysteresis=true
+DefaultHysteresisFrameCount=6
+HysteresisUpdateConnectionThrottling=2
++HysteresisProfiles=(FilterProfileName=FastMover,HysteresisFrameCount=12)
++HysteresisProfiles=(FilterProfileName=StableWorldItem,HysteresisFrameCount=24)
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++FilterConfigs=(ClassName=/Script/MyGame.MyRaceVehicle,DynamicFilterName=Spatial,FilterProfile=FastMover)
++FilterConfigs=(ClassName=/Script/MyGame.MyWorldItem,DynamicFilterName=Spatial,FilterProfile=StableWorldItem)</div>
+
+          <p><code>HysteresisUpdateConnectionThrottling=N</code> 表示每帧只更新约 1/N 的连接；源码会把值限制到 1～128。节流本身可能让对象额外多停留 N−1 帧，因此它既是 CPU 调度参数，也是离开作用域延迟参数。</p>
+
+          <h3>Descriptor 配置：验证协议，而不是压住警告</h3>
+          <div class="codeblock">[/Script/IrisCore.ReplicationStateDescriptorConfig]
+bEnsureAllClassesAreFullyPushModel=false
++EnsureFullyPushModelClassNames=(ClassName=MyCriticalReplicatedComponent)
+
+<span class="comment">; 只有确认反射字段能等价表达自定义 NetSerialize 语义后才加入</span>
++SupportsStructNetSerializerList=(StructName=MyVettedStruct)</div>
+
+          <div class="callout callout--danger">
+            <strong><code>SupportsStructNetSerializerList</code> 不是“忽略警告名单”</strong>
+            <p>当结构实现了自定义 <code>NetSerialize</code> / <code>NetDeltaSerialize</code>，但没有 Iris 专用 NetSerializer 时，必须先证明反射字段序列化与原语义等价。未经验证就加入名单，可能把协议不兼容从可见警告变成静默数据错误。</p>
+          </div>
+        </section>
+
+        <section id="netdriver">
+          <span class="eyebrow">16.3 · NETDRIVER</span>
+          <h2 data-no="10">NetDriver 集成：从裁决到 ReplicationSystem</h2>
+          <p class="lede">NetDriver 是 Legacy 与 Iris 的真正分界线。它先被创建并记录“是否使用 Iris”，在 <code>InitBase</code> 阶段才构造 Bridge 和 ReplicationSystem。</p>
+
+          <div class="flow" aria-label="NetDriver 创建 Iris ReplicationSystem 流程">
+            <div class="flow__node"><small>ENGINE</small><b>CreateNetDriver_Local</b><p>找到 NetDriverDefinition，实例化 UNetDriver。</p></div>
+            <div class="flow__node"><small>DECIDE</small><b>WillNetDriverUseIris</b><p>资格、默认、场景、PIE、命令行与模块检查。</p></div>
+            <div class="flow__node"><small>PREPARE</small><b>PostCreation / InitBase</b><p>保存选择，准备 NetTokenStore 与网络基础设施。</p></div>
+            <div class="flow__node"><small>BUILD</small><b>CreateReplicationSystem</b><p>Bridge、Params、Factory、RepSystemId 和 World Actor。</p></div>
+          </div>
+
+          <div class="codeblock">UNetDriver::CreateReplicationSystem(bool bInitAsClient)
+├─ InitReplicationBridgeClass()
+├─ NewObject&lt;UEngineReplicationBridge&gt;()
+├─ select ReplicationSystemConfigClient / Server
+├─ GameInstance-&gt;OverrideIrisReplicationSystemConfig(...)
+├─ build UReplicationSystem::FReplicationSystemParams
+│  ├─ ReplicationBridge
+│  ├─ bIsServer
+│  ├─ bAllowObjectReplication
+│  ├─ ForwardNetRPCCallDelegate
+│  └─ NetTokenStore
+├─ FReplicationSystemFactory::CreateReplicationSystem(Params)
+└─ SetReplicationSystem(...)</div>
+
+          <h3>容量配置：0 表示“不覆盖默认”，不是容量为零</h3>
+          <div class="table-wrap" role="region" aria-label="FNetDriverReplicationSystemConfig 默认值" tabindex="0">
+            <table>
+              <thead><tr><th>NetDriver 配置字段</th><th>Params 默认</th><th>权衡</th></tr></thead>
+              <tbody>
+                <tr><td><code>MaxReplicatedObjectCount</code></td><td>65536</td><td>最大对象容量；按 32 对齐，影响全局结构规模</td></tr>
+                <tr><td><code>InitialNetObjectListCount</code></td><td>65536</td><td>初始 BitArray / List；小值省内存但会扩容</td></tr>
+                <tr><td><code>NetObjectListGrowCount</code></td><td>16384</td><td>每次增长量；过小增加重分配与碎片风险</td></tr>
+                <tr><td><code>PreAllocatedMemoryBuffersObjectCount</code></td><td>65536</td><td>ChunkedArray 预分配；性能与常驻内存交换</td></tr>
+                <tr><td><code>MaxReplicationWriterObjectCount</code></td><td>0</td><td>0 时跟随对象容量；客户端通常可更低</td></tr>
+                <tr><td><code>MaxDeltaCompressedObjectCount</code></td><td>2048</td><td>Delta Manager 容量与 Baseline 内存</td></tr>
+                <tr><td><code>MaxNetObjectGroupCount</code></td><td>2048</td><td>Group 容量</td></tr>
+                <tr><td><code>bAllowParallelTasks</code></td><td>false</td><td>仅在服务端允许对象复制时支持并行子任务</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="codeblock">[/Script/OnlineSubsystemUtils.IpNetDriver]
+<span class="comment">; 仅示范字段语法。先测量峰值对象数与内存，再决定是否覆盖。</span>
+ReplicationSystemConfigServer=(MaxReplicatedObjectCount=131072,InitialNetObjectListCount=32768,NetObjectListGrowCount=16384,PreAllocatedMemoryBuffersObjectCount=32768,MaxDeltaCompressedObjectCount=4096,MaxNetObjectGroupCount=4096,bAllowParallelTasks=true)
+
+<span class="comment">; 客户端通常没有大量具有发送权的对象，可单独设置 Writer 容量</span>
+ReplicationSystemConfigClient=(MaxReplicationWriterObjectCount=1024)</div>
+
+          <p>这段是字段齐全的容量示例，不是推荐所有项目复制的默认值。开放世界也可能只有很少的同时活跃网络对象，小地图竞技也可能因高实体密度需要更大容量。先采集峰值对象数、扩容次数、Iris LLM 标签和服务器帧尖峰，再确定预分配。</p>
+
+          <h3>GameMode 与 GameInstance 的迁移钩子</h3>
+          <p><code>UGameInstance::GetDesiredReplicationSystem</code> 对 GameNetDriver 默认读取服务端 GameMode 的 <code>GameNetDriverReplicationSystem</code>。这让项目能按 GameMode 在创建阶段要求 Generic 或 Iris。另一个钩子 <code>OverrideIrisReplicationSystemConfig</code> 可以在服务器 / 客户端实例创建前调整容量配置。</p>
+
+          <div class="callout callout--warn">
+            <strong>无缝旅行不能用来切换复用中的 NetDriver</strong>
+            <p>UE 5.7.4 在无缝旅行装入新 GameMode 后，会检查它要求的系统是否与现有 NetDriver 兼容。若新旧模式要求不同，会触发 ensure。迁移时应让同一条无缝旅行链上的 GameMode 保持一致，或通过真正重建网络会话完成系统切换。</p>
+          </div>
+        </section>
+
+        <section id="pie">
+          <span class="eyebrow">16.4 · PIE ISOLATION</span>
+          <h2 data-no="11">PIE 多实例：同一进程里不止一个 Iris</h2>
+          <p class="lede">多进程 PIE 很直观；单进程多 World PIE 更容易误判，因为服务器和多个客户端共享进程，却各自拥有 World、NetDriver、Bridge 与 ReplicationSystem。</p>
+
+          <div class="topology" aria-label="PIE Server ReplicationSystem">
+            <div class="topology__world"><b>PIE Server World</b><span>一次运行示例</span></div><div class="topology__arrow">→</div><div class="topology__driver"><b>GameNetDriver</b><span>Server</span></div><div class="topology__arrow">→</div><div class="topology__system"><b>ReplicationSystem 0</b><span>objects / connections / filters</span></div>
+          </div>
+          <div class="topology" aria-label="PIE Client 1 ReplicationSystem">
+            <div class="topology__world"><b>PIE Client 1 World</b><span>一次运行示例</span></div><div class="topology__arrow">→</div><div class="topology__driver"><b>GameNetDriver</b><span>Client 1</span></div><div class="topology__arrow">→</div><div class="topology__system"><b>ReplicationSystem 1</b><span>own bridge / reader / state</span></div>
+          </div>
+          <div class="topology" aria-label="PIE Client 2 ReplicationSystem">
+            <div class="topology__world"><b>PIE Client 2 World</b><span>一次运行示例</span></div><div class="topology__arrow">→</div><div class="topology__driver"><b>GameNetDriver</b><span>Client 2</span></div><div class="topology__arrow">→</div><div class="topology__system"><b>ReplicationSystem 2</b><span>own bridge / reader / state</span></div>
+          </div>
+
+          <p><code>FReplicationSystemFactory</code> 在进程级数组中寻找第一个空槽，以数组索引作为 <code>ReplicationSystemId</code>。销毁系统后空槽可以复用。因此图中的 0、1、2 只是一次启动的常见示例，不是“服务器永远为 0、Client 1 永远为 1”的持久约定。</p>
+
+          <h3>为什么 NetRefHandle 需要系统 ID</h3>
+          <p>UE 5.7.4 的 <code>FNetRefHandle</code> 为 ReplicationSystemId 保留 10 bit。完整句柄同时包含对象 ID 与系统 ID，这样同一进程中不同 PIE World 即使分配出相同对象 ID，也不会被当成同一个完整句柄。源码注释直接指出：PIE 时要追踪句柄所属实例。</p>
+
+          <h3>Dedicated Server PIE 的跟随规则</h3>
+          <p>当当前 Context 是 PIE、不是 Dedicated、目标是 GameNetDriver 时，<code>WillNetDriverUseIris</code> 会查找 PIE instance 0；如果它以 Dedicated Server 运行，就让客户端 GameNetDriver 跟随服务器实际选择的复制系统。这避免服务器使用 Iris、PIE 客户端却按本地默认走 Generic。随后命令行仍有最终覆盖权，因此测试矩阵要保持所有进程参数一致。</p>
+
+          <h3>多实例调试命令</h3>
+          <div class="codeblock"># 查看某个系统已注册的对象
+Net.Iris.PrintReplicatedObjects RepSystemId=0
+
+# 查看 Client 对应 RepSystem 中的对象
+Net.Iris.PrintNetInfoOfObject FindByName=BP_Enemy_C_42 RepSystemId=1 ConnectionId=1
+
+# 核对某个系统的类到 Filter 映射
+Net.Iris.PrintDynamicFilterClassConfig RepSystemId=1
+
+# 查潜在 Filter 类配置问题
+Net.Iris.PrintDynamicFilterClassConfigIssues RepSystemId=1</div>
+
+          <div class="callout callout--danger">
+            <strong>省略 <code>RepSystemId</code> 时默认查 0</strong>
+            <p><code>ObjectReplicationBridgeDebugging.cpp</code> 的公共参数解析默认使用 ID 0。在多 PIE 中，你可能看到了正确的对象名，却查的是服务端或另一客户端的状态。任何多实例排查记录都应同时写下 PIE 实例、RepSystemId 和 ConnectionId。</p>
+          </div>
+        </section>
+
+        <section id="profiles">
+          <span class="eyebrow">16.5 · STARTING PROFILES</span>
+          <h2 data-no="12">FPS、开放世界 RPG、竞速：三套可测量的起步配置</h2>
+          <p class="lede">下面给的是“第一轮 profiling 前的假设”，不是最终答案。所有 <code>/Script/MyGame.*</code> 都必须替换成项目真实模块和类名；一次只启用与当前项目画像对应的一套。</p>
+
+          <h3>三套画像共用的启用头</h3>
+          <div class="codeblock">[/Script/Engine.Engine]
++IrisNetDriverConfigs=(NetDriverDefinition=GameNetDriver,bCanUseIris=true)
+
+[SystemSettings]
+net.SubObjects.DefaultUseSubObjectReplicationList=1
+net.Iris.UseIrisReplication=1
+net.Iris.UseFrequencyBasedPolling=1
+net.Iris.AllowPollPeriodOverrides=1
+net.Iris.EnableFilterMappings=1
+net.Iris.EnableDeltaCompression=1</div>
+
+          <div class="profiles">
+            <div class="profile">
+              <div class="profile__label"><small>PROFILE A</small><b>竞技 FPS</b></div>
+              <div class="profile__body"><p>小到中型地图、玩家与投射物高频、拾取物和目标点空间过滤。核心是降低命中与控制对象的状态延迟，同时避免世界物件抢占预算。</p><ul><li>Character 30Hz、Projectile 每帧、Pickup 5Hz</li><li>Character 使用 Owner Boost</li><li>Pickup / Objective 使用精确距离 Grid</li><li>PlayerState 保留基础 Count Limiter 设计</li></ul></div>
+            </div>
+            <div class="profile">
+              <div class="profile__label"><small>PROFILE B</small><b>开放世界 RPG</b></div>
+              <div class="profile__body"><p>对象规模大、密度变化显著、NPC 与世界物件允许更低频。核心是分级 Poll、空间裁剪与边界滞后，并以真实活跃对象峰值决定容量。</p><ul><li>Player 20Hz、NPC 8Hz、WorldItem 2Hz</li><li>更大 Cell / Cull 起点</li><li>NPC 与 WorldItem 使用不同 Profile</li><li>传送、坐骑和流送必须专项验证</li></ul></div>
+            </div>
+            <div class="profile">
+              <div class="profile__label"><small>PROFILE C</small><b>竞速游戏</b></div>
+              <div class="profile__body"><p>高速前向运动、视野方向影响巨大、赛道物件规则明确。核心是车辆高频与 FOV Prioritizer，同时保证后方竞争者、多 View 和回放边界不被错误降级。</p><ul><li>Vehicle 每帧或 30Hz 起步</li><li>车辆使用 RacingFOV</li><li>Pickup / Hazard 使用 Spatial</li><li>后视镜与分屏会增加 Replication View</li></ul></div>
+            </div>
+          </div>
+
+          <h3>配置 A：竞技 FPS</h3>
+          <div class="codeblock">[/Script/IrisCore.NetObjectPrioritizerDefinitions]
++NetObjectPrioritizerDefinitions=(PrioritizerName=FPSOwnerBoost,ClassName=/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizer,ConfigClassName=/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizerConfig)
+
+[/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizerConfig]
+InnerRadius=2500
+OuterRadius=12000
+InnerPriority=1.0
+OuterPriority=0.25
+OutsidePriority=0.1
+OwnerPriorityBoost=2.0
+
+[/Script/IrisCore.NetObjectGridFilterConfig]
+CellSizeX=12000
+CellSizeY=12000
+DefaultCullDistance=12000
+bUseExactCullDistance=true
+DefaultFrameCountBeforeCulling=6
++FilterProfiles=(FilterProfileName=FastProjectile,FrameCountBeforeCulling=4)
++FilterProfiles=(FilterProfileName=StablePickup,FrameCountBeforeCulling=8)
+
+[/Script/IrisCore.ReplicationFilteringConfig]
+bEnableObjectScopeHysteresis=true
+DefaultHysteresisFrameCount=4
+HysteresisUpdateConnectionThrottling=1
++HysteresisProfiles=(FilterProfileName=FastProjectile,HysteresisFrameCount=4)
++HysteresisProfiles=(FilterProfileName=StablePickup,HysteresisFrameCount=8)
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++PollConfigs=(ClassName=/Script/MyGame.MyCharacter,PollFrequency=30,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.MyProjectile,PollFrequency=0,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.MyPickup,PollFrequency=5,bIncludeSubclasses=true)
++FilterConfigs=(ClassName=/Script/MyGame.MyProjectile,DynamicFilterName=Spatial,FilterProfile=FastProjectile)
++FilterConfigs=(ClassName=/Script/MyGame.MyPickup,DynamicFilterName=Spatial,FilterProfile=StablePickup)
++FilterConfigs=(ClassName=/Script/MyGame.MyObjective,DynamicFilterName=Spatial,FilterProfile=StablePickup)
++PrioritizerConfigs=(ClassName=/Script/MyGame.MyCharacter,PrioritizerName=FPSOwnerBoost)
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyCharacter,bEnableDeltaCompression=true)</div>
+
+          <p><strong>验证：</strong>射击输入到远端表现的端到端延迟、投射物高速跨 Cell、拾取物进入 / 离开边界、Character 的 owning connection priority，以及拥塞时 Objective 是否仍及时。</p>
+
+          <h3>配置 B：开放世界 RPG</h3>
+          <div class="codeblock">[/Script/IrisCore.NetObjectGridFilterConfig]
+CellSizeX=40000
+CellSizeY=40000
+DefaultCullDistance=30000
+bUseExactCullDistance=true
+ViewPosRelevancyFrameCount=2
+DefaultFrameCountBeforeCulling=12
++FilterProfiles=(FilterProfileName=RPGCharacter,FrameCountBeforeCulling=16)
++FilterProfiles=(FilterProfileName=RPGWorldItem,FrameCountBeforeCulling=30)
+
+[/Script/IrisCore.ReplicationFilteringConfig]
+bEnableObjectScopeHysteresis=true
+DefaultHysteresisFrameCount=8
+HysteresisUpdateConnectionThrottling=2
++HysteresisProfiles=(FilterProfileName=RPGCharacter,HysteresisFrameCount=16)
++HysteresisProfiles=(FilterProfileName=RPGWorldItem,HysteresisFrameCount=30)
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++PollConfigs=(ClassName=/Script/MyGame.MyPlayerCharacter,PollFrequency=20,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.MyNPC,PollFrequency=8,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.MyWorldItem,PollFrequency=2,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.MyQuestActor,PollFrequency=5,bIncludeSubclasses=true)
++FilterConfigs=(ClassName=/Script/MyGame.MyNPC,DynamicFilterName=Spatial,FilterProfile=RPGCharacter)
++FilterConfigs=(ClassName=/Script/MyGame.MyWorldItem,DynamicFilterName=Spatial,FilterProfile=RPGWorldItem)
++FilterConfigs=(ClassName=/Script/MyGame.MyQuestActor,DynamicFilterName=Spatial,FilterProfile=RPGWorldItem)
++PrioritizerConfigs=(ClassName=/Script/MyGame.MyNPC,PrioritizerName=Default)
++PrioritizerConfigs=(ClassName=/Script/MyGame.MyWorldItem,PrioritizerName=Default)
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyPlayerCharacter,bEnableDeltaCompression=true)
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyNPC,bEnableDeltaCompression=true)</div>
+
+          <p><strong>验证：</strong>城市密集区 active object 峰值、远距离对象裁剪率、传送后首帧相关性、坐骑速度下的边界延迟、World Partition 流送期间 creation / export 突发，以及 Hysteresis 带来的额外候选数量。</p>
+
+          <h3>配置 C：竞速游戏</h3>
+          <div class="codeblock">[/Script/IrisCore.NetObjectPrioritizerDefinitions]
++NetObjectPrioritizerDefinitions=(PrioritizerName=RacingFOV,ClassName=/Script/IrisCore.FieldOfViewNetObjectPrioritizer,ConfigClassName=/Script/IrisCore.FieldOfViewNetObjectPrioritizerConfig)
+
+[/Script/IrisCore.FieldOfViewNetObjectPrioritizerConfig]
+InnerSphereRadius=3500
+InnerSpherePriority=1.0
+OuterSphereRadius=14000
+OuterSpherePriority=0.35
+ConeFieldOfViewDegrees=60
+InnerConeLength=5000
+ConeLength=30000
+MinConePriority=0.25
+MaxConePriority=1.0
+LineOfSightWidth=350
+LineOfSightPriority=1.0
+OutsidePriority=0.15
+
+[/Script/IrisCore.NetObjectGridFilterConfig]
+CellSizeX=20000
+CellSizeY=20000
+DefaultCullDistance=26000
+bUseExactCullDistance=true
++FilterProfiles=(FilterProfileName=RaceVehicle,FrameCountBeforeCulling=12)
++FilterProfiles=(FilterProfileName=TrackObject,FrameCountBeforeCulling=8)
+
+[/Script/IrisCore.ReplicationFilteringConfig]
+bEnableObjectScopeHysteresis=true
+DefaultHysteresisFrameCount=6
+HysteresisUpdateConnectionThrottling=1
++HysteresisProfiles=(FilterProfileName=RaceVehicle,HysteresisFrameCount=12)
++HysteresisProfiles=(FilterProfileName=TrackObject,HysteresisFrameCount=8)
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++PollConfigs=(ClassName=/Script/MyGame.MyRaceVehicle,PollFrequency=0,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.MyTrackPickup,PollFrequency=10,bIncludeSubclasses=true)
++PollConfigs=(ClassName=/Script/MyGame.MyTrackHazard,PollFrequency=10,bIncludeSubclasses=true)
++FilterConfigs=(ClassName=/Script/MyGame.MyRaceVehicle,DynamicFilterName=Spatial,FilterProfile=RaceVehicle)
++FilterConfigs=(ClassName=/Script/MyGame.MyTrackPickup,DynamicFilterName=Spatial,FilterProfile=TrackObject)
++FilterConfigs=(ClassName=/Script/MyGame.MyTrackHazard,DynamicFilterName=Spatial,FilterProfile=TrackObject)
++PrioritizerConfigs=(ClassName=/Script/MyGame.MyRaceVehicle,PrioritizerName=RacingFOV)
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyRaceVehicle,bEnableDeltaCompression=true)</div>
+
+          <p><strong>验证：</strong>高速接近时的 creation lead time、前后车辆 priority、弯道遮挡、多 Replication View（分屏 / 观战 / 后视镜）取最大优先级的结果、冲线拥塞，以及车辆在 Grid 边缘是否反复进出作用域。</p>
+
+          <div class="callout callout--success">
+            <strong>每套配置都用同一组四维指标验收</strong>
+            <p>正确性：对象、属性、RPC、SubObject；调度：relevant count、Poll Count / Waste、scheduled vs replicated；带宽：Write Count / KBytes、creation / export；容量：对象数、连接数和 Iris LLM 标签。只有四维同时成立，才算“配置更好”。</p>
+          </div>
+        </section>
+
+        <section id="migration">
+          <span class="eyebrow">16.6 · MIGRATION &amp; OPERATIONS</span>
+          <h2 data-no="13">五阶段迁移、故障矩阵与上线检查</h2>
+          <p class="lede">成熟的迁移不是“某天把默认 CVar 改成 1”，而是先建立 Legacy 基线，再让 Iris 和 Generic 都能启动，逐步修正兼容性、配置性能，最后演练默认启用与回退。</p>
+
+          <div class="migration" aria-label="Iris 五阶段迁移">
+            <div class="migration__step"><small>STAGE 0</small><b>Legacy 基线</b><p>固定正确性、CPU、带宽、内存和坏网络结果；清点 RepGraph、SubObject、自定义序列化。</p></div>
+            <div class="migration__step"><small>STAGE 1</small><b>双路启动</b><p>启用插件与编译依赖，默认仍可 Generic；用命令行建立 Iris / Generic A/B。</p></div>
+            <div class="migration__step"><small>STAGE 2</small><b>兼容性</b><p>注册 SubObject，修正 Fragment、FastArray、NetSerialize，并替换 RepGraph 专用逻辑。</p></div>
+            <div class="migration__step"><small>STAGE 3</small><b>配置与性能</b><p>按类调 Poll、Filter、Priority、Delta；分开扩对象、扩连接与坏网络。</p></div>
+            <div class="migration__step"><small>STAGE 4</small><b>默认与回退</b><p>项目默认 Iris，CI 保留双路冒烟；演练进程重启式回退，不依赖热切换。</p></div>
+          </div>
+
+          <h3>迁移前必须单独处理的差异</h3>
+          <div class="table-wrap" role="region" aria-label="Iris 迁移差异" tabindex="0">
+            <table>
+              <thead><tr><th>Legacy 资产 / 行为</th><th>Iris 迁移动作</th><th>证据</th></tr></thead>
+              <tbody>
+                <tr><td><code>ReplicateSubobjects</code> 虚函数路径</td><td>启用并维护 Registered SubObject List</td><td>SubObject 创建、销毁、属性、RPC 冒烟</td></tr>
+                <tr><td>普通 UObject SubObject</td><td>实现 <code>RegisterReplicationFragments</code></td><td>Descriptor / Protocol 创建无警告</td></tr>
+                <tr><td>Replication Graph</td><td>迁移到 Iris Filter / Prioritizer / Groups</td><td>每连接相关性与预算对照</td></tr>
+                <tr><td>自定义 <code>NetSerialize</code></td><td>专用 NetSerializer 或经过验证的反射路径</td><td>跨版本、坏网络和边界值测试</td></tr>
+                <tr><td>Legacy priority / relevancy override</td><td>显式 Iris API 或类配置</td><td>PrintNetInfo + Networking Insights</td></tr>
+                <tr><td>无缝旅行 GameMode 切换</td><td>保持同一 NetDriver 的系统选择一致</td><td>旅行全链路无兼容性 ensure</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>故障矩阵</h3>
+          <div class="table-wrap" role="region" aria-label="Iris 配置故障矩阵" tabindex="0">
+            <table>
+              <thead><tr><th>症状</th><th>第一检查点</th><th>常见原因</th><th>动作</th></tr></thead>
+              <tbody>
+                <tr><td>命令行 1 仍使用 Generic</td><td><code>IrisNetDriverConfigs</code> 与模块</td><td>未命中 bCanUseIris；插件未启用</td><td>先修资格 / 装载，不继续调 Filter</td></tr>
+                <tr><td>运行中改 CVar 没变化</td><td>NetDriver 创建时间</td><td>已有 Driver 不热切换</td><td>结束并重建网络会话</td></tr>
+                <tr><td>FilterName 找不到</td><td>Definitions</td><td>未注册、类路径拼错、ConfigClass 无效</td><td>先验证定义层，再看类映射</td></tr>
+                <tr><td>Poll override 不生效</td><td>完整类路径与 CVar</td><td>父子类覆盖、override 关闭、完全 Push</td><td>打印 Push 状态并核对类树</td></tr>
+                <tr><td>边界对象闪烁</td><td>Grid / Hysteresis</td><td>Cell / Cull / 速度不匹配、帧数过小</td><td>先复现轨迹，再调 Profile</td></tr>
+                <tr><td>多 PIE 查到错误状态</td><td>RepSystemId</td><td>命令默认查 0</td><td>记录创建日志并显式传 ID</td></tr>
+                <tr><td>无缝旅行出现 ensure</td><td>GameMode 系统要求</td><td>新旧模式要求不同复制系统</td><td>统一选择或重建会话</td></tr>
+                <tr><td>启用后内存突然增大</td><td>预分配与容量</td><td>对象列表、Chunk Buffer、Delta 容量过度</td><td>用 LLM 和峰值对象数重新定容</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>上线检查清单</h3>
+          <div class="checklist">
+            <div>
+              <h3>配置</h3>
+              <ul>
+                <li>插件、Build.cs、Engine.ini 意图一致</li>
+                <li>每个 NetDriverDefinition 都有明确策略</li>
+                <li>Filter / Prioritizer 名字先注册后映射</li>
+                <li>示例类名全部替换为真实路径</li>
+                <li>容量由峰值和内存数据决定</li>
+              </ul>
+            </div>
+            <div>
+              <h3>正确性</h3>
+              <ul>
+                <li>Dedicated / Listen / Client 全覆盖</li>
+                <li>SubObject、RPC、条件复制通过</li>
+                <li>无缝旅行保持系统选择一致</li>
+                <li>多 PIE 显式记录 RepSystemId</li>
+                <li>丢包、延迟和乱序分别测试</li>
+              </ul>
+            </div>
+            <div>
+              <h3>运维</h3>
+              <ul>
+                <li>CI 保留 Iris / Generic 双路冒烟</li>
+                <li>回退需要重启 / 重建会话</li>
+                <li>保存版本、CVar 与配置快照</li>
+                <li>建立对象数、带宽、CPU、内存阈值</li>
+                <li>发布前关闭临时调试开关</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3>参数速查</h3>
+          <div class="table-wrap" role="region" aria-label="Iris 配置速查" tabindex="0">
+            <table>
+              <thead><tr><th>目标</th><th>配置入口</th><th>验证</th></tr></thead>
+              <tbody>
+                <tr><td>允许 GameNetDriver 使用 Iris</td><td><code>IrisNetDriverConfigs</code></td><td>WillNetDriverUseIris / IsUsingIrisReplication</td></tr>
+                <tr><td>设为项目默认</td><td><code>net.Iris.UseIrisReplication=1</code></td><td>新 Driver 创建日志</td></tr>
+                <tr><td>按类降 / 升轮询</td><td><code>PollConfigs</code></td><td>Poll Count / Waste 与状态延迟</td></tr>
+                <tr><td>按类空间裁剪</td><td><code>FilterConfigs</code> + Grid Config</td><td>RelevantObjects / NetInfo</td></tr>
+                <tr><td>改变预算先后</td><td><code>PrioritizerConfigs</code> + Prioritizer Config</td><td>Priority、scheduled / replicated</td></tr>
+                <tr><td>稳定边界</td><td>Grid Profiles + HysteresisProfiles</td><td>进入 / 离开作用域延迟</td></tr>
+                <tr><td>扩大系统容量</td><td><code>ReplicationSystemConfigServer / Client</code></td><td>对象峰值、扩容尖峰、LLM</td></tr>
+                <tr><td>多 PIE 定位实例</td><td><code>RepSystemId=X</code></td><td>系统创建日志与对象清单</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="sources">文章来源与技术依据</h3>
+          <p>本篇由 Jossy Zhang 根据系列大纲原创扩写。技术行为以本地 Unreal Engine 5.7.4 源码为准；Epic Games 官方文档用于公开接入、迁移、过滤、优先级和调试契约。本次未修改或编译 UE 源码，也未执行 ReplicationSystemTestPlugin 自动化测试或真实项目联机压测。</p>
+
+          <h3>Epic Games 官方资料</h3>
+          <div class="sources">
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/introduction-to-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Introduction to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/migrate-to-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Migrate to Iris</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-filtering-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Iris Filtering</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-prioritization-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Iris Prioritization</a>
+            <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/console-commands-for-network-debugging-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Network Debug Commands</a>
+            <a href="https://zhuanlan.zhihu.com/p/1996685633524089868" target="_blank" rel="noopener noreferrer">系列大纲原文</a>
+          </div>
+
+          <h3>UE 5.7.4 关键源码</h3>
+          <div class="tree">Engine/Plugins/Experimental/Iris/
+├─ Iris.uplugin
+└─ Source/Iris/Private/Iris/IrisModule.cpp
+
+Engine/Source/Runtime/Net/Iris/
+├─ Private/Iris/IrisCoreModule.cpp
+├─ Public/Iris/IrisConfig.h
+├─ Private/Iris/IrisConfig.cpp
+├─ Public/Iris/ReplicationSystem/
+│  ├─ ObjectReplicationBridgeConfig.h
+│  ├─ ReplicationSystem.h
+│  ├─ Filtering/NetObjectGridFilter.h
+│  ├─ Filtering/ReplicationFilteringConfig.h
+│  └─ Prioritization/
+└─ Private/Iris/ReplicationSystem/
+   ├─ ReplicationSystem.cpp
+   ├─ ObjectReplicationBridge.cpp
+   └─ ObjectReplicationBridgeDebugging.cpp
+
+Engine/Source/Runtime/Engine/
+├─ Classes/Engine/Engine.h
+├─ Classes/Engine/NetDriver.h
+├─ Classes/Engine/GameInstance.h
+├─ Classes/GameFramework/GameModeBase.h
+└─ Private/
+   ├─ UnrealEngine.cpp
+   ├─ NetDriver.cpp
+   ├─ GameInstance.cpp
+   └─ World.cpp
+
+Engine/Config/BaseEngine.ini</div>
+
+          <h3>本篇结论</h3>
+          <div class="cards">
+            <div class="card card--green"><small>CONTRACT</small><h3>五道门</h3><p>代码、模块、资格、策略、实例必须同时成立，开一个 CVar 不能替代整条契约。</p></div>
+            <div class="card"><small>LAYERS</small><h3>三层配置</h3><p>名字注册、Gameplay 类映射、算法参数分层验证，避免“有名字没实现”或“有参数没对象”。</p></div>
+            <div class="card card--signal"><small>OPERATE</small><h3>可回退迁移</h3><p>按 NetDriver / 进程做双路启动，使用同一证据链比较，回退靠重建会话而不是热切换。</p></div>
+          </div>
+
+          <div class="pullquote">工程化接入 Iris 的完成标志，不是配置文件里出现了多少参数，而是团队能证明：哪个 NetDriver 为什么选择 Iris、创建了哪个 RepSystem、每条类映射何时生效，以及怎样安全回退。</div>
+
+          <p>下一部分将进入高级主题：自定义 Filter / Prioritizer / ReplicationFragment、大规模多人优化，以及 Iris 与 GAS、网络物理和 AI 的系统边界。</p>
+
+          <nav class="chapter-nav" aria-label="系列文章导航">
+            <a href="/html-articles/ue5-iris-guide-part-15/"><span>← PREVIOUS</span><b>第十五部分：调试与性能分析</b></a>
+            <a href="/html-articles/ue5-iris-guide-part-17/"><span>NEXT →</span><b>第十七部分：高级主题</b></a>
+          </nav>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <p>UE5 Iris 网络复制系统技术分析 · 第十六部分</p>
+    <p>原创扩写与整理：Jossy Zhang · 技术基线：Unreal Engine 5.7.4</p>
+    <p><a href="/ue5-iris-guide/">返回系列目录</a> · <a href="/">返回博客首页</a></p>
+  </footer>
+
+  <button class="back-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.reading-progress');
+      const backTop = document.querySelector('.back-top');
+      const sections = [...document.querySelectorAll('article section[id]')];
+      const tocLinks = [...document.querySelectorAll('.toc a')];
+      const mobileToc = document.querySelector('.toc-mobile');
+
+      const updateScrollUI = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = `${maxScroll > 0 ? Math.min(100, scrollTop / maxScroll * 100) : 0}%`;
+        backTop.classList.toggle('is-visible', scrollTop > 650);
+
+        if (sections.length) {
+          const firstSectionTop = sections[0].getBoundingClientRect().top + scrollTop;
+          if (scrollTop < firstSectionTop - window.innerHeight * .18) {
+            tocLinks.forEach((link, index) => {
+              if (index === 0) link.setAttribute('aria-current', 'true');
+              else link.removeAttribute('aria-current');
+            });
+          }
+        }
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+
+        if (!visible) return;
+        tocLinks.forEach((link) => {
+          const active = link.getAttribute('href') === `#${visible.target.id}`;
+          if (active) link.setAttribute('aria-current', 'true');
+          else link.removeAttribute('aria-current');
+        });
+      }, { rootMargin: '-18% 0px -66% 0px', threshold: [0, .05, .2] });
+
+      sections.forEach((section) => observer.observe(section));
+      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      window.addEventListener('resize', updateScrollUI);
+      updateScrollUI();
+
+      backTop.addEventListener('click', () => {
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+      });
+
+      document.querySelectorAll('.toc-mobile a').forEach((link) => {
+        link.addEventListener('click', () => { mobileToc.open = false; });
+      });
+    })();
+  </script>
+</body>
+</html>
