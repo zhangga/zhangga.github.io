@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第六部分：从 UNetObjectPrioritizer、内置空间优先级器、ReplicationView 到 Writer 累计调度与 800→120 完整实战。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-6/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第六部分：优先级系统 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: var(--iris);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+    }
+
+    a:hover {
+      color: var(--signal);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, 0.42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, 0.2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "IRIS";
+      position: absolute;
+      right: -0.04em;
+      bottom: -0.39em;
+      color: rgba(255, 255, 255, 0.045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -0.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner {
+      position: relative;
+      max-width: 1000px;
+      z-index: 1;
+    }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 28px;
+      color: #f3c3ae;
+      font: 700 0.76rem/1 var(--mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 42px;
+      height: 2px;
+      background: var(--signal);
+    }
+
+    h1 {
+      max-width: 1100px;
+      margin: 0;
+      font: 800 clamp(2.5rem, 5.4vw, 5rem) / 1.08 var(--serif);
+      letter-spacing: -0.04em;
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    .hero__deck {
+      max-width: 760px;
+      margin: 28px 0 0;
+      color: rgba(255, 253, 248, 0.75);
+      font: 400 clamp(1rem, 1.9vw, 1.25rem) / 1.8 var(--sans);
+    }
+
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 30px;
+      margin-top: 38px;
+      color: rgba(255, 253, 248, 0.8);
+      font: 600 0.84rem/1.6 var(--mono);
+    }
+
+    .hero__meta a {
+      color: #fff;
+    }
+
+    .hero__meta span {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hero__meta span::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 880px);
+      gap: clamp(44px, 6vw, 92px);
+      width: min(1260px, calc(100% - 56px));
+      margin: 0 auto;
+      padding: 68px 0 90px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 28px;
+      max-height: calc(100vh - 56px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.72);
+      box-shadow: 0 18px 50px rgba(25, 35, 58, 0.07);
+      backdrop-filter: blur(18px);
+    }
+
+    .toc__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toc__head strong {
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .toc__head span {
+      color: var(--signal);
+      font: 700 0.68rem/1 var(--mono);
+      letter-spacing: 0.1em;
+    }
+
+    .toc ol {
+      max-height: calc(100vh - 116px);
+      margin: 0;
+      padding: 10px 0 20px;
+      overflow: auto;
+      list-style: none;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .toc li {
+      margin: 0;
+    }
+
+    .toc a {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      padding: 9px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: 140ms ease;
+    }
+
+    .toc a:hover,
+    .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.08);
+      border-left-color: var(--signal);
+    }
+
+    .toc a span {
+      padding-top: 0.2em;
+      color: var(--signal);
+      font: 700 0.66rem/1.5 var(--mono);
+    }
+
+    .toc a b {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .toc-mobile {
+      display: none;
+    }
+
+    .article-shell {
+      min-width: 0;
+    }
+
+    .source-note {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin: 0 0 46px;
+      padding: 18px 20px;
+      background: var(--signal-soft);
+      border-left: 5px solid var(--signal);
+    }
+
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      color: #fff;
+      background: var(--signal);
+      border-radius: 50%;
+      font: 800 1rem/1 var(--serif);
+    }
+
+    .source-note p {
+      margin: 0;
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .source-note p strong {
+      display: block;
+      color: var(--iris-dark);
+    }
+
+    .source-note > a {
+      white-space: nowrap;
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    article {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    article > p,
+    article > ul,
+    article > blockquote,
+    article > .table-scroll,
+    article > figure,
+    article > .reading-link-wrap {
+      max-width: 790px;
+    }
+
+    article p {
+      margin: 1rem 0;
+    }
+
+    article h2 {
+      position: relative;
+      margin: 5.8rem 0 2rem;
+      padding: 0.8rem 0 1rem 56px;
+      color: var(--iris-dark);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font: 800 clamp(1.65rem, 3.2vw, 2.5rem) / 1.28 var(--serif);
+      letter-spacing: -0.025em;
+      scroll-margin-top: 28px;
+    }
+
+    article h2::before {
+      content: counter(chapter, decimal-leading-zero);
+      counter-increment: chapter;
+      position: absolute;
+      left: 0;
+      top: 1.15rem;
+      color: var(--signal);
+      font: 800 0.74rem/1 var(--mono);
+      letter-spacing: 0.08em;
+    }
+
+    article {
+      counter-reset: chapter;
+    }
+
+    article h3 {
+      margin: 3.2rem 0 1.15rem;
+      padding-left: 18px;
+      color: var(--ink);
+      border-left: 4px solid var(--iris);
+      font: 750 clamp(1.18rem, 2.1vw, 1.48rem) / 1.45 var(--serif);
+      scroll-margin-top: 28px;
+    }
+
+    article h2:first-of-type {
+      margin-top: 3rem;
+    }
+
+    article ul {
+      margin: 0.9rem 0 1.4rem;
+      padding-left: 1.35rem;
+    }
+
+    article ul ul {
+      margin: 0.45rem 0 0.7rem;
+      padding-left: 1.6rem;
+      border-left: 1px dashed var(--line);
+    }
+
+    article li {
+      margin: 0.32rem 0;
+      padding-left: 0.18rem;
+    }
+
+    article li::marker {
+      color: var(--signal);
+    }
+
+    article blockquote {
+      margin: 1.8rem 0;
+      padding: 20px 24px;
+      color: var(--iris-dark);
+      background: rgba(63, 79, 160, 0.075);
+      border-left: 5px solid var(--iris);
+      font-family: var(--serif);
+      font-size: 1.05rem;
+    }
+
+    article blockquote p {
+      margin: 0;
+    }
+
+    article hr {
+      width: 90px;
+      height: 8px;
+      margin: 5.5rem 0 0;
+      background:
+        linear-gradient(90deg, var(--signal) 0 26px, transparent 26px 32px, var(--iris) 32px 90px);
+      border: 0;
+    }
+
+    article code {
+      padding: 0.12em 0.38em;
+      color: #aa3f27;
+      background: #ece3d6;
+      border: 1px solid #d9ccbb;
+      border-radius: 3px;
+      font: 0.84em/1.5 var(--mono);
+      overflow-wrap: anywhere;
+    }
+
+    article strong {
+      color: var(--iris-dark);
+    }
+
+    article figure {
+      margin: 2rem 0 3rem;
+      padding: 10px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    article img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .reading-link-wrap {
+      margin: 1rem 0 2.4rem;
+    }
+
+    .reading-link {
+      display: grid;
+      gap: 5px;
+      padding: 22px 24px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--iris-dark);
+      border-right: 7px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(39, 53, 111, 0.2);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .reading-link:hover {
+      color: var(--white);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 42px rgba(39, 53, 111, 0.25);
+    }
+
+    .reading-link__label,
+    .reading-link__url {
+      color: rgba(255, 255, 255, 0.6);
+      font: 700 0.7rem/1.5 var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .reading-link strong {
+      color: var(--white);
+      font: 700 1.1rem/1.4 var(--serif);
+    }
+
+    .table-scroll {
+      margin: 2rem 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--white);
+      box-shadow: 0 14px 38px rgba(25, 35, 58, 0.07);
+    }
+
+    table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th,
+    td {
+      padding: 13px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      color: var(--white);
+      background: var(--iris-dark);
+      font-family: var(--serif);
+    }
+
+    .article-footer {
+      margin-top: 76px;
+      padding: 38px 0 0;
+      border-top: 3px solid var(--ink);
+    }
+
+    .article-footer__grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+    }
+
+    .article-footer h2 {
+      margin: 0 0 8px;
+      padding: 0;
+      border: 0;
+      font-size: 1.35rem;
+    }
+
+    .article-footer h2::before {
+      display: none;
+    }
+
+    .article-footer p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.86rem;
+    }
+
+    .article-footer a {
+      display: inline-block;
+      padding: 12px 16px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--signal);
+      font: 700 0.75rem/1 var(--mono);
+    }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border: 0;
+      border-radius: 50%;
+      box-shadow: 0 12px 32px rgba(25, 35, 58, 0.23);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: 160ms ease;
+    }
+
+    .back-top.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        display: block;
+        width: min(860px, calc(100% - 40px));
+        padding-top: 36px;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .toc-mobile {
+        display: block;
+        margin-bottom: 28px;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.85);
+      }
+
+      .toc-mobile summary {
+        padding: 15px 18px;
+        color: var(--iris-dark);
+        cursor: pointer;
+        font: 750 0.9rem/1.4 var(--serif);
+      }
+
+      .toc-mobile ol {
+        max-height: 52vh;
+        margin: 0;
+        padding: 8px 18px 18px 48px;
+        overflow: auto;
+      }
+
+      .toc-mobile li {
+        margin: 0.4rem 0;
+      }
+
+      .toc-mobile a {
+        font-size: 0.8rem;
+      }
+
+      .toc-mobile a span {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 16px;
+      }
+
+      h1 {
+        font-size: 2.18rem;
+        letter-spacing: -0.045em;
+      }
+
+      .hero {
+        padding: 54px 22px 52px;
+      }
+
+      .hero::before {
+        font-size: 50vw;
+        bottom: -0.23em;
+      }
+
+      .kicker {
+        margin-bottom: 22px;
+      }
+
+      .hero__meta {
+        display: grid;
+        gap: 8px;
+      }
+
+      .layout {
+        width: min(100% - 32px, 860px);
+        padding-bottom: 64px;
+      }
+
+      .source-note {
+        grid-template-columns: auto 1fr;
+      }
+
+      .source-note > a {
+        grid-column: 2;
+      }
+
+      article h2 {
+        margin-top: 4.6rem;
+        padding-left: 44px;
+      }
+
+      article h3 {
+        margin-top: 2.8rem;
+      }
+
+      .article-footer__grid {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .back-top {
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+
+    @media print {
+      .reading-progress,
+      .toc,
+      .toc-mobile,
+      .back-top {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+      }
+
+      .hero {
+        padding: 32px 0;
+        color: #000;
+        background: #fff;
+        border-bottom: 2px solid #000;
+      }
+
+      .hero::before {
+        display: none;
+      }
+
+      .hero__deck,
+      .hero__meta,
+      .hero__meta a {
+        color: #333;
+      }
+
+      .layout {
+        display: block;
+        width: 100%;
+        padding: 24px 0;
+      }
+
+      article h2,
+      article h3 {
+        break-after: avoid;
+      }
+
+      article a {
+        color: #000;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+
+    .hero--part h1 {
+      max-width: 1180px;
+      font-size: clamp(2.45rem, 4.5vw, 4.45rem);
+    }
+
+    article pre {
+      max-width: 100%;
+      margin: 1.4rem 0 1.8rem;
+      padding: 20px 22px;
+      overflow-x: auto;
+      color: #e9edf8;
+      background: #17203a;
+      border: 1px solid #303d68;
+      border-left: 5px solid var(--signal);
+      box-shadow: 0 14px 34px rgba(25, 35, 58, 0.13);
+      tab-size: 4;
+    }
+
+    article pre code {
+      display: block;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      white-space: pre;
+      overflow-wrap: normal;
+      font-size: 0.78rem;
+      line-height: 1.68;
+    }
+
+    @media (max-width: 640px) {
+      .hero--part h1 {
+        font-size: 2.05rem;
+      }
+
+      article pre {
+        margin-right: -4px;
+        padding: 16px;
+      }
+    }
+
+
+    article > ol {
+      max-width: 790px;
+    }
+
+    article ol {
+      margin: 0.9rem 0 1.4rem;
+      padding-left: 1.6rem;
+    }
+
+    article ol ol,
+    article ol ul,
+    article ul ol {
+      margin: 0.45rem 0 0.7rem;
+      padding-left: 1.6rem;
+      border-left: 1px dashed var(--line);
+    }
+
+
+    .article-callout {
+      margin: 2rem 0;
+      padding: 1.25rem 1.4rem;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--signal);
+      background: rgba(242, 214, 202, 0.38);
+    }
+
+    .article-callout strong {
+      color: var(--iris-dark);
+      font-family: var(--serif);
+      font-size: 1.08rem;
+    }
+
+    .article-callout p:last-child {
+      margin-bottom: 0;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.5 · Iris Replication System</p>
+      <h1>
+        <span>UE5-Iris 网络复制系统技术分析</span>
+        <span>第六部分：优先级系统</span>
+      </h1>
+      <p class="hero__deck">从“通过过滤后谁先发送”出发，深入 Prioritizer 接口、空间与数量限制算法、多视图、连接级累计调度，并用 800 个对象竞争单帧预算还原完整决策流水线。</p>
+      <div class="hero__meta" aria-label="文章信息">
+        <span>作者 Jossy Zhang</span>
+        <span>发布 2026-07-24</span>
+        <span>基于 Unreal Engine 5.5</span>
+        <span>13 个章节 · 33 个小节</span>
+        <span><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-prioritization-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">官方文档 ↗</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head">
+        <strong>内容索引</strong>
+        <span>CONTENTS</span>
+      </div>
+      <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>🎯 第六部分：优先级系统</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🧭 6.1 优先级系统概述</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>🧱 6.2 UNetObjectPrioritizer</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🧰 6.3 内置优先级器</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>👁️ 6.4 ReplicationView</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>⚙️ 6.5 配置与绑定</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>🔬 6.6 内部实现</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-08" data-section="section-08">
+          <span>08</span>
+          <b>🎮 6.7 完整实战</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-09" data-section="section-09">
+          <span>09</span>
+          <b>✅ 6.8 本章小结</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-10" data-section="section-10">
+          <span>10</span>
+          <b>🧯 常见问题与排查</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-11" data-section="section-11">
+          <span>11</span>
+          <b>⚡ 性能建议</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-12" data-section="section-12">
+          <span>12</span>
+          <b>📁 关键源码文件索引</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-13" data-section="section-13">
+          <span>13</span>
+          <b>💡 下一步</b>
+        </a>
+      </li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 13 个章节</summary>
+        <ol>
+      <li>
+        <a href="#section-01" data-section="section-01">
+          <span>01</span>
+          <b>🎯 第六部分：优先级系统</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-02" data-section="section-02">
+          <span>02</span>
+          <b>🧭 6.1 优先级系统概述</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-03" data-section="section-03">
+          <span>03</span>
+          <b>🧱 6.2 UNetObjectPrioritizer</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-04" data-section="section-04">
+          <span>04</span>
+          <b>🧰 6.3 内置优先级器</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-05" data-section="section-05">
+          <span>05</span>
+          <b>👁️ 6.4 ReplicationView</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-06" data-section="section-06">
+          <span>06</span>
+          <b>⚙️ 6.5 配置与绑定</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-07" data-section="section-07">
+          <span>07</span>
+          <b>🔬 6.6 内部实现</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-08" data-section="section-08">
+          <span>08</span>
+          <b>🎮 6.7 完整实战</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-09" data-section="section-09">
+          <span>09</span>
+          <b>✅ 6.8 本章小结</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-10" data-section="section-10">
+          <span>10</span>
+          <b>🧯 常见问题与排查</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-11" data-section="section-11">
+          <span>11</span>
+          <b>⚡ 性能建议</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-12" data-section="section-12">
+          <span>12</span>
+          <b>📁 关键源码文件索引</b>
+        </a>
+      </li>
+      <li>
+        <a href="#section-13" data-section="section-13">
+          <span>13</span>
+          <b>💡 下一步</b>
+        </a>
+      </li>
+        </ol>
+      </details>
+
+      <div class="source-note" role="note">
+        <span class="source-note__mark" aria-hidden="true">据</span>
+        <p><strong>技术依据</strong>本文为 Jossy Zhang 原创技术整理，以 Unreal Engine 5.5 Iris 官方文档与本机 5.5 引擎源码为准；Iris 位于 Experimental 模块，升级时请核对目标版本 API、默认值和配置定义。</p>
+        <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-prioritization-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">查看官方优先级文档 ↗</a>
+      </div>
+
+      <article>
+<h2 id="section-01" tabindex="-1">🎯 第六部分：优先级系统</h2>
+      <blockquote>
+        过滤系统决定“哪些包裹可以进入这条连接的仓库”，优先级系统决定“仓库里哪些包裹更值得先装车”；真正能否装进本帧数据包，最后仍由 Replication Writer 按状态成本和位预算裁决。
+      </blockquote>
+      <p>在一局百人战术竞技游戏里，即使空间过滤、队伍规则和 Owner Filtering 已把全服数万个对象压缩到某条连接可见的 800 个对象，这 800 个对象仍不可能每个网络 Tick 都完整发送。近处正在开火的敌人、自己的载具、远处的空投、比分板和地面物资，重要性并不相同；而且“这帧不重要”也不能等于“永远饿死”。</p>
+      <p>Iris 用一个很克制的模型解决这个问题：优先级器为候选对象计算一个 <strong>本 Tick 的优先级贡献值</strong>，Writer 把贡献累加到连接自己的调度优先级；达到阈值的脏对象进入调度候选，再按累计值排序，并在真实位预算下逐个写入。对象完整发送并变干净后，累计值才归零。</p>
+      <div class="article-callout">
+        <strong>先记住三层边界</strong>
+        <p><strong>Filtering</strong> 决定对象是否在连接作用域；<strong>Prioritization</strong> 计算本 Tick 应贡献多少优先级；<strong>Replication Writer</strong> 才负责阈值、累计、排序、依赖对象和位预算。把三者混成一个“限流器”，是配置 Iris 时最常见的认知错误。</p>
+      </div>
+      <p>本文以 <strong>Unreal Engine 5.5</strong> 官方文档和本机安装版引擎源码为基准。Iris 位于 Experimental 模块，不同小版本的默认值、配置定义与内部批处理细节可能变化；项目升级时请重新核对目标版本。</p>
+
+<h2 id="section-02" tabindex="-1">🧭 6.1 优先级系统概述</h2>
+      <h3 id="section-02-01" tabindex="-1">优先级位于哪一段流水线</h3>
+      <div><pre><code>服务器网络对象
+    ↓
+过滤：得到该连接的 ObjectsInScope
+    ↓
+轮询与脏状态：找出需要发送或重发的对象
+    ↓
+优先级器：计算本 Tick 的 priority contribution
+    ↓
+Writer：累加 → 阈值判断 → 降序排序
+    ↓
+Writer：按状态成本与位预算写包
+    ↓
+完整发送并变干净：累计调度优先级归零</code></pre></div>
+      <p>优先级不会让一个已被过滤掉的对象重新进入作用域，也不会直接承诺“本帧一定发送”。它只影响已经在作用域内、并且有更新或需要重发的对象之间的竞争顺序。</p>
+
+      <h3 id="section-02-02" tabindex="-1">静态优先级与动态优先级</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>类型</th><th>计算方式</th><th>适合对象</th><th>典型 API</th></tr></thead>
+        <tbody>
+          <tr><td>静态优先级</td><td>每个 Tick 使用固定贡献值</td><td>比赛阶段、规则对象、低频全局状态</td><td><code>SetStaticPriority(Handle, Priority)</code></td></tr>
+          <tr><td>动态优先级</td><td>由 Prioritizer 根据连接、视图、位置或拥有关系批量计算</td><td>玩家、载具、投射物、空间物品</td><td><code>SetPrioritizer(Handle, PrioritizerHandle)</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>没有显式设置静态优先级或 Prioritizer 的对象，默认静态优先级是 <code>1.0</code>。而带有效世界位置标签的对象，可以由默认空间 Prioritizer 自动接管，前提是默认定义存在且对象能提供位置。</p>
+
+      <h3 id="section-02-03" tabindex="-1">数值不是“概率”，而是调度贡献</h3>
+      <p>官方语义以 <code>1.0</code> 为关键门槛：累计调度优先级低于 1 的对象，本 Tick 不进入普通调度候选；达到或超过 1，且对象有脏状态，才会被考虑。以一个持续脏的远距离对象为例：</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Tick</th><th>本 Tick 贡献</th><th>累计调度优先级</th><th>结果</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>0.25</td><td>0.25</td><td>未过阈值</td></tr>
+          <tr><td>2</td><td>0.25</td><td>0.50</td><td>未过阈值</td></tr>
+          <tr><td>3</td><td>0.25</td><td>0.75</td><td>未过阈值</td></tr>
+          <tr><td>4</td><td>0.25</td><td>1.00</td><td>进入 Writer 候选</td></tr>
+          <tr><td>5</td><td>0.25</td><td>1.25</td><td>若上帧没装下，竞争力继续上升</td></tr>
+        </tbody>
+      </table></div>
+      <p>因此 <code>0.25</code> 更接近“理想情况下约每 4 个网络 Tick 获得一次发送资格”，而不是 25% 的随机概率。它能自然缓解饥饿：只要对象持续需要发送，没被写入的时间越久，累计值越高。</p>
+
+      <h3 id="section-02-04" tabindex="-1">何时计算，何时重置</h3>
+      <p><code>FReplicationPrioritization::Prioritize()</code> 会在发送更新流程中处理新建/删除对象、通知脏对象、调用 Prioritizer 的前置阶段，再逐连接计算动态优先级。随后 <code>FReplicationWriter::UpdatePriorities()</code> 将结果加到该连接的 <code>SchedulingPriorities</code>。</p>
+      <p>重置发生在 Writer 侧：对象状态完整写出并已干净时，调度优先级清零。若受位预算、附件、子对象或仍有脏状态影响而未完整完成，它不会简单地因为“被考虑过”就归零。丢失状态和新建对象也有各自的优先级增益路径，所以调试时必须观察 Writer 的累计值，而不能只截取 Prioritizer 单帧输出。</p>
+
+<h2 id="section-03" tabindex="-1">🧱 6.2 UNetObjectPrioritizer</h2>
+      <h3 id="section-03-01" tabindex="-1">基类职责与生命周期</h3>
+      <p><code>UNetObjectPrioritizer</code> 是动态优先级器的基类。它围绕 Iris 内部对象索引和批量参数工作，而不是每条连接遍历所有 UObject。主要回调可按生命周期理解：</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>回调</th><th>发生时机</th><th>实现关注点</th></tr></thead>
+        <tbody>
+          <tr><td><code>Init / Deinit</code></td><td>优先级器创建与销毁</td><td>读取配置、缓存系统指针、分配数组</td></tr>
+          <tr><td><code>AddConnection / RemoveConnection</code></td><td>连接进入或离开</td><td>维护每连接状态</td></tr>
+          <tr><td><code>AddObject / RemoveObject</code></td><td>对象绑定或解绑该优先级器</td><td>申请/释放对象私有信息；可拒绝不支持的对象</td></tr>
+          <tr><td><code>UpdateObjects</code></td><td>相关对象变脏后批量更新</td><td>把 UObject/复制状态转换成紧凑缓存</td></tr>
+          <tr><td><code>PrePrioritize</code></td><td>本轮所有连接计算前恰好一次</td><td>构建跨连接共享的临时数据</td></tr>
+          <tr><td><code>Prioritize</code></td><td>按连接、按批次调用</td><td>只修改输出 Priority，并保留更高已有值</td></tr>
+          <tr><td><code>PostPrioritize</code></td><td>所有连接计算完成后一次</td><td>清理本轮临时状态</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="section-03-02" tabindex="-1">8 字节的 FNetObjectPrioritizationInfo</h3>
+      <p>每个动态优先级器可以为对象保存一份紧凑私有信息。UE 5.5 中 <code>FNetObjectPrioritizationInfo</code> 按 8 字节对齐，内部是四个 <code>uint16</code>，总计正好 8 字节。内置实现会在此基础上解释字段，例如位置型优先级器保存状态偏移、状态索引和已分配的位置索引。</p>
+      <div><pre><code>// UE 5.5 结构摘录（为聚焦语义省略宏和命名空间）
+struct alignas(8) FNetObjectPrioritizationInfo
+{
+    uint16 Data[4];
+};</code></pre></div>
+      <p>这个设计提醒自定义实现：对象级热数据应该紧凑、可批处理。复杂业务对象、字符串或稀疏映射不应直接塞进逐对象热路径；更大的数据可以放在 Prioritizer 自己管理的 chunked array 中，再让这 8 字节保存索引。</p>
+
+      <h3 id="section-03-03" tabindex="-1">Prioritize 参数里有什么</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>字段</th><th>含义</th></tr></thead>
+        <tbody>
+          <tr><td><code>ObjectIndices / ObjectCount</code></td><td>分配给当前 Prioritizer，且本轮需要优先级更新的对象</td></tr>
+          <tr><td><code>Priorities</code></td><td>按 Iris 内部索引访问的浮点优先级数组；这是回调允许修改的输出</td></tr>
+          <tr><td><code>PrioritizationInfos</code></td><td>每对象 8 字节私有信息</td></tr>
+          <tr><td><code>ConnectionId</code></td><td>当前正在计算的连接</td></tr>
+          <tr><td><code>View</code></td><td>该父连接及其子连接的一个或多个复制视图</td></tr>
+        </tbody>
+      </table></div>
+      <p>接口契约要求实现不能无条件覆盖已有值，而应保留两者中的较大值。可把核心规则理解为：</p>
+      <div><pre><code>// 解释性伪代码，不是引擎逐字源码
+for (ObjectIndex : Params.ObjectIndices)
+{
+    const float Calculated = CalculateForConnection(ObjectIndex, Params.View);
+    Params.Priorities[ObjectIndex] =
+        Max(Params.Priorities[ObjectIndex], Calculated);
+}</code></pre></div>
+      <p>注意：UE 5.5 的 <code>FReplicationPrioritization</code> 为每个对象保存一个动态 Prioritizer 索引，公共设置路径并不是让一个对象同时挂多个独立 Prioritizer。这里的“保留较大值”是回调契约，可保护默认值、先前贡献或实现内部组合结果，不能据此推导出任意多 Prioritizer 自动叠加。</p>
+
+      <h3 id="section-03-04" tabindex="-1">与过滤系统如何协作</h3>
+      <p>Prioritizer 看到的不是全服对象集合，而是 Writer 判定需要优先级更新的候选。过滤系统先决定对象能否进入某连接作用域；拥有关系也可由 <code>FReplicationFiltering</code> 提供给 Owner Boost 和 Count Limiter 更新缓存。两者会共享连接和对象事实，但职责仍然不同。</p>
+      <div class="article-callout">
+        <strong>Owner Boost ≠ Owner Filtering</strong>
+        <p>Owner Filtering 是可见性规则：非拥有连接根本不接收对象。Owner Boost 是排序偏好：其他通过过滤的连接仍可接收，只是拥有者连接的优先级更高。隐私、权限和反作弊规则必须由过滤或业务授权保证，不能依赖 Boost。</p>
+      </div>
+
+<h2 id="section-04" tabindex="-1">🧰 6.3 内置优先级器</h2>
+      <h3 id="section-04-01" tabindex="-1">LocationBased：所有空间实现的共同底座</h3>
+      <p><code>ULocationBasedNetObjectPrioritizer</code> 负责把网络对象位置转换为适合批量计算的缓存。它优先从 Iris 的 <code>FWorldLocations</code> 取得位置；若没有，则尝试从带 <code>RepTag_WorldLocation</code> 的复制状态成员读取。两者都不存在时，<code>AddObject</code> 会失败，调用方最终可能回落到静态优先级。</p>
+      <p>位置缓存在 <code>TChunkedArray&lt;VectorRegister&gt;</code> 中，以位数组跟踪已使用槽位。对象移除时释放位置索引；对象更新时从 WorldLocations 或外部状态 Fragment 刷新缓存。这样 Sphere 和 FOV 的逐连接热循环可以直接读取连续、向量化友好的位置数据。</p>
+
+      <h3 id="section-04-02" tabindex="-1">Sphere：距离越近，贡献越高</h3>
+      <p><code>USphereNetObjectPrioritizer</code> 定义内球、外球和球外三段：</p>
+      <ul>
+        <li>内球以内使用 <code>InnerPriority</code>；</li>
+        <li>内外半径之间按距离从 InnerPriority 线性下降到 OuterPriority；</li>
+        <li>外球以外使用 <code>OutsidePriority</code>。</li>
+      </ul>
+      <div><pre><code>// 概念模型
+distance &lt;= InnerRadius:
+    priority = InnerPriority
+
+InnerRadius &lt; distance &lt; OuterRadius:
+    priority = Lerp(InnerPriority, OuterPriority, normalizedDistance)
+
+distance &gt;= OuterRadius:
+    priority = OutsidePriority</code></pre></div>
+      <p>UE 5.5 本机头文件的构造默认值是：内半径 2000、外半径 10000、内优先级 1.0、外优先级 0.2、球外优先级 0.1。Epic 的 UE 5.5 优先级文档页面示例曾展示 1000/5000 的半径组合，因此生产项目应在自己的配置中显式写出参数，不要依赖记忆中的“默认值”。</p>
+      <p>实现以最多 1024 个对象为一批，按四个对象做 VectorRegister/SIMD 计算，并分别优化单视图、双视图和多视图。双/多视图取对象到所有 View 中的最近距离；多于 8 个 View 时，内部视图位置临时数组会触发额外分配警告。</p>
+
+      <h3 id="section-04-03" tabindex="-1">SphereWithOwnerBoost：空间结果上再加拥有者奖励</h3>
+      <p><code>USphereWithOwnerBoostNetObjectPrioritizer</code> 先执行 Sphere，再对当前连接拥有的对象加上 <code>OwnerPriorityBoost</code>。UE 5.5 默认 Boost 为 2.0，采用加法而不是乘法：</p>
+      <div><pre><code>// 解释性模型
+Priority = SpherePriority;
+if (OwningConnection == Params.ConnectionId)
+{
+    Priority += OwnerPriorityBoost;
+}</code></pre></div>
+      <p>它通过过滤系统获取对象的 Owning Connection，并把连接 ID 缓存在分块数组中。适合自己的 Pawn、载具或关键交互对象需要比同距离其他对象更及时的场景，但依然不改变其他连接的可见性。</p>
+
+      <h3 id="section-04-04" tabindex="-1">FieldOfView：视线、锥体和近身保障取最大值</h3>
+      <p><code>UFieldOfViewNetObjectPrioritizer</code> 同时计算四类几何贡献，最后取最大值：</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>区域</th><th>作用</th><th>UE 5.5 默认要点</th></tr></thead>
+        <tbody>
+          <tr><td>内球</td><td>近身对象不因玩家背对而降级</td><td>半径 3000，优先级 1.0</td></tr>
+          <tr><td>外球</td><td>给较远的四周对象一个保底</td><td>半径 10000，优先级 0.2</td></tr>
+          <tr><td>视野锥</td><td>视线方向内对象按距离衰减</td><td>45°，内锥长 3000，总长 20000，1.0 → 0.2</td></tr>
+          <tr><td>视线胶囊</td><td>瞄准方向上的窄通道保持高优先级</td><td>宽 200，优先级 1.0</td></tr>
+          <tr><td>区域外</td><td>最低保底贡献</td><td>0.1</td></tr>
+        </tbody>
+      </table></div>
+      <p>一个容易误读的细节是：<code>FReplicationView::FView</code> 确实携带 <code>FoVRadians</code>，但 UE 5.5 这个内置 FOV Prioritizer 构造锥体时使用配置项 <code>ConeFieldOfViewDegrees</code>，并非按每个 View 的 FoVRadians 动态改变锥角。View 的方向和位置仍参与计算。</p>
+      <p>FOV 同样按四对象向量化和最多 1024 个对象分批，但方向相关几何使它对多 View 逐个循环，而不像 Sphere 那样有独立双视图最近距离快路径。</p>
+
+      <h3 id="section-04-05" tabindex="-1">NetObjectCountLimiter：控制“本轮给谁贡献”，不是连接带宽上限</h3>
+      <p><code>UNetObjectCountLimiter</code> 适合大量同类、低频但需要轮流更新的对象，例如 PlayerState、远端排行榜条目或低重要度全局信息。它有两种模式：</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>模式</th><th>选择方式</th><th>优势</th><th>代价/陷阱</th></tr></thead>
+        <tbody>
+          <tr><td>RoundRobin</td><td>每次预选全局下一批 N 个对象</td><td>成本稳定、天然轮转</td><td>若被选对象不脏，即使其他对象脏，本轮也可能一个都不贡献</td></tr>
+          <tr><td>Fill</td><td>逐连接从脏对象中选择最久未被考虑的 N 个</td><td>尽量填满配额，更关注当前脏集合</td><td>排序成本更高；若一个连接拆成多批，需增大批次或改 RoundRobin</td></tr>
+        </tbody>
+      </table></div>
+      <p><code>MaxObjectCount</code> 表示这个 Prioritizer 每轮选择多少对象设置 Priority；拥有对象可进入 Fast Lane，不计入 MaxObjectCount，并使用 <code>OwningConnectionPriority</code>。它不保证恰好发送 N 个对象，更不限制其他 Prioritizer 或静态对象。被选对象仍要跨过 Writer 阈值、参与排序并消耗真实位预算。</p>
+      <p>UE 5.5 中 <code>Mode</code> 不是 <code>UPROPERTY(Config)</code>，不能指望仅靠普通 ini 覆盖切换；内置 <code>UPlayerStateCountLimiterConfig</code> 在 C++ 构造函数里把它设为 Fill，同时配置 MaxObjectCount=2、Priority=1、OwningConnectionPriority=2 并启用 Fast Lane。自定义模式时，最稳妥的做法是派生配置类并在构造函数中设置。</p>
+
+<h2 id="section-05" tabindex="-1">👁️ 6.4 ReplicationView</h2>
+      <h3 id="section-05-01" tabindex="-1">FView 的五个事实</h3>
+      <div><pre><code>// UE 5.5 结构含义摘录
+struct FView
+{
+    FNetHandle Controller;   // 通常是 PlayerController
+    FNetHandle ViewTarget;   // 通常是正在观察的 Pawn/Actor
+    FVector Pos;             // 观察位置
+    FVector Dir;             // 观察方向
+    float FoVRadians;        // 默认 UE_HALF_PI
+};</code></pre></div>
+      <p><code>FReplicationView</code> 内部是 View 数组，默认内联容量由 <code>UE_IRIS_INLINE_VIEWS_PER_CONNECTION</code> 控制，UE 5.5 默认为 4。空间过滤和空间优先级都可消费它，因此错误的 View 不只影响“先发谁”，也可能影响“谁在作用域”。</p>
+
+      <h3 id="section-05-02" tabindex="-1">NetDriver 如何填充 View</h3>
+      <p>在 Iris 发送更新前，<code>UNetDriver::UpdateIrisReplicationViews()</code> 会更新连接视图，然后调用 <code>UReplicationSystem::SetReplicationView()</code>。服务端对每个主连接组合主连接和所有 Child Connection：</p>
+      <ol>
+        <li>若在服务端，先通过 <code>GetConnectionViewTarget()</code> 刷新连接 ViewTarget；</li>
+        <li>若有 ViewTarget，先用它的 Actor 位置、旋转和 NetHandle；</li>
+        <li>若有 PlayerController，再以 <code>GetPlayerViewPoint()</code> 覆盖 Pos/Dir，并写 Controller Handle；</li>
+        <li>若存在 PlayerCameraManager，用当前 FOV Angle 写入 FoVRadians；</li>
+        <li>主连接和所有子连接的 FView 一起存到父 ConnectionId。</li>
+      </ol>
+      <p>这解释了为什么第三人称相机、观战、切换 ViewTarget 或分屏问题，常常表现为“空间优先级不对”。服务器最终使用的是连接维护的观察信息，而不是简单读取 Pawn 根组件。</p>
+
+      <h3 id="section-05-03" tabindex="-1">多视图语义：对任一观察者重要就不能忽略</h3>
+      <p>分屏时一条父连接可能代表多个玩家。Sphere 会取对象到所有 View 的最小距离，所以对象只要靠近其中任一视图，就得到较高空间优先级。FOV 则逐 View 计算锥体、视线胶囊与球体，再保留最大贡献。</p>
+      <div class="article-callout">
+        <strong>性能边界</strong>
+        <p>默认内联 View 容量是 4；Sphere 的多视图临时快路径内联 8 个位置。普通游戏通常远低于此数，但自定义多摄像机、服务器观察器或特殊分屏方案应测量 View 数量与热路径分配。</p>
+      </div>
+
+<h2 id="section-06" tabindex="-1">⚙️ 6.5 配置与绑定</h2>
+      <h3 id="section-06-01" tabindex="-1">先注册定义，再按类或运行时绑定</h3>
+      <p>Prioritizer 定义把“名字、实现类、配置类”关联起来。下面是一个命名一致的项目示例；它展示结构，不要求照搬数值：</p>
+      <div><pre><code>; DefaultEngine.ini — 配置示例
+[/Script/IrisCore.NetObjectPrioritizerDefinitions]
++NetObjectPrioritizerDefinitions=(PrioritizerName=BattleRoyaleSpatial,ClassName=/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizer,ConfigClassName=/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizerConfig)
++NetObjectPrioritizerDefinitions=(PrioritizerName=AimAwareSpatial,ClassName=/Script/IrisCore.FieldOfViewNetObjectPrioritizer,ConfigClassName=/Script/IrisCore.FieldOfViewNetObjectPrioritizerConfig)
++NetObjectPrioritizerDefinitions=(PrioritizerName=FarInfoLimiter,ClassName=/Script/IrisCore.NetObjectCountLimiter,ConfigClassName=/Script/MyGame.FarInfoLimiterConfig)
+
+[/Script/IrisCore.SphereWithOwnerBoostNetObjectPrioritizerConfig]
+InnerRadius=2500.0
+OuterRadius=18000.0
+InnerPriority=1.0
+OuterPriority=0.25
+OutsidePriority=0.1
+OwnerPriorityBoost=2.0
+
+[/Script/IrisCore.ObjectReplicationBridgeConfig]
++PrioritizerConfigs=(ClassName=/Script/MyGame.BRCharacter,PrioritizerName=BattleRoyaleSpatial,bForceEnableOnAllInstances=true)
++PrioritizerConfigs=(ClassName=/Script/MyGame.Projectile,PrioritizerName=AimAwareSpatial,bForceEnableOnAllInstances=true)
++PrioritizerConfigs=(ClassName=/Script/MyGame.FarInfo,PrioritizerName=FarInfoLimiter,bForceEnableOnAllInstances=true)</code></pre></div>
+      <p>Count Limiter 的自定义 <code>FarInfoLimiterConfig</code> 应在 C++ 构造函数中明确设置 RoundRobin 或 Fill，因为 UE 5.5 的 Mode 不是 Config 属性。配置类可以继续通过 ini 调整 MaxObjectCount、Priority、OwningConnectionPriority 和 Fast Lane。</p>
+
+      <h3 id="section-06-02" tabindex="-1">运行时 API：静态值和动态实现互斥切换</h3>
+      <div><pre><code>// C++ 用法示意；Handle 获取方式取决于你的 Bridge/对象注册路径
+UReplicationSystem* ReplicationSystem = ...;
+FNetRefHandle ObjectHandle = ...;
+
+// 低频全局对象：每 5 个网络 Tick 左右获得一次普通资格
+ReplicationSystem-&gt;SetStaticPriority(ObjectHandle, 0.2f);
+
+// 切换为空间动态优先级
+const FNetObjectPrioritizerHandle SpatialHandle =
+    ReplicationSystem-&gt;GetPrioritizerHandle(TEXT("BattleRoyaleSpatial"));
+
+if (SpatialHandle != InvalidNetObjectPrioritizerHandle)
+{
+    const bool bApplied =
+        ReplicationSystem-&gt;SetPrioritizer(ObjectHandle, SpatialHandle);
+}</code></pre></div>
+      <p><code>SetStaticPriority</code> 会移除对象原来的动态 Prioritizer；<code>SetPrioritizer</code> 会把默认静态值设为 0、注销旧实现，再调用新实现的 AddObject。若新实现拒绝对象，例如空间 Prioritizer 找不到位置，源码会记录日志并回退到可用的静态策略。调用方仍应检查返回值。</p>
+
+      <h3 id="section-06-03" tabindex="-1">默认定义与类配置的版本陷阱</h3>
+      <p>UE 5.5 安装版 <code>BaseEngine.ini</code> 中，Prioritizer 定义使用过 <code>PlayerStatePrioritizer</code>，而 ObjectReplicationBridge 的类映射和配置类注释却引用 <code>PlayerState</code>。因为 <code>GetPrioritizerHandle()</code> 是按名字线性精确匹配，项目不应盲目复制这组不一致片段。</p>
+      <p>稳妥做法是：在项目最终合并配置中用同一个名字注册和引用，启动时检查无效 Handle/Verbose 日志，并在引擎升级后对比目标版本 <code>BaseEngine.ini</code>。这里讨论的是 UE 5.5 安装版配置现象，不代表所有 5.5 分支或后续版本都相同。</p>
+
+      <h3 id="section-06-04" tabindex="-1">DefaultPrioritizer 的特殊位置</h3>
+      <p>第一个有效定义是默认空间 Prioritizer，Handle 0 具有特殊含义。源码也识别名字 <code>DefaultPrioritizer</code>。对象带有效 <code>RepTag_WorldLocation</code> 时可以自动应用默认实现；若项目重排定义、删除默认项或让默认实现无法读取对象位置，行为会随之变化。</p>
+
+<h2 id="section-07" tabindex="-1">🔬 6.6 内部实现</h2>
+      <h3 id="section-07-01" tabindex="-1">FReplicationPrioritization 持有什么</h3>
+      <p>UE 5.5 的核心管理器维护：</p>
+      <ul>
+        <li>每个对象一个 <code>uint8</code> Prioritizer 索引，最多容纳 256 个定义；</li>
+        <li>每对象默认/静态优先级数组；</li>
+        <li>每连接的当前动态优先级数组；</li>
+        <li>新静态优先级、创建/删除对象和活跃 Prioritizer 的位集合；</li>
+        <li>已实例化的 Prioritizer 名称、对象和配置。</li>
+      </ul>
+      <p>对象位置和拥有者等扩展数据则由各 Prioritizer 以 <code>TChunkedArray</code> 管理。分块数组能按需增长，避免按“最大对象数 × 大结构”一次性分配，同时保持索引访问和批处理友好。</p>
+
+      <h3 id="section-07-02" tabindex="-1">Prioritize 的五段主流程</h3>
+      <div><pre><code>// 根据 UE 5.5 源码整理的流程，不是逐字复制
+1. UpdatePrioritiesForNewAndDeletedObjects()
+2. NotifyPrioritizersOfDirtyObjects()
+3. 对活跃 Prioritizer 调用 PrePrioritize()
+4. 逐连接：
+   a. 取得 Writer.GetObjectsRequiringPriorityUpdate()
+   b. PrioritizeForConnection()
+   c. Writer.UpdatePriorities()
+5. 对活跃 Prioritizer 调用 PostPrioritize()</code></pre></div>
+      <p>若当前没有待发送连接，流程会在通知脏对象后提前结束。若连接没有任何 View，逐连接计算也会跳过。该事实可用于排查“优先级器完全没被调用”的问题。</p>
+
+      <h3 id="section-07-03" tabindex="-1">脏对象更新与优先级计算是两种批处理</h3>
+      <p><code>FUpdateDirtyObjectsBatchHelper</code> 按 Prioritizer 分组脏对象和 Instance Protocol，每批最多 512 个，调用 <code>UpdateObjects</code>；<code>FPrioritizerBatchHelper</code> 则按 Prioritizer 收集当前连接候选，每批最多 1024 个，再调用 <code>Prioritize</code>。</p>
+      <p>这种“先按实现分桶，再批量调用”的结构减少虚函数切换和缓存抖动。自定义实现应顺着这个模型写连续循环，不要在每个对象上反查 UObject、做昂贵射线或临时分配。</p>
+
+      <h3 id="section-07-04" tabindex="-1">PrioritizeForConnection 做了什么</h3>
+      <p>管理器为当前连接组装 <code>FNetObjectPrioritizationParams</code>，把候选按绑定的 Prioritizer 放入 batch。对于动态对象，进入计算前会以对象默认值重置该连接本 Tick 的输出，然后由实现写出更高结果。最后可选地把 Controller 和 ViewTarget 提升到 <code>1.0e7</code> 的高优先级。</p>
+      <p>这个 View Target 提升由控制变量路径启用，目的是让连接自己的观察者与目标极难在排序中落后。它是内部保护机制，不应拿来替代正常的 Owner 配置或业务优先级。</p>
+
+      <h3 id="section-07-05" tabindex="-1">真正的累加、门槛和排序在 Writer</h3>
+      <p><code>FReplicationWriter::UpdatePriorities()</code> 对脏对象执行累加，而非覆盖：</p>
+      <div><pre><code>// 解释性伪代码
+SchedulingPriority[Object] +=
+    PrioritizerOutputForThisTick[Object];
+
+if (ObjectIsDirty &amp;&amp; SchedulingPriority[Object] &gt;= 1.0f)
+{
+    AddToScheduleCandidates(Object);
+}
+
+SortCandidatesByDescendingSchedulingPriority();
+WriteUntilBitBudgetOrOtherConstraintsStopUs();</code></pre></div>
+      <p>UE 5.5 Writer 会对候选做降序排序，并用一个 128 对象的局部排序优化开头最重要的部分；最终写入仍考虑状态大小、依赖、子对象、附件、协议和当前位预算。因此，两个优先级同为 2.0 的对象，若状态成本相差十倍，实际“能装下几个”也会不同。</p>
+
+      <h3 id="section-07-06" tabindex="-1">Count Limiter 与 Writer 调度必须分开看</h3>
+      <div><pre><code>Count Limiter 的 MaxObjectCount
+    = 本轮由这个 Prioritizer 选中并赋予贡献的对象数
+
+Writer 的发送数量
+    = 所有来源候选经过累计、排序、依赖和位预算后的结果</code></pre></div>
+      <p>如果 FarInfoLimiter 的 MaxObjectCount=4，它只表示每轮最多四个普通 FarInfo 获得该 Prioritizer 的 Priority；拥有者 Fast Lane 还可额外加入。它既不会拦住 100 个空间对象，也不保证这四个 FarInfo 最终都写入。</p>
+
+      <h3 id="section-07-07" tabindex="-1">饥饿避免并不等于无条件公平</h3>
+      <p>持续脏、持续获得正贡献的对象会累加并逐渐超过新来的高频对象，这是基础的抗饥饿机制。但若配置为 0、对象始终不进入 Prioritizer 候选、被过滤、没有 View，或某类关键对象每 Tick 贡献远高于所有其他对象且长期耗尽预算，低优先级对象仍可能延迟很久。公平性需要靠合理的贡献下限、分层过滤、Count Limiter 和真实压测共同保证。</p>
+
+<h2 id="section-08" tabindex="-1">🎮 6.7 完整实战：800 个对象如何争夺一帧预算</h2>
+      <h3 id="section-08-01" tabindex="-1">场景与教学假设</h3>
+      <p>设一条战术竞技连接通过第五部分的过滤系统后，当前作用域中有 800 个对象。为让数字可手算，我们假设网络拥塞时本 Tick 的位预算约等于 <strong>120 个“平均成本对象”</strong>。这不是 Iris 的固定对象上限：真实 Writer 使用 bit budget 和每个复制状态的实际成本，大对象可能一个顶多个，小对象也可能多装几个。</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>分组</th><th>数量</th><th>策略</th><th>本 Tick 典型贡献</th><th>业务意图</th></tr></thead>
+        <tbody>
+          <tr><td>A：自己/交战核心</td><td>24</td><td>SphereWithOwnerBoost 或 FOV 高区</td><td>2.0</td><td>开火、受击、自己的 Pawn/载具优先</td></tr>
+          <tr><td>B：近距离角色与载具</td><td>96</td><td>Sphere 内外圈插值</td><td>0.55</td><td>约两 Tick 获得资格</td></tr>
+          <tr><td>C：中距离活动对象</td><td>180</td><td>Sphere 外圈附近</td><td>0.25</td><td>约四 Tick 获得资格</td></tr>
+          <tr><td>D：远距离世界对象</td><td>420</td><td>OutsidePriority</td><td>0.10</td><td>持续脏时约十 Tick 获得资格</td></tr>
+          <tr><td>E：低频信息对象</td><td>80</td><td>Count Limiter Fill</td><td>每轮选 4 个并赋 1.0</td><td>轮流更新，避免 80 个一起竞争</td></tr>
+        </tbody>
+      </table></div>
+      <p>为了聚焦优先级，先假设这 800 个对象都在作用域、都有需要发送的状态，而且每组对象状态成本近似。真实项目要把脏率、状态大小、新建对象和依赖关系加入回放。</p>
+
+      <h3 id="section-08-02" tabindex="-1">单个对象如何跨帧累加</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>代表对象</th><th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>资格与重置</th></tr></thead>
+        <tbody>
+          <tr><td>A 核心对象（2.0）</td><td>2.0</td><td>2.0</td><td>2.0</td><td>2.0</td><td>2.0</td><td>若每帧都脏且完整发出，每帧重置后再次达到 2.0</td></tr>
+          <tr><td>B 近距对象（0.55）</td><td>0.55</td><td>1.10</td><td>发出后 0.55</td><td>1.10</td><td>发出后 0.55</td><td>理想情况下约每两 Tick</td></tr>
+          <tr><td>C 中距对象（0.25）</td><td>0.25</td><td>0.50</td><td>0.75</td><td>1.00</td><td>若没装下则 1.25</td><td>落选后继续升高，不会回到 0</td></tr>
+          <tr><td>D 远距对象（0.10）</td><td>0.10</td><td>0.20</td><td>0.30</td><td>0.40</td><td>0.50</td><td>第十 Tick 才首次达到 1.0</td></tr>
+        </tbody>
+      </table></div>
+      <p>表里的“发出后”假设对象已完整变干净；若状态只写了一部分或继续变脏，Writer 的实际累计轨迹会不同。关键结论是：Prioritizer 每 Tick 给出贡献，Writer 保存跨 Tick 历史。</p>
+
+      <h3 id="section-08-03" tabindex="-1">前五帧的候选爆发与预算竞争</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>帧</th><th>达到 1.0 的主要群体</th><th>候选规模（近似）</th><th>教学预算结果</th></tr></thead>
+        <tbody>
+          <tr><td>F1</td><td>A 24 + E 4</td><td>28</td><td>预算充足，通常全部写入</td></tr>
+          <tr><td>F2</td><td>A 24 + B 96 + E 4</td><td>124</td><td>约 120 个写入，少量 B/E 留待后续并继续累加</td></tr>
+          <tr><td>F3</td><td>A、F2 遗留对象、E 新一轮 4 个</td><td>约 32</td><td>遗留 B 已达约 1.65，通常先于刚过阈值对象</td></tr>
+          <tr><td>F4</td><td>A + 大部分 B + C 180 + E</td><td>约 300</td><td>A 以 2.0 居前；B 约 1.1；大量 C 首次达 1.0，只有一部分装下</td></tr>
+          <tr><td>F5</td><td>A + F4 未发送的 C + E</td><td>超过预算</td><td>未发送 C 升到 1.25，开始压过新近达到 1.0 的对象</td></tr>
+        </tbody>
+      </table></div>
+      <p>这就是累加抗饥饿的直观效果：F4 落选的中距离对象不会每帧重新以 1.0 排在末尾，而会在 F5、F6 继续增长，逐渐获得靠前位置。与此同时，A 组核心对象用 2.0 保证即时性。两者不是绝对公平，而是“即时性”和“等待时间”共同参与排序。</p>
+
+      <h3 id="section-08-04" tabindex="-1">第十帧的远距离同步波峰</h3>
+      <p>如果 420 个远距离对象同时持续脏、并且贡献完全相同，它们会在 F10 一起达到 1.0，形成同步波峰。Writer 能挡住超预算写入，却不能消除这一大批候选的排序成本与延迟尾部。</p>
+      <p>可采用的工程手段包括：</p>
+      <ul>
+        <li>先确认它们真的需要持续脏；能事件驱动或降低轮询频率的，不要让状态每 Tick 变化；</li>
+        <li>按对象类型设置不同 OutsidePriority，让首次跨阈值分散；</li>
+        <li>对同质低频集合使用 Count Limiter，让每轮只有少量对象获得 1.0 贡献；</li>
+        <li>在自定义 Prioritizer 中引入稳定、可复现的小幅分桶偏移，而不是每帧随机抖动；</li>
+        <li>若对象对该连接没有价值，应回到过滤层移出作用域，而不是把优先级压到接近零长期占用集合。</li>
+      </ul>
+
+      <h3 id="section-08-05" tabindex="-1">四类游戏如何映射同一机制</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>类型</th><th>高优先级信号</th><th>低频集合</th><th>推荐组合</th></tr></thead>
+        <tbody>
+          <tr><td>战术竞技</td><td>自己的 Pawn/载具、视线内敌人、近处枪火</td><td>远处物资、非交战玩家信息</td><td>FOV/SphereWithOwnerBoost + Count Limiter</td></tr>
+          <tr><td>FPS</td><td>准星方向、近身侧后方、投射物</td><td>远端环境交互</td><td>FOV 的锥体 + LoS 胶囊 + 近身球</td></tr>
+          <tr><td>RPG/MMO</td><td>自己的角色、队友、当前目标、Boss 技能</td><td>远处 NPC 与装饰交互</td><td>Owner Boost + Sphere；队伍可见性仍交给 Group Filter</td></tr>
+          <tr><td>竞速</td><td>自己的车、前后相邻车辆、碰撞相关对象</td><td>赛道远端车辆与计时条目</td><td>沿赛道自定义距离 Prioritizer + Count Limiter</td></tr>
+        </tbody>
+      </table></div>
+      <p>竞速游戏尤其能说明“欧氏距离不等于业务距离”：隔着立交桥很近的车辆可能毫不相关，而赛道前方几百米的车辆更重要。此时自定义 Prioritizer 应缓存赛道进度或拓扑距离，在批量回调里计算；过滤仍负责彻底排除不可能交互的赛段。</p>
+
+      <h3 id="section-08-06" tabindex="-1">一套可落地的调参流程</h3>
+      <ol>
+        <li><strong>记录输入。</strong>按连接统计 ObjectsInScope、脏对象数、各 Prioritizer 候选数和 View 数量。</li>
+        <li><strong>记录贡献。</strong>采样每类对象本 Tick 输出和 Writer 累计值分布，而不是只看配置值。</li>
+        <li><strong>记录成本。</strong>按对象类型统计实际写入 bits、完整/部分写入和等待 Tick 数。</li>
+        <li><strong>先保护核心。</strong>让交战对象在一 Tick 内达到阈值，但避免无意义地把大批对象都设成 10 或 100。</li>
+        <li><strong>再控制尾部。</strong>检查 P95/P99 等待 Tick、同步波峰和持续未发送对象，调整保底贡献或 Count Limiter。</li>
+        <li><strong>用真实回放验证。</strong>模拟百人密度、载具高速移动、观战、分屏和丢包，而非只在空地图测平均带宽。</li>
+      </ol>
+
+<h2 id="section-09" tabindex="-1">✅ 6.8 本章小结</h2>
+      <ul>
+        <li>优先级系统不决定可见性，也不直接限定发送对象数；它为 Writer 的连接级调度提供贡献。</li>
+        <li>静态优先级适合稳定低频对象；动态 Prioritizer 适合基于位置、方向、拥有关系或集合轮转的对象。</li>
+        <li><code>FNetObjectPrioritizationInfo</code> 只有 8 字节，内置实现通过索引连接更大的分块缓存。</li>
+        <li>Sphere 使用距离分段和线性衰减；Owner Boost 是加法奖励；FOV 组合锥体、视线胶囊和双球体并取最大值。</li>
+        <li>Count Limiter 的 MaxObjectCount 只约束自身本轮选中的对象，不是 Writer 的带宽上限。</li>
+        <li>ReplicationView 由 NetDriver 在发送前更新，主/子连接共享父 ConnectionId 下的多 View。</li>
+        <li>Writer 将本 Tick 贡献累加到 SchedulingPriority，达到 1.0 的脏对象才进入候选；未写入对象继续累加。</li>
+        <li>真实调度由优先级、对象状态成本、依赖与位预算共同决定，“800 → 120”只能作为等成本教学模型。</li>
+      </ul>
+
+<h2 id="section-10" tabindex="-1">🧯 常见问题与排查</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>现象</th><th>优先检查</th><th>常见原因</th></tr></thead>
+        <tbody>
+          <tr><td><code>GetPrioritizerHandle</code> 无效</td><td>最终合并配置中的定义名和类映射名</td><td>名字不一致、Section 错误、模块/类未加载</td></tr>
+          <tr><td><code>SetPrioritizer</code> 返回 false</td><td>对象 Handle、位置来源、AddObject 日志</td><td>空间实现找不到 FWorldLocations 或 RepTag_WorldLocation</td></tr>
+          <tr><td>近处对象优先级仍很低</td><td>ReplicationView、世界位置缓存、半径单位</td><td>相机 View 未更新、对象位置没刷新、配置读错</td></tr>
+          <tr><td>自己的对象别人看不到</td><td>过滤设置而非 Owner Boost</td><td>把 Boost 误当 Owner Filtering；真正作用域被过滤规则限制</td></tr>
+          <tr><td>Count Limiter 设为 4 却发了很多对象</td><td>对象绑定的其他 Prioritizer、静态对象、Writer 统计范围</td><td>MaxObjectCount 只约束该 Limiter 的普通选择</td></tr>
+          <tr><td>RoundRobin 有脏对象却本轮不发</td><td>本轮预选的 N 个对象是否脏</td><td>RoundRobin 不会用别的脏对象填空</td></tr>
+          <tr><td>Fill 出现批次警告或选择异常</td><td>同一连接是否拆进多个 Prioritize batch</td><td>对象集合过大；增大设计粒度或改 RoundRobin</td></tr>
+          <tr><td>低优先级对象长期不更新</td><td>Writer 累计值、脏状态、过滤结果和贡献是否为正</td><td>对象没进入候选、贡献为 0、长期被更高成本集合压制</td></tr>
+          <tr><td>多视图下远处对象突然升高</td><td>Child Connection 的 View</td><td>对象靠近任意一个分屏视图都会得到高空间贡献</td></tr>
+          <tr><td>配置升级后数值变化</td><td>目标版本头文件、BaseEngine.ini 与项目覆盖</td><td>Experimental 默认值或定义发生变化</td></tr>
+        </tbody>
+      </table></div>
+      <p>推荐固定排查链：<strong>对象是否在作用域 → 是否脏/需重发 → 绑定了哪个 Prioritizer → View 与位置输入 → 本 Tick 输出 → Writer 累计值 → 是否达到 1.0 → 排序位置 → 实际状态 bits 与预算</strong>。只看抓包结果，无法区分“未获得资格”和“获得资格但装不下”。</p>
+
+<h2 id="section-11" tabindex="-1">⚡ 性能建议</h2>
+      <ol>
+        <li><strong>先过滤，再排序。</strong>永久无关对象应离开连接作用域，不能靠 0.01 的优先级长期拖着。</li>
+        <li><strong>让热路径只读紧凑缓存。</strong>位置、拥有者、赛道进度等在 UpdateObjects 中更新，Prioritize 中批量读取。</li>
+        <li><strong>避免每对象射线检测。</strong>内置 FOV 的“LineOfSight”是几何胶囊，不是物理遮挡查询；真射线需要更低频、更粗粒度的业务方案。</li>
+        <li><strong>减少同相位波峰。</strong>大量对象使用完全相同的低贡献会同时跨过阈值；用类型分层或稳定分桶分散。</li>
+        <li><strong>同时看对象数与 bits。</strong>120 个 20-bit 状态和 120 个 2-KB 状态不是同一预算。</li>
+        <li><strong>保护拥有者但不要无限放大。</strong>Boost 过高会让长期高成本拥有对象压住其他必要状态。</li>
+        <li><strong>测多 View。</strong>分屏会扩大高优先级空间，FOV 也会按 View 增加几何计算。</li>
+        <li><strong>关注等待分布。</strong>平均等待 2 Tick 可能掩盖远端对象 P99 等待数十 Tick。</li>
+      </ol>
+
+<h2 id="section-12" tabindex="-1">📁 关键源码文件索引</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>文件</th><th>阅读重点</th></tr></thead>
+        <tbody>
+          <tr><td><code>Prioritization/NetObjectPrioritizer.h</code></td><td>基类接口、参数、8 字节对象信息和 Handle</td></tr>
+          <tr><td><code>Prioritization/LocationBasedNetObjectPrioritizer.h/.cpp</code></td><td>位置来源、分块缓存与对象加入失败条件</td></tr>
+          <tr><td><code>Prioritization/SphereNetObjectPrioritizer.h/.cpp</code></td><td>距离插值、单/双/多视图和 SIMD 批处理</td></tr>
+          <tr><td><code>Prioritization/SphereWithOwnerBoostNetObjectPrioritizer.h/.cpp</code></td><td>拥有连接缓存与加法 Boost</td></tr>
+          <tr><td><code>Prioritization/FieldOfViewNetObjectPrioritizer.h/.cpp</code></td><td>锥体、LoS 胶囊、双球体与多 View 计算</td></tr>
+          <tr><td><code>Prioritization/NetObjectCountLimiter.h/.cpp</code></td><td>RoundRobin、Fill、Fast Lane 与 LastConsiderFrame</td></tr>
+          <tr><td><code>Prioritization/ReplicationPrioritization.h/.cpp</code></td><td>定义注册、批处理、逐连接计算和 View Target 高优先级</td></tr>
+          <tr><td><code>ReplicationWriter.cpp</code></td><td>SchedulingPriorities 累加、1.0 阈值、排序与重置</td></tr>
+          <tr><td><code>ReplicationView.h</code></td><td>FView 字段和内联 View 容量</td></tr>
+          <tr><td><code>Engine/Private/NetDriver.cpp</code></td><td>UpdateIrisReplicationViews 与主/子连接视图填充</td></tr>
+          <tr><td><code>ObjectReplicationBridgeConfig.h/.cpp</code></td><td>按类绑定 PrioritizerName</td></tr>
+          <tr><td><code>Engine/Private/GameFramework/PlayerStateCountLimiterConfig.cpp</code></td><td>Fill 模式和 PlayerState 专用默认值</td></tr>
+        </tbody>
+      </table></div>
+      <p>本机 UE 5.5 的 Iris Core 位于 <code>Engine/Source/Runtime/Experimental/Iris/Core</code>。本文不提供易失效的“精确行号”，因为分支和补丁会改变位置；按文件名与符号搜索更可靠。</p>
+      <p>官方资料：</p>
+      <ul>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-prioritization-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">Iris Prioritization（UE 5.5）</a></li>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/Iris/ReplicationSystem/Prioritization/UNetObjectPrioritizer?application_version=5.5" target="_blank" rel="noopener noreferrer">UNetObjectPrioritizer API（UE 5.5）</a></li>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/Iris/ReplicationSystem/Prioritization/FNetObjectPriori-_1?application_version=5.5" target="_blank" rel="noopener noreferrer">FNetObjectPrioritizationParams API（UE 5.5）</a></li>
+        <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/Iris/ReplicationSystem/Prioritization/USphereNetObject-?application_version=5.5" target="_blank" rel="noopener noreferrer">SphereNetObjectPrioritizer API（UE 5.5）</a></li>
+      </ul>
+
+<h2 id="section-13" tabindex="-1">💡 下一步</h2>
+      <p>过滤系统已经决定“谁能进仓库”，优先级系统又决定“谁先排队装车”。下一部分将进入 <strong>Serialization（序列化）</strong>：Replication State、NetSerializer、量化、默认值、Delta Compression 与协议如何共同决定每个对象实际消耗多少 bits。</p>
+      <p><a href="/html-articles/ue5-iris-guide-outline/">返回系列大纲 →</a></p>
+
+      </article>
+
+      <footer class="article-footer">
+        <p><strong>文章来源：</strong>Jossy Zhang 原创整理，技术依据为 Unreal Engine 5.5 Iris 官方文档与引擎源码。</p>
+        <p><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/iris-prioritization-in-unreal-engine?application_version=5.5" target="_blank" rel="noopener noreferrer">Epic Games：Iris Prioritization（UE 5.5）</a></p>
+        <a class="back-home" href="/">← 返回博客首页</a>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="返回页面顶部">↑</button>
+
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const sectionLinks = Array.from(document.querySelectorAll(".toc a[data-section], .toc-mobile a[data-section]"));
+      const sections = sectionLinks
+        .map((link) => document.getElementById(link.dataset.section))
+        .filter(Boolean);
+
+      const updateScroll = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+
+        const activationLine = Math.min(180, window.innerHeight * 0.18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= activationLine) {
+            activeId = section.id;
+          } else {
+            break;
+          }
+        }
+
+        sectionLinks.forEach((link) => {
+          if (link.dataset.section === activeId) {
+            link.setAttribute("aria-current", "true");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      window.addEventListener("scroll", updateScroll, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      updateScroll();
+    })();
+  </script>
+</body>
+</html>
