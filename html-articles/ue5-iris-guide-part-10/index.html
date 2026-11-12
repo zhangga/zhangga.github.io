@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第十部分：基于 Unreal Engine 5.7.4 源码，讲解 Delta Compression、Baseline Manager、ACK/Lost、SerializeDelta、配置、位成本与内存权衡。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M18 16h28v8H36v16h10v8H18v-8h10V24H18z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-10/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第十部分：增量压缩 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    article a,
+    article h2,
+    article h3 { overflow-wrap: anywhere; }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, .2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "BITS";
+      position: absolute;
+      right: -.04em;
+      bottom: -.39em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 900px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; font-size: 13px; color: #d9def7; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .9);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: #eef0fb;
+      border-left-color: var(--signal);
+    }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 21px/1 var(--serif);
+    }
+    .source-note p { margin: 0; color: #333e5b; font-size: 14px; line-height: 1.6; }
+    .source-note > a { white-space: nowrap; font-size: 13px; font-weight: 800; }
+
+    article, .article-footer {
+      background: rgba(255, 253, 248, .96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article { padding: clamp(28px, 5vw, 68px); }
+    article > :first-child { margin-top: 0; }
+    article h2, article h3, article h4 { scroll-margin-top: 25px; color: var(--ink); }
+    article h2 {
+      position: relative;
+      margin: 76px 0 28px;
+      padding: 0 0 16px;
+      font: 800 clamp(27px, 3vw, 39px) / 1.25 var(--serif);
+      letter-spacing: -.02em;
+      border-bottom: 2px solid var(--line);
+    }
+    article h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 86px; height: 4px; background: var(--signal); }
+    article h3 { margin: 46px 0 15px; font: 800 23px/1.35 var(--serif); }
+    article h4 { margin: 30px 0 10px; font-size: 17px; }
+    article p { margin: 0 0 18px; }
+    article ul, article ol { padding-left: 1.35em; }
+    article li { margin: 6px 0; }
+    article strong { color: #15204a; }
+    article hr { margin: 56px 0; border: 0; border-top: 1px solid var(--line); }
+    article blockquote {
+      margin: 25px 0;
+      padding: 21px 24px 21px 28px;
+      color: #2c3854;
+      background: #f0eee7;
+      border-left: 5px solid var(--signal);
+      font-family: var(--serif);
+      font-size: 19px;
+    }
+    code {
+      padding: .12em .34em;
+      color: #303b80;
+      background: #eaecf7;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: .88em;
+    }
+    article p code,
+    article li code,
+    article td code,
+    article blockquote code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    pre { margin: 0; }
+    article pre {
+      overflow-x: auto;
+      padding: 22px 24px;
+      color: #e7ebff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      font: 14px/1.68 var(--mono);
+      tab-size: 4;
+    }
+    article pre code { padding: 0; color: inherit; background: none; border-radius: 0; font-size: inherit; }
+    .code-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+      padding: 8px 13px;
+      color: #dfe4ff;
+      background: #29355b;
+      border-left: 5px solid var(--signal);
+      font: 700 11px/1.5 var(--mono);
+      letter-spacing: .04em;
+    }
+    .code-label + pre { border-top: 1px solid #455178; }
+    .table-scroll { overflow-x: auto; margin: 25px 0 31px; border: 1px solid var(--line); }
+    table { width: 100%; min-width: 680px; border-collapse: collapse; background: var(--white); font-size: 14px; line-height: 1.55; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-right: 1px solid #ded7ca; border-bottom: 1px solid #ded7ca; }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: #fff; background: var(--iris-dark); font-size: 12px; letter-spacing: .02em; }
+    tbody tr:nth-child(even) { background: #f5f2eb; }
+    .article-callout {
+      margin: 25px 0;
+      padding: 19px 22px;
+      background: var(--signal-soft);
+      border: 1px solid #dfa990;
+      border-left: 6px solid var(--signal);
+    }
+    .article-callout--green { background: var(--green-soft); border-color: #9bc5b4; border-left-color: var(--green); }
+    .article-callout--blue { background: #e8ebf8; border-color: #b8c0e1; border-left-color: var(--iris); }
+    .article-callout > strong { display: block; margin-bottom: 5px; }
+    .article-callout p:last-child { margin-bottom: 0; }
+    .stats, .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 26px 0;
+    }
+    .stat, .card {
+      padding: 19px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--iris);
+    }
+    .stat b { display: block; color: var(--signal); font: 800 30px/1.15 var(--serif); }
+    .stat span { color: var(--ink-soft); font-size: 13px; }
+    .card h4 { margin: 0 0 8px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .formula {
+      margin: 25px 0;
+      padding: 22px 24px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--iris-dark), var(--iris));
+      border-bottom: 5px solid var(--signal);
+      font: 700 16px/1.8 var(--mono);
+    }
+    .formula span { display: block; color: #f4b79b; }
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin: 27px 0;
+    }
+    .journey div {
+      position: relative;
+      padding: 16px 13px;
+      text-align: center;
+      background: #eceef8;
+      border: 1px solid #c5cae5;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .journey div:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--signal);
+      font-size: 17px;
+    }
+    .bitbar { display: flex; min-width: 660px; height: 54px; margin: 16px 0 8px; color: #fff; font: 700 12px/54px var(--mono); text-align: center; }
+    .bitbar span { display: block; border-right: 2px solid var(--white); }
+    .bitbar .mask { flex: 5; background: #6774bc; }
+    .bitbar .health { flex: 14; background: var(--signal); }
+    .bitbar .ammo { flex: 10; background: var(--green); }
+    .bitbar .other { flex: 20; background: #7b8293; }
+    .badge {
+      display: inline-block;
+      margin: 0 5px 5px 0;
+      padding: 2px 8px;
+      color: var(--iris-dark);
+      background: #e7eaf7;
+      border: 1px solid #bcc3df;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-left: 30px; }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; top: 1px; color: var(--green); font-weight: 900; }
+    .article-footer {
+      margin-top: 28px;
+      padding: 28px 34px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .article-footer p { margin: 0 0 8px; }
+    .back-home { display: inline-block; margin-top: 12px; font-weight: 800; }
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      width: 46px;
+      height: 46px;
+      color: #fff;
+      background: var(--iris-dark);
+      border: 0;
+      box-shadow: 0 9px 28px rgba(25, 35, 58, .22);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: minmax(210px, 250px) minmax(0, 1fr); gap: 26px; width: min(1120px, calc(100% - 30px)); }
+      article { padding: 35px; }
+      .source-note { grid-template-columns: 42px 1fr; }
+      .source-note > a { grid-column: 2; }
+    }
+    @media (max-width: 790px) {
+      body { font-size: 16px; }
+      .hero { padding: 58px 22px 53px; }
+      .hero::before { font-size: 180px; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 25px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .toc-mobile a { padding: 8px 18px; }
+      article { padding: 27px 20px; }
+      article h2 { margin-top: 58px; }
+      article h3 { margin-top: 37px; }
+      .source-note { padding: 17px; }
+      .stats, .cards { grid-template-columns: 1fr; }
+      .journey { grid-template-columns: 1fr 1fr; }
+      .journey div:nth-child(2)::after { display: none; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 34px; }
+      .hero__meta { display: grid; }
+      .journey { grid-template-columns: 1fr; }
+      .journey div::after { display: none; }
+      .source-note { display: block; }
+      .source-note__mark { margin-bottom: 12px; }
+      .source-note > a { display: inline-block; margin-top: 10px; white-space: normal; }
+      article pre { padding: 18px 16px; font-size: 12px; }
+      .article-footer { padding: 23px 20px; }
+    }
+
+    .transport-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin: 28px 0;
+      overflow: hidden;
+      color: var(--white);
+      background: #aeb6d5;
+      border: 1px solid #aeb6d5;
+    }
+    .transport-map section {
+      min-width: 0;
+      padding: 22px;
+      background: var(--iris-dark);
+    }
+    .transport-map section:nth-child(2) { background: #344487; }
+    .transport-map section:nth-child(3) { background: #385e75; }
+    .transport-map small {
+      display: block;
+      margin-bottom: 8px;
+      color: #f5b18e;
+      font: 800 11px/1.4 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .transport-map strong { display: block; margin-bottom: 7px; font: 700 20px/1.3 var(--serif); }
+    .transport-map p { margin: 0; color: #e8ebfa; font-size: 14px; line-height: 1.65; }
+
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .branch-card {
+      min-width: 0;
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .branch-card:nth-child(2) { border-top-color: var(--green); }
+    .branch-card:nth-child(3) { border-top-color: var(--signal); }
+    .branch-card strong { display: block; margin-bottom: 7px; font-family: var(--serif); font-size: 19px; }
+    .branch-card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+
+    .state-lane {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 23px 0;
+      padding: 18px;
+      background: #e8ebf8;
+      border: 1px solid #b8c0e1;
+    }
+    .state-lane span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 6px 10px;
+      color: var(--iris-dark);
+      background: var(--white);
+      border: 1px solid #bac2e0;
+      font: 700 12px/1.35 var(--mono);
+    }
+    .state-lane i { color: var(--signal); font-style: normal; font-weight: 900; }
+
+    .packet-layout {
+      margin: 24px 0;
+      padding: 20px;
+      color: #eef1ff;
+      background: #18233d;
+      border-left: 6px solid var(--signal);
+      overflow-x: auto;
+    }
+    .packet-layout__row {
+      display: flex;
+      width: max-content;
+      min-width: 100%;
+      gap: 3px;
+    }
+    .packet-layout__row + .packet-layout__row { margin-top: 7px; }
+    .packet-layout span {
+      display: grid;
+      place-items: center;
+      min-width: 112px;
+      min-height: 54px;
+      padding: 8px 10px;
+      color: #f5f7ff;
+      background: #344487;
+      border: 1px solid #5969ad;
+      text-align: center;
+      font: 700 11px/1.45 var(--mono);
+    }
+    .packet-layout span.wide { min-width: 190px; background: #2e5a6f; border-color: #4f8198; }
+    .packet-layout span.signal { background: #7d3c30; border-color: #bd6c55; }
+
+    .timeline {
+      position: relative;
+      margin: 27px 0;
+      padding-left: 30px;
+      border-left: 3px solid #b7bfdf;
+    }
+    .timeline article {
+      position: relative;
+      padding: 0 0 22px 9px;
+      background: transparent;
+      box-shadow: none;
+      border: 0;
+    }
+    .timeline article:last-child { padding-bottom: 0; }
+    .timeline article::before {
+      content: "";
+      position: absolute;
+      left: -39px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 0 5px var(--paper);
+    }
+    .timeline strong { display: block; color: var(--iris-dark); }
+    .timeline p { margin: 3px 0 0; color: var(--ink-soft); }
+
+    .fact-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 24px 0;
+    }
+    .fact-strip div {
+      padding: 17px 14px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+    .fact-strip strong { display: block; color: var(--signal); font: 800 25px/1.15 var(--mono); }
+    .fact-strip span { display: block; margin-top: 7px; color: var(--ink-soft); font-size: 12px; line-height: 1.45; }
+
+    @media (max-width: 850px) {
+      .transport-map, .branch-grid { grid-template-columns: 1fr; }
+      .fact-strip { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .fact-strip { grid-template-columns: 1fr; }
+      .state-lane { align-items: stretch; }
+      .state-lane span { width: 100%; overflow-wrap: anywhere; }
+      .state-lane i { align-self: center; transform: rotate(90deg); }
+    }
+
+
+    .hero::before { content: "BLOB"; }
+    .wire-layout {
+      margin: 25px 0;
+      padding: 20px;
+      overflow-x: auto;
+      color: #eef1ff;
+      background: #18233d;
+      border-left: 6px solid var(--signal);
+    }
+    .wire-layout__row {
+      display: flex;
+      gap: 3px;
+      width: max-content;
+      min-width: 100%;
+    }
+    .wire-layout span {
+      display: grid;
+      place-items: center;
+      min-width: 112px;
+      min-height: 58px;
+      padding: 8px 11px;
+      color: #f7f8ff;
+      background: #344487;
+      border: 1px solid #5969ad;
+      text-align: center;
+      font: 700 11px/1.45 var(--mono);
+    }
+    .wire-layout span.tiny { min-width: 78px; background: #7d3c30; border-color: #bd6c55; }
+    .wire-layout span.wide { min-width: 205px; background: #2e5a6f; border-color: #4f8198; }
+    .type-tree {
+      margin: 25px 0;
+      padding: 22px 24px;
+      overflow-x: auto;
+      color: #e8ecff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      font: 700 13px/1.75 var(--mono);
+      white-space: pre;
+    }
+    .route-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 25px 0;
+    }
+    .route-grid section {
+      min-width: 0;
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .route-grid section:nth-child(even) { border-top-color: var(--green); }
+    .route-grid strong { display: block; margin-bottom: 7px; font-family: var(--serif); font-size: 19px; }
+    .route-grid p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+    .queue-window {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(58px, 1fr));
+      gap: 4px;
+      width: 100%;
+      min-width: 0;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+    .queue-window span {
+      display: grid;
+      place-items: center;
+      min-height: 55px;
+      padding: 7px;
+      color: #fff;
+      background: #344487;
+      border: 1px solid #6675ba;
+      text-align: center;
+      font: 700 10px/1.35 var(--mono);
+    }
+    .queue-window .acked { background: var(--green); border-color: #55a183; }
+    .queue-window .lost { background: #8a4133; border-color: #c4755f; }
+    .queue-window .pending { color: var(--ink); background: #e7eaf7; border-color: #bcc3df; }
+    .boundary-note {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin: 22px 0;
+      padding: 17px 19px;
+      background: #f0eee7;
+      border: 1px dashed #bdb3a1;
+    }
+    .boundary-note b {
+      flex: 0 0 auto;
+      padding: 2px 8px;
+      color: #fff;
+      background: var(--signal);
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+    .boundary-note p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    @media (max-width: 790px) {
+      .route-grid { grid-template-columns: 1fr; }
+    }
+
+
+
+    /* Part 10: Delta Compression */
+    .hero::before { content: "DELTA"; }
+    .compression-stack,
+    .baseline-matrix,
+    .fork-lanes,
+    .wire-layout,
+    .cost-bars,
+    .memory-equation,
+    .gate-chain {
+      width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scrollbar-gutter: stable;
+    }
+    .compression-stack__inner,
+    .baseline-matrix__inner,
+    .fork-lanes__inner,
+    .wire-layout__inner,
+    .cost-bars__inner,
+    .memory-equation__inner,
+    .gate-chain__inner {
+      width: max-content;
+      min-width: 100%;
+    }
+    .compression-stack { margin: 28px 0; padding-bottom: 8px; }
+    .compression-stack__inner {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(230px, 1fr));
+      gap: 13px;
+      min-width: 760px;
+    }
+    .compression-layer {
+      position: relative;
+      padding: 23px 22px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border: 1px solid rgba(255, 255, 255, .12);
+      box-shadow: 0 12px 30px rgba(25, 35, 58, .12);
+    }
+    .compression-layer:nth-child(2) { background: #31566d; }
+    .compression-layer:nth-child(3) { background: #7f432f; }
+    .compression-layer + .compression-layer::before {
+      content: "→";
+      position: absolute;
+      left: -18px;
+      top: 50%;
+      z-index: 2;
+      width: 24px;
+      height: 24px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      font-weight: 900;
+      line-height: 22px;
+      text-align: center;
+      transform: translateY(-50%);
+    }
+    .compression-layer small {
+      display: block;
+      margin-bottom: 9px;
+      color: #dce2ff;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .13em;
+    }
+    .compression-layer strong { display: block; font: 800 21px/1.25 var(--serif); }
+    .compression-layer p { margin: 9px 0 0; color: #f5f3ed; font-size: 14px; line-height: 1.65; }
+
+    .baseline-matrix { margin: 26px 0; padding-bottom: 8px; }
+    .baseline-matrix__inner {
+      display: grid;
+      grid-template-columns: 145px repeat(3, minmax(180px, 1fr));
+      min-width: 760px;
+      border: 1px solid var(--line);
+      background: var(--white);
+    }
+    .baseline-matrix__inner > div {
+      min-height: 88px;
+      padding: 15px 16px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .baseline-matrix__inner > div:nth-child(4n) { border-right: 0; }
+    .baseline-matrix__inner > div:nth-last-child(-n + 4) { border-bottom: 0; }
+    .baseline-matrix .head {
+      min-height: auto;
+      color: var(--white);
+      background: var(--iris-dark);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .06em;
+    }
+    .baseline-matrix .rowhead { color: var(--iris-dark); background: #ebe7dc; font-weight: 900; }
+    .baseline-matrix b { display: block; margin-bottom: 4px; color: var(--iris-dark); }
+    .baseline-matrix small { display: block; color: var(--ink-soft); line-height: 1.5; }
+    .baseline-matrix .pending { box-shadow: inset 5px 0 0 var(--signal); }
+    .baseline-matrix .acked { box-shadow: inset 5px 0 0 var(--green); }
+
+    .fork-lanes { margin: 28px 0; padding-bottom: 8px; }
+    .fork-lanes__inner {
+      display: grid;
+      grid-template-columns: 110px repeat(5, minmax(155px, 1fr));
+      min-width: 950px;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+      background: var(--white);
+    }
+    .fork-lanes__inner > div {
+      min-height: 88px;
+      padding: 14px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .fork-lanes .time {
+      min-height: auto;
+      color: var(--white);
+      background: var(--iris-dark);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .06em;
+    }
+    .fork-lanes .lane {
+      color: var(--iris-dark);
+      background: #ebe7dc;
+      font-weight: 900;
+    }
+    .fork-lanes .ok { box-shadow: inset 0 5px 0 var(--green); }
+    .fork-lanes .lost { box-shadow: inset 0 5px 0 var(--signal); background: #fff6f2; }
+    .fork-lanes strong { display: block; margin-bottom: 5px; }
+
+    .wire-layout { margin: 25px 0; padding: 4px 0 10px; }
+    .wire-layout__inner { min-width: 860px; }
+    .wire-branch {
+      display: grid;
+      grid-template-columns: 145px 140px minmax(210px, 1fr) minmax(230px, 1.2fr);
+      gap: 7px;
+      margin-top: 9px;
+    }
+    .wire-branch span {
+      padding: 15px 13px;
+      color: var(--white);
+      background: var(--iris-dark);
+      border: 1px solid rgba(255, 255, 255, .16);
+      font: 700 13px/1.45 var(--mono);
+    }
+    .wire-branch span:first-child { background: var(--signal); }
+    .wire-branch.full span:nth-child(n + 2) { background: #31566d; }
+    .wire-branch.delta span:nth-child(n + 2) { background: #2f654f; }
+    .wire-label {
+      display: inline-block;
+      padding: 4px 10px;
+      color: var(--iris-dark);
+      background: var(--paper-deep);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .cost-bars { margin: 27px 0; padding-bottom: 8px; }
+    .cost-bars__inner {
+      display: grid;
+      gap: 13px;
+      min-width: 700px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      background: var(--white);
+    }
+    .cost-row {
+      display: grid;
+      grid-template-columns: 140px minmax(390px, 1fr) 115px;
+      gap: 13px;
+      align-items: center;
+    }
+    .cost-row > strong { color: var(--iris-dark); font-size: 13px; }
+    .cost-track { height: 24px; background: #e7e1d6; border: 1px solid var(--line); }
+    .cost-fill { display: block; height: 100%; background: var(--iris); }
+    .cost-fill.good { background: var(--green); }
+    .cost-fill.warn { background: var(--signal); }
+    .cost-row em { color: var(--ink-soft); font-size: 12px; font-style: normal; }
+
+    .memory-equation { margin: 27px 0; padding-bottom: 8px; }
+    .memory-equation__inner {
+      display: flex;
+      align-items: stretch;
+      min-width: 940px;
+      padding: 20px;
+      color: var(--white);
+      background: var(--iris-dark);
+      box-shadow: var(--shadow);
+    }
+    .memory-term {
+      flex: 1 0 190px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, .2);
+    }
+    .memory-term strong { display: block; color: #f5b18e; font: 800 18px/1.3 var(--serif); }
+    .memory-term small { display: block; margin-top: 7px; color: #e0e5ff; line-height: 1.55; }
+    .memory-op {
+      display: grid;
+      flex: 0 0 48px;
+      place-items: center;
+      color: #f5b18e;
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .gate-chain { margin: 27px 0; padding-bottom: 8px; }
+    .gate-chain__inner {
+      display: flex;
+      align-items: stretch;
+      min-width: 980px;
+    }
+    .gate {
+      position: relative;
+      flex: 1 0 175px;
+      padding: 18px 18px 17px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .gate + .gate { margin-left: 31px; }
+    .gate + .gate::before {
+      content: "AND";
+      position: absolute;
+      left: -31px;
+      top: 45%;
+      width: 30px;
+      color: var(--signal);
+      font-size: 10px;
+      font-weight: 900;
+      text-align: center;
+    }
+    .gate strong { display: block; color: var(--iris-dark); font-size: 14px; }
+    .gate small { display: block; margin-top: 6px; color: var(--ink-soft); line-height: 1.5; }
+
+    .truth-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .truth-card {
+      padding: 21px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--green);
+    }
+    .truth-card.false { border-left-color: var(--signal); }
+    .truth-card strong { color: var(--iris-dark); }
+    .truth-card p { margin: 7px 0 0; color: var(--ink-soft); font-size: 14px; }
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+      margin: 24px 0;
+    }
+    .metric-strip div { padding: 18px; color: var(--white); background: var(--iris-dark); }
+    .metric-strip strong { display: block; color: #f5b18e; font: 800 25px/1 var(--serif); }
+    .metric-strip span { display: block; margin-top: 8px; font-size: 12px; line-height: 1.45; }
+    .fine-print {
+      margin: 18px 0;
+      padding: 13px 16px;
+      color: var(--ink-soft);
+      background: #eee9de;
+      border-left: 4px solid var(--signal);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    @media (max-width: 790px) {
+      .truth-grid { grid-template-columns: 1fr; }
+      .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 480px) {
+      .metric-strip { grid-template-columns: 1fr; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.7.4 · Iris Replication System</p>
+      <h1>
+        <span>UE5-Iris 网络复制系统技术分析</span>
+        <span>第十部分：增量压缩</span>
+      </h1>
+      <p class="hero__deck">把“只发脏成员”和“相对已确认历史编码”拆开：沿 Baseline Manager、Writer、wire、Reader 与 Serializer 走完双槽位、ACK/Lost、成员 Delta、类级配置和净收益权衡。</p>
+      <div class="hero__meta" aria-label="文章信息">
+        <span>作者 Jossy Zhang</span>
+        <span>发布 2026-07-24</span>
+        <span>基于 Unreal Engine 5.7.4</span>
+        <span>10.1–10.4 · 源码与测试核对</span>
+        <span><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UReplicationSystem/SetDeltaCompressionStatus" target="_blank" rel="noopener noreferrer">Delta Compression API ↗</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>内容索引</strong><span>CONTENTS</span></div>
+      <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第十部分导读</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>🗺️ 三层压缩地图</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>📉 10.1 增量压缩概述</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>🗃️ 10.2 Baseline Manager</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>🧬 10.3 增量序列化</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>🎛️ 10.4 增量压缩配置</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>🔀 双连接 Baseline 分叉</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>📡 Writer → Wire → Reader</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>🧮 位成本与压缩率</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>⚖️ 内存、CPU 与失效</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>🧯 排查、源码与测试</b></a></li>
+        <li><a href="#section-12" data-section="section-12"><span>12</span><b>💡 总结与下一步</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 12 个章节</summary>
+        <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第十部分导读</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>🗺️ 三层压缩地图</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>📉 10.1 增量压缩概述</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>🗃️ 10.2 Baseline Manager</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>🧬 10.3 增量序列化</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>🎛️ 10.4 增量压缩配置</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>🔀 双连接 Baseline 分叉</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>📡 Writer → Wire → Reader</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>🧮 位成本与压缩率</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>⚖️ 内存、CPU 与失效</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>🧯 排查、源码与测试</b></a></li>
+        <li><a href="#section-12" data-section="section-12"><span>12</span><b>💡 总结与下一步</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note" role="note">
+        <span class="source-note__mark" aria-hidden="true">据</span>
+        <p><strong>技术依据</strong>本文为 Jossy Zhang 根据系列大纲原创扩写，以本地 Unreal Engine 5.7.4 源码快照、ReplicationSystemTestPlugin 自动化测试与 Epic Games UE 5.7 官方文档为依据。Private 实现、位布局和默认值在升级版本时需要重新验证。</p>
+        <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetSerializeDeltaArgs" target="_blank" rel="noopener noreferrer">查看 Delta Args API ↗</a>
+      </div>
+
+      <article>
+
+        <h2 id="section-01" tabindex="-1">🎯 第十部分导读：只发脏成员，为什么还需要 Baseline？</h2>
+        <p>前九部分已经把 Iris 的状态、调度、序列化、传输和 NetBlob 串了起来。回到普通状态复制时，一个很自然的疑问是：既然 ChangeMask 已经能筛出 <code>Health</code>、<code>Ammo</code> 这类发生变化的成员，为什么还要再引入 Delta Compression？</p>
+        <p>答案是：<strong>“要发哪些成员”与“这些成员怎样编码”是两个问题</strong>。ChangeMask 可以让未变化成员不进入本次成员序列化，但一个脏的 32-bit 值仍可能按完整值写入。Delta Compression 再进一步，让成员相对“这条连接已经确认收到的量化状态”编码；这份双方认可的历史状态，就是连接级 Baseline。</p>
+
+        <div class="truth-grid">
+          <div class="truth-card"><strong>ChangeMask 做集合裁剪</strong><p>决定本次遍历和写入哪些成员。它回答“谁脏了”，不回答“脏成员相对什么值编码”。</p></div>
+          <div class="truth-card"><strong>Baseline 做历史对齐</strong><p>为每条连接选择一份已确认的量化状态。不同连接的 ACK 进度不同，Baseline 也会分叉。</p></div>
+          <div class="truth-card"><strong>Serializer Delta 做位编码</strong><p>具体类型读取 <code>Source</code> 与 <code>Prev</code>，自行决定写差值、相等标记还是回退完整值。</p></div>
+          <div class="truth-card false"><strong>Delta 不保证更小</strong><p>索引、相等位、稀疏 ChangeMask 和 Baseline header 都有成本；值差很大时，成员级 Delta 甚至可能比 full 多 1–2 bits。</p></div>
+        </div>
+
+        <blockquote>Baseline 不是“服务器上一帧状态”，而是<strong>针对某个对象、某条连接、且发送端确认接收端已经拥有</strong>的一份量化快照。</blockquote>
+
+        <div class="article-callout article-callout--blue">
+          <strong>本文技术基线</strong>
+          <p>下文依据本地 Unreal Engine 5.7.4 源码和 ReplicationSystemTestPlugin 的 <code>TestObjectDeltaSerialization.cpp</code> 核对。Manager、Writer、Reader 的 Private 字段和默认 CVar 都属于当前版本实现细节，升级引擎后应重新验证。</p>
+        </div>
+
+        <h3 id="section-01-01" tabindex="-1">读完应该能回答什么</h3>
+        <ul class="checklist">
+          <li>ChangeMask、对象级 Baseline 与成员级 <code>SerializeDelta</code> 各自负责哪一层？</li>
+          <li>为什么每个对象、每条连接需要两个 Baseline 槽位，索引却占 2 bits？</li>
+          <li>pending Baseline 什么时候才能变成 <code>LastAckedBaselineIndex</code>？</li>
+          <li>丢包后，Writer 的重发 mask 与 Baseline Manager 的历史 mask 分别怎样修复？</li>
+          <li>同一帧给多个连接建 Baseline 时，什么可以共享，什么必须逐连接保存？</li>
+          <li>8-bit、16-bit、float 和默认 Delta 为什么不能用同一个“压缩率”概括？</li>
+          <li>如何配置、测量和判断 Delta Compression 是否真的值得？</li>
+        </ul>
+
+        <h2 id="section-02" tabindex="-1">🗺️ 三层压缩地图：Mask、Baseline、Serializer</h2>
+        <p>把“增量压缩”拆成三层，能避免绝大多数误解。第一层来自 Poll/Push Model 和脏数据追踪；第二层由 Writer 与 <code>FDeltaCompressionBaselineManager</code> 协作；第三层才进入具体 <code>FNetSerializer</code>。</p>
+
+        <div class="compression-stack" aria-label="Iris 增量压缩的三层机制">
+          <div class="compression-stack__inner">
+            <section class="compression-layer"><small>LAYER 01 · SET</small><strong>ChangeMask</strong><p>从 Protocol 成员集合中选择本次需要编码的成员，并用稀疏格式进入位流。</p></section>
+            <section class="compression-layer"><small>LAYER 02 · HISTORY</small><strong>Per-connection Baseline</strong><p>用 2-bit index 指向接收端已确认保存的量化快照，决定 <code>Prev</code> 是谁。</p></section>
+            <section class="compression-layer"><small>LAYER 03 · VALUE</small><strong>SerializeDelta</strong><p>逐个脏成员比较 <code>Source</code> / <code>Prev</code>，按类型选择差值表或回退路径。</p></section>
+          </div>
+        </div>
+
+        <div class="code-label"><span>解释性调用链</span><span>UE 5.7.4</span></div>
+        <pre><code>Poll / Push Model
+  → dirty objects + ChangeMask
+  → ReplicationWriter selects LastAckedBaselineIndex per connection
+  → SerializeWithMaskDelta(Current, Prev, ChangeMask)
+  → member FNetSerializer::SerializeDelta(Source, Prev)
+  → bitstream</code></pre>
+
+        <h3 id="section-02-01" tabindex="-1">三个常见但错误的等号</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>错误理解</th><th>实际边界</th></tr></thead>
+          <tbody>
+            <tr><td>ChangeMask = Delta</td><td>ChangeMask 只选成员；被选中的成员仍可能完整序列化。</td></tr>
+            <tr><td>Baseline = 当前服务器状态</td><td>Baseline 是针对某连接已确认的量化快照；当前状态可以比它新很多。</td></tr>
+            <tr><td>SerializeDelta = 数学减法</td><td>它是 Serializer 自定义契约。float 当前按位模式走整数 Delta packing，并非直接写浮点差值。</td></tr>
+          </tbody>
+        </table></div>
+
+        <p>完整 Protocol 的 Delta 调用仍会写稀疏 ChangeMask。换句话说，“哪个成员出现”与“成员值怎样出现”同时影响位数，不能只拿成员 payload 做最终包体估算。</p>
+
+        <h2 id="section-03" tabindex="-1">📉 10.1 增量压缩概述</h2>
+        <h3 id="section-03-01" tabindex="-1">原理：以已签收版本为底稿</h3>
+        <p>可以把当前量化状态看成一份新文档，把 <code>LastAckedBaselineIndex</code> 指向的状态看成接收端已签收的旧文档。发送端先写 Baseline 索引，再写稀疏 ChangeMask；具体成员只需表达“相对旧文档怎样变化”。接收端用同一槽位中的快照作为 <code>Prev</code>，反向恢复当前量化值。</p>
+        <p>关键限定是“已签收”。Writer 可以把当前状态保存成 pending Baseline，但承载它的发送记录在 Delivered 之前，接收端是否拥有这份快照仍不确定。因此 pending 不能立即替换 <code>LastAckedBaselineIndex</code>。</p>
+
+        <div class="metric-strip" aria-label="UE 5.7.4 Baseline 关键常量">
+          <div><strong>2</strong><span><code>MaxBaselineCount</code>：每对象、每连接两个槽位</span></div>
+          <div><strong>2</strong><span><code>InvalidBaselineIndex</code>：0/1 之外的无效值</span></div>
+          <div><strong>2 bits</strong><span><code>BaselineIndexBitCount</code>：能表示 0、1、2</span></div>
+          <div><strong>60 帧</strong><span>后续新 Baseline 创建的默认最小间隔</span></div>
+        </div>
+
+        <h3 id="section-03-02" tabindex="-1">适用场景</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>更可能有收益</th><th>原因</th><th>更可能不划算</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>状态较大、更新频繁</td><td>Baseline 和 header 成本可由多次发送摊薄。</td><td>一次性或寿命很短的对象</td><td>尚未建立可复用的已确认 Baseline。</td></tr>
+            <tr><td>数值变化幅度通常较小</td><td>整数差值表容易落入短编码。</td><td>小状态、随机大跳变</td><td>Delta 索引可能让 payload 反而变大。</td></tr>
+            <tr><td>连接稳定、ACK 及时</td><td>已确认历史持续可用，重建较少。</td><td>高丢包或条件频繁变化</td><td>pending 丢失、失效与重传增加额外工作。</td></tr>
+            <tr><td>成员多数局部变化</td><td>稀疏 ChangeMask 与成员 Delta 同时受益。</td><td>动态状态克隆昂贵</td><td>数组、字符串或嵌套动态成员会增加快照内存和 clone/free CPU。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-03-03" tabindex="-1">性能收益要算净值</h3>
+        <p>工程上应比较“不开 Delta 的对象状态总 bits”与“开启后的对象状态总 bits”，再同时记录 CPU 和内存，而不是只看一个整数成员的漂亮样例。净收益至少要扣除：</p>
+        <ul>
+          <li>Baseline index，以及 valid 分支中的 <code>bIsNewBaseline</code>；</li>
+          <li>稀疏 ChangeMask 和成员 Delta 自己的索引/相等位；</li>
+          <li>发送端量化快照、ChangeMask 历史和接收端 Stored Baseline；</li>
+          <li>动态状态 clone/free、失效处理、丢包重发与多连接查找。</li>
+        </ul>
+        <div class="fine-print"><strong>测量边界：</strong>本文后面的 8/16-bit 数字仅指成员 payload 模型，不包含对象句柄、batch、稀疏 ChangeMask、Baseline header、DataStream、Packet header 或加密成本。</div>
+
+        <h2 id="section-04" tabindex="-1">🗃️ 10.2 DeltaCompressionBaselineManager</h2>
+        <h3 id="section-04-01" tabindex="-1">Manager 管的不是一个“全局旧状态”</h3>
+        <p><code>FDeltaCompressionBaselineManager</code> 的核心职责是把对象、连接、槽位和量化快照关联起来。它在 <code>PreSendUpdate</code> 中更新帧计数、同步 scope、累积 dirty ChangeMask、处理条件失效并建立本次发送的共享上下文；在 <code>PostSendUpdate</code> 中提交或释放该上下文。</p>
+        <p><code>AddConnection</code> 当前没有额外工作；<code>RemoveConnection</code> 会释放这条连接持有的 Baseline。对象退出可用范围或复制条件改变时，<code>FDeltaCompressionBaselineInvalidationTracker</code> 会让相关槽位失效，Writer 随后回退到无有效 Baseline 的路径。</p>
+
+        <div class="baseline-matrix" aria-label="对象、连接、Baseline 槽位和 ChangeMask 的布局">
+          <div class="baseline-matrix__inner">
+            <div class="head">对象 O17</div><div class="head">连接累计 mask</div><div class="head">Baseline[0]</div><div class="head">Baseline[1]</div>
+            <div class="rowhead">Connection A</div><div><b>Accumulated</b><small>自上次建基线后逐帧 OR；建新 Baseline 时复制并清零。</small></div><div class="acked"><b>S0 · Acked</b><small>量化快照 + 当时捕获的 per-connection ChangeMask。</small></div><div class="pending"><b>S1 · Pending</b><small>已发送、尚未 Delivered，不能作为下一次 Prev。</small></div>
+            <div class="rowhead">Connection B</div><div><b>Accumulated</b><small>与 A 独立，过滤和丢包结果可以不同。</small></div><div class="acked"><b>S0 · Acked</b><small>槽位编号可以相同，但连接进度独立。</small></div><div><b>Invalid</b><small>Lost 后释放，等待后续创建机会。</small></div>
+          </div>
+        </div>
+
+        <h3 id="section-04-02" tabindex="-1">两槽位为什么需要 2-bit index</h3>
+        <p>源码常量为 <code>MaxBaselineCount = 2</code>、<code>InvalidBaselineIndex = 2</code>、<code>BaselineIndexBitCount = 2</code>。槽位 0/1 用来在旧的已确认快照和新的 pending 快照间轮换；数值 2 表示“没有可用 Baseline”，所以索引必须能表达三个状态，需要 2 bits。</p>
+        <p>Writer 持有 <code>LastAckedBaselineIndex</code> 与 <code>PendingBaselineIndex</code>；Reader 则持有 <code>LastStoredBaselineIndex</code>、<code>PrevStoredBaselineIndex</code> 和两个接收快照。新槽位通常按 <code>(LastAcked + 1) % 2</code> 选择。它们不是两个全局版本，也不是让两条连接共用同一个 ACK 状态。</p>
+
+        <h3 id="section-04-03" tabindex="-1">快照存储：量化内部状态，不是 UObject 内存拷贝</h3>
+        <p><code>FDeltaCompressionBaselineStorage</code> 通过 <code>FReplicationStateStorage</code> reserve / commit / cancel 快照。底层按 Protocol 的 <code>InternalTotalSize</code> 分配，克隆的是量化后的内部状态；若 Protocol 含 dynamic state，还会调用对应 Protocol operations 深拷贝并在释放前清理。</p>
+        <p>每份内部 Baseline 带引用计数。同一 <code>SendUpdate</code> 内，多条连接为同一对象创建当前状态 Baseline 时，<code>FBaselineSharingContext</code> 可以只保存一次量化快照，再由各连接 AddRef。共享的是<strong>当前状态的存储</strong>；连接各自的槽位、累计 ChangeMask、pending/acked 生命周期仍然独立。</p>
+
+        <h3 id="section-04-04" tabindex="-1">三份 mask 与 Lost 的历史修复</h3>
+        <p>Manager 为每对象分配的 ChangeMask 区域，按连接包含三份逻辑 mask：一份连接累计 mask，加上两个 Baseline 槽位各自捕获的 mask。<code>UpdateDirtyStateMasks</code> 把每帧 dirty bits OR 到所有有效连接的累计 mask；<code>CreateBaseline</code> 把当前连接累计 mask 复制到新槽位，并清空累计值。</p>
+        <p><code>DestroyBaseline</code> 只释放快照并丢弃槽位 mask；<code>LostBaseline</code> 则释放 pending 快照，同时把它捕获的 mask 合并回 Manager 的连接累计 mask。后者维护的是<strong>未来 Baseline 的历史完整性</strong>。真正让丢失成员进入下一次状态重发的，是 Writer 处理 dropped record 时，把该包的 <code>RecordInfo.ChangeMask</code>（扣除已经重发的 bits）恢复到 Writer 当前连接的发送 mask。两条修复链协作，但职责不同。</p>
+
+        <h3 id="section-04-05" tabindex="-1">创建节流与失效</h3>
+        <ul>
+          <li><code>net.Iris.MinimumNumberOfFramesBetweenBaselines</code> 默认 60；对象完全没有 Baseline 时可以先建立第一份。</li>
+          <li><code>PrevBaselineCreationFrame</code> 是 per-object 状态，不是每连接独立计时。同一对象的后续创建共同受节流。</li>
+          <li><code>CreateBaseline</code> 返回的快照只保证当前 <code>SendUpdate</code> 可用；Manager 可以因条件或内部策略失效它。</li>
+          <li>条件成员的可见性改变时，旧 Baseline 可能不再是合法参照，相关连接或所有连接的槽位会被释放。</li>
+        </ul>
+
+        <h2 id="section-05" tabindex="-1">🧬 10.3 增量序列化：SerializeDelta / DeserializeDelta</h2>
+        <h3 id="section-05-01" tabindex="-1">发送与接收调用链</h3>
+        <div class="code-label"><span>发送端</span><span>Writer → Serializer</span></div>
+        <pre><code>FReplicationWriter::SerializeObjectStateDelta
+  → FReplicationProtocolOperations::SerializeWithMaskDelta
+  → FReplicationStateOperations::SerializeDeltaWithMask
+  → FNetSerializer::SerializeDelta
+       Args.Source = current quantized member
+       Args.Prev   = acknowledged quantized member</code></pre>
+
+        <div class="code-label"><span>接收端</span><span>Reader → Serializer</span></div>
+        <pre><code>FReplicationReader::DeserializeObjectStateDelta
+  → FReplicationProtocolOperations::DeserializeWithMaskDelta
+  → FReplicationStateOperations::DeserializeDeltaWithMask
+  → FNetSerializer::DeserializeDelta
+       Args.Prev = StoredBaselines[BaselineIndex]</code></pre>
+
+        <p><code>SerializeWithMaskDelta</code> 先为完整 Protocol 写稀疏 ChangeMask，再只对脏成员调用 Delta；接收端用同样的 mask 和 Baseline 反向解码。<a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetSerializeDeltaArgs" target="_blank" rel="noopener noreferrer">FNetSerializeDeltaArgs</a> 与 <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetDeserializeDeltaArgs" target="_blank" rel="noopener noreferrer">FNetDeserializeDeltaArgs</a> 中的 <code>Prev</code> 都指向量化的历史数据，而不是业务 UObject。</p>
+
+        <h3 id="section-05-02" tabindex="-1">默认 Delta：一个相等位，不等就回退</h3>
+        <p>NetSerializer builder 的默认 Delta 实现可以概括为：先写一位表示 <code>Source</code> 是否等于 <code>Prev</code>；相同就结束，不同则调用普通 <code>Serialize</code> 写完整值。这个默认实现提供统一语义，却不承诺对“不同值”压缩——不同值通常是 <code>1 bit + full payload</code>。</p>
+        <pre><code>same = IsEqual(Source, Prev)
+WriteBool(same)
+if (!same)
+    Serialize(Source)</code></pre>
+
+        <h3 id="section-05-03" tabindex="-1">整数 Delta：表驱动的差值范围</h3>
+        <p>整数 Serializer 会先计算无符号位模式差异，再用预设位宽表选择足以编码差值的档位。UE 5.7.4 当前表包括：≤8-bit 使用 <code>{0}</code>；≤16-bit 使用 <code>{0, 4, 10}</code>；≤32-bit 使用 <code>{0, 4, 14}</code>；≤64-bit 使用 <code>{0, 14, 32}</code>。索引本身也占位，所以大差异会回退到完整位宽并增加索引成本。</p>
+
+        <div class="table-scroll"><table>
+          <thead><tr><th>成员类型</th><th>Delta 表</th><th>相同</th><th>小差异示例</th><th>最大档位</th></tr></thead>
+          <tbody>
+            <tr><td>8-bit integer</td><td><code>{0}</code>，1-bit index</td><td>1 bit</td><td>没有中间档</td><td>1 + 8 = 9 bits</td></tr>
+            <tr><td>16-bit integer</td><td><code>{0,4,10}</code>，2-bit index</td><td>2 bits</td><td>2 + 4 = 6 bits；或 2 + 10 = 12 bits</td><td>2 + 16 = 18 bits</td></tr>
+            <tr><td>32-bit integer</td><td><code>{0,4,14}</code>，2-bit index</td><td>2 bits</td><td>6 或 16 bits</td><td>34 bits</td></tr>
+            <tr><td>64-bit integer</td><td><code>{0,14,32}</code>，2-bit index</td><td>2 bits</td><td>16 或 34 bits</td><td>66 bits</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-05-04" tabindex="-1">浮点、结构与动态状态</h3>
+        <p>float/double 的 Delta 不是直接做浮点减法。当前实现对量化后的位模式调用整数 Delta packing：float 表为 <code>{0,16,25}</code>，double 表为 <code>{0,42,54}</code>。相近数值不一定具有相近的位模式成本，必须根据真实数据分布测量。</p>
+        <p>Array、Struct 等 Serializer 可以提供自定义 Delta 和动态状态处理。Baseline 存储需要完整 clone 动态数据，在销毁或失效时也必须 free；因此一个看起来很省带宽的动态数组 Delta，可能把成本移到内存分配和 CPU。</p>
+
+        <h3 id="section-05-05" tabindex="-1">初始状态 Delta 是另一条优化路径</h3>
+        <p><code>net.Iris.DeltaCompressInitialState</code> 默认开启时，创建对象的 initial state 可以相对 Protocol default state 调用 Delta 序列化。它的 <code>Prev</code> 是默认量化状态，不是某条连接已经 ACK 的对象 Baseline。不要用“初始状态也走 Delta”推导出该连接已经建立 <code>LastAckedBaselineIndex</code>。</p>
+
+        <h2 id="section-06" tabindex="-1">🎛️ 10.4 增量压缩配置：允许不等于保证</h2>
+        <p>对象真正进入 Delta 路径要通过多道门。<a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UReplicationSystem/SetDeltaCompressionStatus" target="_blank" rel="noopener noreferrer">SetDeltaCompressionStatus 官方 API</a> 明确使用“allow”语义：调用它只是允许对象使用，不保证本次发送一定使用 Delta。</p>
+
+        <div class="gate-chain" aria-label="Iris 增量压缩启用门控链">
+          <div class="gate-chain__inner">
+            <div class="gate"><strong>Global CVar</strong><small><code>net.Iris.EnableDeltaCompression=1</code></small></div>
+            <div class="gate"><strong>Protocol trait</strong><small><code>SupportsDeltaCompression</code> 且内部状态非空</small></div>
+            <div class="gate"><strong>Class / Runtime allow</strong><small><code>DeltaCompressionConfigs</code> 或运行时 API</small></div>
+            <div class="gate"><strong>Manager capacity</strong><small>对象能获得 per-object info 与快照存储</small></div>
+            <div class="gate"><strong>Connection history</strong><small>有已确认 Baseline，或本次能创建新 Baseline</small></div>
+          </div>
+        </div>
+
+        <h3 id="section-06-01" tabindex="-1">全局、节流与初始状态 CVar</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>CVar</th><th>UE 5.7.4 默认</th><th>作用</th><th>注意</th></tr></thead>
+          <tbody>
+            <tr><td><code>net.Iris.EnableDeltaCompression</code></td><td>true</td><td>功能 kill switch。</td><td>关闭后，即使类级允许也不会启用对象级 Delta。</td></tr>
+            <tr><td><code>net.Iris.MinimumNumberOfFramesBetweenBaselines</code></td><td>60</td><td>限制同一对象后续新 Baseline 的创建频率。</td><td>是 per-object 节流，不是 per-connection。</td></tr>
+            <tr><td><code>net.Iris.DeltaCompressInitialState</code></td><td>true</td><td>允许 initial state 相对 default state 走 Delta。</td><td>与连接 ACK Baseline 是不同机制。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-06-02" tabindex="-1">类级配置</h3>
+        <p><code>UObjectReplicationBridgeConfig</code> 提供 <code>DeltaCompressionConfigs</code>。Bridge 加载配置后按类判断；子类继承配置，距离实际类最近的匹配项优先。下面是项目配置示意，类路径必须替换为项目真实类型：</p>
+        <div class="code-label"><span>DefaultEngine.ini · 项目示例</span><span>按实际类路径调整</span></div>
+        <pre><code>[/Script/IrisCore.ObjectReplicationBridgeConfig]
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.MyReplicatedPawn,bEnableDeltaCompression=true)
++DeltaCompressionConfigs=(ClassName=/Script/MyGame.OneShotActor,bEnableDeltaCompression=false)</code></pre>
+        <p>UE 5.7.4 的引擎基础配置默认为 Pawn、PlayerState 和 GameplayDebuggerCategoryReplicator 启用这一策略。项目应通过自己的配置层追加或覆盖，不应修改 Engine/BaseEngine.ini。</p>
+
+        <h3 id="section-06-03" tabindex="-1">运行时 API 与 Protocol 支持</h3>
+        <p>Bridge 在绑定对象时可以调用 <code>UReplicationSystem::SetDeltaCompressionStatus(..., Allow)</code>。Manager 仍会同时检查全局开关与 Protocol trait。Protocol Manager 只有在组合 Replication State traits 支持 Delta 且 <code>InternalTotalSize &gt; 0</code> 时，才标记 <code>EReplicationProtocolTraits::SupportsDeltaCompression</code>。</p>
+        <p>普通带成员、非 init-only、非 function 的 Replication State 通常会被 descriptor builder 标记为支持；但最终 Protocol 是组合结果，项目自定义 Serializer 或 State trait 仍需核对。</p>
+
+        <h3 id="section-06-04" tabindex="-1">容量与内存权衡</h3>
+        <p><code>FReplicationSystemParams::MaxDeltaCompressedObjectCount</code> 在 UE 5.7.4 默认是 2048。Manager 最终容量还会取 NetObject 上限与该值的较小者；NetDriver 配置为 0 时使用 ReplicationSystem 默认。达到容量并不意味着普通复制失败，而是额外的 Delta 对象管理不能无限增长。</p>
+        <p>推荐先对白名单类启用，并按对象数量、连接数、Protocol 内部状态大小与动态成员比例估算，再用 NetTrace/统计验证。不要仅因为全局 CVar 默认 true 就把所有类都当作已经获得收益。</p>
+
+        <h2 id="section-07" tabindex="-1">🔀 双连接、同一对象：ACK / Lost 后的 Baseline 分叉</h2>
+        <p>用一个对象和两条连接走完生命周期。状态依次为：</p>
+        <pre><code>S0 = { Health = 100, Ammo = 30 }
+S1 = { Health =  80, Ammo = 30 }
+S2 = { Health =  80, Ammo = 25 }</code></pre>
+        <p>A 与 B 都已确认 S0。服务器把 Health 改为 80，并在本次 <code>SendUpdate</code> 为两条连接发送 S1、尝试建立新 Baseline。<code>FBaselineSharingContext</code> 可让两条连接引用同一份 S1 量化快照，但它们拥有独立的发送记录和投递结果。</p>
+
+        <div class="fork-lanes" aria-label="两连接 ACK 与 Lost 导致的 Baseline 分叉">
+          <div class="fork-lanes__inner">
+            <div class="time">连接 / 时间</div><div class="time">T0 · 已确认</div><div class="time">T1 · 发送 Health</div><div class="time">T2 · 投递反馈</div><div class="time">T3 · Ammo 变化</div><div class="time">T4 · 收敛</div>
+            <div class="lane">Connection A</div><div class="ok"><strong>S0 Acked</strong>slot 0 可作 Prev</div><div><strong>S1 Pending</strong>共享 S1 snapshot 引用</div><div class="ok"><strong>Delivered</strong>S1 → LastAcked slot 1</div><div class="ok"><strong>Delta from S1</strong>只需表达 Ammo 变化</div><div class="ok"><strong>S2</strong>接收端恢复完成</div>
+            <div class="lane">Connection B</div><div class="ok"><strong>S0 Acked</strong>slot 0 可作 Prev</div><div><strong>S1 Pending</strong>共享同一 snapshot 引用</div><div class="lost"><strong>Lost</strong>释放 pending；仍以 S0 为 Acked</div><div class="lost"><strong>Resend state</strong>Health 丢失记录恢复 + Ammo 新变化</div><div class="ok"><strong>S2</strong>最终同样收敛</div>
+          </div>
+        </div>
+
+        <h3 id="section-07-01" tabindex="-1">A：Delivered 推进 Baseline</h3>
+        <p>A 的发送记录 Delivered 后，Writer 销毁旧的 last-acked 引用，把 <code>PendingBaselineIndex</code> 提升为 <code>LastAckedBaselineIndex</code>，再清空 pending。下一次 Ammo 变化时，A 可以相对 S1 编码。</p>
+
+        <h3 id="section-07-02" tabindex="-1">B：Lost 同时触发两条修复链</h3>
+        <p>B 的记录 Lost 后不能假设接收端存好了 S1。恢复分成两个相邻但不同的动作：</p>
+        <ol>
+          <li><strong>Writer 的发送状态修复：</strong><code>HandleDroppedRecord&lt;Created&gt;</code> 把丢包记录中的 <code>RecordInfo.ChangeMask</code> 恢复到 B 当前发送 mask；如果其中某些 bits 已在后续包重发，会先剔除，避免重复计入。</li>
+          <li><strong>Manager 的 Baseline 历史修复：</strong><code>LostBaseline</code> 释放 B 的 pending snapshot，并把该 Baseline 捕获的 ChangeMask 合并回 Manager 的 per-connection accumulated mask，保证未来创建 Baseline 时不会遗漏历史变化。</li>
+        </ol>
+        <p>因此，下一次 B 发送 S2 时，Writer 会包含仍未送达的 Health 以及新变化的 Ammo；Baseline 选择仍退回 S0 或无有效 Baseline 路径。不能把“Manager merge”单独解释成下一包重发的唯一来源。</p>
+
+        <h3 id="section-07-03" tabindex="-1">同一状态，位流可以不同</h3>
+        <p>到了 S2，A 的 <code>Prev=S1</code>，只需处理 Ammo；B 的 <code>Prev=S0</code>，必须让 Health 与 Ammo 都能正确收敛。服务端对象只有一份当前状态，但每条连接的 ACK 历史、mask、Baseline index 和位流都可以不同——这正是 Baseline 必须逐连接管理的原因。</p>
+
+        <h2 id="section-08" tabindex="-1">📡 Writer → Wire → Reader：一次 Delta 的完整旅程</h2>
+        <h3 id="section-08-01" tabindex="-1">Writer 选择 full 还是 delta</h3>
+        <p><code>FReplicationWriter::SerializeObjectStateDelta</code> 总会先写 2-bit BaselineIndex。若 <code>LastAckedBaselineIndex</code> 有效，Writer 再写 1-bit <code>bIsNewBaseline</code>，并调用 <code>SerializeWithMaskDelta</code>；若无效，则写 2-bit <code>CreatedBaselineIndex</code>，随后用普通 <code>SerializeWithMask</code> 写完整成员值。</p>
+
+        <div class="wire-layout" aria-label="Baseline header 和状态 payload 位布局">
+          <div class="wire-layout__inner">
+            <span class="wire-label">VALID BASELINE · DELTA PATH</span>
+            <div class="wire-branch delta">
+              <span>BaselineIndex<br>2 bits</span><span>bIsNewBaseline<br>1 bit</span><span>sparse ChangeMask<br>variable</span><span>member delta payloads<br>variable</span>
+            </div>
+            <span class="wire-label">NO VALID BASELINE · FULL-WITH-MASK PATH</span>
+            <div class="wire-branch full">
+              <span>Invalid index<br>2 bits</span><span>CreatedBaselineIndex<br>2 bits</span><span>sparse ChangeMask<br>variable</span><span>full member payloads<br>variable</span>
+            </div>
+          </div>
+        </div>
+
+        <p>若当前没有 pending Baseline，Writer 会尝试创建新槽位：没有 last-acked 时从 0 开始，否则轮换到另一个槽位。新 Baseline 还可能用 in-flight changes 修补，确保接收端创建出的快照与随后相对它编码的数据一致。只有在本次 batch 成功提交后，Writer 才设置 <code>PendingBaselineIndex</code>。</p>
+
+        <h3 id="section-08-02" tabindex="-1">Reader 选择 Prev 并保存新槽位</h3>
+        <p><code>FReplicationReader::DeserializeObjectStateDelta</code> 读取同样的 2-bit BaselineIndex。有效时，它读取 <code>bIsNewBaseline</code>，从 <code>StoredBaselines[index]</code> 取得 <code>Prev</code>，调用 <code>DeserializeWithMaskDelta</code>；需要新 Baseline 时使用轮换槽位保存解码后的当前 ReceiveState。</p>
+        <p>无效 index 分支会继续读取新 Baseline index，用普通 <code>DeserializeWithMask</code> 取得当前值，再将当前 ReceiveState 保存到声明的槽位。Reader 通过 <code>LastStoredBaselineIndex</code> 与 <code>PrevStoredBaselineIndex</code> 管理何时可以释放更旧快照。</p>
+
+        <h3 id="section-08-03" tabindex="-1">投递反馈闭环</h3>
+        <div class="timeline">
+          <article><strong>1 · Select</strong><p>Writer 读取当前连接的 last-acked/pending 状态，验证 Manager Baseline 是否仍有效。</p></article>
+          <article><strong>2 · Serialize</strong><p>写 index、是否建新 Baseline、ChangeMask 和成员 full/delta payload。</p></article>
+          <article><strong>3 · Commit</strong><p>batch 成功进入发送记录后，才把新槽位标为 pending。</p></article>
+          <article><strong>4 · Receive</strong><p>Reader 选择 Stored Baseline，恢复当前状态，必要时保存新快照。</p></article>
+          <article><strong>5A · Delivered</strong><p>发送端把 pending 晋升为 last-acked，并释放旧槽位。</p></article>
+          <article><strong>5B · Lost</strong><p>发送 mask 与 Baseline 历史 mask 分别修复，pending 不得晋升。</p></article>
+        </div>
+
+        <p>注意 Baseline header 位数只是对象状态子格式的一部分。真实网络包还包含对象标识、batch、DataStream、packet、可靠性/加密等外层开销；本文没有把上图相加后宣称为“一个对象最终只需 N bits”。</p>
+
+        <h2 id="section-09" tabindex="-1">🧮 位成本与压缩率：Delta 何时会反向膨胀？</h2>
+        <p>先用成员 payload 模型建立直觉。柱长只表示相对大小，不表示某个真实项目最终包体。对于 16-bit 整数，小差异很漂亮；对于 8-bit 整数的非零差异，Delta 反而多 1 bit。</p>
+
+        <div class="cost-bars" aria-label="成员级 full 和 delta 位成本对比">
+          <div class="cost-bars__inner">
+            <div class="cost-row"><strong>uint8 · full</strong><div class="cost-track"><span class="cost-fill" style="width:53%"></span></div><em>8 bits</em></div>
+            <div class="cost-row"><strong>uint8 · changed</strong><div class="cost-track"><span class="cost-fill warn" style="width:60%"></span></div><em>9 bits</em></div>
+            <div class="cost-row"><strong>uint16 · full</strong><div class="cost-track"><span class="cost-fill" style="width:89%"></span></div><em>16 bits</em></div>
+            <div class="cost-row"><strong>uint16 · small Δ</strong><div class="cost-track"><span class="cost-fill good" style="width:33%"></span></div><em>6 bits</em></div>
+            <div class="cost-row"><strong>uint16 · medium Δ</strong><div class="cost-track"><span class="cost-fill good" style="width:67%"></span></div><em>12 bits</em></div>
+            <div class="cost-row"><strong>uint16 · large Δ</strong><div class="cost-track"><span class="cost-fill warn" style="width:100%"></span></div><em>18 bits</em></div>
+          </div>
+        </div>
+
+        <h3 id="section-09-01" tabindex="-1">成员级收益公式</h3>
+        <div class="formula">
+          <span>仅用于分解思路</span>
+          member saving = full member bits − delta member bits<br>
+          object saving = full state bits − (baseline header + sparse mask + delta members)<br>
+          system value = bandwidth saving − memory cost − CPU cost − loss/invalidation cost
+        </div>
+        <p>默认 Delta 的相同值可能只花 1 bit，但正常情况下 ChangeMask 已经尽量排除了未变化成员，所以“相同值”是否大量进入 Delta 路径，要看 Serializer、条件状态和 mask 生成方式。不能把 1 bit 的最好情况乘以全部成员数。</p>
+
+        <h3 id="section-09-02" tabindex="-1">压缩率优化顺序</h3>
+        <ol>
+          <li><strong>先看对象选择：</strong>优先状态大、长寿命、更新模式稳定的类；不要全局盲开。</li>
+          <li><strong>再看数值分布：</strong>统计差值落在哪个表档位，而不是只统计“成员发生了变化”。</li>
+          <li><strong>分离 initial 与 steady state：</strong>创建峰值和稳定更新使用不同 Prev，收益不能混算。</li>
+          <li><strong>按连接质量分组：</strong>高 RTT/高丢包连接会带来更多 pending 停留和重建。</li>
+          <li><strong>同时采 CPU/内存：</strong>网络 bits 下降但动态 clone/free 或快照驻留飙升，仍可能是负优化。</li>
+        </ol>
+
+        <h3 id="section-09-03" tabindex="-1">真实测量建议</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>维度</th><th>至少记录</th><th>对照方式</th></tr></thead>
+          <tbody>
+            <tr><td>带宽</td><td>对象状态 bits、ChangeMask bits、delta/full 次数、每成员 Serializer bits。</td><td>相同回放、相同网络条件下切换类级 allow 或全局 CVar。</td></tr>
+            <tr><td>CPU</td><td>Writer/Reader Delta 时间、snapshot clone/free、失效和 Lost 处理。</td><td>看 P50/P95/P99，不只看整帧平均。</td></tr>
+            <tr><td>内存</td><td>活跃 Delta 对象、每连接槽位、snapshot bytes、dynamic allocations。</td><td>按连接数和对象类型拆分峰值。</td></tr>
+            <tr><td>网络质量</td><td>RTT、丢包、pending 驻留时长、Baseline 创建/失效频率。</td><td>稳定、弱网和条件切换场景分别跑。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-10" tabindex="-1">⚖️ 内存、CPU 与失效成本</h2>
+        <h3 id="section-10-01" tabindex="-1">发送端内存不是简单的“对象大小 × 2”</h3>
+        <div class="memory-equation" aria-label="Delta Compression 发送端内存构成">
+          <div class="memory-equation__inner">
+            <div class="memory-term"><strong>Per-object metadata</strong><small>对象到 info 的映射、创建帧、Baseline 计数与状态标记</small></div>
+            <div class="memory-op">+</div>
+            <div class="memory-term"><strong>Per-connection masks × 3</strong><small>累计 mask + slot 0 mask + slot 1 mask</small></div>
+            <div class="memory-op">+</div>
+            <div class="memory-term"><strong>Quantized snapshots</strong><small>最多每连接两个逻辑槽位；同帧创建可引用共享</small></div>
+            <div class="memory-op">+</div>
+            <div class="memory-term"><strong>Dynamic state</strong><small>数组、字符串、嵌套结构的深拷贝与分配器开销</small></div>
+          </div>
+        </div>
+        <p>接收端也需要最多两个 Stored Baseline 和当前 ReceiveState。发送端初始化 BaselineStorage 的理论槽位容量按 <code>MaxDeltaCompressedObjectCount × MaxConnectionCount × 2</code> 规划，但同一帧多连接的新快照可以通过引用计数共享实际量化状态。共享能缓解快照重复，不会消除 per-connection mask 和生命周期数据。</p>
+
+        <h3 id="section-10-02" tabindex="-1">CPU 成本落在哪里</h3>
+        <ul>
+          <li>每帧把 dirty ChangeMask OR 到所有相关连接的累计 mask；</li>
+          <li>创建 Baseline 时克隆量化状态，dynamic state 需要深拷贝；</li>
+          <li>写/读稀疏 ChangeMask，并对脏成员执行 Serializer Delta；</li>
+          <li>按连接查找 last-acked/pending，处理 in-flight changes；</li>
+          <li>Delivered/Lost 时更新引用、mask 和记录；</li>
+          <li>条件变化、对象离开 scope 或连接移除时失效/释放快照。</li>
+        </ul>
+
+        <h3 id="section-10-03" tabindex="-1">失效为什么是正确性成本</h3>
+        <p>一个 Baseline 只有在“双方对同一成员集合和条件可见性有一致理解”时才可作为 Prev。OwnerOnly、AutonomousOnly、SimulatedOnly、ReplicatePhysics 等条件切换，可能让旧快照对某连接包含了现在不可见或此前不可见的成员。继续相对它编码会产生错误状态，因此 Manager 宁可释放槽位、回退 full-with-mask，再重建干净历史。</p>
+        <p>这也是为什么“Baseline 命中率”不能无限追求：保留一份不再合法的历史比多发几个 bits 更危险。优化目标应是<strong>在保持条件正确性的前提下减少净成本</strong>。</p>
+
+        <h3 id="section-10-04" tabindex="-1">推荐的启用策略</h3>
+        <ul class="checklist">
+          <li>从 1–3 个高价值长寿命类开始，而不是对所有复制对象开启。</li>
+          <li>压测连接数要覆盖线上峰值，因为 mask 与槽位元数据按连接增长。</li>
+          <li>对含动态数组/字符串的类单独记录 snapshot bytes 与分配次数。</li>
+          <li>弱网测试必须包含连续丢包和条件切换，不只模拟固定 RTT。</li>
+          <li>引擎升级后重新核对 CVar 默认值、Delta 表、Manager 布局和自动化测试。</li>
+        </ul>
+
+        <h2 id="section-11" tabindex="-1">🧯 故障排查、源码与自动化测试</h2>
+        <h3 id="section-11-01" tabindex="-1">固定排查顺序</h3>
+        <div class="formula">
+          <span>从“允许”走到“本包实际使用”</span>
+          Global CVar<br>
+          → class config / SetDeltaCompressionStatus(Allow)<br>
+          → Protocol SupportsDeltaCompression<br>
+          → MaxDeltaCompressedObjectCount capacity<br>
+          → baseline creation throttle<br>
+          → LastAcked / Pending per connection<br>
+          → condition invalidation<br>
+          → Delivered / Lost record handling<br>
+          → NetTrace full vs delta bits
+        </div>
+
+        <div class="table-scroll"><table>
+          <thead><tr><th>症状</th><th>优先检查</th><th>常见原因</th></tr></thead>
+          <tbody>
+            <tr><td>调用 Allow 仍一直 full</td><td>全局 CVar、Protocol trait、容量、是否已有有效 ACK Baseline。</td><td>“允许”被误当成“强制”；首次发送本来就需要建立历史。</td></tr>
+            <tr><td>频繁创建/释放 Baseline</td><td>条件变化、scope、丢包率、创建间隔。</td><td>成员可见性切换或 pending 长期未 Delivered。</td></tr>
+            <tr><td>开启后 bits 反而增加</td><td>成员 Delta 档位、header/mask、对象状态大小。</td><td>8-bit 非零差值、随机大跳变或状态过小。</td></tr>
+            <tr><td>内存随连接数上涨过快</td><td>每连接 mask、双槽位、dynamic state、Delta 对象数量。</td><td>对过多类启用，或快照动态成员深拷贝昂贵。</td></tr>
+            <tr><td>丢包后客户端不收敛</td><td>Writer dropped record mask 与 Manager LostBaseline 两条链。</td><td>自定义修改只恢复其中一套历史，或 in-flight mask 被错误清除。</td></tr>
+            <tr><td>条件切换后值异常</td><td>InvalidationTracker 与测试中的 condition 场景。</td><td>错误复用条件集合不一致的旧 Baseline。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-11-02" tabindex="-1">UE 5.7.4 源码索引</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>主题</th><th>关键文件</th><th>核对点</th></tr></thead>
+          <tbody>
+            <tr><td>Manager</td><td><code>DeltaCompressionBaselineManager.h/.cpp</code></td><td>双槽位、CVar、per-connection masks、sharing、创建、Lost/Destroy。</td></tr>
+            <tr><td>Storage</td><td><code>DeltaCompressionBaselineStorage.h/.cpp</code><br><code>ReplicationStateStorage.h/.cpp</code></td><td>reserve/commit/cancel、引用计数、量化快照和 dynamic clone/free。</td></tr>
+            <tr><td>Invalidation</td><td><code>DeltaCompressionBaselineInvalidationTracker.h/.cpp</code></td><td>条件变化触发的连接级/对象级失效。</td></tr>
+            <tr><td>发送端</td><td><code>ReplicationWriter.cpp</code></td><td>full/delta 分支、pending commit、Delivered/Lost、dropped record mask。</td></tr>
+            <tr><td>接收端</td><td><code>ReplicationReader.cpp</code></td><td>2-bit index、StoredBaselines、Deserialize 与新槽位保存。</td></tr>
+            <tr><td>Protocol</td><td><code>ReplicationOperations.cpp</code><br><code>ReplicationProtocolManager.cpp</code></td><td>WithMaskDelta 调用链与 Protocol trait。</td></tr>
+            <tr><td>Serializer</td><td><code>NetSerializer.h</code><br><code>NetSerializerBuilder.inl</code><br><code>IntNetSerializerBase.h</code><br><code>FloatNetSerializers.cpp</code></td><td>Prev、默认 Delta、整数差值表与浮点位模式。</td></tr>
+            <tr><td>Bridge/config</td><td><code>ObjectReplicationBridgeConfig.h</code><br><code>ObjectReplicationBridge.cpp</code><br><code>ReplicationSystem.h/.cpp</code></td><td>类级配置、Allow API 与对象容量。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-11-03" tabindex="-1">自动化测试告诉了我们什么</h3>
+        <p><code>TestObjectDeltaSerialization.cpp</code> 不只验证“能压缩一个对象”。它覆盖单客户端新 Baseline、丢包后最终收敛、三个客户端的独立进度、Autonomous/Simulated 条件切换、Owner/Physics 条件、subobject、动态数组、pending destroy/cancel，以及禁用条件期间的 in-flight changes。</p>
+        <p>测试会显式开启全局 Delta，并把 <code>MinimumNumberOfFramesBetweenBaselines</code> 设为 0 来允许连续创建，或设为很大值来阻止创建。这个做法也提示项目测试：不要依赖机器当前的 CVar 环境，要在测试夹具内保存、设置并恢复关键开关。</p>
+
+        <h3 id="section-11-04" tabindex="-1">Epic Games UE 5.7 官方资料</h3>
+        <ul>
+          <li><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UReplicationSystem/SetDeltaCompressionStatus" target="_blank" rel="noopener noreferrer">UReplicationSystem::SetDeltaCompressionStatus</a>：对象运行时 Allow/Disallow 契约。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetSerializeDeltaArgs" target="_blank" rel="noopener noreferrer">FNetSerializeDeltaArgs</a> 与 <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetDeserializeDeltaArgs" target="_blank" rel="noopener noreferrer">FNetDeserializeDeltaArgs</a>：Source/Prev 与上下文。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetSerializer" target="_blank" rel="noopener noreferrer">FNetSerializer</a>：Serializer 操作表与 Delta 入口。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UObjectReplicationBridgeConfig" target="_blank" rel="noopener noreferrer">UObjectReplicationBridgeConfig</a>：Bridge 配置类型。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine" target="_blank" rel="noopener noreferrer">Components of Iris</a>：Iris 组件和整体定位。</li>
+        </ul>
+        <p>官方 API 用来确认公共契约；Baseline Manager 的存储布局、Writer/Reader 位分支、默认 Delta 表和当前 CVar 默认值以本地 UE 5.7.4 Private 源码为准。</p>
+
+        <h2 id="section-12" tabindex="-1">💡 总结与下一步：从“相对谁”转向“谁脏了”</h2>
+        <ul>
+          <li>ChangeMask 选成员，per-connection Baseline 选历史，Serializer Delta 编码成员值；三层不可混为一谈。</li>
+          <li>每对象、每连接有两个 Baseline 槽位；无效值为 2，所以索引固定为 2 bits。</li>
+          <li>pending 只有 Delivered 后才能晋升 last-acked；Lost 必须回退，不能假设接收端保存成功。</li>
+          <li>丢包恢复有两条链：Writer 恢复状态重发 mask，Manager 合并 Baseline 历史 mask。</li>
+          <li>同帧多连接可以共享量化快照引用，但连接各自保留槽位、mask 和 ACK/Lost 进度。</li>
+          <li>Delta 可能变大。8-bit 非零差值、16-bit 大差值和默认 Delta 的不同值都有额外索引成本。</li>
+          <li>类级配置与 Allow API 只是门控之一；Protocol、容量、连接历史和全局 CVar 共同决定实际路径。</li>
+          <li>正确优化需要同时测 bandwidth、CPU、memory、loss 与 invalidation，而不是只报一个理论压缩率。</li>
+        </ul>
+
+        <p>第十部分回答了“当前成员相对哪份已确认历史编码”。下一部分进入这条链的更前端：Iris 怎样通过轮询、Push Model 与脏数据追踪判断<strong>当前状态中的谁需要复制</strong>，以及检测成本怎样影响整帧网络预算。</p>
+        <p><a href="/html-articles/ue5-iris-guide-part-9/">← 回看第九部分：NetBlob 系统</a></p>
+        <p><a href="/html-articles/ue5-iris-guide-outline/">前往系列大纲与第十一部分：轮询与脏数据检测 →</a></p>
+
+      </article>
+
+      <footer class="article-footer">
+        <p><strong>文章来源：</strong>Jossy Zhang 根据《UE5 Iris 网络复制系统技术分析指南》大纲原创扩写。技术依据为本地 Unreal Engine 5.7.4 源码、ReplicationSystemTestPlugin 自动化测试与 Epic Games UE 5.7 官方文档。</p>
+        <p><a href="https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/IrisCore/UReplicationSystem/SetDeltaCompressionStatus" target="_blank" rel="noopener noreferrer">Epic Games：SetDeltaCompressionStatus</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetSerializeDeltaArgs" target="_blank" rel="noopener noreferrer">FNetSerializeDeltaArgs</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetSerializer" target="_blank" rel="noopener noreferrer">FNetSerializer</a></p>
+        <a class="back-home" href="/">← 返回博客首页</a>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="返回页面顶部">↑</button>
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const links = Array.from(document.querySelectorAll(".toc a[data-section], .toc-mobile a[data-section]"));
+      const sections = [...new Set(links.map((link) => document.getElementById(link.dataset.section)).filter(Boolean))];
+      const update = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+        const line = Math.min(180, window.innerHeight * .18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= line) activeId = section.id;
+          else break;
+        }
+        links.forEach((link) => {
+          if (link.dataset.section === activeId) link.setAttribute("aria-current", "true");
+          else link.removeAttribute("aria-current");
+        });
+      };
+      window.addEventListener("scroll", update, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      update();
+    })();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="玩家反馈工作流与演进路线" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    玩家反馈工作流与演进路线
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-11-12</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.3k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：8分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%BD%93%E5%89%8D%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="post-toc-text">当前工作流</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%A6%82%E4%BD%95%E5%90%AF%E5%8A%A8%E5%92%8C%E6%9F%A5%E7%9C%8B%E7%8A%B6%E6%80%81"><span class="post-toc-text">如何启动和查看状态</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E5%B7%B2%E5%AE%8C%E6%88%90%E7%9A%84%E8%AF%95%E9%87%87"><span class="post-toc-text">已完成的试采</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%90%8E%E7%BB%AD%E5%8F%AF%E5%8A%A0%E5%85%A5%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="post-toc-text">后续可加入的工作流</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-%E9%AA%8C%E8%AF%81%E9%87%87%E9%9B%86%E8%A6%86%E7%9B%96%E5%92%8C%E5%88%86%E7%B1%BB%E6%95%88%E6%9E%9C"><span class="post-toc-text">1. 验证采集覆盖和分类效果</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-%E5%B0%86%E9%87%8D%E5%A4%8D%E5%8F%8D%E9%A6%88%E5%BD%92%E5%B9%B6%E6%88%90%E9%97%AE%E9%A2%98"><span class="post-toc-text">2. 将重复反馈归并成问题</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-%E6%8E%A5%E5%85%A5%E5%80%BC%E7%8F%AD%E9%80%9A%E7%9F%A5%E5%92%8C%E8%AF%81%E6%8D%AE%E8%81%94%E6%9F%A5"><span class="post-toc-text">3. 接入值班通知和证据联查</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#4-%E9%80%90%E4%B8%AA%E6%89%A9%E5%B1%95%E6%9D%A5%E6%BA%90%E5%92%8C%E4%B8%93%E9%A2%98%E8%A7%82%E5%AF%9F"><span class="post-toc-text">4. 逐个扩展来源和专题观察</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E7%A4%BA%E4%BE%8B-%C2%B7-%E8%B5%9B%E5%AD%A3%E5%A5%96%E5%8A%B1%E9%A2%86%E5%8F%96%E5%BC%82%E5%B8%B8"><span class="post-toc-text">示例 · 赛季奖励领取异常</span></a></li></ol>
+            
+        
+        <div class=".article-gallery"><p>更新于 2026 年 11 月 12 日（北京时间）</p>
+<p>用于从游戏的玩家讨论中发现值得核查的反馈。指定 QQ 群和抖音直播间的新文本已跑通采集、飞书入表和 AI 初筛。Twitch 的 EventSub 采集已接入同一队列，真实授权和端到端入表待验。运营可以在「待跟进」查看有具体场景的反馈，QA 可以回看正文并判断是否需要补证。下一步可以把零散反馈归并成问题，再接入值班通知和游戏证据联查。</p>
+<h2 id="当前工作流"><a href="#当前工作流" class="headerlink" title="当前工作流"></a>当前工作流</h2><p><strong>平台新文本 → 本机采集 → SQLite 队列 → 飞书消息流 → AI 打标 → 人工复核</strong></p>
+<ol>
+<li><strong>接收增量。</strong> QQ 通过本机 NapCatQQ 接收配置群的文本，抖音通过访客 WebSocket 接收配置直播间的文字评论。Twitch 通过 EventSub WebSocket 订阅指定频道聊天，需要完成用户授权。各来源可配置多个群、房间或频道。连接中断后采集器会尝试重连，断线期间的覆盖缺口仍待实测。</li>
+<li><strong>整理、去重并入队。</strong> 每条记录包含来源平台、群/房间/频道标识、平台消息 ID、采集时间和脱敏后的正文。SQLite 用前三项去重。平台时间和来源链接有值时一并保留，缺失时留空。抖音和 Twitch 的来源链接分别指向直播间和频道主页。程序对手机号、邮箱和提及标记做基础遮盖，入表字段省略发送者昵称和账号。</li>
+<li><strong>写入飞书。</strong> 队列逐条写入，成功后保存飞书记录 ID。写入失败的记录留在本机，运行中的发布进程会自动重试，沿用同一个 <code>client_token</code>。最早待写项持续失败时，后续记录会继续排队。</li>
+<li><strong>初筛和复核。</strong> 飞书 AI 按单条正文筛选具体异常、体验反馈、规则疑问和建议。标为「需跟进」的消息进入「待跟进」，标为「忽略」的消息仍可在「消息流」查看。同一问题的多条反馈，目前由人工对照。</li>
+</ol>
+<p>日常查看可从「待跟进」入手，抽查原始消息时打开「消息流」。[飞书待跟进] · [飞书消息流]</p>
+<h3 id="如何启动和查看状态"><a href="#如何启动和查看状态" class="headerlink" title="如何启动和查看状态"></a>如何启动和查看状态</h3><p>在已配置 Node.js 22.13+、飞书用户身份及目标表的采集电脑上，从项目目录运行 <code>node .\src\dashboard.mjs</code>，打开本机控制台。QQ 来源需要 NapCatQQ，抖音来源需要项目使用的 DyHub 依赖。<a target="_blank" rel="noopener" href="http://127.0.0.1:18761/">本机采集控制台</a> · <a href="mvp.md">环境配置与命令行用法</a></p>
+<ol>
+<li>在「监听来源」添加 QQ 群号或抖音直播间地址，点击「保存配置」和「开始监听」。</li>
+<li>查看连接状态、最近收讯时间、「本次入表」和「待写入」。来源显示已连接时，结合开播或发言情况判断收讯是否正常。待写入持续增长时，查看写入报错。写入恢复后可观察队列积压是否下降，并到「消息流」抽查入表结果。</li>
+<li>运行中修改来源后点「保存并重连」，结束时点「停止监听」。控制台仅在采集电脑本机开放，其他协作者可以直接使用飞书视图。</li>
+</ol>
+<p>验证 Twitch 时，在「Twitch 频道」添加频道名或主页链接，填入 Twitch Public 应用的 Client ID，点击「获取授权码」。在 Twitch 授权页确认，回到控制台看到「已授权」后保存配置并开始监听。</p>
+<p>调试时可用 <code>node .\src\run.mjs capture</code> 将增量写到独立的本机验收库。控制台的「开始监听」使用 <code>publish</code> 模式，写入已配置的飞书表格。</p>
+<h3 id="已完成的试采"><a href="#已完成的试采" class="headerlink" title="已完成的试采"></a>已完成的试采</h3><ul>
+<li>合成样例输入 3 次，入表 2 条。重复运行沿用写入标识，未新增重复记录。奖励领取异常进入「待跟进」，打招呼被标为「忽略」。</li>
+<li>Windows 端到端试采写入 13 条抖音评论和 2 条 QQ 自然发言，逐条回读核对了来源、正文、平台消息 ID 和两类时间。15 条真实样本均被标为「忽略」。真实反馈的筛选准确率和漏报率还需要带标注样本的回放才能评估。<a href="mvp.md#%E6%9C%AC%E8%BD%AE%E9%AA%8C%E6%94%B6">MVP 验收记录</a> · <a href="message-stream-validation.md">消息流接入验证</a></li>
+<li>Twitch 的早期 IRC 试验在一个频道收到 12 条聊天消息。EventSub 路径的验收需完成目标账号授权、频道订阅、新消息入表及字段回读。<a href="message-stream-validation.md#%E6%9C%AC%E6%9C%BA%E5%AE%9E%E6%B5%8B">Twitch 试采记录</a></li>
+</ul>
+<h2 id="后续可加入的工作流"><a href="#后续可加入的工作流" class="headerlink" title="后续可加入的工作流"></a>后续可加入的工作流</h2><h3 id="1-验证采集覆盖和分类效果"><a href="#1-验证采集覆盖和分类效果" class="headerlink" title="1. 验证采集覆盖和分类效果"></a>1. 验证采集覆盖和分类效果</h3><p>用带序号的测试文本跑一轮正常连接、短断线、重连和进程重启，记录各阶段的收到数、缺号、重复数和延迟。验证飞书写入失败后能继续处理队列积压，并让控制台区分「来源安静」「来源断流」「飞书写入积压」。若后续改为常驻运行，再接入进程自动恢复和健康监控。</p>
+<p>同时用获准的脱敏样本离线回放。由运营或 QA 标记高影响故障、疑似 Bug、体验意见、规则疑问和闲聊，抽查「需跟进」与「忽略」两边，记录漏掉的高影响反馈。试点产出一份覆盖与缺口记录，以及一组可重复使用的分类样本。</p>
+<h3 id="2-将重复反馈归并成问题"><a href="#2-将重复反馈归并成问题" class="headerlink" title="2. 将重复反馈归并成问题"></a>2. 将重复反馈归并成问题</h3><p>在飞书新增问题表。按症状、场景和时间窗口归并消息，关联多条来源记录，允许人工合并和拆分。每条问题保留首次与最近出现时间、症状、已知版本或区服、各来源反馈数、代表消息及待补证项。跨渠道汇总使用去重后的消息条数和覆盖的来源数。</p>
+<p>运营先看内容和重复情况，QA 复核复现条件，按「待复核」「待补证」「已确认」「已关闭」更新问题状态，确认后关联工单。验收用同一症状的多条样本检查能否归并并回查原消息，再用相似但成因不同的样本检查能否拆分。</p>
+<h3 id="3-接入值班通知和证据联查"><a href="#3-接入值班通知和证据联查" class="headerlink" title="3. 接入值班通知和证据联查"></a>3. 接入值班通知和证据联查</h3><p>按问题分流。登录、匹配、崩溃、掉线、资产或奖励等高影响线索，具备明确证据时可由单条反馈触发值班核查。普通疑似 Bug 进入 QA 队列，体验热点、规则问题和建议进入运营摘要。通知引用同一问题记录，新增证据时更新记录。摘要标注观察窗口、来源覆盖和断流时段。</p>
+<p>有 <code>battleId</code> 且具备生产查询权限时，按对局联查 BI 或日志。只有时间、版本、平台或区服时，按窗口找相关线索，由 QA 核实。确认结果、工单链接和修复验证回填问题记录。试点可跟踪高优先级告警准确率、已知事件漏报率、重复通知量及从采集到通知的 P95 耗时，再据此调整触发条件。<a href="feasibility-research.md#bug-%E7%BA%BF%E7%B4%A2%E5%A6%82%E4%BD%95%E5%85%B3%E8%81%94%E6%B8%B8%E6%88%8F%E8%AF%81%E6%8D%AE">游戏证据与试点指标</a></p>
+<h3 id="4-逐个扩展来源和专题观察"><a href="#4-逐个扩展来源和专题观察" class="headerlink" title="4. 逐个扩展来源和专题观察"></a>4. 逐个扩展来源和专题观察</h3><table>
+<thead>
+<tr>
+<th>候选来源</th>
+<th>可补充的反馈</th>
+<th>接入前先验证</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QQ 官方机器人</td>
+<td>目标群的普通发言或玩家主动上报</td>
+<td>在目标测试群验证非 @ 消息到达、字段和重连覆盖。仅开放 @ 事件时，可作为主动上报入口。</td>
+</tr>
+<tr>
+<td>Discord、游戏内世界频道、客服工单</td>
+<td>社区反馈、局内异常和带复现信息的工单</td>
+<td>先做一个频道、单区服或一批获准工单。确认正文可读范围、稳定 ID、平台时间和回查位置。</td>
+</tr>
+<tr>
+<td>B 站、YouTube、Steam 评论及公开社媒</td>
+<td>直播间讨论、公开口碑和话题变化</td>
+<td>逐一确认用途权限、抽样范围、到达延迟与回补能力。</td>
+</tr>
+<tr>
+<td>合作主播提供的录制、片段或字幕</td>
+<td>弹幕之外的口播反馈</td>
+<td>先用获准素材试做转写，保留场次和时间码，方便人工回看。</td>
+</tr>
+</tbody></table>
+<p>新增来源沿用消息入队、复核和问题归并流程。每个来源先确认可采范围、留存与正文处理权限，再用小样本验证字段、重复和覆盖。扩源后可围绕赛季开服做专题观察，以实际开服时间对齐窗口，追踪登录、匹配、撤离和赛季奖励等主题。按渠道展示趋势，具备可核对的活跃人数或尝试次数时再计算异常率。<a href="feasibility-research.md">候选来源调研</a> · <a href="message-stream-validation.md">已有接入试验</a></p>
+<h2 id="示例-·-赛季奖励领取异常"><a href="#示例-·-赛季奖励领取异常" class="headerlink" title="示例 · 赛季奖励领取异常"></a>示例 · 赛季奖励领取异常</h2><p>假设 QQ 和抖音先后出现「显示已领取，重登后奖励仍未到账」。按当前流程，两条消息分别入表，由 AI 初筛，标为「需跟进」的消息供运营复核。接入归并后，运营可把两条反馈挂到同一问题，记录首末出现时间和两处来源。若已接入通知，且复核取得明确的任务名、领取时间和失败提示，可将问题链接发给值班。QA 根据赛季、平台和时间窗口核查奖励发放记录，确认异常后关联工单，修复验证后把结果回填到同一问题。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-11-12</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/magpie/">Magpie 工作流的设计决策</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

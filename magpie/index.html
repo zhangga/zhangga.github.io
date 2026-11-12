@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="Magpie 工作流的设计决策" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    Magpie 工作流的设计决策
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-11-12</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.7k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：9分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%BD%93%E3%80%8C%E7%BB%B4%E6%8A%A4%E3%80%8D%E5%8F%98%E6%88%90%E5%BE%AA%E7%8E%AF%EF%BC%9AMagpie-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9C%9F%E6%AD%A3%E5%80%BC%E5%BE%97%E6%8A%84%E7%9A%84%E4%BA%94%E4%BB%B6%E4%BA%8B"><span class="post-toc-text">当「维护」变成循环：Magpie 工作流真正值得抄的五件事</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%8A%8A%E6%9C%BA%E5%88%B6%E6%8B%86%E5%B9%B2%E5%87%80"><span class="post-toc-text">一、先把机制拆干净</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%83%E6%8A%8A%E6%9C%80%E4%B8%8D%E6%80%A7%E6%84%9F%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%81%9A%E6%88%90%E4%BA%86%E4%BA%A7%E5%93%81"><span class="post-toc-text">二、它把最不性感的工作做成了产品</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%89%E3%80%81LESSONS-md-%E7%9A%84%E2%80%9D%E4%B8%89%E6%AC%A1%E5%8D%87%E6%A0%BC%E2%80%9D%E6%89%8D%E6%98%AF%E6%95%B4%E5%A5%97%E7%B3%BB%E7%BB%9F%E7%9A%84%E7%81%B5%E9%AD%82"><span class="post-toc-text">三、LESSONS.md 的”三次升格”才是整套系统的灵魂</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9B%9B%E3%80%81%E7%9C%9F%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%8F%AD%E7%A4%BA%E4%BA%86%E4%B8%80%E4%B8%AA%E8%A2%AB%E4%BD%8E%E4%BC%B0%E7%9A%84%E4%BA%8B%E5%AE%9E"><span class="post-toc-text">四、真机环境揭示了一个被低估的事实</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%BA%94%E3%80%81%E7%94%A8%E6%88%B7%E5%85%B1%E5%88%9B%E7%9A%84%E5%8F%A6%E4%B8%80%E9%9D%A2%EF%BC%9A%E9%9C%80%E6%B1%82%E5%9C%A8%E7%94%9F%E4%BA%A7%EF%BC%8C%E4%B9%9F%E5%9C%A8%E8%B4%AC%E5%80%BC"><span class="post-toc-text">五、用户共创的另一面：需求在生产，也在贬值</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AD%E3%80%81%E5%92%8C%E6%8F%92%E4%BB%B6%E7%94%9F%E6%80%81%E6%AF%94%EF%BC%8C%E8%B0%81%E6%9B%B4%E7%A8%B3%EF%BC%9F%E4%B8%80%E4%B8%AA%E6%9B%B4%E9%94%8B%E5%88%A9%E7%9A%84%E7%AD%94%E6%A1%88"><span class="post-toc-text">六、和插件生态比，谁更稳？一个更锋利的答案</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%83%E3%80%81%E5%8F%AF%E4%BB%A5%E7%9B%B4%E6%8E%A5%E6%90%AC%E8%B5%B0%E7%9A%84%E4%BA%94%E6%9D%A1%E5%8E%9F%E5%88%99"><span class="post-toc-text">七、可以直接搬走的五条原则</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%85%AB%E3%80%81%E4%B8%80%E5%8F%A5%E5%86%B7%E9%9D%99%E8%AF%9D"><span class="post-toc-text">八、一句冷静话</span></a></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="当「维护」变成循环：Magpie-工作流真正值得抄的五件事"><a href="#当「维护」变成循环：Magpie-工作流真正值得抄的五件事" class="headerlink" title="当「维护」变成循环：Magpie 工作流真正值得抄的五件事"></a>当「维护」变成循环：Magpie 工作流真正值得抄的五件事</h1><blockquote>
+<p>一个单人开源项目，三条并行 <code>/loop</code>，一套真机测试环境，一本每晚更新的 <code>LESSONS.md</code>。这套工作流被很多人当成”AI 写代码”的炫技，但它真正回答的是一个更朴素、也更难的问题：<strong>当代码不再稀缺，软件工程的瓶颈会转移到哪里？</strong></p>
+</blockquote>
+<hr>
+<h2 id="一、先把机制拆干净"><a href="#一、先把机制拆干净" class="headerlink" title="一、先把机制拆干净"></a>一、先把机制拆干净</h2><p>流传的版本容易讲成”三个 loop 很酷”，但拆开看，三条循环其实对应三种<strong>时间尺度</strong>，而不是三个并列的任务：</p>
+<p>第一条是<strong>实时循环</strong>：盯 GitHub Issue、PR、Discord，复现、修复、审查、合并、发版。这是小时级的。<br>第二条是<strong>日级循环</strong>：扫 X 上的产品反馈，先用便宜模型粗筛，有价值的交给 Opus 处理，进入开发流程。这是天级的。<br>第三条是<strong>夜间循环</strong>：复盘当天所有 commit，只看三类东西——哪些地方返工了、哪些本不该合并、哪些验证太弱。结论写进 <code>LESSONS.md</code>。这是以”天”为单位的组织学习。</p>
+<p>支撑它们的还有一层基础设施：一台 macOS 物理机、一台 Windows 物理机、一台跑在 Windows 上的 Linux 虚拟机。Agent 必须在真实环境里复现 bug 再修，不能在”我猜是这样”里打转。</p>
+<p>据社区拆解，这套流水线跑出了 issue 到修复最快 76 分钟、单日发布 6 个 stable 版本、三周版本号破 1200 的节奏。数字本身不必迷信，但它说明一件事：<strong>吞吐量已经不是瓶颈了。</strong></p>
+<p>真正值得细看的，是藏在机制里的几个设计决策。</p>
+<hr>
+<h2 id="二、它把最不性感的工作做成了产品"><a href="#二、它把最不性感的工作做成了产品" class="headerlink" title="二、它把最不性感的工作做成了产品"></a>二、它把最不性感的工作做成了产品</h2><p>大部分 AI Coding 的演示都在做”从 0 到 1”：给它一句话，生成一个网站、一个脚本、一个 demo。Magpie 的工作流反过来，几乎全部在干”从 1 到 ∞”——<strong>维护</strong>。</p>
+<p>而维护恰恰是软件生命周期里成本最大、最没人愿意干、最难被看见的部分。修一个偶现 bug、回一条 issue、判断一个 PR 该不该合、清理三个月前的技术债——这些事不产生任何”作品感”，但它们决定了一个项目三个月后还能不能活。</p>
+<p>这里有一个容易被忽略的洞察：<strong>Agent 最适合接手的，恰恰是人类最不愿意做的那些环节。</strong> 不是因为它们简单，而是因为人类做这些事时会偷懒、会拖延、会情绪化，而 agent 不会。团队里最难坚持的实践——每日复盘、每次提交附带验收说明、bug 必须真机复现——一旦写成 loop，就变成了机器的默认行为。</p>
+<p>人坚持不了的制度，机器可以。这是 Magpie 模式最扎实的一块地基。</p>
+<hr>
+<h2 id="三、LESSONS-md-的”三次升格”才是整套系统的灵魂"><a href="#三、LESSONS-md-的”三次升格”才是整套系统的灵魂" class="headerlink" title="三、LESSONS.md 的”三次升格”才是整套系统的灵魂"></a>三、<code>LESSONS.md</code> 的”三次升格”才是整套系统的灵魂</h2><p>如果只能从这套工作流里抄一个东西，我建议抄夜间的那个 loop。</p>
+<p>它的规则大致是：每晚让 agent 复盘当天的 commit，只找”返工过的、不该合的、验证太弱的”；同一条问题如果在 <strong>三个不同的日子</strong>重复出现，就把它从”教训”升格为”规则”——写进代码规范或 <code>CLAUDE.md</code>，从此变成硬约束。</p>
+<p>这个设计解决的是 LLM 最根本的缺陷之一：<strong>没有长期记忆，同一个坑会反复踩。</strong> 大多数人的解法是加大上下文、写好 prompt，但那只是把记忆塞进一次会话。Magpie 的解法是把记忆<strong>外化到仓库里</strong>，并且设置了一个升级阈值。</p>
+<p>这其实不是 AI 技巧，是经典的组织学习理论：个人的失误要经过”记录—复盘—制度化”三步，才能变成组织能力。绝大多数团队卡在第一步和第二步之间。Magpie 用一条定时任务把三步全自动串了起来。</p>
+<p>它的效果是可累积的：错误不会消失，但会<strong>递减</strong>。系统每运行一天，逃逸出去的 bug 类型就少一类。这是”会越用越好的软件”和”用完就烂的软件”之间的分水岭。</p>
+<hr>
+<h2 id="四、真机环境揭示了一个被低估的事实"><a href="#四、真机环境揭示了一个被低估的事实" class="headerlink" title="四、真机环境揭示了一个被低估的事实"></a>四、真机环境揭示了一个被低估的事实</h2><p>三套真实测试环境，是整套工作流里最贵、也最容易被模仿者忽略的部分。</p>
+<p>它说明的道理很朴素，但很关键：<strong>Agent 的能力上限不只取决于模型，还取决于它能看到多少真实世界。</strong> 如果 Windows 上的 bug 对 agent 不可观测，那它对 agent 就不存在——它只会自信地告诉你”已修复”。</p>
+<p>模型能力是别人的，会随着下一版本发布而水涨船高；<strong>环境是你自己的，是你真正可以建的护城河。</strong> 这也是我认为很多”复刻者”会失败的地方：他们抄了三个 loop 的 prompt，却没给 agent 一台能跑起来的真机。于是 agent 在真实的 bug 面前只能靠想象，而想象出来的修复，会在用户那里变成新的 issue。</p>
+<hr>
+<h2 id="五、用户共创的另一面：需求在生产，也在贬值"><a href="#五、用户共创的另一面：需求在生产，也在贬值" class="headerlink" title="五、用户共创的另一面：需求在生产，也在贬值"></a>五、用户共创的另一面：需求在生产，也在贬值</h2><p>你提到的”人人都能当产品经理”，是这套模式最迷人的地方，也是最需要冷静的地方。</p>
+<p>降低需求生产成本的，和降低需求<strong>筛选</strong>成本的，是两件事。用户在 X 上留言、在 issue 里吐槽，门槛几乎为零，于是需求会以远超实现的速率涌入。仓库里 issue 编号早已过六千，甚至有用户在 issue 里反过来建议”该关的关掉、派个便宜模型去干这些廉价活”。这本身就是一种信号：<strong>当生产变得免费，稀缺的就变成了判断。</strong></p>
+<p>所以 yetone 的角色并没有消失，只是上移了。他说自己每晚只做”铲屎”——处理 UI/UX 这类 agent 判断不了的问题，以及决定什么值得做。翻译成工程语言：<strong>人的工作从”实现”变成了”优先级裁定”和”审美守门”。</strong></p>
+<p>这不是”去中心化”，恰恰相反，这是<strong>个人杠杆的极端集中</strong>。一个判断力足够强的人，现在可以驱动过去需要十几人团队的吞吐量。用户负责供给想法，agent 负责供给实现，而那个决定”什么该存在”的人，仍然是唯一的瓶颈——只是这个瓶颈从”产能”换成了”品味”。</p>
+<hr>
+<h2 id="六、和插件生态比，谁更稳？一个更锋利的答案"><a href="#六、和插件生态比，谁更稳？一个更锋利的答案" class="headerlink" title="六、和插件生态比，谁更稳？一个更锋利的答案"></a>六、和插件生态比，谁更稳？一个更锋利的答案</h2><p>你把它和 DeepSeek Harness 的插件生态对比，认为 Magpie 在稳定性上更有优势。这个判断我基本同意，但原因可能和直觉不同。</p>
+<p>插件生态的优势是<strong>并行探索</strong>：一百个开发者试一百个方向，总有一个能跑出来。代价是质量参差、架构分裂、信任分散。Magpie 模式的优势是<strong>统一的质量水位</strong>：架构一致、审查一致、发布一致，用户永远面对同一个”产品”。</p>
+<p>但它的风险也在这里。当 issue 是 agent 处理的、代码是 agent 写的、review 是 agent 做的，<strong>信任到底锚定在哪里？</strong> 锚定在一个人对验收标准的设计上。这是一处比传统单点更隐蔽的单点故障——传统开源项目挂了，你至少还能 fork；而这套系统里，真正难以复制的不是代码，是那套”什么算通过”的隐性判断。</p>
+<p>2026 年 10 月中旬，中文开发者社区围绕这套模式就爆发过一轮讨论，有人称之为”AI 原生开源的第一场信任危机”。争论的焦点其实不是质量，而是<strong>开源软件的信任基础正在转移</strong>：过去我们信任开源，是因为”代码可读、作者可信”；现在代码是机器写的，作者自己未必逐行读过。可读性作为信任来源正在失效，取而代之的会是<strong>过程的可审计性</strong>——commit 历史、<code>LESSONS.md</code>、验收记录、复现环境。</p>
+<p>谁能把这套”过程透明”做得更好，谁就能在 AI 原生开源里重新建立信任。这可能是 Magpie 之外，更值得整个行业去想的问题。</p>
+<hr>
+<h2 id="七、可以直接搬走的五条原则"><a href="#七、可以直接搬走的五条原则" class="headerlink" title="七、可以直接搬走的五条原则"></a>七、可以直接搬走的五条原则</h2><p>抛开具体工具，这套工作流沉淀下来的东西，可以凝练成五条：</p>
+<p>第一，<strong>主战场是从 1 到 ∞，不是从 0 到 1。</strong> 让 agent 去写新功能，收益是线性的；让它去维护、修复、清理，收益是复利式的。</p>
+<p>第二，<strong>把规范写成”可执行的验收”，而不是文档。</strong> 文档没人读，验收标准会卡住每一次提交。写不清楚”什么算完成”，loop 就会在原地空转。</p>
+<p>第三，<strong>给 agent 真实的观测面。</strong> 真机、真数据、真用户反馈。看不见的世界，等于不存在。</p>
+<p>第四，<strong>建立”错误 → 规则”的升级通道。</strong> 同一个问题出现三次，就让它从教训变成约束。这是让系统会学习的唯一办法。</p>
+<p>第五，<strong>人的位置往上移。</strong> 从写代码的人，变成定义目标、设计验收、做审美和优先级判断的人。</p>
+<hr>
+<h2 id="八、一句冷静话"><a href="#八、一句冷静话" class="headerlink" title="八、一句冷静话"></a>八、一句冷静话</h2><p>这套工作流有很强的适用前提：单一或极少数维护者、用户反馈高频、软件可回退、合规压力低。把它直接套到企业系统、涉及资金和隐私的产品上，loop 带来的不是效率，而是被推迟的审查成本——自动化提高的是吞吐量，而审查人力只是被挪到了后面，并没有消失。</p>
+<p>但方向已经清楚了。软件工程正在从”人写代码”变成”人设计循环”。未来真正稀缺的，不是会写代码的人，而是<strong>能说清楚”什么算好”、并且有品味判断什么值得存在的人</strong>。</p>
+<p>Magpie 最值得抄的，从来不是那三条 loop。是它把”维护”这件苦差事，第一次认真地当成了产品来做。</p>
+<hr>
+<p><em>参考来源：</em></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/yetone/magpie">yetone/magpie（GitHub）</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/yetone/magpie/blob/main/LESSONS.md">magpie/LESSONS.md</a></li>
+<li><a target="_blank" rel="noopener" href="https://x.com/yetone/status/2109855710444237018">yetone 关于工作流的原帖（X）</a></li>
+<li><a target="_blank" rel="noopener" href="https://x.com/yetone/status/2109856834010132602">yetone 谈真实测试环境（X）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.tuskyai.com/ai-agent/magpie-agent-pipeline/">拆解 Magpie 的全 Agent 开发流水线（TuskyAI）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/k0maru3/p/23291028">自己写代码、自己审 PR、自己发版：Magpie 如何跑通 AI 自主维护闭环</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jxxy.net/ai/articles/magpie-ai-self-maintain/">yetone 的魔法：magpie 是怎么让 AI 自己维护项目的</a></li>
+<li><a target="_blank" rel="noopener" href="https://x.com/jameszz343698/article/2109517233945006131">AI 原生开源的第一场信任危机：从 Magpie 事件看软件的”灵魂”（X）</a></li>
+<li><a target="_blank" rel="noopener" href="https://addyosmani.com/blog/loop-engineering/">Loop Engineering（Addy Osmani）</a></li>
+</ul>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-11-11</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+                    <span>上一篇：<a href='/game-radar/'>玩家反馈工作流与演进路线</a></span>
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/oneagent-tool/">从发现需求到分享工具</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>
