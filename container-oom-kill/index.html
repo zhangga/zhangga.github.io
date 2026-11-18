@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    
+    <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta name="description" content="战场进程异常退出问题的排查" />
+    <meta name="hexo-theme-A4" content="v2.0.0" />
+    <link rel="alternate icon" type="image/webp" href="/img/favicon.webp">
+    <title>张嘎</title>
+
+    
+        
+<link rel="stylesheet" href="/css/highlight/style1.css">
+
+        
+<link rel="stylesheet" href="/css/reset.css">
+
+        
+<link rel="stylesheet" href="/css/markdown.css">
+
+        
+<link rel="stylesheet" href="/css/fonts.css">
+ 
+         <!--注意：首页既不是post也不是page-->
+        
+        
+        
+<link rel="stylesheet" href="/css/ui.css">
+ 
+        
+<link rel="stylesheet" href="/css/style.css">
+
+
+        
+            <!--返回顶部css-->
+            
+<link rel="stylesheet" href="/css/returnToTop.css">
+
+            
+<link rel="stylesheet" href="/css/unicons.css">
+
+        
+        
+            <!--目录-->
+            
+<link rel="stylesheet" href="/css/toc.css">
+
+        
+    
+
+    
+        
+<link rel="stylesheet" href="/css/returnToLastPage.css">
+
+    
+    
+   
+<link rel="stylesheet" href="/css/lightgallery-bundle.min.css">
+
+
+   
+        
+<link rel="stylesheet" href="/css/custom.css">
+
+    
+    <link rel='stylesheet' href='https://chinese-fonts-cdn.deno.dev/packages/lxgwwenkai/dist/LXGWWenKai-Regular/result.css' /> 
+<meta name="generator" content="Hexo 5.4.2"></head>
+    
+    
+
+    
+    
+
+
+
+    
+
+    
+    
+
+
+
+
+    
+    
+
+
+    <body>
+        <script src="/js/darkmode-js.min.js"></script>
+        
+        <script>
+            const options = {
+                bottom: '40px', // default: '32px'
+                right: 'unset', // default: '32px'
+                left: '42px', // default: 'unset'
+                time: '0.3s', // default: '0.3s'
+                mixColor: '#fff', // default: '#fff'
+                backgroundColor: ' #e4e4e4 ',  // default: '#fff'
+                buttonColorDark: '#100f2c',  // default: '#100f2c'
+                buttonColorLight: '#fff', // default: '#fff'
+                saveInCookies: true, // default: true,
+                label: '🌓', // default: ''
+                autoMatchOsTheme: true // default: true
+            }
+            const darkmode = new Darkmode(options);
+            darkmode.showWidget();
+        </script>
+        
+        
+            
+                <div class="left-toc-container">
+                    <nav id="toc" class="bs-docs-sidebar"></nav>
+                </div>
+            
+        
+        <div class="paper">
+
+            
+
+            
+                <div class="shadow-drop-2-bottom paper-main">
+                    
+
+
+<div class="header">
+    <div class="header-container">
+        <style>
+            .header-img {
+                width: 56px;
+                height: auto;
+                object-fit: cover; /* 保持图片比例 */
+                transition: transform 0.3s ease-in-out; 
+                border-radius: 0; 
+            }
+            
+        </style>
+        <img 
+            alt="^-^" 
+            cache-control="max-age=86400" 
+            class="header-img" 
+            src="/img/favicon.webp" 
+        />
+        <div class="header-content">
+            <a class="logo" href="/">张嘎</a> 
+            <span class="description">游戏技术博客</span> 
+        </div>
+    </div>
+    
+   
+    <ul class="nav">
+        
+    </ul>
+</div>
+
+                    
+                    
+
+                    
+                    
+
+                    <!--说明是文章post页面-->
+                    
+                        <div class="post-main">
+    
+
+    
+        
+            
+                <div class="post-main-title" style="text-align: center;">
+                    战场进程异常退出问题的排查
+                </div>
+            
+        
+      
+    
+
+    
+
+        
+            <div class="post-head-meta-center">
+        
+                
+                    <span>最近更新：2026-11-18</span> 
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                     <span>字数总计：2.1k</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span>阅读估时：8分钟</span>
+                
+                
+                    
+                        &nbsp; | &nbsp;
+                    
+                    <span id="busuanzi_container_page_pv">
+                        阅读量：<span id="busuanzi_value_page_pv"></span>次
+                    </span>
+                
+            </div>
+    
+
+    <div class="post-md">
+        
+            
+                <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#%E5%AE%B9%E5%99%A8%E5%AD%90%E8%BF%9B%E7%A8%8B%E7%AA%81%E7%84%B6%E9%80%80%E5%87%BA%E6%97%B6%E7%9A%84-OOM-%E6%8E%92%E6%9F%A5%E6%89%8B%E5%86%8C"><span class="post-toc-text">容器子进程突然退出时的 OOM 排查手册</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%9C%A8%E4%BA%8B%E5%8F%91%E8%8A%82%E7%82%B9%E6%8C%89%E9%80%80%E5%87%BA%E6%97%B6%E9%97%B4%E6%9F%A5%E5%8F%97%E5%AE%B3%E8%BF%9B%E7%A8%8B"><span class="post-toc-text">在事发节点按退出时间查受害进程</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E5%8F%AA%E6%9C%89%E5%AE%B9%E5%99%A8%E6%9D%83%E9%99%90%E6%97%B6%EF%BC%8C%E8%AF%BB%E5%8F%96-OOM-%E8%AE%A1%E6%95%B0"><span class="post-toc-text">只有容器权限时，读取 OOM 计数</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E4%B8%89%E6%AC%A1%E5%AD%90%E8%BF%9B%E7%A8%8B%E9%80%80%E5%87%BA%E7%9A%84%E6%8E%92%E6%9F%A5%E7%BB%8F%E8%BF%87"><span class="post-toc-text">三次子进程退出的排查经过</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#%E9%9A%94%E7%A6%BB%E5%AE%9E%E9%AA%8C-%E5%AE%8C%E6%95%B4%E7%9A%84-test-py-%E5%92%8C%E5%AE%B9%E5%99%A8%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4"><span class="post-toc-text">隔离实验　完整的 test.py 和容器执行命令</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#%E7%8E%B0%E5%9C%BA%E5%AE%9E%E6%B5%8B%E8%BE%93%E5%87%BA%EF%BC%88PID-%E5%B7%B2%E8%84%B1%E6%95%8F%EF%BC%89"><span class="post-toc-text">现场实测输出（PID 已脱敏）</span></a></li></ol></li></ol></li></ol>
+            
+        
+        <div class=".article-gallery"><h1 id="容器子进程突然退出时的-OOM-排查手册"><a href="#容器子进程突然退出时的-OOM-排查手册" class="headerlink" title="容器子进程突然退出时的 OOM 排查手册"></a>容器子进程突然退出时的 OOM 排查手册</h1><p>遇到“业务中断、连接关闭、容器仍在运行”，先记下<strong>退出时间和时区、原节点、原 Pod UID 或容器 ID、工作进程名</strong>。最快的确认方法是查事发节点的内核日志，把 OOM 受害进程与这一次退出对上。容器内存实验放在取证之后，以免新实验改变待查的计数。</p>
+<h2 id="在事发节点按退出时间查受害进程"><a href="#在事发节点按退出时间查受害进程" class="headerlink" title="在事发节点按退出时间查受害进程"></a>在事发节点按退出时间查受害进程</h2><p>使用 Kubernetes 时，可从 Pod 取节点和容器 ID。若 Pod 已重建，请从当时的日志标签或监控记录取原实例信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NS=<span class="string">&#x27;实际命名空间&#x27;</span></span><br><span class="line">POD=<span class="string">&#x27;事发 Pod 名&#x27;</span></span><br><span class="line">kubectl -n <span class="string">&quot;<span class="variable">$NS</span>&quot;</span> get pod <span class="string">&quot;<span class="variable">$POD</span>&quot;</span> -o jsonpath=<span class="string">&#x27;node=&#123;.spec.nodeName&#125;&#123;&quot;  pod_uid=&quot;&#125;&#123;.metadata.uid&#125;&#123;&quot;\n&quot;&#125;&#123;range .status.containerStatuses[*]&#125;&#123;.name&#125;&#123;&quot;  &quot;&#125;&#123;.containerID&#125;&#123;&quot;\n&quot;&#125;&#123;end&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>在<strong>原 Linux 节点</strong>粘贴下面的命令，按提示输入一次退出的时间，带上 <code>UTC</code> 或原始时区偏移。命令自动查询前后各两分钟。多次退出可分别查询。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">(</span><br><span class="line">    <span class="built_in">printf</span> <span class="string">&#x27;输入退出时间（YYYY-MM-DD HH:MM:SS UTC 或带数字时区偏移）&gt; &#x27;</span></span><br><span class="line">    IFS= <span class="built_in">read</span> -r incident_time</span><br><span class="line">    [ -n <span class="string">&quot;<span class="variable">$incident_time</span>&quot;</span> ] || <span class="built_in">exit</span> 1</span><br><span class="line">    event_epoch=$(<span class="built_in">date</span> -d <span class="string">&quot;<span class="variable">$incident_time</span>&quot;</span> +%s) || <span class="built_in">exit</span> 1</span><br><span class="line">    <span class="built_in">sudo</span> journalctl --utc --since <span class="string">&quot;@<span class="subst">$((event_epoch - 120)</span>)&quot;</span> \</span><br><span class="line">        --<span class="keyword">until</span> <span class="string">&quot;@<span class="subst">$((event_epoch + 120)</span>)&quot;</span> \</span><br><span class="line">        -o short-iso-precise --no-pager _TRANSPORT=kernel |</span><br><span class="line">        grep -Ei <span class="string">&#x27;oom[-_]kill|out of memory|kill(ed)? process|oom_reaper&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>查到的记录</th>
+<th>如何判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Killed process &lt;宿主机PID&gt; (&lt;进程名&gt;)</code></td>
+<td>将时间、进程名与业务退出对齐，再用相邻 <code>oom-kill:</code> 记录的 <code>pid=</code> 和 <code>task_memcg=</code> 核对原 Pod 或容器。匹配后即可认定这次退出是内核 OOM kill。容器内 PID 和宿主机 PID 可能不同。</td>
+</tr>
+<tr>
+<td><code>CONSTRAINT_MEMCG</code> 或 <code>global_oom</code></td>
+<td>前者看 <code>oom_memcg=</code>，定位哪个内存 cgroup 触及限制。后者转查节点整体的内存和 swap。<code>task_memcg=</code> 标识受害进程所属组。</td>
+</tr>
+<tr>
+<td>只有 <code>invoked oom-killer</code>、退出码 <code>137</code> 或连接关闭</td>
+<td>还缺受害进程证据。<code>137</code> 与 <code>SIGKILL</code> 一致，手动或外部管理程序终止进程也可能得到相同退出码。</td>
+</tr>
+</tbody></table>
+<p>若 journal 已无该时段，可在集中日志平台查相同的 UTC 时间窗，也可以在节点的轮转归档里检索，再按归档使用的时区核对时间。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> zgrep -hiE <span class="string">&#x27;oom[-_]kill|out of memory|kill(ed)? process|oom_reaper&#x27;</span> \</span><br><span class="line">    /var/log/kern.log* /var/log/messages* /var/log/syslog* 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<p>子进程单独退出时，主进程可以继续运行，容器的 <code>restartCount</code> 可以一直是零。若历史日志完整却查不到匹配的 OOM 受害进程，再查父进程回收的退出状态。正常返回时沿退出码查业务调用点，<code>SIGSEGV</code> 或 <code>SIGABRT</code> 查崩溃转储，单独的 <code>SIGKILL</code> 还应核对管理程序或节点上的终止记录。<a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/mm/oom_kill.c">Linux 内核 OOM 日志实现</a></p>
+<h2 id="只有容器权限时，读取-OOM-计数"><a href="#只有容器权限时，读取-OOM-计数" class="headerlink" title="只有容器权限时，读取 OOM 计数"></a>只有容器权限时，读取 OOM 计数</h2><p>在原业务容器中执行以下<strong>只读</strong>命令。它从当前 shell 所属的内存 cgroup 查找计数文件，支持常见的 v1、v2 和容器私有挂载。查到后可在同一 shell 重复运行 <code>cat &quot;$OOM_FILE&quot;</code>，比较下一次退出前后的读数。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">v1_rel=$(awk -F: <span class="string">&#x27;$2 ~ /(^|,)memory(,|$)/ &#123;print $3; exit&#125;&#x27;</span> /proc/self/cgroup)</span><br><span class="line">v2_rel=$(awk -F: <span class="string">&#x27;$1 == &quot;0&quot; &#123;print $3; exit&#125;&#x27;</span> /proc/self/cgroup)</span><br><span class="line">OOM_FILE=<span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">for</span> f <span class="keyword">in</span> <span class="string">&quot;/sys/fs/cgroup/memory<span class="variable">$&#123;v1_rel%/&#125;</span>/memory.oom_control&quot;</span> \</span><br><span class="line">         <span class="string">&quot;/sys/fs/cgroup<span class="variable">$&#123;v2_rel%/&#125;</span>/memory.events&quot;</span> \</span><br><span class="line">         /sys/fs/cgroup/memory/memory.oom_control /sys/fs/cgroup/memory.events; <span class="keyword">do</span></span><br><span class="line">    [ -r <span class="string">&quot;<span class="variable">$f</span>&quot;</span> ] || <span class="built_in">continue</span></span><br><span class="line">    grep -qx <span class="string">&quot;$$&quot;</span> <span class="string">&quot;<span class="variable">$&#123;f%/*&#125;</span>/cgroup.procs&quot;</span> 2&gt;/dev/null || <span class="built_in">continue</span></span><br><span class="line">    OOM_FILE=<span class="variable">$f</span></span><br><span class="line">    <span class="built_in">break</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$OOM_FILE</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">printf</span> <span class="string">&#x27;计数文件 %s\n&#x27;</span> <span class="string">&quot;<span class="variable">$OOM_FILE</span>&quot;</span></span><br><span class="line">    <span class="built_in">cat</span> <span class="string">&quot;<span class="variable">$OOM_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;当前挂载未找到本容器的内存计数文件，请查原节点。&#x27;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>关注 <code>oom_kill</code> 在退出前后的<strong>增量</strong>。增加 1 表示该计数范围内有一个进程被内核 OOM 杀掉。共享 cgroup 时，还需匹配具体进程。<code>oom</code>、<code>max</code> 或 v1 的 <code>memory.failcnt</code> 增长只能说明出现过分配压力或触限。容器重建后的计数无法追溯旧实例。<a target="_blank" rel="noopener" href="https://docs.kernel.org/admin-guide/cgroup-v1/memory.html#oom-control">cgroup v1 计数说明</a> · <a target="_blank" rel="noopener" href="https://docs.kernel.org/admin-guide/cgroup-v2.html">cgroup v2 计数说明</a></p>
+<h2 id="三次子进程退出的排查经过"><a href="#三次子进程退出的排查经过" class="headerlink" title="三次子进程退出的排查经过"></a>三次子进程退出的排查经过</h2><p>同一服务的三个工作子进程先后退出。前两次业务日志都截在相似的数据更新操作附近，但其中一次在更早时成功执行过同样的操作。第三个进程在启动数秒后退出，日志里还没出现该操作。</p>
+<p>管理进程的会话关闭与父进程回收子进程记录在同一毫秒。管理进程会在会话关闭后释放实例，其读超时分支会继续等待读取。已有记录能确认子进程退出，也解释了为什么会看到连接关闭，但无法把三次退出归因为网络超时或同一行业务代码。</p>
+<p>随后用内存分配实验核对了退出码和内核计数。<strong>实验窗口内确实发生了一次 OOM kill。</strong> 历史三次退出仍缺各自的内核受害进程记录，只能把 OOM 列为优先核查的原因。</p>
+<h2 id="隔离实验-完整的-test-py-和容器执行命令"><a href="#隔离实验-完整的-test-py-和容器执行命令" class="headerlink" title="隔离实验　完整的 test.py 和容器执行命令"></a>隔离实验　完整的 <code>test.py</code> 和容器执行命令</h2><p>原始终端记录包含调用命令和输出，未包含 <code>test.py</code> 正文。下面的脚本按当时的行为重建。单个 Python 进程申请固定的 2 GiB 匿名内存并逐页写入，让内核实际为这些页面分配内存。脚本写完即退出。</p>
+<p>取证完成后，选择独立的 Linux 测试容器进行复现，例如将内存上限设为 256 MiB 并禁用 swap。需要 <code>python3</code>、<code>sh</code>、<code>awk</code>、<code>grep</code> 和 <code>mktemp</code>。在容器里粘贴下面<strong>一整段</strong>即可。它在临时目录写入 <code>test.py</code>，沿用现场的前后两次 <code>awk</code> 读数和退出码采集命令，并为不同的 cgroup 挂载增加了路径和读数校验。现场使用的文件是 <code>/sys/fs/cgroup/memory/memory.oom_control</code>。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">(</span><br><span class="line">    <span class="built_in">set</span> -eu</span><br><span class="line">    work_dir=$(<span class="built_in">mktemp</span> -d)</span><br><span class="line">    <span class="built_in">cd</span> <span class="string">&quot;<span class="variable">$work_dir</span>&quot;</span></span><br><span class="line">    <span class="built_in">cat</span> &gt; test.py &lt;&lt;<span class="string">&#x27;PY&#x27;</span></span><br><span class="line">import mmap</span><br><span class="line">import os</span><br><span class="line"></span><br><span class="line">size_bytes = 2 * 1024**3</span><br><span class="line"><span class="built_in">print</span>(f<span class="string">&quot;开始分配 2 GiB，PID = &#123;os.getpid()&#125;&quot;</span>, flush=True)</span><br><span class="line"></span><br><span class="line">with mmap.mmap(-1, size_bytes, flags=mmap.MAP_PRIVATE | mmap.MAP_ANONYMOUS) as pages:</span><br><span class="line">    <span class="keyword">for</span> offset <span class="keyword">in</span> range(0, size_bytes, mmap.PAGESIZE):</span><br><span class="line">        pages[offset] = 1</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;已写入 2 GiB，正常退出。&quot;</span>, flush=True)</span><br><span class="line">PY</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 优先使用现场的 cgroup v1 文件，再兼容 v2 和完整层级挂载。</span></span><br><span class="line">    oom_file=/sys/fs/cgroup/memory/memory.oom_control</span><br><span class="line">    <span class="keyword">if</span> ! grep -qx <span class="string">&quot;$$&quot;</span> <span class="string">&quot;<span class="variable">$&#123;oom_file%/*&#125;</span>/cgroup.procs&quot;</span> 2&gt;/dev/null || [ ! -r <span class="string">&quot;<span class="variable">$oom_file</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        v1_rel=$(awk -F: <span class="string">&#x27;$2 ~ /(^|,)memory(,|$)/ &#123;print $3; exit&#125;&#x27;</span> /proc/self/cgroup)</span><br><span class="line">        v2_rel=$(awk -F: <span class="string">&#x27;$1 == &quot;0&quot; &#123;print $3; exit&#125;&#x27;</span> /proc/self/cgroup)</span><br><span class="line">        oom_file=<span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">for</span> f <span class="keyword">in</span> <span class="string">&quot;/sys/fs/cgroup/memory<span class="variable">$&#123;v1_rel%/&#125;</span>/memory.oom_control&quot;</span> \</span><br><span class="line">                 <span class="string">&quot;/sys/fs/cgroup<span class="variable">$&#123;v2_rel%/&#125;</span>/memory.events&quot;</span> /sys/fs/cgroup/memory.events; <span class="keyword">do</span></span><br><span class="line">            [ -r <span class="string">&quot;<span class="variable">$f</span>&quot;</span> ] || <span class="built_in">continue</span></span><br><span class="line">            grep -qx <span class="string">&quot;$$&quot;</span> <span class="string">&quot;<span class="variable">$&#123;f%/*&#125;</span>/cgroup.procs&quot;</span> 2&gt;/dev/null || <span class="built_in">continue</span></span><br><span class="line">            oom_file=<span class="variable">$f</span></span><br><span class="line">            <span class="built_in">break</span></span><br><span class="line">        <span class="keyword">done</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">    <span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$oom_file</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&#x27;无法读取本测试容器的 OOM 计数，停止实验。&#x27;</span> &gt;&amp;2</span><br><span class="line">        <span class="built_in">exit</span> 1</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">    oom_before=$(awk <span class="string">&#x27;$1==&quot;oom_kill&quot; &#123;print $2&#125;&#x27;</span> <span class="string">&quot;<span class="variable">$oom_file</span>&quot;</span>)</span><br><span class="line">    [ -n <span class="string">&quot;<span class="variable">$oom_before</span>&quot;</span> ] || &#123; <span class="built_in">echo</span> <span class="string">&#x27;缺少起始 oom_kill 读数，停止实验。&#x27;</span> &gt;&amp;2; <span class="built_in">exit</span> 1; &#125;</span><br><span class="line"></span><br><span class="line">    test_exit_code=0</span><br><span class="line">    python3 -u test.py || test_exit_code=$?</span><br><span class="line"></span><br><span class="line">    oom_after=$(awk <span class="string">&#x27;$1==&quot;oom_kill&quot; &#123;print $2&#125;&#x27;</span> <span class="string">&quot;<span class="variable">$oom_file</span>&quot;</span>)</span><br><span class="line">    [ -n <span class="string">&quot;<span class="variable">$oom_after</span>&quot;</span> ] || &#123; <span class="built_in">echo</span> <span class="string">&#x27;缺少结束读数，无法计算增量。&#x27;</span> &gt;&amp;2; <span class="built_in">exit</span> 1; &#125;</span><br><span class="line">    <span class="built_in">printf</span> <span class="string">&#x27;\n退出码：%s\nOOM计数：%s -&gt; %s\n新增OOM kill：%s\n&#x27;</span> \</span><br><span class="line">        <span class="string">&quot;<span class="variable">$test_exit_code</span>&quot;</span> <span class="string">&quot;<span class="variable">$oom_before</span>&quot;</span> <span class="string">&quot;<span class="variable">$oom_after</span>&quot;</span> \</span><br><span class="line">        <span class="string">&quot;<span class="subst">$((oom_after - oom_before)</span>)&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="现场实测输出（PID-已脱敏）"><a href="#现场实测输出（PID-已脱敏）" class="headerlink" title="现场实测输出（PID 已脱敏）"></a>现场实测输出（PID 已脱敏）</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">开始分配 2 GiB，PID = &lt;已脱敏&gt;</span><br><span class="line"></span><br><span class="line">退出码：137</span><br><span class="line">OOM计数：30 -&gt; 31</span><br><span class="line">新增OOM kill：1</span><br></pre></td></tr></table></figure>
+
+<p><code>oom_kill</code> 从 30 增至 31，加上 Python 退出码 137，强烈支持该次测试进程被 OOM 杀掉。先前的 30 是历史累计值，不包含受害进程身份。</p>
+<p>复测时若退出码为 0 且增量为 0，说明该轮脚本完成了分配。若整个测试容器被成组杀掉，测量 shell 可能来不及打印结束计数，此时应在原节点查对应时间的受害进程记录。</p>
+</div>
+    </div>
+
+    <div class="post-meta">
+        <i>
+        
+            <span>2026-11-18</span>
+            
+                <span>该篇文章被 Jossy Zhang</span>
+            
+            
+                <span>打上标签:
+                    
+                    
+                        <a href='/tags/UE/'>
+                            UE
+                        </a>
+                    
+                </span>
+             
+             
+                <span>归为分类:
+                    
+                    
+                        <a href='/categories/%E7%AC%94%E8%AE%B0/'>
+                            笔记
+                        </a>
+                    
+                </span>
+            
+        
+        </i>
+    </div>
+    <br>
+    
+    
+        
+            
+    
+            <div class="post-footer-pre-next">
+                
+
+                
+                    <span class="post-footer-pre-next-last-span-right">下一篇：<a href="/game-radar/">玩家反馈工作流与演进路线</a>
+                    </span>
+                
+            </div>
+    
+        
+    
+
+    
+        
+
+     
+</div>
+
+
+
+
+                    
+
+                    <div class="footer">
+    
+        <span> 
+            © 1949-2024 China 
+
+            
+                
+
+            
+        </span>
+       
+    
+</div>
+
+
+
+<!--这是指一条线往下的内容-->
+<div class="footer-last">
+    
+            <span>🌊看过大海的人不会忘记海的广阔🌊</span>
+            
+                <span class="footer-last-span-right"><i>本站由<a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/index.html">Hexo</a>驱动｜使用<a target="_blank" rel="noopener" href="https://github.com/HiNinoJay/hexo-theme-A4">Hexo-theme-A4</a>主题</i></span>
+            
+    
+</div>
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+    <!--目录-->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" type="text/javascript" ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js" type="text/javascript" ></script>
+        
+<script src="/js/toc.js"></script>
+
+    
+
+    
+<script src="/js/randomHeaderContent.js"></script>
+
+    <!--回到顶部按钮-->
+    
+        
+<script src="/js/returnToTop.js"></script>
+
+    
+
+    
+        
+<script src="/js/returnToLastPage.js"></script>
+
+    
+
+
+
+
+
+<script src="/js/lightgallery/lightgallery.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-thumbnail.umd.min.js"></script>
+
+
+
+<script src="/js/lightgallery/plugins/lg-fullscreen.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-autoplay.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-zoom.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-rotate.umd.min.js"></script>
+
+
+<script src="/js/lightgallery/plugins/lg-paper.umd.min.js"></script>
+
+
+
+
+<script type="text/javascript">
+     
+    if (typeof lightGallery !== "undefined") {
+        var options1 = {
+            selector: '.gallery-item',
+            plugins: [lgThumbnail, lgFullscreen, lgAutoplay, lgZoom, lgRotate, lgPager], // 启用插件
+            thumbnail: true,          // 显示缩略图
+            zoom: true,               // 启用缩放功
+            rotate: true,             // 启用旋转功能能
+            autoplay: true,        // 启用自动播放功能
+            fullScreen: true,      // 启用全屏功能
+            pager: false, //页码,
+            zoomFromOrigin: true,   // 从原始位置缩放
+            actualSize: true,       // 启用查看实际大小的功能
+            enableZoomAfter: 300,    // 延迟缩放，确保图片加载完成后可缩放
+        };
+        lightGallery(document.getElementsByClassName('.article-gallery')[0], options1); // 修复选择器
+    }
+    
+</script>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+
+                </div>
+            
+            
+                <!-- 回到顶部的按钮-->
+                <div class="progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+            
+                <!-- 返回的按钮-->
+                <div class="return-to-last-progress-wrap shadow-drop-2-bottom">
+                    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+                        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+                    </svg>
+                </div>
+            
+    </body>
+</html>
+<script src="/js/emojiHandler.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        wrapEmojis('.paper');
+    });
+</script>

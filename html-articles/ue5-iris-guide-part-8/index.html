@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第八部分：基于 Unreal Engine 5.7.4 源码，讲解 DataStream、DataStreamManager、ReplicationWriter、ReplicationReader、包投递反馈与 ChunkedDataStream。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M18 16h28v8H36v16h10v8H18v-8h10V24H18z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-8/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第八部分：数据流与传输 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, .2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "BITS";
+      position: absolute;
+      right: -.04em;
+      bottom: -.39em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 900px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; font-size: 13px; color: #d9def7; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .9);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: #eef0fb;
+      border-left-color: var(--signal);
+    }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 21px/1 var(--serif);
+    }
+    .source-note p { margin: 0; color: #333e5b; font-size: 14px; line-height: 1.6; }
+    .source-note > a { white-space: nowrap; font-size: 13px; font-weight: 800; }
+
+    article, .article-footer {
+      background: rgba(255, 253, 248, .96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article { padding: clamp(28px, 5vw, 68px); }
+    article > :first-child { margin-top: 0; }
+    article h2, article h3, article h4 { scroll-margin-top: 25px; color: var(--ink); }
+    article h2 {
+      position: relative;
+      margin: 76px 0 28px;
+      padding: 0 0 16px;
+      font: 800 clamp(27px, 3vw, 39px) / 1.25 var(--serif);
+      letter-spacing: -.02em;
+      border-bottom: 2px solid var(--line);
+    }
+    article h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 86px; height: 4px; background: var(--signal); }
+    article h3 { margin: 46px 0 15px; font: 800 23px/1.35 var(--serif); }
+    article h4 { margin: 30px 0 10px; font-size: 17px; }
+    article p { margin: 0 0 18px; }
+    article ul, article ol { padding-left: 1.35em; }
+    article li { margin: 6px 0; }
+    article strong { color: #15204a; }
+    article hr { margin: 56px 0; border: 0; border-top: 1px solid var(--line); }
+    article blockquote {
+      margin: 25px 0;
+      padding: 21px 24px 21px 28px;
+      color: #2c3854;
+      background: #f0eee7;
+      border-left: 5px solid var(--signal);
+      font-family: var(--serif);
+      font-size: 19px;
+    }
+    code {
+      padding: .12em .34em;
+      color: #303b80;
+      background: #eaecf7;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: .88em;
+    }
+    article p code,
+    article li code,
+    article td code,
+    article blockquote code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    pre { margin: 0; }
+    article pre {
+      overflow-x: auto;
+      padding: 22px 24px;
+      color: #e7ebff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      font: 14px/1.68 var(--mono);
+      tab-size: 4;
+    }
+    article pre code { padding: 0; color: inherit; background: none; border-radius: 0; font-size: inherit; }
+    .code-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+      padding: 8px 13px;
+      color: #dfe4ff;
+      background: #29355b;
+      border-left: 5px solid var(--signal);
+      font: 700 11px/1.5 var(--mono);
+      letter-spacing: .04em;
+    }
+    .code-label + pre { border-top: 1px solid #455178; }
+    .table-scroll { overflow-x: auto; margin: 25px 0 31px; border: 1px solid var(--line); }
+    table { width: 100%; min-width: 680px; border-collapse: collapse; background: var(--white); font-size: 14px; line-height: 1.55; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-right: 1px solid #ded7ca; border-bottom: 1px solid #ded7ca; }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: #fff; background: var(--iris-dark); font-size: 12px; letter-spacing: .02em; }
+    tbody tr:nth-child(even) { background: #f5f2eb; }
+    .article-callout {
+      margin: 25px 0;
+      padding: 19px 22px;
+      background: var(--signal-soft);
+      border: 1px solid #dfa990;
+      border-left: 6px solid var(--signal);
+    }
+    .article-callout--green { background: var(--green-soft); border-color: #9bc5b4; border-left-color: var(--green); }
+    .article-callout--blue { background: #e8ebf8; border-color: #b8c0e1; border-left-color: var(--iris); }
+    .article-callout > strong { display: block; margin-bottom: 5px; }
+    .article-callout p:last-child { margin-bottom: 0; }
+    .stats, .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 26px 0;
+    }
+    .stat, .card {
+      padding: 19px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--iris);
+    }
+    .stat b { display: block; color: var(--signal); font: 800 30px/1.15 var(--serif); }
+    .stat span { color: var(--ink-soft); font-size: 13px; }
+    .card h4 { margin: 0 0 8px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .formula {
+      margin: 25px 0;
+      padding: 22px 24px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--iris-dark), var(--iris));
+      border-bottom: 5px solid var(--signal);
+      font: 700 16px/1.8 var(--mono);
+    }
+    .formula span { display: block; color: #f4b79b; }
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin: 27px 0;
+    }
+    .journey div {
+      position: relative;
+      padding: 16px 13px;
+      text-align: center;
+      background: #eceef8;
+      border: 1px solid #c5cae5;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .journey div:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--signal);
+      font-size: 17px;
+    }
+    .bitbar { display: flex; min-width: 660px; height: 54px; margin: 16px 0 8px; color: #fff; font: 700 12px/54px var(--mono); text-align: center; }
+    .bitbar span { display: block; border-right: 2px solid var(--white); }
+    .bitbar .mask { flex: 5; background: #6774bc; }
+    .bitbar .health { flex: 14; background: var(--signal); }
+    .bitbar .ammo { flex: 10; background: var(--green); }
+    .bitbar .other { flex: 20; background: #7b8293; }
+    .badge {
+      display: inline-block;
+      margin: 0 5px 5px 0;
+      padding: 2px 8px;
+      color: var(--iris-dark);
+      background: #e7eaf7;
+      border: 1px solid #bcc3df;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-left: 30px; }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; top: 1px; color: var(--green); font-weight: 900; }
+    .article-footer {
+      margin-top: 28px;
+      padding: 28px 34px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .article-footer p { margin: 0 0 8px; }
+    .back-home { display: inline-block; margin-top: 12px; font-weight: 800; }
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      width: 46px;
+      height: 46px;
+      color: #fff;
+      background: var(--iris-dark);
+      border: 0;
+      box-shadow: 0 9px 28px rgba(25, 35, 58, .22);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: minmax(210px, 250px) minmax(0, 1fr); gap: 26px; width: min(1120px, calc(100% - 30px)); }
+      article { padding: 35px; }
+      .source-note { grid-template-columns: 42px 1fr; }
+      .source-note > a { grid-column: 2; }
+    }
+    @media (max-width: 790px) {
+      body { font-size: 16px; }
+      .hero { padding: 58px 22px 53px; }
+      .hero::before { font-size: 180px; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 25px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .toc-mobile a { padding: 8px 18px; }
+      article { padding: 27px 20px; }
+      article h2 { margin-top: 58px; }
+      article h3 { margin-top: 37px; }
+      .source-note { padding: 17px; }
+      .stats, .cards { grid-template-columns: 1fr; }
+      .journey { grid-template-columns: 1fr 1fr; }
+      .journey div:nth-child(2)::after { display: none; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 34px; }
+      .hero__meta { display: grid; }
+      .journey { grid-template-columns: 1fr; }
+      .journey div::after { display: none; }
+      .source-note { display: block; }
+      .source-note__mark { margin-bottom: 12px; }
+      .source-note > a { display: inline-block; margin-top: 10px; white-space: normal; }
+      article pre { padding: 18px 16px; font-size: 12px; }
+      .article-footer { padding: 23px 20px; }
+    }
+
+    .transport-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin: 28px 0;
+      overflow: hidden;
+      color: var(--white);
+      background: #aeb6d5;
+      border: 1px solid #aeb6d5;
+    }
+    .transport-map section {
+      min-width: 0;
+      padding: 22px;
+      background: var(--iris-dark);
+    }
+    .transport-map section:nth-child(2) { background: #344487; }
+    .transport-map section:nth-child(3) { background: #385e75; }
+    .transport-map small {
+      display: block;
+      margin-bottom: 8px;
+      color: #f5b18e;
+      font: 800 11px/1.4 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .transport-map strong { display: block; margin-bottom: 7px; font: 700 20px/1.3 var(--serif); }
+    .transport-map p { margin: 0; color: #e8ebfa; font-size: 14px; line-height: 1.65; }
+
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .branch-card {
+      min-width: 0;
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .branch-card:nth-child(2) { border-top-color: var(--green); }
+    .branch-card:nth-child(3) { border-top-color: var(--signal); }
+    .branch-card strong { display: block; margin-bottom: 7px; font-family: var(--serif); font-size: 19px; }
+    .branch-card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+
+    .state-lane {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 23px 0;
+      padding: 18px;
+      background: #e8ebf8;
+      border: 1px solid #b8c0e1;
+    }
+    .state-lane span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 6px 10px;
+      color: var(--iris-dark);
+      background: var(--white);
+      border: 1px solid #bac2e0;
+      font: 700 12px/1.35 var(--mono);
+    }
+    .state-lane i { color: var(--signal); font-style: normal; font-weight: 900; }
+
+    .packet-layout {
+      margin: 24px 0;
+      padding: 20px;
+      color: #eef1ff;
+      background: #18233d;
+      border-left: 6px solid var(--signal);
+      overflow-x: auto;
+    }
+    .packet-layout__row {
+      display: flex;
+      width: max-content;
+      min-width: 100%;
+      gap: 3px;
+    }
+    .packet-layout__row + .packet-layout__row { margin-top: 7px; }
+    .packet-layout span {
+      display: grid;
+      place-items: center;
+      min-width: 112px;
+      min-height: 54px;
+      padding: 8px 10px;
+      color: #f5f7ff;
+      background: #344487;
+      border: 1px solid #5969ad;
+      text-align: center;
+      font: 700 11px/1.45 var(--mono);
+    }
+    .packet-layout span.wide { min-width: 190px; background: #2e5a6f; border-color: #4f8198; }
+    .packet-layout span.signal { background: #7d3c30; border-color: #bd6c55; }
+
+    .timeline {
+      position: relative;
+      margin: 27px 0;
+      padding-left: 30px;
+      border-left: 3px solid #b7bfdf;
+    }
+    .timeline article {
+      position: relative;
+      padding: 0 0 22px 9px;
+      background: transparent;
+      box-shadow: none;
+      border: 0;
+    }
+    .timeline article:last-child { padding-bottom: 0; }
+    .timeline article::before {
+      content: "";
+      position: absolute;
+      left: -39px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 0 5px var(--paper);
+    }
+    .timeline strong { display: block; color: var(--iris-dark); }
+    .timeline p { margin: 3px 0 0; color: var(--ink-soft); }
+
+    .fact-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 24px 0;
+    }
+    .fact-strip div {
+      padding: 17px 14px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+    .fact-strip strong { display: block; color: var(--signal); font: 800 25px/1.15 var(--mono); }
+    .fact-strip span { display: block; margin-top: 7px; color: var(--ink-soft); font-size: 12px; line-height: 1.45; }
+
+    @media (max-width: 850px) {
+      .transport-map, .branch-grid { grid-template-columns: 1fr; }
+      .fact-strip { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .fact-strip { grid-template-columns: 1fr; }
+      .state-lane { align-items: stretch; }
+      .state-lane span { width: 100%; overflow-wrap: anywhere; }
+      .state-lane i { align-self: center; transform: rotate(90deg); }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.7.4 · Iris Replication System</p>
+      <h1>
+        <span>UE5-Iris 网络复制系统技术分析</span>
+        <span>第八部分：数据流与传输</span>
+      </h1>
+      <p class="hero__deck">沿一包 Health / Ammo 状态从 ReplicationWriter 进入 DataStream、穿过连接，再由 ReplicationReader 派发到 Gameplay；同时拆清投递反馈、可靠性语义与 ChunkedDataStream 的分块重传。</p>
+      <div class="hero__meta" aria-label="文章信息">
+        <span>作者 Jossy Zhang</span>
+        <span>发布 2026-07-24</span>
+        <span>基于 Unreal Engine 5.7.4</span>
+        <span>8.1–8.5 · 源码核对</span>
+        <span><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UDataStream" target="_blank" rel="noopener noreferrer">UDataStream API ↗</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>内容索引</strong><span>CONTENTS</span></div>
+      <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第八部分导读</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>🗺️ 端到端传输总览</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>🔌 8.1 DataStream 系统</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>🧭 8.2 DataStreamManager</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>📤 8.3 ReplicationWriter</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>📥 8.4 ReplicationReader</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>🧩 8.5 ChunkedDataStream</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>🎮 一包状态的完整旅程</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>🧯 故障排查与性能</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>📁 源码与资料索引</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>💡 下一步</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 11 个章节</summary>
+        <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第八部分导读</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>🗺️ 端到端传输总览</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>🔌 8.1 DataStream 系统</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>🧭 8.2 DataStreamManager</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>📤 8.3 ReplicationWriter</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>📥 8.4 ReplicationReader</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>🧩 8.5 ChunkedDataStream</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>🎮 一包状态的完整旅程</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>🧯 故障排查与性能</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>📁 源码与资料索引</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>💡 下一步</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note" role="note">
+        <span class="source-note__mark" aria-hidden="true">据</span>
+        <p><strong>技术依据</strong>本文为 Jossy Zhang 原创技术整理，以本地 Unreal Engine 5.7.4 源码快照和 Epic Games UE 5.7 官方文档为准。Private 实现、常量和流程均按当前源码核对，升级版本时需要重新验证。</p>
+        <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">查看 UE 5.7 流程 ↗</a>
+      </div>
+
+      <article>
+
+        <h2 id="section-01" tabindex="-1">🎯 第八部分：数据流与传输</h2>
+        <blockquote>第七部分把游戏值变成了比特；第八部分回答三个更靠近网络的问题：这些比特怎样和其他数据共用一个包、丢包后谁知道该补什么、接收端何时才真正修改游戏对象。</blockquote>
+        <p>继续沿用前文的百人大逃杀角色：服务器上某玩家受到伤害并开了一枪，<code>Health</code> 从 100.0 变为 73.5，<code>Ammo</code> 从 30 变为 29。轮询或 Push Model 已经发现变化，过滤和优先级也已为某条连接做完决定。现在接棒的是逐连接 Writer、Replication DataStream、Manager 与 Reader。</p>
+        <div class="journey" aria-label="一包角色状态的旅程">
+          <div>Dirty State</div><div>Writer</div><div>Replication Stream</div><div>Manager</div>
+          <div>Packet</div><div>Reader</div><div>Apply</div><div>ACK / Lost</div>
+        </div>
+        <p>这条链路最容易被“可靠/不可靠”四个字误导。Iris 对象状态的目标通常是<strong>收敛到最新值</strong>，可靠 Attachment 的目标是<strong>不能漏掉事件</strong>，不可靠 Attachment 的目标是<strong>有机会就发，丢了不补旧事件</strong>。它们可以出现在同一个 Replication DataStream 中，却不能用同一种心智模型解释。</p>
+        <div class="article-callout article-callout--blue">
+          <strong>版本与证据边界</strong>
+          <p>本文以本地 Unreal Engine 5.7.4 源码为准，<code>Build.version</code> 的 <code>CompatibleChangelist</code> 为 <code>47537391</code>。公开接口参考 Epic Games UE 5.7 文档；Writer、Reader、Manager 包格式和 Chunk 常量属于实现细节，升级引擎时必须重新核对。</p>
+        </div>
+
+        <h2 id="section-02" tabindex="-1">🗺️ 端到端传输总览</h2>
+        <h3 id="section-02-01" tabindex="-1">三条互相咬合的路径</h3>
+        <div class="transport-map">
+          <section><small>Send Path</small><strong>选择并写入</strong><p>Pre-Send 阶段准备量化状态、Scope、Priority 与 ChangeMask；逐连接 Writer 把可发送对象组织成 batch。</p></section>
+          <section><small>Receive Path</small><strong>读取再派发</strong><p>Reader 先把整包读入接收状态，处理创建和依赖，再通过 Fragment/Bridge 应用到游戏对象。</p></section>
+          <section><small>Feedback Path</small><strong>确认或恢复</strong><p>包的 Delivered、Lost、Discard 结果沿 Record 返回各个 DataStream，驱动确认、重排、重发或清理。</p></section>
+        </div>
+        <p>官方的 Iris 流程也把这两阶段分开：Pre-Send Update 才访问游戏状态并完成脏数据复制、量化、过滤和优先级；Send Update 面向每条连接调度对象并序列化。换言之，<strong>Writer 不是回到 Actor 上逐属性检查一遍</strong>，它消费的是 ReplicationSystem 已整理好的内部状态。</p>
+
+        <h3 id="section-02-02" tabindex="-1">层与层之间交付什么</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>交接点</th><th>上游交付</th><th>下游职责</th><th>不负责什么</th></tr></thead>
+          <tbody>
+            <tr><td>ReplicationSystem → Writer</td><td>逐连接 Scope、Priority、Dirty ChangeMask、生命周期和 Attachment</td><td>调度、组 batch、按位预算写入</td><td>重新轮询 Gameplay 属性</td></tr>
+            <tr><td>Writer → ReplicationDataStream</td><td>Replication 协议载荷与 in-flight record</td><td>适配统一 DataStream 生命周期</td><td>改变对象复制语义</td></tr>
+            <tr><td>子流 → DataStreamManager</td><td>位流片段、WriteResult、可选 Record</td><td>多流 framing、状态握手、反馈分派</td><td>通用权重公平调度</td></tr>
+            <tr><td>Manager → 连接</td><td>本包 Iris DataStream 载荷</td><td>包发送和投递结果</td><td>理解对象或属性含义</td></tr>
+            <tr><td>Reader → Fragment/Bridge</td><td>接收状态、ChangeMask、创建/销毁意图</td><td>实例化、Dequantize、Apply、通知</td><td>在读到单个字段时立即调用 RepNotify</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-02-03" tabindex="-1">每条连接都有自己的“账”</h3>
+        <p>过滤、优先级、对象创建确认、已发送 ChangeMask、可靠 Attachment 队列和 Baseline 都具有连接语义。同一个服务器对象可能对连接 A 已创建并确认，对连接 B 还未进入 Scope，对连接 C 的上一包刚刚丢失。因此 Writer/Reader 是连接级状态机，不能用“对象已经发过”这种全局判断代替。</p>
+        <div class="formula">
+          <span>同一个 NetObject</span>
+          Connection A: Created + no loss<br>
+          Connection B: PendingCreate<br>
+          Connection C: Created + lost state pending resend
+        </div>
+
+        <h2 id="section-03" tabindex="-1">🔌 8.1 DataStream 系统</h2>
+        <h3 id="section-03-01" tabindex="-1"><code>UDataStream</code> 是协议插槽</h3>
+        <p>UE 5.7 官方 API 将 <code>UDataStream</code> 定义为复制自定义数据的接口，适合 bulky data 或需要特殊投递保证的数据。它不是一个现成的“可靠字节流”；它规定<strong>何时准备、如何写、如何读、何时知道包结果</strong>，具体可靠性由子类利用这些回调实现。</p>
+        <pre><code>// UE 5.7.4 接口骨架（为阅读省略导出宏和注释）
+class UDataStream : public UObject
+{
+public:
+    virtual void Init(const FInitParameters&amp; Params);
+    virtual void Update(const FUpdateParameters&amp; Params);
+    virtual EWriteResult BeginWrite(const FBeginWriteParameters&amp; Params);
+    virtual EWriteResult WriteData(FNetSerializationContext&amp; Context,
+                                   FDataStreamRecord const*&amp; OutRecord);
+    virtual void EndWrite();
+    virtual void ReadData(FNetSerializationContext&amp; Context);
+    virtual void ProcessPacketDeliveryStatus(
+        EPacketDeliveryStatus Status,
+        FDataStreamRecord const* Record);
+    virtual bool HasAcknowledgedAllReliableData() const;
+};</code></pre>
+
+        <h3 id="section-03-02" tabindex="-1">生命周期不是一对 Read/Write 那么简单</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>阶段</th><th>调用</th><th>核心用途</th><th>关键约束</th></tr></thead>
+          <tbody>
+            <tr><td>建立</td><td><code>Init</code></td><td>接收 ReplicationSystemId、ConnectionId、Name、PacketWindowSize、NetExports</td><td>必须先初始化，Manager 才能创建流</td></tr>
+            <tr><td>帧更新</td><td><code>Update</code></td><td>驱动 PreSendUpdate 或 PostTickFlush 对应工作</td><td>不等同于真正写包</td></tr>
+            <tr><td>批次准备</td><td><code>BeginWrite</code></td><td>建立可跨多次 WriteData 使用的临时上下文</td><td>返回 NoData 后本批次不会继续写</td></tr>
+            <tr><td>逐包写入</td><td><code>WriteData</code></td><td>向 BitStream 写数据并返回 Record</td><td>只有真正写入才应产生 Record</td></tr>
+            <tr><td>批次收尾</td><td><code>EndWrite</code></td><td>释放批次临时状态、统计未写完工作</td><td>不是 ACK 回调</td></tr>
+            <tr><td>接收</td><td><code>ReadData</code></td><td>按与 WriteData 对称的格式读取</td><td>Context 错误必须立即传播</td></tr>
+            <tr><td>包反馈</td><td><code>ProcessPacketDeliveryStatus</code></td><td>处理 Delivered、Lost 或 Discard</td><td>Record 顺序与 WriteData 顺序对应</td></tr>
+            <tr><td>拆除</td><td><code>Deinit</code></td><td>释放流级资源</td><td>outstanding record 会先得到清理机会</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-03-03" tabindex="-1">WriteMode 与 WriteResult</h3>
+        <div class="branch-grid">
+          <div class="branch-card"><strong>Full</strong><p>默认写入模式，允许流写常规数据。ReplicationWriter 在这里处理对象状态、创建/销毁和各类 Attachment。</p></div>
+          <div class="branch-card"><strong>PostTickDispatch</strong><p>用于主网络 Tick 尾部的特定数据。UE 5.7.4 Writer 当前只在该模式准备未发送的非可靠 OOB Attachment。</p></div>
+          <div class="branch-card"><strong>MaxPackets</strong><p>限制一个 Begin/EndWrite 批次中的常规包数；0 表示不限。它是调用上限输入，不是带宽保证。</p></div>
+        </div>
+        <div class="table-scroll"><table>
+          <thead><tr><th><code>EWriteResult</code></th><th>含义</th><th>Manager 可以如何理解</th></tr></thead>
+          <tbody>
+            <tr><td><code>NoData</code></td><td>本次没有提交数据</td><td>丢弃子流，不为接收端设置该流 presence bit</td></tr>
+            <tr><td><code>Ok</code></td><td>本帧写完，或即使还有数据也不想继续写</td><td>本次有效，但无需仅为该流继续开包</td></tr>
+            <tr><td><code>HasMoreData</code></td><td>还有数据，若预算允许希望再次写</td><td>可能继续调用；绝不代表一定获得下一包</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-03-04" tabindex="-1"><code>FDataStreamRecord</code>：寄给未来的回执存根</h3>
+        <p><code>WriteData</code> 写进包的是比特，包的结果却稍后才知道。Record 把这两个时间点接起来：子流在 Record 中保存“这包写了哪些状态、哪些可靠队列条目或哪些 chunk sequence”；连接得到投递结果后，Manager 把原 Record 原样还给该流。</p>
+        <div class="state-lane">
+          <span>WriteData(packet 412)</span><i>→</i><span>Record: state/chunk refs</span><i>→</i><span>packet in flight</span><i>→</i><span>Delivered / Lost / Discard</span>
+        </div>
+        <ul>
+          <li>Record 的具体字段不由基类规定，子类可以派生自己的结构。</li>
+          <li>Record 由 DataStream 分配和拥有，但 Manager/连接在回调前保存指针。</li>
+          <li>返回 <code>NoData</code>、发生 Context 错误或一个比特都没写时，不应伪造 Record。</li>
+          <li>连接关闭时 outstanding 记录会以 <code>Discard</code> 清理，避免把资源永久留在 in-flight 状态。</li>
+        </ul>
+
+        <h3 id="section-03-05" tabindex="-1">动态流也有握手状态</h3>
+        <div class="state-lane">
+          <span>Invalid</span><i>→</i><span>PendingCreate</span><i>→</i><span>WaitOnCreateConfirmation</span><i>→</i><span>Open</span>
+        </div>
+        <div class="state-lane">
+          <span>Open</span><i>→</i><span>PendingClose</span><i>→</i><span>WaitOnCloseConfirmation</span><i>→</i><span>Invalid</span>
+        </div>
+        <p>创建与关闭信息也要经过网络。如果包含状态迁移的包丢失，Manager 会把等待确认状态退回 <code>PendingCreate</code> 或 <code>PendingClose</code> 并重新标脏。关闭前还会询问 <code>HasAcknowledgedAllReliableData</code>，防止可靠队列尚未确认就直接撤销流。</p>
+        <div class="article-callout">
+          <strong>结论</strong>
+          <p>DataStream 提供的是“可实现特殊投递语义的回调契约”。真正的可靠、重传、合并或丢弃策略存在于 ReplicationWriter、NetTokenDataStream、ChunkedDataStream 或你的自定义流中。</p>
+        </div>
+
+        <h2 id="section-04" tabindex="-1">🧭 8.2 DataStreamManager</h2>
+        <h3 id="section-04-01" tabindex="-1">Manager 自己也是一个 DataStream</h3>
+        <p><code>UDataStreamManager : UDataStream</code> 形成组合器：连接只需要驱动 Manager，Manager 再把生命周期调用转发给活动子流。每条连接拥有自己的 Manager 和流实例，因此暂停某个连接的 Replication 流不会全局暂停其他连接。</p>
+        <p>UE 5.7.4 的引擎基础配置自动创建两个核心流：</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>名称</th><th>类</th><th>默认发送状态</th><th>角色</th></tr></thead>
+          <tbody>
+            <tr><td><code>NetToken</code></td><td><code>UNetTokenDataStream</code></td><td>Send</td><td>同步 Token 导出，使名称等压缩标识可在远端解析</td></tr>
+            <tr><td><code>Replication</code></td><td><code>UReplicationDataStream</code></td><td>Send</td><td>把连接的 ReplicationWriter/Reader 接入统一流接口</td></tr>
+          </tbody>
+        </table></div>
+        <p><code>FDataStreamDefinition</code> 还包含 <code>bAutoCreate</code> 和 <code>bDynamicCreate</code>。Fixup 按配置数组顺序分配 StreamIndex，所以两端定义的名称、类和顺序必须一致。UE 5.7.4 Manager 上限是 32 条流；这也是内部 framing 的实现约束，不应当作永远不变的产品 API。</p>
+
+        <h3 id="section-04-02" tabindex="-1">5.7.4 的 Manager 包头</h3>
+        <p>下面是当前源码可直接复核的概念布局。<code>N</code> 是本包声明的流数量；只有状态掩码命中的流才带 4-bit 状态值，只有数据掩码命中的流才跟随 payload。</p>
+        <div class="packet-layout" aria-label="DataStreamManager 当前包布局">
+          <div class="packet-layout__row">
+            <span>StreamCount - 1<br>5 bits</span>
+            <span>DataStreamMask<br>N bits</span>
+            <span>HasStateChanges<br>1 bit</span>
+            <span>StateMask<br>N bits（可选）</span>
+            <span class="signal">State Values<br>4 bits / dirty stream</span>
+          </div>
+          <div class="packet-layout__row">
+            <span class="wide">Stream 0 payload（若存在）</span>
+            <span class="wide">Stream 1 payload（若存在）</span>
+            <span class="wide">… 按 StreamIndex 顺序</span>
+          </div>
+        </div>
+        <p>Manager 先创建子 BitStream，并预留流数量和 DataStreamMask；各子流写完后再回填真实 mask。如果连 Manager 头都放不下，它丢弃整个子流并返回 <code>NoData</code>。子流返回 NoData 或报错时，其子流同样被丢弃，不会把“写了一半的自定义协议”暴露给接收端。</p>
+
+        <h3 id="section-04-03" tabindex="-1">多流协调的真实算法</h3>
+        <ol>
+          <li>遍历活动流，跳过 <code>Pause</code>。</li>
+          <li>只允许 <code>Open</code> 或 <code>PendingClose</code> 的流写业务数据。</li>
+          <li>为当前流从 ManagerStream 创建 SubStream。</li>
+          <li>子流写入成功则提交 SubStream、设置 presence bit 并保存 Record。</li>
+          <li>子流 NoData 或出错则丢弃 SubStream；错误继续传播给上层 Context。</li>
+          <li>所有流处理后回填 mask，提交 ManagerStream，并把各子流 Record 汇总为一个包级 Record。</li>
+        </ol>
+        <div class="article-callout article-callout--green">
+          <strong>大纲中的“带宽分配”要校准</strong>
+          <p>UE 5.7.4 Manager 没有通用的 per-stream 权重、公平份额或令牌桶。活动流按 StreamIndex 顺序共享当前 BitStream 剩余容量；前面的流可以消耗更多空间，后面的流只能看到剩余预算。<code>HasMoreData</code>、<code>MaxPackets</code> 和连接包容量共同决定是否还有后续写入机会。</p>
+        </div>
+        <p>因此，真正需要流间 QoS 时，不能只期待 Manager 自动公平；你需要审视定义顺序、子流自限策略、连接允许的包数，以及是否应该把业务拆成独立 DataStream。</p>
+
+        <h3 id="section-04-04" tabindex="-1">接收和反馈保持同一索引顺序</h3>
+        <p>接收端读取 StreamCount、DataStreamMask 和状态变化；验证数量与 mask 后，只为 DataStreamMask 命中的流调用 <code>ReadData</code>。任何流设置 Context error 或发生 overflow，Manager 都停止继续解析，避免下一个流从错误位偏移开始读。</p>
+        <p>投递反馈端先处理 NetExports，再依据包级 Record 中的两个 mask：</p>
+        <ul>
+          <li>状态迁移包 Lost：把 Create/Close 等等待确认状态退回待发送状态并重新标脏。</li>
+          <li>数据流命中：把相同 Status 和对应子 Record 转发给子流。</li>
+          <li>处理结束：按写入顺序弹出 Manager Record。</li>
+        </ul>
+
+        <h3 id="section-04-05" tabindex="-1">自定义动态流配置</h3>
+        <p>下面是解释性配置，类路径必须换成项目模块实际导出的 <code>UDataStream</code> 子类。动态创建要求两端共享同一 Definition，并通过 <code>CreateStream</code> / <code>CloseStream</code> 走握手。</p>
+        <pre><code>[/Script/IrisCore.DataStreamDefinitions]
++DataStreamDefinitions=(
+    DataStreamName=MatchBootstrap,
+    ClassName=/Script/MyGame.MatchBootstrapDataStream,
+    DefaultSendStatus=EDataStreamSendStatus::Send,
+    bAutoCreate=false,
+    bDynamicCreate=true)</code></pre>
+        <p><code>SetSendStatus(Pause)</code> 只是阻止 Manager 调用该流的写入路径，不清空流的可靠队列，也不等于关闭流。恢复 Send 后，子流仍要根据自己的状态决定返回 NoData、Ok 或 HasMoreData。</p>
+
+        <h2 id="section-05" tabindex="-1">📤 8.3 ReplicationWriter（发送端）</h2>
+        <h3 id="section-05-01" tabindex="-1"><code>UReplicationDataStream</code> 是薄适配层</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>DataStream 回调</th><th>UE 5.7.4 转发目标</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td><code>Update</code></td><td><code>FReplicationWriter::Update</code></td><td>驱动对应更新阶段</td></tr>
+            <tr><td><code>BeginWrite</code></td><td><code>FReplicationWriter::BeginWrite</code></td><td>检查待发送工作并建立批次上下文</td></tr>
+            <tr><td><code>WriteData</code></td><td><code>FReplicationWriter::Write</code></td><td>写销毁、OOB Attachment 和对象 batch</td></tr>
+            <tr><td><code>ReadData</code></td><td><code>FReplicationReader::Read</code></td><td>解析远端 Replication 载荷</td></tr>
+            <tr><td><code>ProcessPacketDeliveryStatus</code></td><td><code>ProcessDeliveryNotification</code></td><td>处理 Delivered/Lost/Discard</td></tr>
+            <tr><td><code>HasAcknowledgedAllReliableData</code></td><td><code>AreAllReliableAttachmentsSentAndAcked</code></td><td>判断可靠 Attachment 是否全部完成</td></tr>
+          </tbody>
+        </table></div>
+        <p>这层不复制状态，也不另做可靠队列；它让复杂的 Writer/Reader 能作为 Manager 的一个标准子流存在。</p>
+
+        <h3 id="section-05-02" tabindex="-1">Writer 接到的是整理后的输入</h3>
+        <div class="branch-grid">
+          <div class="branch-card"><strong>Scope / Priority</strong><p>哪些对象属于本连接，以及调度优先级；来自前面的过滤、优先级和累积流程。</p></div>
+          <div class="branch-card"><strong>Dirty ChangeMask</strong><p>ReplicationSystem 已完成 Poll/Push、Copy 与 Quantize；Writer 同步连接级 mask，而不是查询 Gameplay 属性。</p></div>
+          <div class="branch-card"><strong>Lifecycle / Attachments</strong><p>创建、销毁、TearOff、SubObject、依赖、可靠与非可靠队列共同参与写入。</p></div>
+        </div>
+        <p><code>BeginWrite</code> 首先检查复制是否启用、ReplicationRecord 是否还有容量，以及普通模式下是否存在 dirty objects、pending destroy、OOB 或 Huge Object。若有工作，它调用 <code>ScheduleObjects</code> 建立本批次对象数组；PostTickDispatch 模式当前只面向未发送的非可靠 OOB Attachment。</p>
+
+        <h3 id="section-05-03" tabindex="-1">对象生命周期状态决定写什么</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>状态</th><th>含义</th><th>典型写入/反馈动作</th></tr></thead>
+          <tbody>
+            <tr><td><code>PendingCreate</code></td><td>远端尚未创建</td><td>携带创建信息与初始状态</td></tr>
+            <tr><td><code>WaitOnCreateConfirmation</code></td><td>创建包已在途</td><td>Delivered 后进入 Created；Lost 后恢复并提升调度紧迫度</td></tr>
+            <tr><td><code>Created</code></td><td>远端已确认对象</td><td>发送 ChangeMask 命中的状态与 Attachment</td></tr>
+            <tr><td><code>WaitOnFlush</code></td><td>销毁/TearOff 前等待状态或可靠数据排空</td><td>持续检查 in-flight state 和可靠队列</td></tr>
+            <tr><td><code>PendingTearOff</code></td><td>需要发送 TearOff</td><td>确认后停止正常复制</td></tr>
+            <tr><td><code>PendingDestroy</code></td><td>准备发送销毁</td><td>进入 WaitOnDestroyConfirmation</td></tr>
+            <tr><td><code>WaitOnDestroyConfirmation</code></td><td>销毁包已在途</td><td>Delivered 后安全停止跟踪；Lost 后重排销毁</td></tr>
+            <tr><td><code>HugeObject</code></td><td>内部特殊记录</td><td>通过 Huge Object Attachment 路径处理超大复制 batch</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-05-04" tabindex="-1"><code>BeginWrite → Write → EndWrite</code></h3>
+        <div class="timeline">
+          <article><strong>1. BeginWrite：建立调度快照</strong><p>收集本批次待写对象，记录 WriteMode、MaxPackets，并初始化索引、统计和依赖队列。</p></article>
+          <article><strong>2. Write：先写 16-bit batch count 占位</strong><p>随后写 pending destroy、OOB Attachment 和普通对象；完成后回填真实 batch 数。</p></article>
+          <article><strong>3. 对象 batch：root + subobjects</strong><p><code>WriteObjectBatch</code> 与 <code>WriteObjectAndSubObjects</code> 处理对象头、创建信息、状态、附件和依赖。</p></article>
+          <article><strong>4. 位预算失败：回滚</strong><p><code>FNetBitStreamRollbackScope</code> 确保没有完整对象可提交或发生 overflow 时，整个本次 Replication 写入回退。</p></article>
+          <article><strong>5. 成功：Push ReplicationRecord</strong><p>记录本包涉及的对象状态与可靠队列条目，等待后续投递通知。</p></article>
+          <article><strong>6. EndWrite：释放批次内存</strong><p>统计未发送对象/依赖和 Huge Object 队列，释放 ScheduledObjectInfos；不是确认网络到达。</p></article>
+        </div>
+        <p>Writer 不是简单地遇到大对象就停止。当前实现会在最后一个常规包中继续尝试若干更小对象，减少一个大 batch 阻塞后续小状态的机会；具体阈值由 Writer 参数控制。真正超大的对象 batch 还可能走 Huge Object 路径。</p>
+
+        <h3 id="section-05-05" tabindex="-1">可靠 vs 不可靠：必须拆成三类</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>数据</th><th>Lost 后</th><th>保证的核心语义</th><th>适合</th></tr></thead>
+          <tbody>
+            <tr><td>对象状态</td><td>丢失 ChangeMask 与当前 dirty mask 合并，必要时提高调度优先级；后续可发送更新后的最新值</td><td>最终收敛到最新状态，不重放每次中间变化</td><td>Health、Ammo、位置、姿态</td></tr>
+            <tr><td>可靠 Attachment</td><td>可靠记录保留，重新排队直到确认</td><td>不能静默漏掉的有序业务数据</td><td>可靠 RPC、必须执行的 Attachment</td></tr>
+            <tr><td>非可靠 Attachment</td><td>不按可靠队列补发旧事件</td><td>一次发送机会；业务允许丢失</td><td>高频、可被下一次覆盖的瞬时事件</td></tr>
+          </tbody>
+        </table></div>
+        <div class="article-callout">
+          <strong>状态丢包不等于“原包原样重发”</strong>
+          <p>假设包 A 带 Health=80，A 丢失期间服务器又变成 Health=73.5。Writer 恢复的是“Health 仍需要到达”的 ChangeMask 语义，下一次可以直接发送 73.5；客户端不需要先看见 80 再看见 73.5。若 80 和 73.5 分别代表两个必须执行的事件，就不该建模为普通状态。</p>
+        </div>
+
+        <h3 id="section-05-06" tabindex="-1">Delivered、Lost、Discard 三条分支</h3>
+        <div class="branch-grid">
+          <div class="branch-card"><strong>Delivered</strong><p>确认创建/销毁和已发状态，处理 Attachment ACK；新 Baseline 也只有在确认路径上才能安全参与后续决策。</p></div>
+          <div class="branch-card"><strong>Lost</strong><p>恢复创建/销毁状态，合并丢失 ChangeMask，给丢失状态增加调度紧迫度，并通知可靠 Attachment 队列。</p></div>
+          <div class="branch-card"><strong>Discard</strong><p>连接关闭或记录被放弃时清理 tracking；不把它当成仍应继续在该连接上重传的普通 Lost。</p></div>
+        </div>
+        <p><code>ProcessDeliveryNotification</code> 从 ReplicationRecord 按包弹出记录，再明确分派到 <code>HandleDeliveredRecord</code>、<code>HandleDroppedRecord</code> 或 <code>HandleDiscardedRecord</code>。这正是 DataStream Record 契约在实际复制流中的落点。</p>
+
+        <h3 id="section-05-07" tabindex="-1">Delta 的边界</h3>
+        <p>Writer 可以根据初始状态、有效 Baseline 和当前 ChangeMask 选择 initial/full/delta 序列化路径。若包含新 Baseline 的包丢失，当前源码会通知 BaselineManager 丢失并使 pending baseline 失效。本文只解释这个投递交接点；Baseline 生成、确认窗口、Delta 位成本和回退策略将在第十部分展开。</p>
+
+        <h2 id="section-06" tabindex="-1">📥 8.4 ReplicationReader（接收端）</h2>
+        <h3 id="section-06-01" tabindex="-1">Read 先把整包变成“待派发状态”</h3>
+        <p><code>FReplicationReader::Read</code> 设置内部序列化上下文、PackageMap、对象 ResolveContext 与 NetBlobReceiver，然后执行以下顶层步骤：</p>
+        <div class="timeline">
+          <article><strong>1. 读取流级调试特性和 16-bit batch count</strong><p>UE 5.7.4 还用 8192 作为接收 batch 数的 sanity guard；这是当前实现防线，不是业务可用配额。</p></article>
+          <article><strong>2. 读取 pending destroy</strong><p>先处理应停止复制的对象信息，并建立临时 ObjectsToDispatch 数组。</p></article>
+          <article><strong>3. ReadObjects</strong><p>解析 root/subobject batch、Handle、创建信息、状态和 Attachment。</p></article>
+          <article><strong>4. ProcessHugeObject</strong><p>如果存在完整 Huge Object，组装后再按内部复制格式处理。</p></article>
+          <article><strong>5. DispatchStateData</strong><p>解析依赖、Dequantize 并 Apply；状态不是读到一个字段就立即写入 Gameplay 对象。</p></article>
+          <article><strong>6. Resolve + EndReplication</strong><p>继续尝试之前未解析的引用，最后派发应该结束复制的对象。</p></article>
+        </div>
+
+        <h3 id="section-06-02" tabindex="-1">对象创建不是 Reader 直接随手 NewObject</h3>
+        <p>收到未知 Handle 的 initial state 时，Reader 读取创建信息并借助 ReplicationBridge/Factory 路径建立游戏实例和 Replication Protocol。SubObject 还依赖 root/owner；创建依赖或对象引用未准备好时，batch 可以被延迟，而不是在缺少类型与父对象时强行反序列化。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>接收情形</th><th>Reader 需要确认</th><th>未就绪时</th></tr></thead>
+          <tbody>
+            <tr><td>已有对象更新</td><td>Handle 映射、Protocol 与 receive buffer</td><td>非法 Handle 进入 Context error</td></tr>
+            <tr><td>Root 初次创建</td><td>创建信息、Factory/Bridge、Protocol</td><td>引用或依赖可导致延迟/失败</td></tr>
+            <tr><td>SubObject 创建</td><td>Owner/Root 已存在且关系合法</td><td>等待父对象或判定损坏</td></tr>
+            <tr><td>销毁/TearOff</td><td>对象状态和依赖顺序</td><td>对未创建对象的销毁按当前容错路径处理</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-06-03" tabindex="-1">反序列化先落到 ReceiveStateBuffer</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>网络状态</th><th>5.7.4 入口</th><th>输出</th></tr></thead>
+          <tbody>
+            <tr><td>Initial State</td><td><code>DeserializeInitialStateWithMask</code></td><td>初始 ChangeMask + 量化接收状态</td></tr>
+            <tr><td>普通更新</td><td><code>DeserializeWithMask</code></td><td>更新对应成员的量化状态</td></tr>
+            <tr><td>Delta 更新</td><td><code>DeserializeWithMaskDelta</code></td><td>基于有效 Baseline 恢复量化状态</td></tr>
+          </tbody>
+        </table></div>
+        <p>网络数据首先修改 Iris 的 <code>ReceiveStateBuffer</code>。这样 Reader 能先读完整包、收集待派发对象、处理 unresolved references，再以正确的 root/subobject 和 Attachment 顺序触碰 Gameplay 实例。</p>
+
+        <h3 id="section-06-04" tabindex="-1">引用和依赖为什么会推迟 Apply</h3>
+        <p>一个状态成员可能包含 NetObjectReference；initial state 也可能依赖尚未加载的对象。Reader 使用 ObjectReferenceCache 收集已解析与未解析引用，并维护 unresolved ChangeMask。之后引用变得可解析时，相应成员重新加入 Apply 范围，而不要求业务对象接受无效指针。</p>
+        <div class="state-lane">
+          <span>Deserialize</span><i>→</i><span>Collect references</span><i>→</i><span>MustBeMapped?</span><i>→</i><span>Dispatch now / defer</span>
+        </div>
+        <p>这也解释了一个常见现象：抓包看见数据到达，Reader 也没有 BitStream 错误，但属性尚未变化。问题可能不在传输，而在创建依赖、MustBeMapped 引用或 deferred batch。</p>
+
+        <h3 id="section-06-05" tabindex="-1">Apply 与 RepNotify 的真实调用边界</h3>
+        <div class="packet-layout" aria-label="状态派发与 RepNotify 调用边界">
+          <div class="packet-layout__row">
+            <span>Reader<br>DispatchStateData</span>
+            <span>DequantizeAndApply<br>Initialize</span>
+            <span class="wide">PreNetReceive + Fragment::ApplyReplicatedState</span>
+            <span class="wide">PostNetReceive + Fragment::CallRepNotifies</span>
+            <span>PostRepNotifies</span>
+          </div>
+        </div>
+        <p>UE 5.7.4 的 <code>FDequantizeAndApplyHelper</code> 先按 owner 调用 <code>PreNetReceive</code>，再让各 Fragment 执行 <code>ApplyReplicatedState</code>。批次后处理阶段调用 <code>PostNetReceive</code>；具备 <code>HasRepNotifies</code> trait 的 Fragment 才执行 <code>CallRepNotifies</code>，最后调用 <code>PostRepNotifies</code>。</p>
+        <p>因此更准确的表述是：<strong>Reader 决定何时派发，Fragment/Descriptor 决定如何应用和调用哪些 RepNotify</strong>。是否 OnChanged、是否 Always、旧值参数、Fast Array 专用通知和 unresolved reference 都会影响最终行为。</p>
+
+        <h3 id="section-06-06" tabindex="-1">可靠 RPC 与状态 Apply 的顺序</h3>
+        <p>Reader 还要协调 Attachment。UE 5.7.4 有 <code>net.Iris.ExecuteReliableRPCsBeforeApplyState</code> 控制可靠 RPC 是否在状态 Apply 前派发；非可靠和剩余 Attachment 通常在后续阶段处理。本文只强调顺序可配置且由 Reader 派发阶段协调，NetBlob、RPC Handler 和 Attachment 载荷结构留到第九部分。</p>
+
+        <h3 id="section-06-07" tabindex="-1">位流错误必须立即止损</h3>
+        <ul>
+          <li>batch count 超出 sanity guard。</li>
+          <li>对象 batch 声明长度与实际读取位数不一致。</li>
+          <li>Reader overflow/underflow。</li>
+          <li>Handle、Owner Handle 或创建依赖非法。</li>
+          <li>在不期待状态数据时收到状态。</li>
+          <li>Huge Object 不完整或内部载荷损坏。</li>
+        </ul>
+        <p>这些路径会向 <code>FNetSerializationContext</code> 设置具体错误并停止继续解析。网络协议最危险的做法不是“报错”，而是吞掉错误后让下一对象从错误位偏移继续读。</p>
+
+        <h2 id="section-07" tabindex="-1">🧩 8.5 ChunkedDataStream（分块数据流）</h2>
+        <h3 id="section-07-01" tabindex="-1">它是实验性的自定义大载荷流</h3>
+        <p>UE 5.7.4 头文件把 <code>UChunkedDataStream</code> 标成 Experimental：用于拆分并承载可能带 exports 的大型 payload。它不是默认自动创建的 <code>Replication</code> 或 <code>NetToken</code> 流。项目要使用它，需要定义匹配的 DataStream、让两端获得同一 StreamIndex，并处理创建、派发和错误后的关闭策略。</p>
+        <div class="fact-strip" aria-label="UE 5.7.4 ChunkedDataStream 当前实现常量">
+          <div><strong>192 B</strong><span>单个 Chunk 的最大 payload</span></div>
+          <div><strong>11 bits</strong><span>线上显式 sequence 位数</span></div>
+          <div><strong>2048</strong><span>最大未确认 chunk 窗口</span></div>
+          <div><strong>10 MiB</strong><span>默认发送队列与未派发接收缓冲上限</span></div>
+        </div>
+        <p>此外，当前发送端为 export payload 预留的临时上限是 512 KiB。以上都是本地 5.7.4 快照的实现值；公开 Setter 可以调整两侧 10 MiB 上限，后续版本也可能改变常量。</p>
+
+        <h3 id="section-07-02" tabindex="-1">Chunk 的线上结构</h3>
+        <div class="packet-layout" aria-label="ChunkedDataStream chunk 布局">
+          <div class="packet-layout__row">
+            <span>HasChunk<br>1 bit</span>
+            <span>InSequence<br>1 bit</span>
+            <span>Sequence<br>11 bits（可选）</span>
+            <span>IsFirst<br>1 bit</span>
+            <span>IsExport<br>1 bit（首块）</span>
+            <span>PartCount<br>Packed（首块）</span>
+            <span>IsFull<br>1 bit</span>
+            <span>PartBytes<br>Packed（可选）</span>
+            <span class="wide">Payload ≤ 192 B</span>
+          </div>
+        </div>
+        <p>连续 sequence 可以省掉显式 11-bit 值；首块携带 PartCount，并把最后一块长度编码在自己的 <code>PartByteCount</code> 字段中，由接收端恢复总大小。每次 WriteData 最后还写一个 false continuation marker，告诉 Reader 当前包没有更多 chunk。</p>
+
+        <h3 id="section-07-03" tabindex="-1">发送端：共享载荷、分块、等待 ACK</h3>
+        <ol>
+          <li><code>EnqueuePayload</code> 检查空载荷和发送缓冲上限；有 PackageMap exports 时先生成 export payload。</li>
+          <li><code>SplitPayload</code> 按 192 字节创建 <code>FDataChunk</code>，分配本地递增 sequence，并让每个 chunk 引用同一个 <code>FSendQueueEntry</code>。</li>
+          <li><code>WriteData</code> 在当前包剩余位中尽量写多个未发送 chunk，把 sequence 加入 <code>DataChunksPendingAck</code>。</li>
+          <li>Record 指针位置被当前实现用来编码本包 chunk 数；回调按数量从 PendingAck 队列处理。</li>
+          <li>Lost 清除对应 sequence 的 Sent 标记，使它重新具备发送资格；Delivered 设置 Acked。</li>
+          <li><code>PopDeliveredChunks</code> 只从队头连续弹出已确认 chunk，保证 exports 在前序数据确认后再正式 acknowledge。</li>
+        </ol>
+        <p><code>HasAcknowledgedAllReliableData</code> 在发送队列为空时才返回 true。可靠性不是“把整份 64 KiB 每次重发”，而是对 chunk sequence 做确认和补缺。</p>
+
+        <h3 id="section-07-04" tabindex="-1">接收端：允许乱序到达，但按序组装</h3>
+        <p>Reader 用 <code>ExpectedSeq</code> 计算收到 sequence 的环形差值，并在 <code>DataChunksPendingAssembly</code> 中为缺口保留位置。只有从 ExpectedSeq 起连续可用的 chunk 才进入载荷组装。遇到新首块时，接收端根据 PartCount 和最后一块大小计算总长度。</p>
+        <div class="state-lane">
+          <span>Seq 40 arrived</span><i>→</i><span>Seq 42 buffered</span><i>→</i><span>Seq 41 arrives</span><i>→</i><span>assemble 40, 41, 42</span>
+        </div>
+        <p>完整 export payload 会先被处理；真正业务 payload 的 <code>DispatchReceivedPayload</code> 还会等待 MustBeMapped 引用可解析。若业务长时间不 Dispatch，累计未派发字节超过上限，Reader 设置错误状态。当前实现公开 <code>HasError</code>，使用者应检测并按流生命周期策略关闭，而不要继续向错误流投递。</p>
+
+        <h3 id="section-07-05" tabindex="-1">64 KiB 载荷怎么算</h3>
+        <div class="formula">
+          <span>解释性案例：不含任何协议头和 exports</span>
+          ChunkCount = ceil(65,536 / 192) = 342<br>
+          341 × 192 = 65,472 bytes<br>
+          LastChunk = 65,536 - 65,472 = 64 bytes
+        </div>
+        <p>假设序列 120–125 在一个包里，其中 123 所在包丢失：已确认 chunk 不需要回到 SendQueue 起点；123 的 Sent 标志清除后重新获得写入机会。真实网络成本还包括 continuation、sequence、首块、长度、DataStream mask、NetExports 和底层包头，不能用 65,536 字节除以 MTU 直接得出最终包数。</p>
+
+        <h3 id="section-07-06" tabindex="-1">不要和 ReplicationWriter 的 Huge Object 混为一谈</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>维度</th><th><code>UChunkedDataStream</code></th><th>ReplicationWriter Huge Object</th></tr></thead>
+          <tbody>
+            <tr><td>入口</td><td>项目显式 <code>EnqueuePayload</code></td><td>复制对象 batch 无法走普通包路径</td></tr>
+            <tr><td>外层</td><td>独立 DataStream</td><td><code>UReplicationDataStream</code> 内部</td></tr>
+            <tr><td>主要结构</td><td>ChunkedDataWriter/Reader、192 B chunk、sequence</td><td>Attachment、HugeObjectSendQueue、Partial NetObject Attachment/NetBlob</td></tr>
+            <tr><td>创建方式</td><td>DataStreamDefinition 与双端流状态</td><td>复制系统内部处理</td></tr>
+            <tr><td>接收 API</td><td>业务调用 <code>DispatchReceivedPayload</code></td><td>Reader 组装后重新解析对象 batch</td></tr>
+            <tr><td>后续深挖</td><td>本节已覆盖基础机制</td><td>第九部分 NetBlob 系统</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-08" tabindex="-1">🎮 一包角色状态的完整旅程</h2>
+        <h3 id="section-08-01" tabindex="-1">场景输入</h3>
+        <p>解释性场景只跟踪两个成员：Health 使用第七部分的 0–1000、0.1 精度模型，字段载荷为 14 bits；Ammo 假设 0–63，字段载荷为 6 bits。实际对象 batch 还包含 Handle、对象头、ChangeMask、条件、创建/销毁信息、对齐和流/包级开销。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>成员</th><th>旧值</th><th>新值</th><th>量化/编码</th><th>ChangeMask</th></tr></thead>
+          <tbody>
+            <tr><td>Health</td><td>100.0</td><td>73.5</td><td>索引 735，14-bit 字段模型</td><td>1</td></tr>
+            <tr><td>Ammo</td><td>30</td><td>29</td><td>6-bit 解释性模型</td><td>1</td></tr>
+            <tr><td>Position</td><td>未变</td><td>未变</td><td>本包不写字段载荷</td><td>0</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-08-02" tabindex="-1">正常到达</h3>
+        <div class="timeline">
+          <article><strong>T0 · Pre-Send Update</strong><p>Poll/Push 发现变化，复制状态被 Copy + Quantize，过滤与优先级完成，ChangeMask 进入逐连接 Writer。</p></article>
+          <article><strong>T1 · Writer BeginWrite</strong><p>对象在 Scope 内且有 dirty state；ScheduleObjects 把它排入本连接本批次。</p></article>
+          <article><strong>T2 · Writer Write</strong><p>对象 batch 写入 Handle、状态标记、ChangeMask、Health 与 Ammo 字段；ReplicationRecord 记住本包状态。</p></article>
+          <article><strong>T3 · Manager</strong><p>Replication 子流成功，Manager 设置对应 DataStreamMask 位并保存子 Record；若 NetToken 同包也有数据，它按自身 StreamIndex 写入。</p></article>
+          <article><strong>T4 · Reader Read</strong><p>接收 Manager 选择 Replication 流；Reader 解析对象 batch，把量化值写入 ReceiveStateBuffer。</p></article>
+          <article><strong>T5 · Dispatch / Apply</strong><p>引用和依赖就绪，Fragment 应用 Health=73.5 与 Ammo=29；随后按 RepNotify 条件调用通知。</p></article>
+          <article><strong>T6 · Delivered</strong><p>包回执沿 Manager Record 返回 Writer，确认本次 in-flight state；相关 ChangeMask 不再因这次发送保持待确认。</p></article>
+        </div>
+
+        <h3 id="section-08-03" tabindex="-1">同一包丢失</h3>
+        <p>客户端没有应用 73.5/29。发送端收到 Lost 后，Writer 恢复需要补达的 mask 并提高丢失状态的调度紧迫度。若此时服务器 Health 又降到 61.0、Ammo 变为 28，下一包可以直接发送 61.0/28；它不是录像回放，不必先还原 73.5/29。</p>
+        <div class="packet-layout" aria-label="对象状态丢包后的收敛">
+          <div class="packet-layout__row">
+            <span>Packet A<br>73.5 / 29</span>
+            <span class="signal">Lost</span>
+            <span>Server latest<br>61.0 / 28</span>
+            <span class="wide">Dirty mask merged + priority bump</span>
+            <span class="wide">Packet B<br>61.0 / 28</span>
+          </div>
+        </div>
+        <p>如果同一包还带可靠 Attachment，它的可靠记录另行重排；非可靠 Attachment 则不会因为状态要补发而自动复活。这正是“一个包、三种语义”的关键。</p>
+
+        <h3 id="section-08-04" tabindex="-1">一张工程决策表</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>业务信息</th><th>推荐建模</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>角色当前生命值</td><td>复制状态</td><td>只需要最终收敛到最新值</td></tr>
+            <tr><td>必须结算一次的购买结果</td><td>可靠 RPC/Attachment + 幂等业务设计</td><td>不能因后续状态覆盖而漏执行</td></tr>
+            <tr><td>每帧瞄准激光效果</td><td>状态或非可靠瞬时数据</td><td>旧帧丢失通常没有补发价值</td></tr>
+            <tr><td>自定义大型比赛初始化文档</td><td>审慎评估 ChunkedDataStream</td><td>需要分块、确认、缓冲和业务 Dispatch</td></tr>
+            <tr><td>单个复制对象 batch 过大</td><td>让 ReplicationWriter Huge Object 路径处理并优化对象状态</td><td>不是手工改投通用 ChunkedDataStream</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-09" tabindex="-1">🧯 故障排查与性能</h2>
+        <h3 id="section-09-01" tabindex="-1">固定排查顺序</h3>
+        <div class="formula">
+          <span>从外层状态逐步走到 Gameplay Apply</span>
+          Connection / Stream State<br>
+          → SendStatus / BeginWrite Result<br>
+          → Scope / Priority / Dirty ChangeMask<br>
+          → Write bits / Packet Record / Delivery Status<br>
+          → Reader Context Error<br>
+          → Handle / Dependency / Reference<br>
+          → Dispatch / Apply / RepNotify
+        </div>
+
+        <h3 id="section-09-02" tabindex="-1">症状速查</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>症状</th><th>优先检查</th><th>常见根因</th><th>不要先做什么</th></tr></thead>
+          <tbody>
+            <tr><td>自定义流从不写</td><td>Definition、StreamState、SendStatus</td><td>两端定义不一致、仍在 WaitOnCreateConfirmation、被 Pause</td><td>先怀疑 Serializer</td></tr>
+            <tr><td>Writer 有 dirty 但包里没有</td><td>连接 Scope、Priority、ReplicationRecord 容量、包位预算</td><td>对象被过滤、预算不足或记录饥饿</td><td>把优先级当成发送保证</td></tr>
+            <tr><td>Lost 后对象长期不同步</td><td>ProcessDeliveryNotification、dirty mask 合并、对象状态</td><td>回执未送达 Writer、连接状态机异常</td><td>手工每帧全量发送</td></tr>
+            <tr><td>Reader 有数据但属性没变</td><td>ObjectsToDispatch、unresolved refs、InstanceProtocol</td><td>依赖未就绪或还没进入 Apply</td><td>只盯抓包 payload</td></tr>
+            <tr><td>属性变化但 RepNotify 不执行</td><td>Fragment trait、Descriptor、RepNotifyCondition、Apply 阶段</td><td>无 HasRepNotifies、OnChanged 值相等或通知路径未到</td><td>声称 Reader 漏调函数</td></tr>
+            <tr><td>Chunked 流 HasError</td><td>未派发字节、sequence、首块/PartCount、MustBeMapped</td><td>业务不 Dispatch、载荷损坏或缓冲超过上限</td><td>继续向错误流塞数据</td></tr>
+            <tr><td>后置流总抢不到空间</td><td>StreamIndex 顺序与各流单次写量</td><td>Manager 无公平份额，前置流消耗剩余容量</td><td>假设 HasMoreData 自动公平轮询</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-09-03" tabindex="-1">性能原则</h3>
+        <ul>
+          <li><strong>先减少候选：</strong>过滤和优先级比在 Writer 末端反复尝试塞不下的对象更有效。</li>
+          <li><strong>控制状态尺寸：</strong>大对象更容易触发回滚、TrySmallObject 或 Huge Object 路径。</li>
+          <li><strong>可靠事件要克制：</strong>可靠队列需要保存记录、等待 ACK 并可能阻塞 Flush/Close。</li>
+          <li><strong>及时消费 Chunked payload：</strong>接收队列是背压边界，不是永久文件缓存。</li>
+          <li><strong>监控最坏情况：</strong>平均包很小不能掩盖创建状态、动态数组或对象引用同时爆发。</li>
+          <li><strong>用 Insights/NetTrace 看真实位数：</strong>字段模型不能替代流头、对象头、exports 与包级统计。</li>
+        </ul>
+
+        <h3 id="section-09-04" tabindex="-1">版本迁移检查</h3>
+        <p>从旧文章或 UE 5.5 迁移到 5.7 时，至少重新检查：Iris 源码根目录、DataStream 虚函数签名、WriteMode、Manager framing、Writer 对 PostTickDispatch 的处理、ChunkSize/sequence 常量、Huge Object 实现和 RepNotify Apply 路径。内部类多在 Private 目录，不能把本文中的私有符号当作项目稳定扩展 API。</p>
+
+        <h2 id="section-10" tabindex="-1">📁 关键源码与官方资料</h2>
+        <h3 id="section-10-01" tabindex="-1">UE 5.7.4 源码索引</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>主题</th><th>关键文件</th><th>本文核对内容</th></tr></thead>
+          <tbody>
+            <tr><td>DataStream 接口</td><td><code>Public/Iris/DataStream/DataStream.h</code></td><td>生命周期、WriteMode、WriteResult、Record 契约、状态</td></tr>
+            <tr><td>Manager</td><td><code>Public/Iris/DataStream/DataStreamManager.h</code><br><code>Private/Iris/DataStream/DataStreamManager.cpp</code></td><td>多流 framing、创建/关闭、SendStatus、反馈分派</td></tr>
+            <tr><td>定义</td><td><code>Private/Iris/DataStream/DataStreamDefinitions.*</code><br><code>Engine/Config/BaseEngine.ini</code></td><td>StreamIndex、默认 Replication/NetToken 流</td></tr>
+            <tr><td>适配层</td><td><code>Private/Iris/ReplicationSystem/ReplicationDataStream.*</code></td><td>DataStream 与 Writer/Reader 转发关系</td></tr>
+            <tr><td>发送</td><td><code>Private/Iris/ReplicationSystem/ReplicationWriter.*</code><br><code>ReplicationRecord.h</code></td><td>调度、batch、回滚、三类投递结果</td></tr>
+            <tr><td>接收</td><td><code>Private/Iris/ReplicationSystem/ReplicationReader.*</code><br><code>DequantizeAndApplyHelper.*</code></td><td>Read、Dispatch、引用、Apply、RepNotify</td></tr>
+            <tr><td>分块流</td><td><code>Public/Iris/ReplicationSystem/ChunkedDataStream/ChunkedDataStream.h</code><br><code>Private/.../ChunkedDataWriter.*</code><br><code>Private/.../ChunkedDataReader.*</code></td><td>192 B chunk、sequence、ACK、组装、缓冲</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-10-02" tabindex="-1">Epic Games 官方资料</h3>
+        <ul>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UDataStream" target="_blank" rel="noopener noreferrer">UDataStream API（UE 5.7）</a>：接口定位、生命周期与函数说明。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UDataStreamManager" target="_blank" rel="noopener noreferrer">UDataStreamManager API（UE 5.7）</a>：活动流管理、创建/关闭与 SendStatus。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UChunkedDataStream" target="_blank" rel="noopener noreferrer">UChunkedDataStream API（UE 5.7）</a>：大载荷队列、派发与缓冲控制接口。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Components of Iris（UE 5.7）</a>：Pre-Send、Send Update、Read 与 Dispatch 总流程。</li>
+        </ul>
+        <p>本地源码快照为非 Promoted UE 5.7.4 分支。公开文档用于确认概念和公共 API，Private 目录中的算法、常量与顺序以该源码快照为准；本文不承诺它们在 5.8 或未来版本保持不变。</p>
+
+        <h3 id="section-10-03" tabindex="-1">本章结论</h3>
+        <ul>
+          <li>DataStream 的核心不是“写字节”，而是写入、读取与未来投递反馈三者闭环。</li>
+          <li>Manager 负责 framing 与协调，不提供通用公平带宽调度。</li>
+          <li>Writer 消费已准备好的逐连接状态，通过回滚和 Record 管理包预算与 in-flight 状态。</li>
+          <li>Reader 将 Read 与 Apply 分离，引用、依赖和 Attachment 顺序都可能推迟 Gameplay 更新。</li>
+          <li>对象状态、可靠 Attachment 和非可靠 Attachment 具有不同丢包语义。</li>
+          <li>ChunkedDataStream 是独立的实验性大载荷流，不是 ReplicationWriter Huge Object 的别名。</li>
+        </ul>
+
+        <h2 id="section-11" tabindex="-1">💡 下一步：NetBlob 系统</h2>
+        <p>下一部分将进入这条传输链上的“特殊包裹”：NetBlob 如何统一 RPC、Attachment 与需要分片的对象载荷，Handler 如何注册和分派，可靠队列、Partial NetObject Attachment 与 Huge Object 又怎样协作。第十部分再单独回到 Baseline 与 Delta Compression。</p>
+        <p><a href="/html-articles/ue5-iris-guide-part-7/">← 回看第七部分：序列化系统</a></p>
+        <p><a href="/html-articles/ue5-iris-guide-outline/">返回系列大纲 →</a></p>
+
+      </article>
+
+      <footer class="article-footer">
+        <p><strong>文章来源：</strong>Jossy Zhang 原创整理。技术依据为本地 Unreal Engine 5.7.4 源码与 Epic Games UE 5.7 官方文档。</p>
+        <p><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UDataStream" target="_blank" rel="noopener noreferrer">Epic Games：UDataStream（UE 5.7）</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UDataStreamManager" target="_blank" rel="noopener noreferrer">UDataStreamManager（UE 5.7）</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/components-of-iris-in-unreal-engine?application_version=5.7" target="_blank" rel="noopener noreferrer">Components of Iris（UE 5.7）</a></p>
+        <a class="back-home" href="/">← 返回博客首页</a>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="返回页面顶部">↑</button>
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const links = Array.from(document.querySelectorAll(".toc a[data-section], .toc-mobile a[data-section]"));
+      const sections = [...new Set(links.map((link) => document.getElementById(link.dataset.section)).filter(Boolean))];
+      const update = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+        const line = Math.min(180, window.innerHeight * .18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= line) activeId = section.id;
+          else break;
+        }
+        links.forEach((link) => {
+          if (link.dataset.section === activeId) link.setAttribute("aria-current", "true");
+          else link.removeAttribute("aria-current");
+        });
+      };
+      window.addEventListener("scroll", update, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      update();
+    })();
+  </script>
+</body>
+</html>

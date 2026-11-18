@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Jossy Zhang">
+  <meta name="description" content="UE5 Iris 网络复制系统技术分析第九部分：基于 Unreal Engine 5.7.4 源码，讲解 NetBlob、NetBlobManager、Handler 类型路由、PartialNetBlob 分片组装、RawData、ShrinkWrap 与 ReliableNetBlobQueue。">
+  <meta name="theme-color" content="#f4f0e7">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2327356f'/%3E%3Cpath d='M18 16h28v8H36v16h10v8H18v-8h10V24H18z' fill='%23f5b18e'/%3E%3C/svg%3E">
+  <link rel="canonical" href="http://zhangga.github.io/html-articles/ue5-iris-guide-part-9/">
+  <title>UE5-Iris 网络复制系统技术分析 - 第九部分：NetBlob 系统 · Jossy Zhang</title>
+  <style>
+    :root {
+      --paper: #f4f0e7;
+      --paper-deep: #e9e1d2;
+      --ink: #19233a;
+      --ink-soft: #4c576e;
+      --line: #cfc5b4;
+      --iris: #3f4fa0;
+      --iris-dark: #27356f;
+      --signal: #d45536;
+      --signal-soft: #f2d6ca;
+      --green: #28765b;
+      --green-soft: #dcebe4;
+      --white: #fffdf8;
+      --shadow: 0 22px 70px rgba(25, 35, 58, 0.11);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+      --sans: "Aptos", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(63, 79, 160, 0.035) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(rgba(63, 79, 160, 0.028) 1px, transparent 1px) 0 0 / 54px 54px,
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: var(--iris); text-decoration-thickness: 1px; text-underline-offset: .2em; }
+    a:hover { color: var(--signal); }
+    a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 5px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 50;
+      width: 0;
+      height: 4px;
+      background: var(--signal);
+      box-shadow: 0 0 16px rgba(212, 85, 54, .42);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 78px max(28px, calc((100vw - 1260px) / 2)) 72px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 79% 18%, rgba(237, 139, 92, .2), transparent 29%),
+        linear-gradient(135deg, #18233d 0%, #253372 53%, #3f4fa0 100%);
+      border-bottom: 8px solid var(--signal);
+    }
+
+    .hero::before {
+      content: "BITS";
+      position: absolute;
+      right: -.04em;
+      bottom: -.39em;
+      color: rgba(255, 255, 255, .045);
+      font: 900 clamp(170px, 27vw, 410px) / 1 var(--sans);
+      letter-spacing: -.085em;
+      pointer-events: none;
+    }
+
+    .hero__inner { position: relative; z-index: 1; max-width: 1060px; }
+    .kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+      color: #d8ddff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .kicker::before { content: ""; width: 43px; height: 2px; background: #f28a62; }
+    .hero h1 {
+      margin: 0;
+      font: 800 clamp(38px, 5.5vw, 76px) / 1.08 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .hero h1 span { display: block; }
+    .hero h1 span + span { margin-top: 11px; color: #f5b18e; font-size: .69em; }
+    .hero__deck {
+      max-width: 900px;
+      margin: 28px 0 0;
+      color: #e5e9ff;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.72;
+    }
+    .hero__meta { display: flex; flex-wrap: wrap; gap: 10px 19px; margin-top: 30px; font-size: 13px; color: #d9def7; }
+    .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero__meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #f28a62; }
+    .hero__meta a { color: #fff; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 300px) minmax(0, 900px);
+      gap: 42px;
+      width: min(1280px, calc(100% - 48px));
+      margin: 48px auto 86px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      background: rgba(255, 253, 248, .9);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 38px rgba(25, 35, 58, .07);
+    }
+    .toc__head { display: flex; justify-content: space-between; align-items: baseline; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+    .toc__head strong { font-family: var(--serif); font-size: 20px; }
+    .toc__head span { color: var(--signal); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+    .toc ol, .toc-mobile ol { list-style: none; margin: 0; padding: 8px 0 13px; }
+    .toc a, .toc-mobile a {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 18px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+      border-left: 3px solid transparent;
+    }
+    .toc a span, .toc-mobile a span { color: #9399ab; font: 700 10px/1.5 var(--mono); }
+    .toc a b, .toc-mobile a b { font-weight: 650; }
+    .toc a:hover, .toc a[aria-current="true"] {
+      color: var(--iris-dark);
+      background: #eef0fb;
+      border-left-color: var(--signal);
+    }
+    .toc a[aria-current="true"] span { color: var(--signal); }
+
+    .article-shell { min-width: 0; }
+    .toc-mobile { display: none; margin-bottom: 22px; background: var(--white); border: 1px solid var(--line); }
+    .toc-mobile summary { padding: 16px 18px; cursor: pointer; color: var(--iris-dark); font-weight: 800; }
+    .source-note {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      padding: 20px 22px;
+      margin-bottom: 26px;
+      background: #e8ebf8;
+      border: 1px solid #bcc3e4;
+      border-top: 4px solid var(--iris);
+    }
+    .source-note__mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      background: var(--iris);
+      font: 800 21px/1 var(--serif);
+    }
+    .source-note p { margin: 0; color: #333e5b; font-size: 14px; line-height: 1.6; }
+    .source-note > a { white-space: nowrap; font-size: 13px; font-weight: 800; }
+
+    article, .article-footer {
+      background: rgba(255, 253, 248, .96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    article { padding: clamp(28px, 5vw, 68px); }
+    article > :first-child { margin-top: 0; }
+    article h2, article h3, article h4 { scroll-margin-top: 25px; color: var(--ink); }
+    article h2 {
+      position: relative;
+      margin: 76px 0 28px;
+      padding: 0 0 16px;
+      font: 800 clamp(27px, 3vw, 39px) / 1.25 var(--serif);
+      letter-spacing: -.02em;
+      border-bottom: 2px solid var(--line);
+    }
+    article h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 86px; height: 4px; background: var(--signal); }
+    article h3 { margin: 46px 0 15px; font: 800 23px/1.35 var(--serif); }
+    article h4 { margin: 30px 0 10px; font-size: 17px; }
+    article p { margin: 0 0 18px; }
+    article ul, article ol { padding-left: 1.35em; }
+    article li { margin: 6px 0; }
+    article strong { color: #15204a; }
+    article hr { margin: 56px 0; border: 0; border-top: 1px solid var(--line); }
+    article blockquote {
+      margin: 25px 0;
+      padding: 21px 24px 21px 28px;
+      color: #2c3854;
+      background: #f0eee7;
+      border-left: 5px solid var(--signal);
+      font-family: var(--serif);
+      font-size: 19px;
+    }
+    code {
+      padding: .12em .34em;
+      color: #303b80;
+      background: #eaecf7;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: .88em;
+    }
+    article p code,
+    article li code,
+    article td code,
+    article blockquote code {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    pre { margin: 0; }
+    article pre {
+      overflow-x: auto;
+      padding: 22px 24px;
+      color: #e7ebff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      font: 14px/1.68 var(--mono);
+      tab-size: 4;
+    }
+    article pre code { padding: 0; color: inherit; background: none; border-radius: 0; font-size: inherit; }
+    .code-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+      padding: 8px 13px;
+      color: #dfe4ff;
+      background: #29355b;
+      border-left: 5px solid var(--signal);
+      font: 700 11px/1.5 var(--mono);
+      letter-spacing: .04em;
+    }
+    .code-label + pre { border-top: 1px solid #455178; }
+    .table-scroll { overflow-x: auto; margin: 25px 0 31px; border: 1px solid var(--line); }
+    table { width: 100%; min-width: 680px; border-collapse: collapse; background: var(--white); font-size: 14px; line-height: 1.55; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-right: 1px solid #ded7ca; border-bottom: 1px solid #ded7ca; }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: #fff; background: var(--iris-dark); font-size: 12px; letter-spacing: .02em; }
+    tbody tr:nth-child(even) { background: #f5f2eb; }
+    .article-callout {
+      margin: 25px 0;
+      padding: 19px 22px;
+      background: var(--signal-soft);
+      border: 1px solid #dfa990;
+      border-left: 6px solid var(--signal);
+    }
+    .article-callout--green { background: var(--green-soft); border-color: #9bc5b4; border-left-color: var(--green); }
+    .article-callout--blue { background: #e8ebf8; border-color: #b8c0e1; border-left-color: var(--iris); }
+    .article-callout > strong { display: block; margin-bottom: 5px; }
+    .article-callout p:last-child { margin-bottom: 0; }
+    .stats, .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 26px 0;
+    }
+    .stat, .card {
+      padding: 19px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--iris);
+    }
+    .stat b { display: block; color: var(--signal); font: 800 30px/1.15 var(--serif); }
+    .stat span { color: var(--ink-soft); font-size: 13px; }
+    .card h4 { margin: 0 0 8px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    .formula {
+      margin: 25px 0;
+      padding: 22px 24px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--iris-dark), var(--iris));
+      border-bottom: 5px solid var(--signal);
+      font: 700 16px/1.8 var(--mono);
+    }
+    .formula span { display: block; color: #f4b79b; }
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin: 27px 0;
+    }
+    .journey div {
+      position: relative;
+      padding: 16px 13px;
+      text-align: center;
+      background: #eceef8;
+      border: 1px solid #c5cae5;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .journey div:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--signal);
+      font-size: 17px;
+    }
+    .bitbar { display: flex; min-width: 660px; height: 54px; margin: 16px 0 8px; color: #fff; font: 700 12px/54px var(--mono); text-align: center; }
+    .bitbar span { display: block; border-right: 2px solid var(--white); }
+    .bitbar .mask { flex: 5; background: #6774bc; }
+    .bitbar .health { flex: 14; background: var(--signal); }
+    .bitbar .ammo { flex: 10; background: var(--green); }
+    .bitbar .other { flex: 20; background: #7b8293; }
+    .badge {
+      display: inline-block;
+      margin: 0 5px 5px 0;
+      padding: 2px 8px;
+      color: var(--iris-dark);
+      background: #e7eaf7;
+      border: 1px solid #bcc3df;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-left: 30px; }
+    .checklist li::before { content: "✓"; position: absolute; left: 0; top: 1px; color: var(--green); font-weight: 900; }
+    .article-footer {
+      margin-top: 28px;
+      padding: 28px 34px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .article-footer p { margin: 0 0 8px; }
+    .back-home { display: inline-block; margin-top: 12px; font-weight: 800; }
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      width: 46px;
+      height: 46px;
+      color: #fff;
+      background: var(--iris-dark);
+      border: 0;
+      box-shadow: 0 9px 28px rgba(25, 35, 58, .22);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: .2s ease;
+    }
+    .back-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: minmax(210px, 250px) minmax(0, 1fr); gap: 26px; width: min(1120px, calc(100% - 30px)); }
+      article { padding: 35px; }
+      .source-note { grid-template-columns: 42px 1fr; }
+      .source-note > a { grid-column: 2; }
+    }
+    @media (max-width: 790px) {
+      body { font-size: 16px; }
+      .hero { padding: 58px 22px 53px; }
+      .hero::before { font-size: 180px; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 25px; }
+      .toc { display: none; }
+      .toc-mobile { display: block; }
+      .toc-mobile a { padding: 8px 18px; }
+      article { padding: 27px 20px; }
+      article h2 { margin-top: 58px; }
+      article h3 { margin-top: 37px; }
+      .source-note { padding: 17px; }
+      .stats, .cards { grid-template-columns: 1fr; }
+      .journey { grid-template-columns: 1fr 1fr; }
+      .journey div:nth-child(2)::after { display: none; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 34px; }
+      .hero__meta { display: grid; }
+      .journey { grid-template-columns: 1fr; }
+      .journey div::after { display: none; }
+      .source-note { display: block; }
+      .source-note__mark { margin-bottom: 12px; }
+      .source-note > a { display: inline-block; margin-top: 10px; white-space: normal; }
+      article pre { padding: 18px 16px; font-size: 12px; }
+      .article-footer { padding: 23px 20px; }
+    }
+
+    .transport-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin: 28px 0;
+      overflow: hidden;
+      color: var(--white);
+      background: #aeb6d5;
+      border: 1px solid #aeb6d5;
+    }
+    .transport-map section {
+      min-width: 0;
+      padding: 22px;
+      background: var(--iris-dark);
+    }
+    .transport-map section:nth-child(2) { background: #344487; }
+    .transport-map section:nth-child(3) { background: #385e75; }
+    .transport-map small {
+      display: block;
+      margin-bottom: 8px;
+      color: #f5b18e;
+      font: 800 11px/1.4 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .transport-map strong { display: block; margin-bottom: 7px; font: 700 20px/1.3 var(--serif); }
+    .transport-map p { margin: 0; color: #e8ebfa; font-size: 14px; line-height: 1.65; }
+
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .branch-card {
+      min-width: 0;
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .branch-card:nth-child(2) { border-top-color: var(--green); }
+    .branch-card:nth-child(3) { border-top-color: var(--signal); }
+    .branch-card strong { display: block; margin-bottom: 7px; font-family: var(--serif); font-size: 19px; }
+    .branch-card p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+
+    .state-lane {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 23px 0;
+      padding: 18px;
+      background: #e8ebf8;
+      border: 1px solid #b8c0e1;
+    }
+    .state-lane span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 6px 10px;
+      color: var(--iris-dark);
+      background: var(--white);
+      border: 1px solid #bac2e0;
+      font: 700 12px/1.35 var(--mono);
+    }
+    .state-lane i { color: var(--signal); font-style: normal; font-weight: 900; }
+
+    .packet-layout {
+      margin: 24px 0;
+      padding: 20px;
+      color: #eef1ff;
+      background: #18233d;
+      border-left: 6px solid var(--signal);
+      overflow-x: auto;
+    }
+    .packet-layout__row {
+      display: flex;
+      width: max-content;
+      min-width: 100%;
+      gap: 3px;
+    }
+    .packet-layout__row + .packet-layout__row { margin-top: 7px; }
+    .packet-layout span {
+      display: grid;
+      place-items: center;
+      min-width: 112px;
+      min-height: 54px;
+      padding: 8px 10px;
+      color: #f5f7ff;
+      background: #344487;
+      border: 1px solid #5969ad;
+      text-align: center;
+      font: 700 11px/1.45 var(--mono);
+    }
+    .packet-layout span.wide { min-width: 190px; background: #2e5a6f; border-color: #4f8198; }
+    .packet-layout span.signal { background: #7d3c30; border-color: #bd6c55; }
+
+    .timeline {
+      position: relative;
+      margin: 27px 0;
+      padding-left: 30px;
+      border-left: 3px solid #b7bfdf;
+    }
+    .timeline article {
+      position: relative;
+      padding: 0 0 22px 9px;
+      background: transparent;
+      box-shadow: none;
+      border: 0;
+    }
+    .timeline article:last-child { padding-bottom: 0; }
+    .timeline article::before {
+      content: "";
+      position: absolute;
+      left: -39px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 0 5px var(--paper);
+    }
+    .timeline strong { display: block; color: var(--iris-dark); }
+    .timeline p { margin: 3px 0 0; color: var(--ink-soft); }
+
+    .fact-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 24px 0;
+    }
+    .fact-strip div {
+      padding: 17px 14px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+    .fact-strip strong { display: block; color: var(--signal); font: 800 25px/1.15 var(--mono); }
+    .fact-strip span { display: block; margin-top: 7px; color: var(--ink-soft); font-size: 12px; line-height: 1.45; }
+
+    @media (max-width: 850px) {
+      .transport-map, .branch-grid { grid-template-columns: 1fr; }
+      .fact-strip { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .fact-strip { grid-template-columns: 1fr; }
+      .state-lane { align-items: stretch; }
+      .state-lane span { width: 100%; overflow-wrap: anywhere; }
+      .state-lane i { align-self: center; transform: rotate(90deg); }
+    }
+
+
+    .hero::before { content: "BLOB"; }
+    .wire-layout {
+      margin: 25px 0;
+      padding: 20px;
+      overflow-x: auto;
+      color: #eef1ff;
+      background: #18233d;
+      border-left: 6px solid var(--signal);
+    }
+    .wire-layout__row {
+      display: flex;
+      gap: 3px;
+      width: max-content;
+      min-width: 100%;
+    }
+    .wire-layout span {
+      display: grid;
+      place-items: center;
+      min-width: 112px;
+      min-height: 58px;
+      padding: 8px 11px;
+      color: #f7f8ff;
+      background: #344487;
+      border: 1px solid #5969ad;
+      text-align: center;
+      font: 700 11px/1.45 var(--mono);
+    }
+    .wire-layout span.tiny { min-width: 78px; background: #7d3c30; border-color: #bd6c55; }
+    .wire-layout span.wide { min-width: 205px; background: #2e5a6f; border-color: #4f8198; }
+    .type-tree {
+      margin: 25px 0;
+      padding: 22px 24px;
+      overflow-x: auto;
+      color: #e8ecff;
+      background: #172039;
+      border-left: 5px solid var(--signal);
+      font: 700 13px/1.75 var(--mono);
+      white-space: pre;
+    }
+    .route-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 25px 0;
+    }
+    .route-grid section {
+      min-width: 0;
+      padding: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--iris);
+    }
+    .route-grid section:nth-child(even) { border-top-color: var(--green); }
+    .route-grid strong { display: block; margin-bottom: 7px; font-family: var(--serif); font-size: 19px; }
+    .route-grid p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+    .queue-window {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(58px, 1fr));
+      gap: 4px;
+      width: 100%;
+      min-width: 0;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+    .queue-window span {
+      display: grid;
+      place-items: center;
+      min-height: 55px;
+      padding: 7px;
+      color: #fff;
+      background: #344487;
+      border: 1px solid #6675ba;
+      text-align: center;
+      font: 700 10px/1.35 var(--mono);
+    }
+    .queue-window .acked { background: var(--green); border-color: #55a183; }
+    .queue-window .lost { background: #8a4133; border-color: #c4755f; }
+    .queue-window .pending { color: var(--ink); background: #e7eaf7; border-color: #bcc3df; }
+    .boundary-note {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin: 22px 0;
+      padding: 17px 19px;
+      background: #f0eee7;
+      border: 1px dashed #bdb3a1;
+    }
+    .boundary-note b {
+      flex: 0 0 auto;
+      padding: 2px 8px;
+      color: #fff;
+      background: var(--signal);
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+    .boundary-note p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+    @media (max-width: 790px) {
+      .route-grid { grid-template-columns: 1fr; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <header class="hero hero--part" id="top">
+    <div class="hero__inner">
+      <p class="kicker">Unreal Engine 5.7.4 · Iris Replication System</p>
+      <h1>
+        <span>UE5-Iris 网络复制系统技术分析</span>
+        <span>第九部分：NetBlob 系统</span>
+      </h1>
+      <p class="hero__deck">沿一份“命中事件附件”从 Type 与 Flags、Manager 排队、Handler 路由，走到可靠窗口、Partial 分片、丢包重发与接收组装；同时把普通状态、可靠事件和不可靠 Ordered 数据的边界拆清。</p>
+      <div class="hero__meta" aria-label="文章信息">
+        <span>作者 Jossy Zhang</span>
+        <span>发布 2026-07-24</span>
+        <span>基于 Unreal Engine 5.7.4</span>
+        <span>9.1–9.5 · 源码与测试核对</span>
+        <span><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetBlob" target="_blank" rel="noopener noreferrer">FNetBlob API ↗</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" aria-label="文章目录">
+      <div class="toc__head"><strong>内容索引</strong><span>CONTENTS</span></div>
+      <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第九部分导读</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>🗺️ NetBlob 端到端总览</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>🧱 9.1 NetBlob 概述</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>🧭 9.2 NetBlobManager</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>🧩 9.3 NetBlobHandler 体系</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>✂️ 9.4 Blob 分片与组装</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>📦 9.5 特殊类型与可靠队列</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>🎮 命中事件的完整旅程</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>🧯 故障排查与工程取舍</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>📁 源码与资料索引</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>💡 总结与下一步</b></a></li>
+      </ol>
+    </aside>
+
+    <main class="article-shell">
+      <details class="toc-mobile">
+        <summary>展开文章目录 · 11 个章节</summary>
+        <ol>
+        <li><a href="#section-01" data-section="section-01"><span>01</span><b>🎯 第九部分导读</b></a></li>
+        <li><a href="#section-02" data-section="section-02"><span>02</span><b>🗺️ NetBlob 端到端总览</b></a></li>
+        <li><a href="#section-03" data-section="section-03"><span>03</span><b>🧱 9.1 NetBlob 概述</b></a></li>
+        <li><a href="#section-04" data-section="section-04"><span>04</span><b>🧭 9.2 NetBlobManager</b></a></li>
+        <li><a href="#section-05" data-section="section-05"><span>05</span><b>🧩 9.3 NetBlobHandler 体系</b></a></li>
+        <li><a href="#section-06" data-section="section-06"><span>06</span><b>✂️ 9.4 Blob 分片与组装</b></a></li>
+        <li><a href="#section-07" data-section="section-07"><span>07</span><b>📦 9.5 特殊类型与可靠队列</b></a></li>
+        <li><a href="#section-08" data-section="section-08"><span>08</span><b>🎮 命中事件的完整旅程</b></a></li>
+        <li><a href="#section-09" data-section="section-09"><span>09</span><b>🧯 故障排查与工程取舍</b></a></li>
+        <li><a href="#section-10" data-section="section-10"><span>10</span><b>📁 源码与资料索引</b></a></li>
+        <li><a href="#section-11" data-section="section-11"><span>11</span><b>💡 总结与下一步</b></a></li>
+        </ol>
+      </details>
+
+      <div class="source-note" role="note">
+        <span class="source-note__mark" aria-hidden="true">据</span>
+        <p><strong>技术依据</strong>本文为 Jossy Zhang 根据系列大纲扩写的原创技术整理，以本地 Unreal Engine 5.7.4 源码快照、ReplicationSystemTestPlugin 测试和 Epic Games UE 5.7 官方文档为准。Private 实现和当前默认值在升级版本时需要重新验证。</p>
+        <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UE__Net__ENetBlobFlags" target="_blank" rel="noopener noreferrer">查看 Flags API ↗</a>
+      </div>
+
+      <article>
+        <h2 id="section-01" tabindex="-1">🎯 第九部分导读：状态之外，还有一次性“附件”</h2>
+        <p>前八部分已经把一条普通复制状态走通了：<code>Health</code> 和 <code>Ammo</code> 经过脏标记、过滤、优先级、量化、Writer 与 DataStream，最终在接收端 Apply。状态复制的目标是<strong>收敛到最新值</strong>；如果中间值丢失，后来的新状态往往可以直接覆盖它。</p>
+        <p>但网络游戏还有另一类信息：一次命中确认、一条可靠操作结果、一份绑定到某个对象的自定义附件，或者一个大到无法塞进当前包预算的对象载荷。这些信息不能简单地解释为“某个属性的新值”。Iris 用 <strong>NetBlob</strong> 表示这类有类型、可序列化、可路由的数据单元；当它面向特定复制对象时，则使用 <code>FNetObjectAttachment</code> 这一分支。</p>
+
+        <div class="branch-grid">
+          <div class="branch-card"><strong>普通复制状态</strong><p><code>Health: 100 → 73.5</code>。目标是最终收敛，Lost 后可以发送更新后的最新状态。</p></div>
+          <div class="branch-card"><strong>可靠 Attachment</strong><p>命中结算、购买结果等必须按顺序到达的事件。等待 ACK，Lost 后保留并重新调度。</p></div>
+          <div class="branch-card"><strong>不可靠 Ordered</strong><p>需要和有序事件保持相对次序，但载荷只尝试发送一次；丢失不会升级成可靠事件。</p></div>
+        </div>
+
+        <blockquote>NetBlob 不是第三条底层网络通道。它最终仍进入逐连接 Attachment 队列、ReplicationWriter 和第八部分的 ReplicationDataStream。</blockquote>
+
+        <div class="article-callout article-callout--blue">
+          <strong>本文边界</strong>
+          <p>RPC 是 NetObjectAttachment 的重要实例，但 RPC 参数反序列化、目标函数查找和执行上下文留到第十四部分；对象引用解析留到第十二部分；Delta/Baseline 留到第十部分。本章只在这些系统与 NetBlob 的交接点停留。</p>
+        </div>
+
+        <h3 id="section-01-01" tabindex="-1">阅读后应该能回答什么</h3>
+        <ul class="checklist">
+          <li><code>Type</code> 怎样让接收端找到正确 Handler？</li>
+          <li><code>Reliable</code>、<code>Ordered</code>、<code>HasExports</code> 与 <code>RawDataNetBlob</code> 分别控制什么？</li>
+          <li>为什么 CreationInfo 的所有 Flags 并不会原样出现在网络位流中？</li>
+          <li>Manager、HandlerManager 和逐连接 Attachment 队列如何分工？</li>
+          <li>大附件如何拆成 <code>FPartialNetBlob</code>，又如何恢复原始 Blob？</li>
+          <li><code>FReliableNetBlobQueue</code> 为什么既能承载可靠 Blob，也能维持不可靠 Ordered 数据的顺序？</li>
+          <li>ShrinkWrap 到底优化了什么，为什么它不是压缩算法？</li>
+        </ul>
+
+        <h2 id="section-02" tabindex="-1">🗺️ NetBlob 的端到端总览</h2>
+        <p>先把组件放回完整路径。游戏层或引擎桥接层创建 Blob，Manager 负责对象校验、连接选择与预处理；真正进入包预算后，AttachmentReplication 和 Writer 负责排队、序列化与投递记录；接收端依据 Type 创建实例，等待有序条件和分片完整，再交给原 Handler。</p>
+
+        <div class="transport-map">
+          <section><small>CREATE</small><strong>类型与目标</strong><p><code>FNetBlobCreationInfo</code> 给出 Type/Flags；<code>FNetObjectAttachment</code> 绑定队列 owner 与实际 target。</p></section>
+          <section><small>ROUTE &amp; QUEUE</small><strong>Manager / Handler</strong><p>Manager 校验连接和对象、选择单播/多播；HandlerManager 维护 Type 到处理器的运行时映射。</p></section>
+          <section><small>WRITE &amp; RECEIVE</small><strong>可靠队列 / Writer</strong><p>Ordered 数据进入序列窗口，必要时先分片；Writer 写包，投递反馈驱动 ACK、重发和释放。</p></section>
+        </div>
+
+        <div class="journey" aria-label="NetBlob 端到端路径">
+          <div>Create Blob</div>
+          <div>Queue Attachment</div>
+          <div>PreSerialize</div>
+          <div>Split if needed</div>
+          <div>Reliable / Unreliable Queue</div>
+          <div>ReplicationWriter</div>
+          <div>Create by Type</div>
+          <div>Assemble + Dispatch</div>
+        </div>
+
+        <div class="code-label"><span>解释性流程 · 不是逐行源码</span><span>UE 5.7.4</span></div>
+        <pre><code>Game event / custom payload
+  → Handler creates FNetBlob(Type, Flags)
+  → QueueNetObjectAttachment(ConnectionId, TargetRef, Attachment)
+  → Manager validates root/subobject and connection
+  → PreSerializeAndSplitNetBlob()
+  → per-connection FNetObjectAttachmentSendQueue
+  → ReplicationWriter writes Attachment record
+  → packet Delivered / Lost / Discard
+  → receiver deserializes CreationInfo
+  → FNetBlobHandlerManager::CreateNetBlob(Type)
+  → ordered receive queue / FNetBlobAssembler
+  → Handler::OnNetBlobReceived()</code></pre>
+
+        <h3 id="section-02-01" tabindex="-1">三层“管理器”不要混为一谈</h3>
+        <div class="route-grid">
+          <section><strong>FNetBlobManager</strong><p>面向 ReplicationSystem：创建默认 Handler、校验对象目标、处理连接和单播/多播附件，并把数据送到对应 Writer。</p></section>
+          <section><strong>FNetBlobHandlerManager</strong><p>面向类型：根据 Handler Definitions 的索引分配 Type，负责创建接收 Blob 与最终 Handler 路由。</p></section>
+          <section><strong>FNetObjectAttachmentSendQueue</strong><p>面向某连接/对象：按可靠、有序或普通不可靠语义排队，生成提交记录并接收包投递结果。</p></section>
+          <section><strong>UDataStreamManager</strong><p>属于第八部分的外层传输协调：它管理 Replication 等 DataStream，不理解每种 NetBlob 的业务类型。</p></section>
+        </div>
+
+        <h2 id="section-03" tabindex="-1">🧱 9.1 NetBlob 概述</h2>
+        <h3 id="section-03-01" tabindex="-1">CreationInfo：Type 决定“谁来读”，Flags 决定“怎么送”</h3>
+        <p><code>FNetBlobCreationInfo</code> 只有两个字段：<code>FNetBlobType Type</code> 与 <code>ENetBlobFlags Flags</code>。Type 是 Handler Definitions 数组索引；Flags 则由类型和发送语义共同决定。<code>InvalidNetBlobType</code> 使用全 1 的 <code>uint32</code>，表示尚未注册或无效。</p>
+
+        <div class="table-scroll"><table>
+          <thead><tr><th>Flag</th><th>UE 5.7.4 语义</th><th>工程提醒</th></tr></thead>
+          <tbody>
+            <tr><td><code>Reliable</code></td><td>可靠送达，并相对于其他可靠 Blob 保序；语义上隐含 Ordered。</td><td>进入可靠/有序队列，等待 ACK；不要用于可以自然过期的高频效果。</td></tr>
+            <tr><td><code>RawDataNetBlob</code></td><td>标识 RawData 派生路径，分片和组装可以直接处理位缓冲。</td><td>是内部优化提示，不等于“任意大文件传输”。</td></tr>
+            <tr><td><code>HasExports</code></td><td>Blob 含可能需要导出的对象引用或 NetToken。</td><td>发送队列会把 exports 加入当前 ExportContext；解析细节属于对象引用章节。</td></tr>
+            <tr><td><code>Ordered</code></td><td>相对于其他 Ordered Blob（含 Reliable）保持顺序；不可靠 Ordered 本体只发送一次。</td><td>“有序”不是“可靠”的同义词。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-03-02" tabindex="-1">线上 CreationInfo 没有把所有 Flags 原样复制</h3>
+        <p>UE 5.7.4 的 <code>FNetBlob::SerializeCreationInfo</code> 对 Type 做零值优化：先写 1 bit 表示 Type 是否非零，非零时再写 7 bits；随后只保留并写入 <code>Reliable</code> 这一位。因此当前 Handler 数量必须小于 128。</p>
+
+        <div class="wire-layout" aria-label="CreationInfo 位布局">
+          <div class="wire-layout__row">
+            <span class="tiny">Type != 0<br>1 bit</span>
+            <span>Type<br>7 bits（可选）</span>
+            <span class="tiny">Reliable<br>1 bit</span>
+            <span class="wide">具体 Blob payload</span>
+          </div>
+        </div>
+
+        <p><code>RawDataNetBlob</code>、<code>HasExports</code> 和 <code>Ordered</code> 并不是由这个基类函数统一写入。接收端 Handler 创建具体类型时，可以依据类型本身恢复静态 Flags；例如当前 NetRPC 接收构造会根据函数特征恢复 Ordered。自定义类型若需要额外 CreationInfo，必须自己设计对称的序列化，而不能假设 <code>Flags</code> 整数被整块传输。</p>
+
+        <div class="article-callout">
+          <strong>准确表述</strong>
+          <p>Type 的 7-bit 编码和 128 个 Handler 上限是 UE 5.7.4 当前协议实现，不应写成跨版本永久保证。Handler Type 还是运行时分配值，同一类型在不同配置顺序下可能得到不同索引。</p>
+        </div>
+
+        <h3 id="section-03-03" tabindex="-1">FNetBlob 类型树</h3>
+        <div class="type-tree" role="img" aria-label="NetBlob 类型关系">FNetBlob
+├─ FNetObjectAttachment        // 面向一个复制对象的附件基类
+├─ FPartialNetBlob             // 已拆分载荷的一片
+├─ FRawDataNetBlob             // 原始位缓冲
+├─ FShrinkWrapNetBlob          // 发送端预序列化包装
+└─ FShrinkWrapNetObjectAttachment
+
+支撑组件（不是 FNetBlob 子类）
+├─ FNetBlobManager
+├─ FNetBlobHandlerManager
+├─ FNetBlobAssembler
+└─ FReliableNetBlobQueue</div>
+
+        <p><code>FNetBlob</code> 自身支持两种实现方式：一种是给它设置 <code>FReplicationStateDescriptor</code> 与量化状态缓冲，让基类按 Descriptor 序列化；另一种是派生类覆写 <code>Serialize</code>/<code>Deserialize</code>。若对象 Handle 已由外层写过，可以走 <code>SerializeWithObject</code>/<code>DeserializeWithObject</code> 避免重复编码目标。</p>
+        <p>Blob 使用侵入式引用计数；构造时引用计数为 0，由 <code>TRefCountPtr</code> 等持有者管理生命周期。析构时如果量化状态含动态数据，基类会按 Descriptor 释放，不能把量化缓冲当普通 POD 内存随意复制。</p>
+
+        <h3 id="section-03-04" tabindex="-1">FNetObjectAttachment：队列 owner 与实际 target</h3>
+        <p>Attachment 保存两个引用：<code>NetObjectReference</code> 表示负责承载/排队的复制对象，<code>TargetObjectReference</code> 表示真正应用附件的对象。当目标是未直接复制的嵌套对象时，Manager 可以寻找已复制 outer 作为承载者，同时保留真实 target。外层已写入 owner Handle 时，Attachment 只需额外编码 subobject/target 信息。</p>
+
+        <h2 id="section-04" tabindex="-1">🧭 9.2 NetBlobManager</h2>
+        <h3 id="section-04-01" tabindex="-1">Manager 的真实职责</h3>
+        <p><code>FNetBlobManager</code> 属于 ReplicationSystem 内部协调层。初始化时取得连接集合、<code>FNetRefHandleManager</code>、对象引用缓存和服务端/客户端角色；随后注册默认 Handler，并初始化一份跨连接的待处理 Attachment 队列。</p>
+
+        <div class="cards">
+          <div class="card"><h4>对象校验</h4><p>解析 root/subobject 索引；目标本身未复制时尝试已复制 outer。无效目标或无法解析的 outer 会拒绝排队。</p></div>
+          <div class="card"><h4>连接选择</h4><p>支持指定 ConnectionId 的单播，也维护多播入队当时仍开放的连接集合，避免后来关闭连接收到旧事件。</p></div>
+          <div class="card"><h4>预处理</h4><p>按连接特定序列化需求，预序列化附件、复用 ShrinkWrap 缓冲或拆成多个 PartialNetBlob。</p></div>
+        </div>
+
+        <h3 id="section-04-02" tabindex="-1">默认 Handler：当前源码快照的三项</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Handler</th><th>用途</th><th>本章深度</th></tr></thead>
+          <tbody>
+            <tr><td><code>UNetRPCHandler</code></td><td>创建和接收 NetRPC Attachment。</td><td>只说明它是默认注册实例；完整 RPC 留给第十四部分。</td></tr>
+            <tr><td><code>UPartialNetObjectAttachmentHandler</code></td><td>预序列化并拆分过大的 NetObjectAttachment。</td><td>本章重点。</td></tr>
+            <tr><td><code>UNetObjectBlobHandler</code></td><td>支撑过大复制对象批次等内部 Blob 路径。</td><td>用于说明 Huge Object 交接点，不展开 Writer 内部格式。</td></tr>
+          </tbody>
+        </table></div>
+        <p>默认定义还出现在 Engine 配置中，但本地 <code>BaseEngine.ini</code> 在任务开始前已有用户修改。本文把 <code>RegisterDefaultHandlers</code> 的代码意图与配置定义交叉核对，不把某个项目覆盖项写成跨项目永久默认。</p>
+
+        <h3 id="section-04-03" tabindex="-1">QueueNetObjectAttachment 的校验路径</h3>
+        <ol>
+          <li>空 Attachment 直接失败。</li>
+          <li>连接 ID 无效时当前实现记录警告并丢弃，随后返回 true；这里的 true 表示调用已被消费，不等于远端收到。</li>
+          <li>先把 Target 当作 owner 和 target，尝试解析 root/subobject。</li>
+          <li>Target 是有效引用但自身没有复制 Handle 时，向外寻找已复制 outer 作为承载 owner。</li>
+          <li>调用 <code>SetNetObjectReference</code> 保存 owner/target，然后进入单播或多播待处理队列。</li>
+        </ol>
+
+        <div class="boundary-note"><b>边界</b><p>Manager 只把附件送到逐连接 Writer 队列。真正的包预算、提交记录、ACK、Lost 和重发发生在 AttachmentReplication 与 ReplicationWriter 中。</p></div>
+
+        <h3 id="section-04-04" tabindex="-1">Scope 阶段与发送策略</h3>
+        <p>普通待处理队列会先建立上下文，再分别处理对象即将离开 Scope 和仍在 Scope 的条目。OOB 队列有独立准备路径，用于尽快尝试发送不可靠附件。策略 Flags 是调度提示，而不是新的可靠性协议。</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>策略</th><th>当前语义</th><th>限制</th></tr></thead>
+          <tbody>
+            <tr><td><code>None</code></td><td>走普通 Attachment 调度路径。</td><td>是否与对象同写还受 ReplicationSystem 配置影响。</td></tr>
+            <tr><td><code>ScheduleAsOOB</code></td><td>进入 Out-of-Band 路径，尽早尝试发送。</td><td>源码注释明确：只对不可靠 Attachment 有效。</td></tr>
+            <tr><td><code>SendInPostTickDispatch</code></td><td>提示连接在 PostTickDispatch 阶段写入相关 OOB 数据。</td><td>不是保证立刻获得包容量。</td></tr>
+            <tr><td><code>SendImmediate</code></td><td><code>ScheduleAsOOB | SendInPostTickDispatch</code> 的组合。</td><td>“立即”仍受连接、队列与位预算约束。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-04-05" tabindex="-1">多播为什么可能每个连接重新序列化</h3>
+        <p>若 Attachment Descriptor 带 <code>HasConnectionSpecificSerialization</code>，同一多播事件不能盲目复用一份位缓冲：Manager 会按 ConnectionId 重新预序列化与分片。没有连接特定序列化时，ShrinkWrap 可以把原始 Blob 序列化一次后复用，节省 CPU；这不代表所有多播都必然走 ShrinkWrap，也不代表网络位数被压缩。</p>
+
+        <h2 id="section-05" tabindex="-1">🧩 9.3 NetBlobHandler 体系</h2>
+        <h3 id="section-05-01" tabindex="-1">一个 Handler 负责一种 Type</h3>
+        <p><code>INetBlobReceiver</code> 定义两个入口：<code>CreateNetBlob(CreationInfo)</code> 与 <code>OnNetBlobReceived(Context, Blob)</code>。<code>UNetBlobHandler</code> 实现这一接口，并要求派生类负责创建自己能理解的 Blob，以及处理已经反序列化完成的实例。</p>
+        <p><code>FNetBlobHandlerManager</code> 则是类型交换机：注册时按 Definitions 数组查找类名，把数组索引写入 Handler 的 <code>NetBlobType</code>；接收时用 Type 索引找到 Handler，先创建实例，再在完整数据到达后投递。</p>
+
+        <div class="state-lane">
+          <span>Definition[2]<br>ClassName</span><i>→</i>
+          <span>RegisterHandler</span><i>→</i>
+          <span>NetBlobType = 2</span><i>→</i>
+          <span>wire Type = 2</span><i>→</i>
+          <span>Create + Route</span>
+        </div>
+
+        <h3 id="section-05-02" tabindex="-1">Type 是运行时索引，不是稳定资产 ID</h3>
+        <p>Handler 的 API 注释明确指出：Type 在运行时决定，不同运行可能不同。当前 Manager 初始化还检查 Definitions 数量小于 128，因为非零 Type 只占 7 bits。由此得到三条工程规则：</p>
+        <ul>
+          <li>收发两端必须使用一致的 Definitions 顺序和 Handler 类集合。</li>
+          <li>不要把 Type 数字写入存档、配置资产或业务协议，当成长期稳定 ID。</li>
+          <li>自定义 Handler 只有类名出现在 Definitions 中，且实例确实注册到 ReplicationSystem，才获得有效 Type。</li>
+        </ul>
+
+        <h3 id="section-05-03" tabindex="-1">创建与投递的错误边界</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>阶段</th><th>失败条件</th><th>UE 5.7.4 行为</th></tr></thead>
+          <tbody>
+            <tr><td>Register</td><td>空 Handler、重复注册、类名未出现在 Definitions。</td><td>返回 false；缺定义时输出 Warning。</td></tr>
+            <tr><td>Create</td><td>Type 越界、该槽位没有 Handler、Handler 创建失败。</td><td>返回空 Blob；上层反序列化路径通常设置 <code>UnsupportedNetBlob</code>。</td></tr>
+            <tr><td>Dispatch</td><td>Blob 无效、Type 越界或 Handler 缺失。</td><td>越界设置错误；缺 Handler 记录 Warning 并停止投递。</td></tr>
+            <tr><td>Deserialize</td><td>Handler 创建的实例无法消费对端 payload。</td><td>Serialization Context 进入错误或 overflow，不能继续信任后续位流。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-05-04" tabindex="-1">自定义 Handler 的最小检查清单</h3>
+        <div class="code-label"><span>概念性伪代码 · 需在项目中自行编译验证</span><span>Custom Handler</span></div>
+        <pre><code>// 1. 定义 Blob：选择 Descriptor 状态或对称覆写 Serialize/Deserialize
+class FHitEventBlob : public FNetObjectAttachment { ... };
+
+// 2. 定义 Handler：创建同一 Type 的实例并处理完整 Blob
+class UHitEventBlobHandler : public UNetBlobHandler
+{
+    CreateNetBlob(CreationInfo);
+    OnNetBlobReceived(Context, Blob);
+};
+
+// 3. 双端 Engine 配置加入同一 ClassName、同一顺序
++NetBlobHandlerDefinitions=(ClassName=HitEventBlobHandler)
+
+// 4. 双端构造并调用 RegisterNetBlobHandler
+// 5. 发送前确认目标 FNetObjectReference 可解析
+// 6. OnNetBlobReceived 先检查 Context，再执行业务幂等/去重策略</code></pre>
+
+        <div class="article-callout article-callout--green">
+          <strong>逐连接生命周期的 5.7.4 细节</strong>
+          <p><code>AddConnection</code> 当前会遍历已注册 Handler 并调用其回调；本地快照中的 <code>FNetBlobHandlerManager::RemoveConnection</code> 函数体为空。自定义 Handler 不应未经核对就假定 Add/Remove 一定完全对称，升级版本时也要重新检查。</p>
+        </div>
+
+        <h2 id="section-06" tabindex="-1">✂️ 9.4 Blob 分片与组装</h2>
+        <h3 id="section-06-01" tabindex="-1">什么时候进入 Partial 路径</h3>
+        <p><code>UPartialNetObjectAttachmentHandler</code> 会先把原 Attachment 写入一个临时位缓冲。如果在阈值内成功，就生成发送端 ShrinkWrap 包装或直接复用；如果临时 Writer overflow，则退回 <code>USequentialPartialNetBlobHandler</code>，按最大 Part 位数重新序列化并拆分。</p>
+
+        <div class="fact-strip">
+          <div><strong>128 B</strong><span><code>MaxPartBitCount = 128 × 8</code></span></div>
+          <div><strong>4096</strong><span>当前类默认最大 Part 数</span></div>
+          <div><strong>512 KiB</strong><span>两者推导的理论默认总载荷</span></div>
+          <div><strong>192 B</strong><span>可靠载荷默认 split threshold</span></div>
+        </div>
+
+        <p>这些都是 UE 5.7.4 类默认值，可以被 Engine 或项目配置覆盖。可靠阈值默认为 <code>(128 + 64) × 8</code> bits；不可靠阈值还按方向区分：客户端默认 850 bytes，服务端默认 256 bytes。阈值高于单片载荷，是因为分片本身有序列、首片和 payload 长度开销。</p>
+
+        <div class="article-callout">
+          <strong>512 KiB 不是推荐业务上限</strong>
+          <p>它只是 <code>128 B × 4096</code> 的类默认理论值。<code>FRawDataNetBlob</code> 的 API 注释明确不鼓励发送需要分片/组装的巨大 Blob；真实限制还包括可靠预队列、连接包预算、exports、内存峰值和延迟。</p>
+        </div>
+
+        <h3 id="section-06-02" tabindex="-1">一片 PartialNetBlob 写了什么</h3>
+        <p>UE 5.7.4 没有单独的“末片标志”。每片写 packed SequenceNumber；随后写 1 bit 的 IsFirst。只有首片继续写 <code>PartCount - 1</code> 和原始 CreationInfo。每片最后写 packed PayloadBitCount 与 payload。末片由首片的 PartCount 和连续 sequence 推导。</p>
+
+        <div class="wire-layout" aria-label="PartialNetBlob 位布局">
+          <div class="wire-layout__row">
+            <span>SequenceNumber<br>Packed uint32</span>
+            <span class="tiny">IsFirst<br>1 bit</span>
+            <span>PartCount - 1<br>Packed uint16<br>（仅首片）</span>
+            <span>Original Type + Reliable<br>（仅首片）</span>
+            <span>PayloadBitCount<br>Packed uint16</span>
+            <span class="wide">Payload ≤ 当前 MaxPartBitCount</span>
+          </div>
+        </div>
+
+        <p>分片器从进程内全局递增序列号中一次预留整个序列。首片还负责携带原 Blob 的对象引用与 NetToken exports；后续片只携带自己的 payload。所有非末片期望和首片 payload 大小一致，末片可以更小。</p>
+
+        <h3 id="section-06-03" tabindex="-1">解释性 3500-bit 案例</h3>
+        <div class="formula">
+          <span>假设已经得到 3500-bit 的纯载荷，不含 Partial 协议开销</span>
+          PartSize = 1024 bits<br>
+          PartCount = ceil(3500 / 1024) = 4<br>
+          Payloads = 1024 + 1024 + 1024 + 428 bits
+        </div>
+        <p>真实业务 Blob 在拆分前还要执行自身序列化，因此属性描述、对象引用、函数参数或自定义头都会影响最终 PartCount。这个计算只用于说明按位切片，不代表 3500-bit Gameplay 结构一定恰好得到四片。</p>
+
+        <div class="packet-layout" aria-label="PartialNetBlob 序列">
+          <div class="packet-layout__row">
+            <span>Seq 900<br>First<br>PartCount=4</span>
+            <span class="signal">Seq 901<br>Lost</span>
+            <span>Seq 902<br>Buffered</span>
+            <span>Seq 903<br>Buffered</span>
+            <span class="wide">Seq 901 resend<br>→ Assemble 900…903</span>
+          </div>
+        </div>
+
+        <h3 id="section-06-04" tabindex="-1">Assembler 的顺序与错误规则</h3>
+        <ol>
+          <li>第一片建立原始 CreationInfo、RefHandle、首片大小和预期末序列；新的首片会覆盖此前未完成的非可靠组装上下文。</li>
+          <li>后续片必须使用同一 RefHandle，sequence 必须连续。</li>
+          <li>PartCount 不能为 0，也不能超过接收端当前配置。</li>
+          <li>首片 payload 不能超过 <code>MaxPartBitCount</code>；中间片必须与首片等长，只有末片可更短。</li>
+          <li>可靠序列断裂会把 Serialization Context 置为错误；不可靠断裂可以放弃当前序列并等待后续新首片。</li>
+          <li>所有片到齐后，Assembler 按原 Type 调用 HandlerManager 创建原始 Blob。</li>
+          <li>RawData 类型直接接管组装缓冲；其他类型创建子 BitReader，执行原 Blob 的 Deserialize。</li>
+          <li>反序列化后消费位数必须与组装位数一致，否则设置 BitStreamError。</li>
+        </ol>
+
+        <h3 id="section-06-05" tabindex="-1">与 UChunkedDataStream 的边界</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>维度</th><th>PartialNetBlob</th><th>UChunkedDataStream</th></tr></thead>
+          <tbody>
+            <tr><td>外层</td><td>ReplicationDataStream 内部的 Attachment/NetBlob 路径。</td><td>独立 DataStream。</td></tr>
+            <tr><td>目标</td><td>恢复原始 Blob 或对象附件。</td><td>向业务派发自定义 payload。</td></tr>
+            <tr><td>默认单片</td><td>类默认 128 bytes payload。</td><td>第八部分核对为 192 bytes chunk。</td></tr>
+            <tr><td>序列</td><td>Packed uint32 全局 sequence，首片给 PartCount。</td><td>自身 11-bit 环形 sequence 与 chunk 格式。</td></tr>
+            <tr><td>ACK</td><td>通过 Attachment 的 ReliableNetBlobQueue 和 Writer Record。</td><td>ChunkedDataStream 自己维护 Sent/Acked。</td></tr>
+            <tr><td>创建</td><td>由默认 Partial Handler 和复制系统内部路径使用。</td><td>需要 DataStream Definition 和两端流生命周期。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-07" tabindex="-1">📦 9.5 特殊 Blob 类型与可靠队列</h2>
+        <h3 id="section-07-01" tabindex="-1">FRawDataNetBlob：已经序列化好的位缓冲</h3>
+        <p><code>FRawDataNetBlob</code> 适合无状态、已经写入位流的任意数据。它保存 <code>TArray&lt;uint32&gt;</code> 和有效 bit 数；无论外层是否提供 RefHandle，序列化都只是写 packed bit count 和原始位流。构造函数自动增加 <code>RawDataNetBlob</code> Flag。</p>
+        <p>分片时无需再次调用复杂对象 Serializer；组装时也可把聚合缓冲直接 Move 给新的 RawData Blob。这是 CPU 与内存拷贝路径优化，不是对“巨大 Blob 是好设计”的背书。</p>
+
+        <h3 id="section-07-02" tabindex="-1">ShrinkWrap：减少重复序列化，不减少位数</h3>
+        <p><code>FShrinkWrapNetBlob</code> 和 <code>FShrinkWrapNetObjectAttachment</code> 持有原 Blob、已经序列化的位缓冲以及 NetToken exports。发送到多个目标时，外层可以序列化一次，然后反复走优化的 <code>WriteBitStream</code>。</p>
+        <div class="state-lane">
+          <span>Original Blob</span><i>→</i>
+          <span>Serialize once</span><i>→</i>
+          <span>Serialized buffer</span><i>→</i>
+          <span>Connection A / B / C</span>
+        </div>
+        <p>接收端并不会创建 ShrinkWrap 类型；wire 上仍使用原 CreationInfo，接收 Handler 创建原 Blob 并直接消费这段位流。启用 NetTrace 时，为了得到正确跟踪信息，发送端当前实现会回退到序列化原 Blob，而不是使用缓存缓冲。</p>
+
+        <h3 id="section-07-03" tabindex="-1">FReliableNetBlobQueue：为什么不是“只装可靠 Blob”</h3>
+        <p>这个类的名字强调它提供可靠、有序交付能力，但 Attachment 发送队列会把带 <code>Reliable | Ordered</code> 任一 Flag 的 Blob 放入它。因此它既管理可靠 Blob，也管理不可靠 Ordered Blob 的序列位置。</p>
+
+        <div class="fact-strip">
+          <div><strong>1024</strong><span><code>MaxUnackedBlobCount</code></span></div>
+          <div><strong>10 bits</strong><span>窗口索引与 record sequence number</span></div>
+          <div><strong>6 bits</strong><span>每段 Count，单段最多 63</span></div>
+          <div><strong>4 段</strong><span>每个本地 ReplicationRecord 的离散序列数</span></div>
+        </div>
+
+        <p>“四段离散序列”允许同一个包同时重发若干缺口并发送新 Blob。这里的 <code>FReplicationRecord</code> 是发送端交给投递反馈的本地记录；位流本身在遇到不连续 sequence 时还会显式写 10-bit 窗口索引。</p>
+
+        <div class="wire-layout" aria-label="ReliableNetBlobQueue 记录结构">
+          <div class="wire-layout__row">
+            <span>Sequence 0<br>Number 10<br>Count 6</span>
+            <span>Sequence 1<br>Number 10<br>Count 6</span>
+            <span>Sequence 2<br>Number 10<br>Count 6</span>
+            <span>Sequence 3<br>Number 10<br>Count 6</span>
+            <span class="wide">64-bit local delivery record</span>
+          </div>
+        </div>
+
+        <h3 id="section-07-04" tabindex="-1">Commit、Delivered、Lost 与 Discard</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>时点</th><th>可靠 Blob</th><th>不可靠 Ordered Blob</th></tr></thead>
+          <tbody>
+            <tr><td>Commit</td><td>标记 Sent，保留 Blob 引用等待 ACK。</td><td>标记 Sent，并立即释放 payload 引用，保证不会重发事件本体。</td></tr>
+            <tr><td>Delivered</td><td>标记 Acked、释放引用，并从队头连续推进窗口。</td><td>序列槽同样可以被确认并推进。</td></tr>
+            <tr><td>Lost</td><td>清除 Sent、增加 unsent，后续重新序列化载荷。</td><td>槽位重新变为 unsent，但载荷已释放；后续可写“无数据”序列标记让接收端越过缺口。</td></tr>
+            <tr><td>Discard</td><td colspan="2">当前 ReliableNetBlobQueue 把它当 Delivered 清理；它不是普通网络丢包重发。</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="queue-window" aria-label="可靠发送窗口示意">
+          <span class="acked">#210<br>Acked</span>
+          <span class="acked">#211<br>Acked</span>
+          <span class="lost">#212<br>Lost</span>
+          <span>#213<br>Sent</span>
+          <span class="pending">#214<br>Unsent</span>
+          <span class="pending">#215<br>Unsent</span>
+          <span class="pending">…</span>
+          <span class="pending">Window<br>1024</span>
+        </div>
+
+        <p>发送窗口之外还有 <code>FReliableSendQueue</code> 的 PreQueue。当前 <code>net.ReliableRPCQueueSize</code> 默认 4096，用于容纳超过 1024 窗口的拆分附件；测试覆盖了 <code>1024 + 3</code> 个分片在正常和丢包条件下最终完整到达。这个 CVar 可调，不应与 1024 的固定窗口数组混为一谈。</p>
+
+        <h3 id="section-07-05" tabindex="-1">类型与组件选择表</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>需求</th><th>合适构件</th><th>不要误用</th></tr></thead>
+          <tbody>
+            <tr><td>普通最新状态</td><td>Replication State + ChangeMask。</td><td>为每次属性变化创建可靠 Blob。</td></tr>
+            <tr><td>绑定对象的可靠事件</td><td>可靠 <code>FNetObjectAttachment</code> 派生类型。</td><td>假设可靠传输能替代业务幂等。</td></tr>
+            <tr><td>只需一次、但需相对有序</td><td>不可靠 <code>Ordered</code> Attachment。</td><td>把 Ordered 当成 Reliable。</td></tr>
+            <tr><td>已有位流</td><td><code>FRawDataNetBlob</code>。</td><td>当作无限大文件通道。</td></tr>
+            <tr><td>多目标重复序列化昂贵</td><td>ShrinkWrap 预序列化包装。</td><td>期待它压缩网络 bit 数。</td></tr>
+            <tr><td>单个 Attachment 超过包预算</td><td>PartialNetObjectAttachmentHandler。</td><td>手工套用 ChunkedDataStream 格式。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="section-08" tabindex="-1">🎮 命中事件附件的完整旅程</h2>
+        <h3 id="section-08-01" tabindex="-1">场景输入：状态和事件并行</h3>
+        <p>服务器判定一次射击命中。角色 <code>Health</code> 从 100 变为 73.5、<code>Ammo</code> 从 30 变为 29——这两项继续走普通状态复制。与此同时，项目需要向一个观察客户端发送自定义“命中事件附件”，其中包含攻击者、受击部位、服务器判定时间和解释性回放元数据。</p>
+        <div class="branch-grid">
+          <div class="branch-card"><strong>Health / Ammo</strong><p>允许跳过中间态，只要客户端最终收敛到服务器最新值。</p></div>
+          <div class="branch-card"><strong>小型可靠命中事件</strong><p>单个 Blob 可放入包，依靠 reliable queue 等待确认。</p></div>
+          <div class="branch-card"><strong>大型可靠附件</strong><p>预序列化 overflow 后拆为 Partial；所有片完整才投递原 Handler。</p></div>
+        </div>
+
+        <h3 id="section-08-02" tabindex="-1">小型可靠附件</h3>
+        <div class="timeline">
+          <article><strong>T0 · Handler 创建</strong><p>自定义 Handler 用自己的运行时 Type 创建 Attachment，并设置 Reliable。</p></article>
+          <article><strong>T1 · Manager 校验</strong><p>目标对象可解析，ConnectionId 有效；Manager 保存 owner/target 并进入普通队列。</p></article>
+          <article><strong>T2 · PreSerialize</strong><p>载荷低于可靠 split threshold，预序列化成功，不需要 Partial。</p></article>
+          <article><strong>T3 · Writer Commit</strong><p>可靠队列分配 sequence，Writer 把 CreationInfo 与 payload 写入包，提交本地 ReplicationRecord。</p></article>
+          <article><strong>T4 · Receiver Create</strong><p>接收端读取 Type 与 Reliable，HandlerManager 创建对应 Blob，反序列化 payload。</p></article>
+          <article><strong>T5 · Dispatch + ACK</strong><p>有序队头允许处理，调用自定义 Handler；发送端收到 Delivered 后释放记录并推进窗口。</p></article>
+        </div>
+
+        <h3 id="section-08-03" tabindex="-1">大型可靠附件：缺一片就等，但不重发全部</h3>
+        <p>假设附件分成 sequence 900–903，901 所在包丢失，900、902、903 已到。接收端可靠队列不能越过 901 把同一原 Blob 组装完成；发送端收到 Lost 后只清除该记录覆盖 sequence 的 Sent 位。已经 Delivered 的片保持 Acked，后续包重发缺口并可同时携带新 sequence。</p>
+        <div class="state-lane">
+          <span>900 Acked</span><i>→</i>
+          <span>901 Lost</span><i>→</i>
+          <span>902/903 retained</span><i>→</i>
+          <span>901 retransmit</span><i>→</i>
+          <span>Assemble once</span>
+        </div>
+        <p>ReplicationSystemTestPlugin 的 <code>TestSplitBlobIsReceivedDespitePacketLoss</code> 会在第二个包附近制造连续丢包，确认原 Handler 在完整恢复前调用次数为 0，恢复后恰好收到一次。另一个测试验证超过 1024 窗口的 <code>MaxUnackedBlobCount + 3</code> 个分片也可借助 PreQueue 分批送完。</p>
+
+        <h3 id="section-08-04" tabindex="-1">不可靠 Ordered：事件本体只试一次</h3>
+        <p>如果相同附件只设置 Ordered 而不设置 Reliable，它仍进入有序窗口，从而不会越过更早的可靠/Ordered 数据。但包一旦 Commit，payload 引用立即释放。若包 Lost，队列只能补写“该序列无数据”的标记以推进远端序列，不能重新产生原事件内容。</p>
+        <p>这正是“Ordered 不是 Reliable”的实现证据：它保护相对顺序，不保护载荷最终到达。业务若必须精确执行一次，还需要可靠传输之外的事件 ID、去重、幂等与服务器权威校验。</p>
+
+        <h3 id="section-08-05" tabindex="-1">与普通状态同时丢包</h3>
+        <p>若同一网络包还带着 <code>Health=73.5</code> 和 <code>Ammo=29</code>，包 Lost 后两条链分别处理：对象状态重新合并 dirty mask，下一包可以直接发送更新后的最新状态；可靠命中 Attachment 则保持自己的 sequence 和 payload 等待重发。一个包可以承载多种语义，但不能用一种重试策略解释全部数据。</p>
+
+        <h2 id="section-09" tabindex="-1">🧯 故障排查与工程取舍</h2>
+        <h3 id="section-09-01" tabindex="-1">固定排查顺序</h3>
+        <div class="formula">
+          <span>从类型契约走到最终业务处理</span>
+          Handler Definitions / Type mapping<br>
+          → TargetRef / replicated outer / ConnectionId<br>
+          → Manager queue / Scope / SendPolicy<br>
+          → PreSerialize / ShrinkWrap / Partial<br>
+          → Reliable window / PreQueue / Packet Record<br>
+          → CreateNetBlob / Deserialize<br>
+          → sequence / assembler / Context error<br>
+          → OnNetBlobReceived
+        </div>
+
+        <h3 id="section-09-02" tabindex="-1">症状速查</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>症状</th><th>优先检查</th><th>常见原因</th><th>错误直觉</th></tr></thead>
+          <tbody>
+            <tr><td>注册返回 false</td><td>Handler 类名、Definitions 顺序、是否重复注册。</td><td>类名不在 Definitions，或实例已有有效 Type。</td><td>手工写一个 Type 数字绕过注册。</td></tr>
+            <tr><td>UnsupportedNetBlob</td><td>接收端 Type 范围、Handler 槽位和 Create 返回值。</td><td>双端定义不一致、接收 Handler 缺失、原类型无法恢复。</td><td>继续解析后续 payload。</td></tr>
+            <tr><td>Queue 返回但远端没收到</td><td>ConnectionId、TargetRef、outer、返回语义和日志。</td><td>无效连接被消费并丢弃；目标无法解析；对象状态不适合发送。</td><td>把 true 当作 ACK。</td></tr>
+            <tr><td>可靠附件长期不前进</td><td>FirstSeq/LastSeq、Sent/Acked、窗口与 PreQueue。</td><td>ACK 未返回、Lost 回调丢失、窗口已满、包容量始终不足。</td><td>无限扩大可靠队列。</td></tr>
+            <tr><td>不可靠 Ordered 事件消失</td><td>是否只有 Ordered、Commit 后 payload 是否释放。</td><td>这是设计语义：只发送一次。</td><td>认为“进了 ReliableNetBlobQueue 就一定可靠”。</td></tr>
+            <tr><td>Partial 无法组装</td><td>首片、sequence、RefHandle、PartCount、payload size。</td><td>首片缺失、可靠序列断裂、配置不一致或位数不匹配。</td><td>跳过缺片直接拼接后续片。</td></tr>
+            <tr><td>ShrinkWrap 没省带宽</td><td>序列化 CPU 与 wire bits 分开测量。</td><td>ShrinkWrap 复用位缓冲，但不压缩 payload。</td><td>把名称理解成压缩包装。</td></tr>
+            <tr><td>PostTickDispatch 仍没立刻发</td><td>OOB 是否不可靠、连接是否有预算和待发送包。</td><td>发送策略只是调度提示，仍受网络写入条件约束。</td><td>把 SendImmediate 当同步发送函数。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-09-03" tabindex="-1">安全与错误上下文</h3>
+        <ul>
+          <li>Type 越界、无法创建 Blob、bitstream overflow、Partial 断序或消费位数不一致后，立即检查 <code>Context.HasErrorOrOverflow()</code>。</li>
+          <li>不要在错误 Context 上继续读取“下一个 Blob”；位边界已经不可再信任。</li>
+          <li>对网络输入恢复出的 payload 做业务层长度、枚举、对象权限和速率校验，Handler Type 正确不等于内容可信。</li>
+          <li>可靠到达不等于业务 exactly-once；重连、应用层重试和服务器回滚仍需要事件 ID 与幂等。</li>
+        </ul>
+
+        <h3 id="section-09-04" tabindex="-1">性能取舍</h3>
+        <ul>
+          <li><strong>少用可靠高频事件：</strong>可靠窗口和 PreQueue 都持有状态，缺口会延迟后续 Ordered 数据。</li>
+          <li><strong>优先缩小 Blob：</strong>512 KiB 理论分片上限不应成为内容设计目标。</li>
+          <li><strong>多播先看连接特定序列化：</strong>能安全复用时才用预序列化缓冲；不能复用时按连接计算。</li>
+          <li><strong>区分 CPU 和带宽：</strong>ShrinkWrap 优化重复序列化，量化/压缩才可能减少 bit 数。</li>
+          <li><strong>看 NetTrace 与队列指标：</strong>跟踪序列缺口、ReliableWindowFull、分片数量和每帧 OOB 丢弃，而不是只看平均包大小。</li>
+        </ul>
+
+        <h2 id="section-10" tabindex="-1">📁 关键源码与官方资料</h2>
+        <h3 id="section-10-01" tabindex="-1">UE 5.7.4 源码索引</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>主题</th><th>关键文件</th><th>本文核对内容</th></tr></thead>
+          <tbody>
+            <tr><td>核心 Blob</td><td><code>Public/Iris/ReplicationSystem/NetBlob/NetBlob.h</code><br><code>Private/.../NetBlob.cpp</code></td><td>CreationInfo、Flags、Type 位布局、Descriptor 与对象附件。</td></tr>
+            <tr><td>Manager</td><td><code>Private/.../NetBlobManager.h/.cpp</code><br><code>ReplicationSystemTypes.h</code></td><td>目标校验、默认 Handler、单播/多播、OOB 与 PostTickDispatch。</td></tr>
+            <tr><td>Handler</td><td><code>NetBlobHandler.h/.cpp</code><br><code>NetBlobHandlerManager.h/.cpp</code><br><code>NetBlobHandlerDefinitions.h/.cpp</code></td><td>Type 注册、创建、路由、错误与双端一致性。</td></tr>
+            <tr><td>Partial</td><td><code>PartialNetBlob.h/.cpp</code><br><code>SequentialPartialNetBlobHandler.h/.cpp</code><br><code>PartialNetObjectAttachmentHandler.h/.cpp</code></td><td>阈值、分片格式、exports 与默认值。</td></tr>
+            <tr><td>Assembler</td><td><code>NetBlobAssembler.h/.cpp</code></td><td>顺序、RefHandle、尺寸校验、RawData 快路径和错误传播。</td></tr>
+            <tr><td>特殊类型</td><td><code>RawDataNetBlob.h/.cpp</code><br><code>ShrinkWrapNetBlob.h/.cpp</code></td><td>原始位流与预序列化复用。</td></tr>
+            <tr><td>可靠队列</td><td><code>ReliableNetBlobQueue.h/.cpp</code><br><code>AttachmentReplication.h/.cpp</code></td><td>1024 窗口、四段记录、Ordered、不可靠队列与投递反馈。</td></tr>
+            <tr><td>自动化测试</td><td><code>Tests/ReplicationSystem/NetBlob/TestPartialNetBlob.cpp</code><br><code>TestReliableNetBlobQueue.cpp</code></td><td>分片组装、断序、丢包恢复和超过窗口的发送。</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="section-10-02" tabindex="-1">Epic Games UE 5.7 官方资料</h3>
+        <ul>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetBlob" target="_blank" rel="noopener noreferrer">FNetBlob API</a>：基类、序列化入口、Descriptor 状态与派生类型。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetBlobCreationInfo" target="_blank" rel="noopener noreferrer">FNetBlobCreationInfo API</a>：Type、Flags 与“Flags 不会自动序列化”的边界。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UE__Net__ENetBlobFlags" target="_blank" rel="noopener noreferrer">ENetBlobFlags API</a>：Reliable、RawData、HasExports 与 Ordered。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UNetBlobHandler" target="_blank" rel="noopener noreferrer">UNetBlobHandler API</a>：一种 Handler 负责一种 Blob，以及双端配置/注册要求。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FPartialNetBlob" target="_blank" rel="noopener noreferrer">FPartialNetBlob API</a>：分片结构与 SplitNetBlob。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetBlobAssembler" target="_blank" rel="noopener noreferrer">FNetBlobAssembler API</a>：按顺序添加分片并组装。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FRawDataNetBlob" target="_blank" rel="noopener noreferrer">FRawDataNetBlob API</a>：原始位缓冲与巨大 Blob 警告。</li>
+          <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FReliableNetBlobQueue" target="_blank" rel="noopener noreferrer">FReliableNetBlobQueue API</a>：可靠、有序交付辅助队列。</li>
+        </ul>
+        <p>官方 API 页面用于确认公共类型和契约；Type 位编码、Manager 调度、队列记录和 Partial 错误分支属于 Private 实现，以本地 UE 5.7.4 快照为准。本文不承诺它们在 UE 5.8 或未来版本保持不变。</p>
+
+        <h3 id="section-10-03" tabindex="-1">本章要点回顾</h3>
+        <ul>
+          <li>NetBlob 是有类型的可序列化数据单元；对象附件是它面向复制对象的分支。</li>
+          <li>Type 由 Definitions 顺序在运行时分配，收发两端必须一致。</li>
+          <li>基类 CreationInfo 位流只统一编码 Type 和 Reliable；其他 Flags 由具体类型恢复或处理。</li>
+          <li>Manager 负责对象和连接层组织，HandlerManager 负责类型创建与路由，Attachment 队列负责顺序和投递记录。</li>
+          <li>PartialNetBlob 使用首片 PartCount 与连续 sequence，没有单独末片标志。</li>
+          <li>RawData 是位缓冲快路径，ShrinkWrap 是重复序列化优化，ReliableQueue 是支撑组件而非 Blob 子类。</li>
+          <li>Reliable 与 Ordered 不同：不可靠 Ordered 保护相对顺序，但不保证事件本体最终到达。</li>
+        </ul>
+
+        <h2 id="section-11" tabindex="-1">💡 下一步：Delta Compression 与 Baseline</h2>
+        <p>NetBlob 解决了“有类型的事件/附件怎样被创建、路由、排队和分片”。下一部分回到状态复制的带宽核心：Iris 如何选择 Baseline、怎样只写相对差异、ACK/Lost 如何影响 Baseline 有效性，以及什么时候 Delta 的位收益值得它的内存和 CPU 成本。</p>
+        <p><a href="/html-articles/ue5-iris-guide-part-8/">← 回看第八部分：数据流与传输</a></p>
+        <p><a href="/html-articles/ue5-iris-guide-outline/">返回系列大纲 →</a></p>
+      </article>
+
+      <footer class="article-footer">
+        <p><strong>文章来源：</strong>Jossy Zhang 根据《UE5 Iris 网络复制系统技术分析指南》大纲原创扩写。技术依据为本地 Unreal Engine 5.7.4 源码、ReplicationSystemTestPlugin 自动化测试与 Epic Games UE 5.7 官方文档。</p>
+        <p><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FNetBlob" target="_blank" rel="noopener noreferrer">Epic Games：FNetBlob</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/UNetBlobHandler" target="_blank" rel="noopener noreferrer">UNetBlobHandler</a> · <a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/IrisCore/FPartialNetBlob" target="_blank" rel="noopener noreferrer">FPartialNetBlob</a></p>
+        <a class="back-home" href="/">← 返回博客首页</a>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="返回页面顶部">↑</button>
+  <script>
+    (() => {
+      const progress = document.querySelector(".reading-progress");
+      const backTop = document.querySelector(".back-top");
+      const links = Array.from(document.querySelectorAll(".toc a[data-section], .toc-mobile a[data-section]"));
+      const sections = [...new Set(links.map((link) => document.getElementById(link.dataset.section)).filter(Boolean))];
+      const update = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        progress.style.width = (ratio * 100).toFixed(2) + "%";
+        backTop.classList.toggle("is-visible", window.scrollY > 900);
+        const line = Math.min(180, window.innerHeight * .18);
+        let activeId = sections[0]?.id || "";
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= line) activeId = section.id;
+          else break;
+        }
+        links.forEach((link) => {
+          if (link.dataset.section === activeId) link.setAttribute("aria-current", "true");
+          else link.removeAttribute("aria-current");
+        });
+      };
+      window.addEventListener("scroll", update, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      update();
+    })();
+  </script>
+</body>
+</html>
